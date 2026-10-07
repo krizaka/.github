@@ -33,16 +33,29 @@ request crosses a deterministic interceptor pipeline to the best local model. La
 <img src="assets/orochia-logo.svg" alt="Orochia" width="96">
 
 **Creators get paid. Every cent, exactly once.**
-The creator video platform: direct-to-CDN 4K streaming, server-side access control,
-gateway-confirmed payments on a double-entry ledger, built-in 18+ compliance.
+The creator video platform: direct-to-CDN 4K streaming, audiences the creator chooses (followers,
+contacts, paid unlock, invited people and private lists), collections, gateway-confirmed payments on a
+double-entry ledger, built-in 18+ compliance.
 
-[Repository](https://github.com/krizaka/orochia) · [Docs](https://www.krizaka.com/en/products/orochia/docs) · [Video tour](https://www.krizaka.com/en/products/orochia#tour)
+[Try it](https://dev.orochia.com) · [Repository](https://github.com/krizaka/orochia) · [Docs](https://www.krizaka.com/en/products/orochia/docs) · [Video tour](https://www.krizaka.com/en/products/orochia#tour)
 
 </td>
 </tr>
 </table>
 
 <p align="center"><img src="assets/orochia-tour.gif" alt="Orochia, recorded on the latest build" width="720"></p>
+
+## Start here
+
+| You want to… | Go to |
+| :--- | :--- |
+| **See the products** | [krizaka.com/products](https://www.krizaka.com/en/products) · Orochia running: [dev.orochia.com](https://dev.orochia.com) |
+| **Run Orochia locally** | [`krizaka/orochia`](https://github.com/krizaka/orochia) — `npm run setup && npm run dev` (Node ≥ 20, Docker) |
+| **Run Orazaka locally** | [`krizaka/orazaka`](https://github.com/krizaka/orazaka) — clones every component; the [`orazaka` CLI](https://github.com/krizaka/orazaka-cli) does install → start → dev |
+| **Understand the architecture** | [Orazaka, interactive](https://www.krizaka.com/en/products/orazaka/architecture) · [Orochia docs](https://www.krizaka.com/en/products/orochia/docs) |
+| **Contribute** | [Contributing](https://github.com/krizaka/.github/blob/main/CONTRIBUTING.md) · good first issues in each repository · [Code of conduct](https://github.com/krizaka/.github/blob/main/CODE_OF_CONDUCT.md) |
+| **Report a vulnerability** | Privately — [Security policy](https://github.com/krizaka/.github/blob/main/SECURITY.md) |
+| **Talk to the team** | [krizaka.com/contact](https://www.krizaka.com/en/contact) · GitHub Discussions in each product repository |
 
 ## Pick only what you need
 
@@ -59,6 +72,15 @@ billing on its own. Clone everything at once with [`krizaka/orazaka`](https://gi
 | Content | [`orazaka-packs`](https://github.com/krizaka/orazaka-packs) |
 | Orochia | [`orochia`](https://github.com/krizaka/orochia) · [`orochia-admin`](https://github.com/krizaka/orochia-admin) · [`orochia-design-system`](https://github.com/krizaka/orochia-design-system) |
 | Site | [`krizaka-com`](https://github.com/krizaka/krizaka-com) |
+
+## How we work
+
+- **One contract per product.** Every repository carries an `AGENTS.md` — the rules its code must keep
+  (architecture, security, compliance) — that humans and AI agents follow alike.
+- **Documentation generated from the code.** API contracts, database references and architecture maps
+  are extracted from the sources and published on [krizaka.com](https://www.krizaka.com); they cannot drift.
+- **Tested on every commit.** Unit, architecture (ArchUnit) and end-to-end suites run in CI; a release
+  never starts on an older database schema.
 
 Everything is **Apache-2.0**, built and tested on every commit, documented from the code.
 
