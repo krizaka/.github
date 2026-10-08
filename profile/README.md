@@ -71,7 +71,22 @@ billing on its own. Clone everything at once with [`krizaka/orazaka`](https://gi
 | Applications | [`orazaka-web-client`](https://github.com/krizaka/orazaka-web-client) · [`orazaka-web-admin`](https://github.com/krizaka/orazaka-web-admin) · [`orazaka-mobile-client`](https://github.com/krizaka/orazaka-mobile-client) · [`orazaka-cli`](https://github.com/krizaka/orazaka-cli) |
 | Content | [`orazaka-packs`](https://github.com/krizaka/orazaka-packs) |
 | Orochia | [`orochia`](https://github.com/krizaka/orochia) · [`orochia-admin`](https://github.com/krizaka/orochia-admin) · [`orochia-design-system`](https://github.com/krizaka/orochia-design-system) |
+| Shared | [`krizaka-ui`](https://github.com/krizaka/krizaka-ui) — the brand layer every product builds on |
 | Site | [`krizaka-com`](https://github.com/krizaka/krizaka-com) |
+
+## Packages on npm
+
+Every interface is built from layers published on the public npm registry — no account or token to install,
+each release built in CI with provenance.
+
+| Package | What it is |
+| :--- | :--- |
+| [![@krizaka/ui](https://img.shields.io/npm/v/@krizaka/ui?label=%40krizaka%2Fui&color=3b82f6)](https://www.npmjs.com/package/@krizaka/ui) | The brand layer: animated marks of Krizaka, Orazaka and Orochia, and the Krizaka motion signature |
+| [![@krizaka/orochia-design-system](https://img.shields.io/npm/v/@krizaka/orochia-design-system?label=%40krizaka%2Forochia-design-system&color=d946ef)](https://www.npmjs.com/package/@krizaka/orochia-design-system) | Orochia's kit — the components of the Orochia apps, on Tailwind CSS v4 |
+| [![@krizaka/orazaka-design-system](https://img.shields.io/npm/v/@krizaka/orazaka-design-system?label=%40krizaka%2Forazaka-design-system&color=f59e0b)](https://www.npmjs.com/package/@krizaka/orazaka-design-system) | Orazaka's kit — React components, theme and icon registry of the web clients |
+| [![@krizaka/orazaka-shared](https://img.shields.io/npm/v/@krizaka/orazaka-shared?label=%40krizaka%2Forazaka-shared&color=b45309)](https://www.npmjs.com/package/@krizaka/orazaka-shared) | Orazaka's contracts — TypeScript types, Zod schemas and design tokens |
+
+[All packages →](https://www.npmjs.com/org/krizaka) · [How they fit together](https://www.krizaka.com/en/open-source#packages)
 
 ## How we work
 
@@ -79,6 +94,8 @@ billing on its own. Clone everything at once with [`krizaka/orazaka`](https://gi
   (architecture, security, compliance) — that humans and AI agents follow alike.
 - **Documentation generated from the code.** API contracts, database references and architecture maps
   are extracted from the sources and published on [krizaka.com](https://www.krizaka.com); they cannot drift.
+- **Shared UI is a package, never a copy.** Brand marks, motion and each product's kit are released on npm and
+  imported by the apps; a change lands in the package first.
 - **Tested on every commit.** Unit, architecture (ArchUnit) and end-to-end suites run in CI; a release
   never starts on an older database schema.
 
