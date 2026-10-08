@@ -34,8 +34,8 @@ request crosses a deterministic interceptor pipeline to the best local model. La
 
 **Creators get paid. Every cent, exactly once.**
 The creator video platform: direct-to-CDN 4K streaming, audiences the creator chooses (followers,
-contacts, paid unlock, invited people and private lists), collections, gateway-confirmed payments on a
-double-entry ledger, built-in 18+ compliance.
+contacts, paid unlock, invited people and private lists), live video auctions with bids escrowed in credits,
+collections, gateway-confirmed payments on a double-entry ledger, built-in 18+ compliance.
 
 [Try it](https://dev.orochia.com) · [Repository](https://github.com/krizaka/orochia) · [Docs](https://www.krizaka.com/en/products/orochia/docs) · [Video tour](https://www.krizaka.com/en/products/orochia#tour)
 
