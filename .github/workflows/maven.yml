@@ -1,0 +1,110 @@
+# The pipeline of every Krizaka JVM repository published to Maven Central (com.krizaka).
+#
+# A repository's own .github/workflows/ci.yml calls it:
+#
+#   jobs:
+#     maven:
+#       uses: krizaka/.github/.github/workflows/maven.yml@main
+#       with:
+#         upstreams: "krizaka-build krizaka-platform-kit"   # repositories built first, in order
+#       secrets: inherit
+#
+# verify — on every push and pull request: the upstream Krizaka repositories are built from their
+#   default branch, then this one is verified with the `release` profile and no signature: tests,
+#   integration tests, formatting, AND the sources and javadoc jars Central requires. A javadoc
+#   error is found the day it is written, not on release day.
+#
+# release — on a v* tag only: the version is taken from the tag (v0.1.0 → 0.1.0) for this
+#   repository and for its Krizaka parent, every artifact is signed (OpenPGP, Bouncy Castle — no gpg
+#   binary) and uploaded to the Central Portal. The parent POM keeps autoPublish=false, so the
+#   deployment is validated and then WAITS in central.sonatype.com for a human to press Publish:
+#   a release on Central can never be deleted.
+#
+# Organisation secrets it reads (never stored in a repository):
+#   MAVEN_CENTRAL_USERNAME / MAVEN_CENTRAL_PASSWORD   Central Portal user token (server id `central`)
+#   MAVEN_GPG_KEY                                     ASCII-armoured private signing key
+#   MAVEN_GPG_PASSPHRASE                              its passphrase
+name: maven
+
+on:
+  workflow_call:
+    inputs:
+      upstreams:
+        description: "Krizaka repositories to build first, in order (space-separated)"
+        required: false
+        default: ""
+        type: string
+      java-version:
+        description: "JDK used to build"
+        required: false
+        default: "21"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify (tests, javadoc, sources)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ inputs.java-version }}
+          cache: maven
+
+      - name: Build the upstream Krizaka repositories
+        if: inputs.upstreams != ''
+        env:
+          UPSTREAMS: ${{ inputs.upstreams }}
+        run: |
+          for repository in $UPSTREAMS; do
+            git clone --depth 1 "https://github.com/krizaka/${repository}.git" "../${repository}"
+            (cd "../${repository}" && ./mvnw -B -ntp install -DskipTests)
+          done
+
+      - name: Verify with the release profile, unsigned
+        run: ./mvnw -B -ntp verify -Prelease -Dgpg.skip
+
+  release:
+    name: Sign and upload to Maven Central
+    needs: verify
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: maven-central
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ inputs.java-version }}
+          cache: maven
+          server-id: central
+          server-username: MAVEN_CENTRAL_USERNAME
+          server-password: MAVEN_CENTRAL_PASSWORD
+
+      - name: Version from the tag
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          ./mvnw -B -ntp org.codehaus.mojo:versions-maven-plugin:2.18.0:set \
+            -DnewVersion="${version}" -DprocessAllModules -DgenerateBackupPoms=false
+          # Every Krizaka JVM artifact is released at one version (krizaka-bom): the parent this
+          # repository inherits from is the same release, already on Central.
+          if grep -q "<groupId>com.krizaka</groupId>" <(sed -n '/<parent>/,/<\/parent>/p' pom.xml); then
+            ./mvnw -B -ntp org.codehaus.mojo:versions-maven-plugin:2.18.0:update-parent \
+              -DparentVersion="[${version}]" -DskipResolution=true -DgenerateBackupPoms=false
+          fi
+
+      - name: Sign and upload
+        env:
+          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          MAVEN_GPG_KEY: ${{ secrets.MAVEN_GPG_KEY }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+        run: ./mvnw -B -ntp deploy -Prelease -DskipTests

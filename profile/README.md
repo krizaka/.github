@@ -43,7 +43,16 @@ collections, gateway-confirmed payments on a double-entry ledger, built-in 18+ c
 </tr>
 </table>
 
-<p align="center"><img src="assets/orochia-tour.gif" alt="Orochia, recorded on the latest build" width="720"></p>
+<table>
+<tr>
+<td width="50%" valign="top"><img src="assets/orazaka-tour.gif" alt="Orazaka's web client: sign in, then a streamed answer from a local model"></td>
+<td width="50%" valign="top"><img src="assets/orochia-tour.gif" alt="Orochia, recorded on the latest build"></td>
+</tr>
+<tr>
+<td align="center"><sub>Orazaka — sign in, ask, the answer streams from a local model. <a href="https://www.krizaka.com/en/demos">More demos</a></sub></td>
+<td align="center"><sub>Orochia — recorded on the latest build. <a href="https://dev.orochia.com">Try it</a></sub></td>
+</tr>
+</table>
 
 ## Start here
 
@@ -59,20 +68,48 @@ collections, gateway-confirmed payments on a double-entry ledger, built-in 18+ c
 
 ## Pick only what you need
 
-Orazaka is one repository per component, so any application can reuse users, notifications or
-billing on its own. Clone everything at once with [`krizaka/orazaka`](https://github.com/krizaka/orazaka).
+Every product is built on **Krizaka building blocks** — open-source components any application can take on its own,
+published on Maven Central and npm. The products consume them; they do not own them.
 
 | Layer | Repositories |
 | :--- | :--- |
-| Foundation | [`orazaka-build`](https://github.com/krizaka/orazaka-build) · [`orazaka-contracts`](https://github.com/krizaka/orazaka-contracts) · [`orazaka-edge`](https://github.com/krizaka/orazaka-edge) · [`orazaka-ui-kit`](https://github.com/krizaka/orazaka-ui-kit) |
-| Domain services | [`orazaka-users`](https://github.com/krizaka/orazaka-users) · [`orazaka-notifications`](https://github.com/krizaka/orazaka-notifications) · [`orazaka-billing`](https://github.com/krizaka/orazaka-billing) |
-| AI engine | [`orazaka-studio`](https://github.com/krizaka/orazaka-studio) · [`orazaka-ai-engine`](https://github.com/krizaka/orazaka-ai-engine) · [`orazaka-conversation-service`](https://github.com/krizaka/orazaka-conversation-service) · [`orazaka-job-service`](https://github.com/krizaka/orazaka-job-service) · [`orazaka-knowledge-service`](https://github.com/krizaka/orazaka-knowledge-service) · [`orazaka-automation-service`](https://github.com/krizaka/orazaka-automation-service) |
-| Workers | [`orazaka-worker-media`](https://github.com/krizaka/orazaka-worker-media) |
-| Applications | [`orazaka-web-client`](https://github.com/krizaka/orazaka-web-client) · [`orazaka-web-admin`](https://github.com/krizaka/orazaka-web-admin) · [`orazaka-mobile-client`](https://github.com/krizaka/orazaka-mobile-client) · [`orazaka-cli`](https://github.com/krizaka/orazaka-cli) |
-| Content | [`orazaka-packs`](https://github.com/krizaka/orazaka-packs) |
+| **Building blocks** (Java, `com.krizaka`) | [`krizaka-platform-kit`](https://github.com/krizaka/krizaka-platform-kit) — JWT security baseline, service tokens, idempotent messaging, outbox · [`krizaka-users`](https://github.com/krizaka/krizaka-users) — sign-up, sign-in, OAuth, profiles, API keys · [`krizaka-notifications`](https://github.com/krizaka/krizaka-notifications) — e-mail, SMS, webhooks · [`krizaka-billing`](https://github.com/krizaka/krizaka-billing) — credits, plans, metering · [`krizaka-build`](https://github.com/krizaka/krizaka-build) — parent POM, BOM, test kit |
+| **Building blocks** (TypeScript, `@krizaka`) | [`krizaka-ui`](https://github.com/krizaka/krizaka-ui) — the brand layer every product builds on |
+| Orazaka — foundation | [`orazaka-build`](https://github.com/krizaka/orazaka-build) · [`orazaka-contracts`](https://github.com/krizaka/orazaka-contracts) · [`orazaka-edge`](https://github.com/krizaka/orazaka-edge) · [`orazaka-ui-kit`](https://github.com/krizaka/orazaka-ui-kit) |
+| Orazaka — AI engine | [`orazaka-studio`](https://github.com/krizaka/orazaka-studio) · [`orazaka-ai-engine`](https://github.com/krizaka/orazaka-ai-engine) · [`orazaka-conversation-service`](https://github.com/krizaka/orazaka-conversation-service) · [`orazaka-job-service`](https://github.com/krizaka/orazaka-job-service) · [`orazaka-knowledge-service`](https://github.com/krizaka/orazaka-knowledge-service) · [`orazaka-automation-service`](https://github.com/krizaka/orazaka-automation-service) · [`orazaka-worker-media`](https://github.com/krizaka/orazaka-worker-media) |
+| Orazaka — applications | [`orazaka-web-client`](https://github.com/krizaka/orazaka-web-client) · [`orazaka-web-admin`](https://github.com/krizaka/orazaka-web-admin) · [`orazaka-mobile-client`](https://github.com/krizaka/orazaka-mobile-client) · [`orazaka-cli`](https://github.com/krizaka/orazaka-cli) · [`orazaka-packs`](https://github.com/krizaka/orazaka-packs) |
 | Orochia | [`orochia`](https://github.com/krizaka/orochia) · [`orochia-admin`](https://github.com/krizaka/orochia-admin) · [`orochia-design-system`](https://github.com/krizaka/orochia-design-system) |
-| Shared | [`krizaka-ui`](https://github.com/krizaka/krizaka-ui) — the brand layer every product builds on |
 | Site | [`krizaka-com`](https://github.com/krizaka/krizaka-com) |
+
+Clone the whole Orazaka platform — building blocks included — with [`krizaka/orazaka`](https://github.com/krizaka/orazaka).
+
+## Artifacts on Maven Central
+
+Import the BOM once and every `com.krizaka` artifact resolves to one coherent release. Each release is signed and built
+in CI from a tag.
+
+| Artifact | What it is |
+| :--- | :--- |
+| `com.krizaka:krizaka-bom` | Every Krizaka artifact at one version — changes no third-party version |
+| `com.krizaka:krizaka-security` | Session-JWT verification, the security baseline every filter chain starts from, `SERVICE` tokens |
+| `com.krizaka:krizaka-messaging` | Message deduplication that claims atomically and releases on failure; the transactional outbox relay |
+| `com.krizaka:krizaka-users-api` · `-client` · `-core` · `-persistence` | User management as a contract, a typed client, or a library |
+| `com.krizaka:krizaka-notifications-api` | Request an e-mail, SMS or webhook notification |
+| `com.krizaka:krizaka-billing-api` · `-client` | Credits, entitlements and metering as a contract and a typed client |
+| `com.krizaka:krizaka-test-support` | ArchUnit code rules, configuration-binding checks and Testcontainers helpers |
+| `com.krizaka:krizaka-parent` | The parent POM: Central metadata, Java 21 conventions, the signed release |
+
+```xml
+<dependency>
+    <groupId>com.krizaka</groupId>
+    <artifactId>krizaka-bom</artifactId>
+    <version>0.1.0</version>
+    <type>pom</type>
+    <scope>import</scope>
+</dependency>
+```
+
+[All artifacts →](https://central.sonatype.com/namespace/com.krizaka) · [How they fit together](https://www.krizaka.com/en/open-source#maven)
 
 ## Packages on npm
 
@@ -94,8 +131,9 @@ each release built in CI with provenance.
   (architecture, security, compliance) — that humans and AI agents follow alike.
 - **Documentation generated from the code.** API contracts, database references and architecture maps
   are extracted from the sources and published on [krizaka.com](https://www.krizaka.com); they cannot drift.
-- **Shared UI is a package, never a copy.** Brand marks, motion and each product's kit are released on npm and
-  imported by the apps; a change lands in the package first.
+- **Shared code is a package, never a copy.** Security, messaging, users, notifications and billing are released on
+  Maven Central; brand marks, motion and each product's kit on npm. Architecture rules fail the build on a local copy;
+  a change lands in the package first.
 - **Tested on every commit.** Unit, architecture (ArchUnit) and end-to-end suites run in CI; a release
   never starts on an older database schema.
 
