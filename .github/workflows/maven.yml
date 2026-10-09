@@ -19,6 +19,9 @@
 #   binary) and uploaded to the Central Portal. The parent POM keeps autoPublish=false, so the
 #   deployment is validated and then WAITS in central.sonatype.com for a human to press Publish:
 #   a release on Central can never be deleted.
+#   Central validates a POM against its parent ON CENTRAL: tag krizaka-build first and publish
+#   it before tagging the repositories that inherit krizaka-parent, or their validation fails with
+#   "Project URL is not defined" and "Dependency version information is missing".
 #
 # Organisation secrets it reads (never stored in a repository):
 #   MAVEN_CENTRAL_USERNAME / MAVEN_CENTRAL_PASSWORD   Central Portal user token (server id `central`)
@@ -92,13 +95,15 @@ jobs:
       - name: Version from the tag
         run: |
           version="${GITHUB_REF_NAME#v}"
-          ./mvnw -B -ntp org.codehaus.mojo:versions-maven-plugin:2.18.0:set \
-            -DnewVersion="${version}" -DprocessAllModules -DgenerateBackupPoms=false
-          # Every Krizaka JVM artifact is released at one version (krizaka-bom): the parent this
-          # repository inherits from is the same release, already on Central.
-          if grep -q "<groupId>com.krizaka</groupId>" <(sed -n '/<parent>/,/<\/parent>/p' pom.xml); then
-            ./mvnw -B -ntp org.codehaus.mojo:versions-maven-plugin:2.18.0:update-parent \
-              -DparentVersion="[${version}]" -DskipResolution=true -DgenerateBackupPoms=false
+          snapshot="$(./mvnw -B -q -ntp help:evaluate -Dexpression=project.version -DforceStdout)"
+          # Every Krizaka JVM artifact is released at one version (krizaka-bom): the repository's own
+          # modules and the krizaka-parent it inherits all carry the same SNAPSHOT, so one literal
+          # substitution sets both. versions:set cannot: krizaka-build's root inherits its version
+          # from one of its own modules and the plugin refuses it.
+          find . -name pom.xml -not -path '*/target/*' -exec \
+            sed -i "s|<version>${snapshot}</version>|<version>${version}</version>|g" {} +
+          if grep -rq --include=pom.xml -e '-SNAPSHOT</version>' .; then
+            echo "::error::a SNAPSHOT version is left after setting ${version}"; exit 1
           fi
 
       - name: Sign and upload
