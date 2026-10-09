@@ -34,8 +34,8 @@ request crosses a deterministic interceptor pipeline to the best local model. La
 
 **Creators get paid. Every cent, exactly once.**
 The creator video platform: direct-to-CDN 4K streaming, audiences the creator chooses (followers,
-contacts, paid unlock, invited people and private lists), live video auctions with bids escrowed in credits,
-collections, gateway-confirmed payments on a double-entry ledger, built-in 18+ compliance.
+contacts, paid unlock, invited people and private lists), video auctions and challenges — goals, dares and open
+calls — paid in credits held in escrow until delivery, collections, gateway-confirmed payments on a double-entry ledger, built-in 18+ compliance.
 
 [Try it](https://dev.orochia.com) · [Repository](https://github.com/krizaka/orochia) · [Docs](https://www.krizaka.com/en/products/orochia/docs) · [Video tour](https://www.krizaka.com/en/products/orochia#tour)
 
@@ -85,8 +85,10 @@ Clone the whole Orazaka platform — building blocks included — with [`krizaka
 
 ## Artifacts on Maven Central
 
-Import the BOM once and every `com.krizaka` artifact resolves to one coherent release. Each release is signed and built
-in CI from a tag.
+[![Maven Central](https://img.shields.io/maven-central/v/com.krizaka/krizaka-bom?label=com.krizaka%3Akrizaka-bom&color=3b82f6)](https://central.sonatype.com/artifact/com.krizaka/krizaka-bom)
+
+Import the BOM once and every `com.krizaka` artifact resolves to one coherent release — **0.1.0 is out**, signed
+(`B523D2E9DE35AE17882361BE25DF268F9213EB5D`, on keyserver.ubuntu.com).
 
 | Artifact | What it is |
 | :--- | :--- |
