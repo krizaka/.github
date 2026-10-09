@@ -35,7 +35,8 @@ request crosses a deterministic interceptor pipeline to the best local model. La
 **Creators get paid. Every cent, exactly once.**
 The creator video platform: direct-to-CDN 4K streaming, audiences the creator chooses (followers,
 contacts, paid unlock, invited people and private lists), video auctions and challenges — goals, dares and open
-calls — paid in credits held in escrow until delivery, collections, gateway-confirmed payments on a double-entry ledger, built-in 18+ compliance.
+calls — paid in credits held in escrow until delivery, collections, gateway-confirmed payments on a double-entry ledger, built-in 18+ compliance — on the web and on iOS and
+Android ([orochia-mobile](https://github.com/krizaka/orochia-mobile), Expo).
 
 [Try it](https://dev.orochia.com) · [Repository](https://github.com/krizaka/orochia) · [Docs](https://www.krizaka.com/en/products/orochia/docs) · [Video tour](https://www.krizaka.com/en/products/orochia#tour)
 
@@ -78,7 +79,7 @@ published on Maven Central and npm. The products consume them; they do not own t
 | Orazaka — foundation | [`orazaka-build`](https://github.com/krizaka/orazaka-build) · [`orazaka-contracts`](https://github.com/krizaka/orazaka-contracts) · [`orazaka-edge`](https://github.com/krizaka/orazaka-edge) · [`orazaka-ui-kit`](https://github.com/krizaka/orazaka-ui-kit) |
 | Orazaka — AI engine | [`orazaka-studio`](https://github.com/krizaka/orazaka-studio) · [`orazaka-ai-engine`](https://github.com/krizaka/orazaka-ai-engine) · [`orazaka-conversation-service`](https://github.com/krizaka/orazaka-conversation-service) · [`orazaka-job-service`](https://github.com/krizaka/orazaka-job-service) · [`orazaka-knowledge-service`](https://github.com/krizaka/orazaka-knowledge-service) · [`orazaka-automation-service`](https://github.com/krizaka/orazaka-automation-service) · [`orazaka-worker-media`](https://github.com/krizaka/orazaka-worker-media) |
 | Orazaka — applications | [`orazaka-web-client`](https://github.com/krizaka/orazaka-web-client) · [`orazaka-web-admin`](https://github.com/krizaka/orazaka-web-admin) · [`orazaka-mobile-client`](https://github.com/krizaka/orazaka-mobile-client) · [`orazaka-cli`](https://github.com/krizaka/orazaka-cli) · [`orazaka-packs`](https://github.com/krizaka/orazaka-packs) |
-| Orochia | [`orochia`](https://github.com/krizaka/orochia) · [`orochia-admin`](https://github.com/krizaka/orochia-admin) · [`orochia-design-system`](https://github.com/krizaka/orochia-design-system) |
+| Orochia | [`orochia`](https://github.com/krizaka/orochia) · [`orochia-admin`](https://github.com/krizaka/orochia-admin) · [`orochia-design-system`](https://github.com/krizaka/orochia-design-system) · [`orochia-mobile`](https://github.com/krizaka/orochia-mobile) |
 | Site | [`krizaka-com`](https://github.com/krizaka/krizaka-com) |
 
 Clone the whole Orazaka platform — building blocks included — with [`krizaka/orazaka`](https://github.com/krizaka/orazaka).
