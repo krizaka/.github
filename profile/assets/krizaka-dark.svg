@@ -1,0 +1,11 @@
+<!-- Krizaka mark — rendered from @krizaka/ui 2.0.0 (KrizakaLogo), dark theme of @krizaka/tokens 2.0.0. Do not edit: re-render. -->
+<svg width="400" height="400" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Krizaka"><style>
+.kzm-spin { transform-origin: 200px 200px; animation: kzm-spin 30s linear infinite; }
+.kzm-pulse { transform-box: fill-box; transform-origin: center; animation: kzm-pulse 3.2s ease-in-out infinite; }
+@keyframes kzm-spin { to { transform: rotate(360deg); } }
+@keyframes kzm-pulse {
+  0%, 100% { filter: drop-shadow(0 0 6px hsla(217, 92%, 53%, .25)); opacity: .9; }
+  50% { filter: drop-shadow(0 0 14px hsla(217, 92%, 53%, .55)); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .kzm-spin, .kzm-pulse { animation: none; } }
+</style><defs><linearGradient id="kzm-ink-krizaka" gradientUnits="userSpaceOnUse" x1="70" y1="290" x2="290" y2="70"><stop offset="0%" stop-color="#a0a0a7"></stop><stop offset="100%" stop-color="#f5f5f5"></stop></linearGradient><linearGradient id="kzm-blue-krizaka" gradientUnits="userSpaceOnUse" x1="180" y1="180" x2="300" y2="60"><stop offset="0%" stop-color="#196df5"></stop><stop offset="100%" stop-color="#629cf8"></stop></linearGradient><radialGradient id="kzm-glow-krizaka" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#196df5" stop-opacity="0.16"></stop><stop offset="100%" stop-color="#196df5" stop-opacity="0"></stop></radialGradient></defs><circle cx="200" cy="200" r="190" fill="url(#kzm-glow-krizaka)"></circle><circle class="kzm-spin" cx="200" cy="200" r="160" stroke="#ffffff" stroke-opacity="0.16" stroke-width="1.5" stroke-dasharray="8 8" opacity=".6"></circle><circle cx="200" cy="200" r="134" stroke="#ffffff" stroke-opacity="0.1" stroke-width="1" opacity=".35"></circle><g transform="translate(20 20)"><path d="M259.7,134 L259.7,226 L180,272 L100.3,226 L100.3,134 L180,88 L212,106.5" stroke="url(#kzm-ink-krizaka)" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"></path><g class="kzm-pulse"><circle cx="259.7" cy="134" r="19" fill="url(#kzm-blue-krizaka)"></circle><circle cx="259.7" cy="134" r="6" fill="#dbeafe"></circle></g><g class="kzm-pulse"><circle cx="180" cy="180" r="24" fill="url(#kzm-blue-krizaka)"></circle><circle cx="180" cy="180" r="8" fill="#dbeafe"></circle></g></g></svg>
