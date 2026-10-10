@@ -63,11 +63,11 @@ compliance — on the web and on iOS and Android ([orochia-mobile](https://githu
 <table>
 <tr>
 <td width="50%" valign="top"><img src="assets/orazaka-tour.gif" alt="Orazaka's web client, signed in as Eric: a customer's return request answered from his own returns policy, then a product photo generated locally"></td>
-<td width="50%" valign="top"><img src="assets/orochia-tour.gif" alt="Orochia: the age gate, the home, the latest streams and a creator's profile"></td>
+<td width="50%" valign="top"><img src="assets/orochia-tour.gif" alt="Orochia, signed in as Alex: Elena's story opened from the ring on her profile, sound on, a like, a private reply and a $10 tip"></td>
 </tr>
 <tr>
 <td align="center"><sub>Orazaka — Eric answers a customer from his own documents, then generates the product photo. Everything ran on one Mac. <a href="https://www.krizaka.com/en/products/orazaka/demos">More demos</a></sub></td>
-<td align="center"><sub>Orochia — the 18+ gate, the home, the latest streams, a creator's page. <a href="https://dev.orochia.com">Try it</a></sub></td>
+<td align="center"><sub>Orochia — Alex opens Elena's story from her profile, likes it, replies privately and tips her. More in the tour: Explore, unlocks, auctions, challenges, 90 % payouts. <a href="https://www.krizaka.com/en/products/orochia#tour">Full tour</a></sub></td>
 </tr>
 </table>
 
