@@ -1,6 +1,9 @@
 <div align="center">
 
-<img src="assets/krizaka.svg" alt="Krizaka" width="96">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/krizaka-dark.svg">
+  <img src="assets/krizaka-light.svg" alt="Krizaka" width="96">
+</picture>
 
 # Krizaka — Team & Contributor Cockpit
 
