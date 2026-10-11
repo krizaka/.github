@@ -1,6 +1,7 @@
 name: Bug report
 description: Something does not work as documented.
-labels: [bug]
+labels: [type:bug]
+projects: [krizaka/4]
 body:
   - type: textarea
     id: what

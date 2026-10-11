@@ -12,6 +12,8 @@ Thank you for helping. Every Krizaka repository follows the same rules.
 5. **One change per pull request**, with [Conventional Commits](https://www.conventionalcommits.org/)
    messages (`feat:`, `fix:`, `docs:`, `refactor:`, `chore:`…).
 6. **No secrets, ever** — configuration comes from the environment.
+7. **Label and plan with the shared taxonomy** — [LABELS.md](LABELS.md) (`type:*`, `priority:*`, `product:*`, `area:*`);
+   every issue lives on the [Krizaka Roadmap](https://github.com/orgs/krizaka/projects/4) ([ROADMAP.md](ROADMAP.md)).
 
 By contributing you agree that your contributions are licensed under the repository's license
 (Apache-2.0) and that you follow the [Code of Conduct](CODE_OF_CONDUCT.md).

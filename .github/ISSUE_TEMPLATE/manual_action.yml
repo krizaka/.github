@@ -1,0 +1,35 @@
+name: Manual action (owner:oussama)
+description: Something only the founder can do — an account, a payment, DNS, Apple, Bunny, npm 2FA, a legal step (maintainers).
+labels: [owner:oussama, type:ops]
+projects: [krizaka/4]
+body:
+  - type: markdown
+    attributes:
+      value: "Never write a secret, password, token or account number here — issues are public. Point to the private company file instead."
+  - type: textarea
+    id: why
+    attributes:
+      label: Why
+      description: What it unblocks (link the issue or epic).
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps
+      description: Exact clicks or commands, in order, so it takes minutes.
+      placeholder: "- [ ] Go to …\n- [ ] Set …\n- [ ] Check: …"
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Done when
+      description: A check anyone can run (a URL, a command, a screen).
+    validations:
+      required: true
+  - type: input
+    id: deadline
+    attributes:
+      label: Deadline (if any)
+      placeholder: "e.g. before 2026-10-18 — the token expires"

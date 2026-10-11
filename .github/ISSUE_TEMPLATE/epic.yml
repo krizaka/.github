@@ -1,0 +1,30 @@
+name: Epic
+description: A large initiative tracked through sub-issues (maintainers).
+title: "Epic: "
+labels: [type:epic]
+projects: [krizaka/4]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: The outcome, in one paragraph — what is true when the epic is done.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Sub-issues
+      description: One line per piece. Create each as an issue, then add it as a sub-issue of this epic (Create sub-issue / Add existing issue).
+      placeholder: "- [ ] owner/repo#123 — …"
+    validations:
+      required: true
+  - type: input
+    id: milestone
+    attributes:
+      label: Milestone and target date
+      placeholder: "M1 · Production Orochia — 2027-01-29"
+  - type: textarea
+    id: notes
+    attributes:
+      label: Order, dependencies, risks

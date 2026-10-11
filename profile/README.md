@@ -12,7 +12,7 @@
 We build what others take years to get right — AI that never leaves your walls, a video platform
 that pays every cent exactly once. Compliance and security aren't add-ons: they're compiled in.
 
-[Website](https://www.krizaka.com) · [Products](https://www.krizaka.com/en/products) · [Docs](https://www.krizaka.com/docs) · [Open source](https://www.krizaka.com/en/open-source) · [Contact](https://www.krizaka.com/en/contact)
+[Website](https://www.krizaka.com) · [Products](https://www.krizaka.com/en/products) · [Docs](https://www.krizaka.com/docs) · [Open source](https://www.krizaka.com/en/open-source) · [Roadmap](https://github.com/krizaka/.github/blob/main/ROADMAP.md) · [Contact](https://www.krizaka.com/en/contact)
 
 </div>
 
@@ -80,6 +80,7 @@ compliance — on the web and on iOS and Android ([orochia-mobile](https://githu
 | **Run Orochia locally** | [`krizaka/orochia`](https://github.com/krizaka/orochia) — `npm run setup && npm run dev` (Node ≥ 20, Docker) |
 | **Run Orazaka locally** | [`krizaka/orazaka`](https://github.com/krizaka/orazaka) — clones every component; the [`orazaka` CLI](https://github.com/krizaka/orazaka-cli) does install → start → dev, and `orazaka demo seed` loads the demo |
 | **Understand the architecture** | [Orazaka, interactive](https://www.krizaka.com/en/products/orazaka/architecture) · [Orochia docs](https://www.krizaka.com/docs/orochia) |
+| **See where we are going** | [Roadmap](https://github.com/krizaka/.github/blob/main/ROADMAP.md) — milestones and dates · live board: [Krizaka Roadmap](https://github.com/orgs/krizaka/projects/4) |
 | **Contribute** | [Contributing](https://github.com/krizaka/.github/blob/main/CONTRIBUTING.md) · good first issues in each repository · [Code of conduct](https://github.com/krizaka/.github/blob/main/CODE_OF_CONDUCT.md) |
 | **Report a vulnerability** | Privately — [Security policy](https://github.com/krizaka/.github/blob/main/SECURITY.md) |
 | **Talk to the team** | [krizaka.com/contact](https://www.krizaka.com/en/contact) · GitHub Discussions in each product repository |
