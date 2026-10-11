@@ -78,11 +78,27 @@ through krizaka.com's manifest — never edited by hand on the site.
 
 ## Where the work is tracked
 
-| Board | What it holds |
+One board for every repository: [**Krizaka Roadmap**](https://github.com/orgs/krizaka/projects/4) — milestones, epics,
+priorities; the summary and dates are in [ROADMAP.md](https://github.com/krizaka/.github/blob/main/ROADMAP.md), the label
+taxonomy in [LABELS.md](https://github.com/krizaka/.github/blob/main/LABELS.md). The former boards 1–3 (road to production per
+product) are closed; their issues live here.
+
+| View | What it holds |
 | :--- | :--- |
-| [Orochia — road to production](https://github.com/orgs/krizaka/projects/1) | What stands between Orochia and its public production |
-| [Orazaka — road to production](https://github.com/orgs/krizaka/projects/2) | The same for Orazaka |
-| [krizaka.com — road to production](https://github.com/orgs/krizaka/projects/3) | The same for the site |
+| [Board](https://github.com/orgs/krizaka/projects/4/views/2) · [Roadmap](https://github.com/orgs/krizaka/projects/4/views/3) | Every open issue by status, and on a timeline by milestone |
+| [P0 / P1](https://github.com/orgs/krizaka/projects/4/views/5) · [Epics](https://github.com/orgs/krizaka/projects/4/views/6) | What blocks a launch, and the large initiatives |
+| [Orochia](https://github.com/orgs/krizaka/projects/4/views/8) · [Orazaka](https://github.com/orgs/krizaka/projects/4/views/9) · [Krizaka](https://github.com/orgs/krizaka/projects/4/views/10) · [Site](https://github.com/orgs/krizaka/projects/4/views/11) | One product at a time |
+| [Oussama's actions](https://github.com/orgs/krizaka/projects/4/views/4) | `owner:oussama` — accounts, money, DNS: what only the owner can do |
+
+## Funding and sponsorship
+
+- Every repository without a `FUNDING.yml` of its own uses the organisation default
+  ([`.github/FUNDING.yml`](https://github.com/krizaka/.github/blob/main/.github/FUNDING.yml)): GitHub Sponsors and the
+  contact form (topic *partnership*, source *sponsor*).
+- GitHub Sponsors for the organisation — enrolment, profile and proposed tiers: [.github#27](https://github.com/krizaka/.github/issues/27).
+  Until it is live, the public README promises nothing beyond "write to us".
+- Security tooling still to roll out (private reporting everywhere, secret scanning, CodeQL, OpenSSF Scorecard):
+  [.github#28](https://github.com/krizaka/.github/issues/28).
 
 ## Useful links
 

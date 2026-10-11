@@ -1,0 +1,7 @@
+# Default funding links for every repository of the krizaka organisation that has no FUNDING.yml of its own.
+# The GitHub Sponsors entry takes effect once the organisation is accepted into GitHub Sponsors
+# (manual step: https://github.com/krizaka/.github/issues/27).
+# The Sponsor button only shows on repositories whose Settings → Features → "Sponsorships" box is ticked.
+github: [krizaka]
+custom:
+  - https://www.krizaka.com/en/contact?topic=partnership&source=sponsor
