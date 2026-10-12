@@ -86,6 +86,11 @@ built on the Krizaka blocks, with Orazaka as its AI engine.
 </td>
 <td width="50%" valign="top">
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/yororis-dark.svg">
+  <img src="assets/yororis-light.svg" alt="" width="64">
+</picture>
+
 ### Yororis <sup>under construction</sup>
 
 **A listening space with a face and a voice.**

@@ -1,0 +1,13 @@
+<!-- Yororis mark — rendered from @krizaka/ui 2.10.0 (YororisLogo), dark theme of @krizaka/tokens 2.10.0. Do not edit: re-render. -->
+<svg width="400" height="400" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Yororis"><style>
+.yrm-orbit { transform-origin: 200px 200px; animation: yrm-orbit 36s linear infinite; }
+.yrm-vein { animation: yrm-vein 4.8s linear infinite; }
+.yrm-core { transform-box: fill-box; transform-origin: center; animation: yrm-core 4.2s ease-in-out infinite; }
+@keyframes yrm-orbit { to { transform: rotate(360deg); } }
+@keyframes yrm-vein { to { stroke-dashoffset: 64; } }
+@keyframes yrm-core {
+  0%, 100% { filter: drop-shadow(0 0 6px #a4773d4d); opacity: .9; }
+  50% { filter: drop-shadow(0 0 16px #a4773d99); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .yrm-orbit, .yrm-vein, .yrm-core { animation: none; } }
+</style><defs><linearGradient id="yrm-gradient" gradientUnits="userSpaceOnUse" x1="110" y1="300" x2="290" y2="100"><stop offset="0%" stop-color="#a4773d"></stop><stop offset="100%" stop-color="#5d894d"></stop></linearGradient><linearGradient id="yrm-core" x1="50%" y1="100%" x2="50%" y2="0%"><stop offset="0%" stop-color="#a4773d"></stop><stop offset="100%" stop-color="#e6c993"></stop></linearGradient><radialGradient id="yrm-glow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#5d894d" stop-opacity="0.18"></stop><stop offset="100%" stop-color="#5d894d" stop-opacity="0"></stop></radialGradient></defs><circle cx="200" cy="200" r="190" fill="url(#yrm-glow)"></circle><circle cx="200" cy="200" r="134" stroke="#ffffff" stroke-opacity="0.1" stroke-width="1" opacity=".35"></circle><g class="yrm-orbit"><circle cx="200" cy="200" r="160" stroke="#ffffff" stroke-opacity="0.16" stroke-width="1.5" stroke-dasharray="8 8" opacity=".6"></circle><circle cx="200" cy="40" r="9" fill="url(#yrm-gradient)"></circle></g><path d="M200 244 L200 312" stroke="url(#yrm-gradient)" stroke-width="30" stroke-linecap="round"></path><path d="M200 262 C142 256 104 206 110 122 C138 130 154 152 160 180 C168 218 182 238 204 246 Z" fill="url(#yrm-gradient)"></path><path d="M200 262 C258 256 296 206 290 122 C262 130 246 152 240 180 C232 218 218 238 196 246 Z" fill="url(#yrm-gradient)"></path><path class="yrm-vein" d="M122 142 C128 196 156 232 192 248 M278 142 C272 196 244 232 208 248" stroke="#fbf6ea" stroke-opacity="0.45" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 14"></path><g class="yrm-core"><circle cx="200" cy="184" r="32" fill="url(#yrm-core)"></circle><circle cx="200" cy="184" r="11" fill="#fbf6ea"></circle></g></svg>
