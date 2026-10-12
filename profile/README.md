@@ -10,7 +10,8 @@
 ### Open source. Closed to compromise.
 
 We build what others take years to get right — AI that never leaves your walls, a video platform
-that pays every cent exactly once. Compliance and security aren't add-ons: they're compiled in.
+that pays every cent exactly once, a dating app where you talk first. Compliance and security aren't add-ons:
+they're compiled in.
 
 [Website](https://www.krizaka.com) · [Products](https://www.krizaka.com/en/products) · [Docs](https://www.krizaka.com/docs) · [Open source](https://www.krizaka.com/en/open-source) · [Roadmap](https://github.com/krizaka/.github/blob/main/ROADMAP.md) · [Contact](https://www.krizaka.com/en/contact)
 
@@ -64,6 +65,38 @@ compliance — on the web and on iOS and Android ([orochia-mobile](https://githu
 
 </td>
 </tr>
+<tr>
+<td width="50%" valign="top">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/yazakia-dark.svg">
+  <img src="assets/yazakia-light.svg" alt="" width="64">
+</picture>
+
+### Yazakia <sup>coming soon</sup>
+
+**The dating app where you talk first.**
+
+No swipe, no catalogue, no score. An AI agent gets to know you, then opens a small batch of people who match you in
+**both directions** — with reasons, never a score — and the next batch learns from your debrief. iOS and Android,
+built on the Krizaka blocks, with Orazaka as its AI engine.
+
+[Coming soon](https://www.krizaka.com/en/products/yazakia) · [Repository](https://github.com/krizaka/yazakia) · [Mobile app](https://github.com/krizaka/yazakia-mobile) · [Get notified](https://www.krizaka.com/en/contact?topic=yazakia&source=github)
+
+</td>
+<td width="50%" valign="top">
+
+### Yororis <sup>under construction</sup>
+
+**A listening space with a face and a voice.**
+
+Powered by Orazaka's wellbeing pack: an AI presence that listens, reflects back and stops — a set length, a set
+number of moments, and what it keeps is a three-line summary, not a transcript. We are building it in the open and
+studying its framework — legal, ethical, clinical — before anything is offered. Nothing is online, and there is no
+date.
+
+</td>
+</tr>
 </table>
 
 <table>
@@ -81,7 +114,7 @@ compliance — on the web and on iOS and Android ([orochia-mobile](https://githu
 
 | You want to… | Go to |
 | :--- | :--- |
-| **See the products** | [krizaka.com/products](https://www.krizaka.com/en/products) · Orochia running: [dev.orochia.com](https://dev.orochia.com) · Orazaka: [demos](https://www.krizaka.com/en/products/orazaka/demos) |
+| **See the products** | [krizaka.com/products](https://www.krizaka.com/en/products) · Orochia running: [dev.orochia.com](https://dev.orochia.com) · Orazaka: [demos](https://www.krizaka.com/en/products/orazaka/demos) · Yazakia: [coming soon](https://www.krizaka.com/en/products/yazakia) |
 | **Read the docs** | One place, [krizaka.com/docs](https://www.krizaka.com/docs): [Orazaka](https://www.krizaka.com/docs/orazaka) · [Orochia](https://www.krizaka.com/docs/orochia) · [UI components](https://www.krizaka.com/docs/ui) · [Java building blocks](https://www.krizaka.com/docs/java) |
 | **Run Orochia locally** | [`krizaka/orochia`](https://github.com/krizaka/orochia) — `npm run setup && npm run dev` (Node ≥ 20, Docker) |
 | **Run Orazaka locally** | [`krizaka/orazaka`](https://github.com/krizaka/orazaka) — clones every component; the [`orazaka` CLI](https://github.com/krizaka/orazaka-cli) does install → start → dev, and `orazaka demo seed` loads the demo |
@@ -130,11 +163,12 @@ published on Maven Central and npm. The products consume them; they do not own t
 | Layer | Repositories |
 | :--- | :--- |
 | **Building blocks** (Java, `com.krizaka`) | [`krizaka-build`](https://github.com/krizaka/krizaka-build) — parent POM, BOM, test kit · [`krizaka-platform-kit`](https://github.com/krizaka/krizaka-platform-kit) — web, security, messaging, observability and their Spring Boot starters · [`krizaka-users`](https://github.com/krizaka/krizaka-users) — sign-up, sign-in, OAuth, profiles, API keys · [`krizaka-notifications`](https://github.com/krizaka/krizaka-notifications) — e-mail, SMS, webhooks · [`krizaka-billing`](https://github.com/krizaka/krizaka-billing) — credits, plans, metering |
-| **Building blocks** (TypeScript, `@krizaka`) | [`krizaka-ui`](https://github.com/krizaka/krizaka-ui) — tokens, Tailwind preset, primitives, marks, icons, i18n and shared config for every Krizaka interface |
+| **Building blocks** (TypeScript, `@krizaka`) | [`krizaka-ui`](https://github.com/krizaka/krizaka-ui) — tokens, Tailwind preset, primitives, marks, icons, fonts, charts, i18n, real time, push and shared config for every Krizaka interface |
 | Orazaka — foundation | [`orazaka-build`](https://github.com/krizaka/orazaka-build) · [`orazaka-contracts`](https://github.com/krizaka/orazaka-contracts) · [`orazaka-edge`](https://github.com/krizaka/orazaka-edge) · [`orazaka-ui-kit`](https://github.com/krizaka/orazaka-ui-kit) |
 | Orazaka — AI engine | [`orazaka-studio`](https://github.com/krizaka/orazaka-studio) · [`orazaka-ai-engine`](https://github.com/krizaka/orazaka-ai-engine) · [`orazaka-conversation-service`](https://github.com/krizaka/orazaka-conversation-service) · [`orazaka-job-service`](https://github.com/krizaka/orazaka-job-service) · [`orazaka-knowledge-service`](https://github.com/krizaka/orazaka-knowledge-service) · [`orazaka-automation-service`](https://github.com/krizaka/orazaka-automation-service) · [`orazaka-worker-media`](https://github.com/krizaka/orazaka-worker-media) |
 | Orazaka — applications | [`orazaka-web-client`](https://github.com/krizaka/orazaka-web-client) · [`orazaka-web-admin`](https://github.com/krizaka/orazaka-web-admin) · [`orazaka-mobile-client`](https://github.com/krizaka/orazaka-mobile-client) · [`orazaka-cli`](https://github.com/krizaka/orazaka-cli) · [`orazaka-packs`](https://github.com/krizaka/orazaka-packs) |
 | Orochia | [`orochia`](https://github.com/krizaka/orochia) · [`orochia-admin`](https://github.com/krizaka/orochia-admin) · [`orochia-design-system`](https://github.com/krizaka/orochia-design-system) · [`orochia-mobile`](https://github.com/krizaka/orochia-mobile) |
+| Yazakia | [`yazakia`](https://github.com/krizaka/yazakia) — API, agent, matching, legal pages · [`yazakia-mobile`](https://github.com/krizaka/yazakia-mobile) — the iOS and Android app |
 | Site & organisation | [`krizaka-com`](https://github.com/krizaka/krizaka-com) · [`.github`](https://github.com/krizaka/.github) — this profile, community defaults and the shared Maven pipeline |
 
 Clone the whole Orazaka platform — building blocks included — with [`krizaka/orazaka`](https://github.com/krizaka/orazaka).
@@ -213,13 +247,16 @@ are published by the team from a reviewed `main`; provenance attestations come o
 
 | Package | What it is |
 | :--- | :--- |
-| [![@krizaka/ui](https://img.shields.io/npm/v/@krizaka/ui?label=%40krizaka%2Fui&color=196df5)](https://www.npmjs.com/package/@krizaka/ui) | The platform's components: the brand marks, ~32 web primitives on the `--kz-*` tokens, their React Native counterparts and section backdrops |
-| [![@krizaka/tokens](https://img.shields.io/npm/v/@krizaka/tokens?label=%40krizaka%2Ftokens&color=196df5)](https://www.npmjs.com/package/@krizaka/tokens) | The semantic design tokens and the three brand themes — CSS (dark, light), typed constants, React Native themes |
+| [![@krizaka/ui](https://img.shields.io/npm/v/@krizaka/ui?label=%40krizaka%2Fui&color=196df5)](https://www.npmjs.com/package/@krizaka/ui) | The platform's components: the brand marks, web primitives, layouts and motion on the `--kz-*` tokens, their React Native counterparts, the mascots and section backdrops |
+| [![@krizaka/tokens](https://img.shields.io/npm/v/@krizaka/tokens?label=%40krizaka%2Ftokens&color=196df5)](https://www.npmjs.com/package/@krizaka/tokens) | The semantic design tokens and one theme per brand — CSS (dark, light), typed constants, React Native themes |
 | [![@krizaka/tailwind](https://img.shields.io/npm/v/@krizaka/tailwind?label=%40krizaka%2Ftailwind&color=196df5)](https://www.npmjs.com/package/@krizaka/tailwind) | The Tailwind CSS v4 preset: the tokens as utilities |
 | [![@krizaka/icons](https://img.shields.io/npm/v/@krizaka/icons?label=%40krizaka%2Ficons&color=196df5)](https://www.npmjs.com/package/@krizaka/icons) | The signature icons, one drawing language — React and React Native |
+| [![@krizaka/fonts](https://img.shields.io/npm/v/@krizaka/fonts?label=%40krizaka%2Ffonts&color=196df5)](https://www.npmjs.com/package/@krizaka/fonts) | The three typefaces of every interface — display, text, mono — self-hosted, SIL OFL, for the web and Expo |
 | [![@krizaka/charts](https://img.shields.io/npm/v/@krizaka/charts?label=%40krizaka%2Fcharts&color=196df5)](https://www.npmjs.com/package/@krizaka/charts) | Typed, declarative charts on Apache ECharts and the `--kz-*` tokens — a data table, a written summary and keyboard navigation in every chart; React Native for the simple types |
 | [![@krizaka/intl](https://img.shields.io/npm/v/@krizaka/intl?label=%40krizaka%2Fintl&color=196df5)](https://www.npmjs.com/package/@krizaka/intl) | Money, numbers, dates and plurals formatted the same way everywhere — money from integer minor units only |
 | [![@krizaka/i18n](https://img.shields.io/npm/v/@krizaka/i18n?label=%40krizaka%2Fi18n&color=196df5)](https://www.npmjs.com/package/@krizaka/i18n) | Typed messages, `format()`, `<Rich>`, a React provider and the `krizaka-i18n` catalogue checker |
+| [![@krizaka/realtime](https://img.shields.io/npm/v/@krizaka/realtime?label=%40krizaka%2Frealtime&color=196df5)](https://www.npmjs.com/package/@krizaka/realtime) | Server-Sent Events behind one bus — PostgreSQL `LISTEN/NOTIFY` by default, Redis when traffic asks for it — and presence without a write per heartbeat |
+| [![@krizaka/push](https://img.shields.io/npm/v/@krizaka/push?label=%40krizaka%2Fpush&color=196df5)](https://www.npmjs.com/package/@krizaka/push) | Mobile push without an SDK: Expo relays to FCM and APNs from one HTTP call — batched, never throws, reports the dead tokens to forget |
 | [![@krizaka/config](https://img.shields.io/npm/v/@krizaka/config?label=%40krizaka%2Fconfig&color=196df5)](https://www.npmjs.com/package/@krizaka/config) | ESLint, tsconfig and Prettier for every repository, and `krizaka-ratchet`, the UI debt counter |
 | [![@krizaka/orochia-design-system](https://img.shields.io/npm/v/@krizaka/orochia-design-system?label=%40krizaka%2Forochia-design-system&color=7c3aed)](https://www.npmjs.com/package/@krizaka/orochia-design-system) | Orochia's identity on the platform: its theme and product composites (live badge, social icons) |
 | [![@krizaka/orazaka-design-system](https://img.shields.io/npm/v/@krizaka/orazaka-design-system?label=%40krizaka%2Forazaka-design-system&color=f67e23)](https://www.npmjs.com/package/@krizaka/orazaka-design-system) | Orazaka's identity on the platform: the Orazaka Orange theme and product composites (chat showcase, icon registry) |
@@ -284,7 +321,7 @@ Latest releases: [![krizaka-platform-kit](https://img.shields.io/github/v/releas
 ## Support Krizaka
 
 - **Star** the repositories you use — [orazaka](https://github.com/krizaka/orazaka), [orochia](https://github.com/krizaka/orochia),
-  [krizaka-ui](https://github.com/krizaka/krizaka-ui), [krizaka-platform-kit](https://github.com/krizaka/krizaka-platform-kit). It is how others find them.
+  [yazakia](https://github.com/krizaka/yazakia), [krizaka-ui](https://github.com/krizaka/krizaka-ui), [krizaka-platform-kit](https://github.com/krizaka/krizaka-platform-kit). It is how others find them.
 - **Contribute** — [how to start](https://github.com/krizaka/.github/blob/main/CONTRIBUTING.md), the `good first issue` label, the
   [roadmap](https://github.com/orgs/krizaka/projects/4).
 - **Talk about it** — a post, a talk, a link from your project's README: tell us and we will share it.
