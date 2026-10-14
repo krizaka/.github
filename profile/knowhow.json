@@ -1,0 +1,33 @@
+{
+  "$comment": "The know-how each Krizaka product proves — the provable sentences of krizaka.com (messages site.products.knowhow.*). Structure of the products (name, url, status, repo) comes from @krizaka/ui/sites; this file only holds words. A product listed here but not yet in the published @krizaka/ui/sites carries a `fallback` until the package knows it.",
+  "order": ["orazaka", "orochia", "yasakia", "yororis", "yomizaka"],
+  "products": {
+    "orazaka": {
+      "knowhow": "The engine",
+      "proof": "Every request crosses a deterministic pipeline to the best local model: your documents, your models, your network — nothing leaves."
+    },
+    "orochia": {
+      "knowhow": "Mastery of media",
+      "proof": "Uploads go straight to the CDN over Tus, an adaptive transcoder encodes, playback uses signed HLS links that expire after five minutes, and every transaction settles through escrow."
+    },
+    "yasakia": {
+      "knowhow": "Geolocation",
+      "proof": "The position is rounded to about 1 km before it is stored, and the database answers the radius and matches who you are with who you seek — nearby, never exact."
+    },
+    "yororis": {
+      "knowhow": "Voice and image",
+      "proof": "A listening space with a face and a voice — under construction: nothing is deployed, nothing is offered."
+    },
+    "yomizaka": {
+      "knowhow": "Reading documents",
+      "proof": "A lease checked rule by rule against the law in force on a date, a PDF examined for signs of editing: every finding quotes its passage, every check is a traced Orazaka run.",
+      "statusLabels": { "upcoming": "In development" },
+      "fallback": {
+        "name": "Yomizaka",
+        "url": "https://dev.yomizaka.com",
+        "repo": "https://github.com/krizaka/yomizaka",
+        "status": "upcoming"
+      }
+    }
+  }
+}
