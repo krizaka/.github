@@ -9,7 +9,7 @@ everywhere. The [Krizaka Roadmap](https://github.com/orgs/krizaka/projects/4) mi
 | :--- | :--- | :--- |
 | **Type** — exactly one | `type:feature` · `type:bug` · `type:chore` · `type:docs` · `type:design` · `type:marketing` · `type:ops` · `type:epic` | What kind of work it is. `type:epic` = a large initiative tracked through sub-issues. |
 | **Priority** — exactly one | `priority:P0` blocking · `priority:P1` before opening widely · `priority:P2` soon after launch · `priority:P3` when there is room | P0 means nothing ships without it. |
-| **Product** — exactly one | `product:krizaka` (building blocks, company) · `product:orazaka` · `product:orochia` · `product:yazakia` · `product:yororis` · `product:site` (krizaka.com, the organisation profile) | Set from the repository; cross-product work takes the product it unblocks. |
+| **Product** — exactly one | `product:krizaka` (building blocks, company) · `product:orazaka` · `product:orochia` · `product:yasakia` · `product:yororis` · `product:site` (krizaka.com, the organisation profile) | Set from the repository; cross-product work takes the product it unblocks. |
 | **Area** — one or two | `area:infra` · `area:release` · `area:security` · `area:compliance` · `area:legal` · `area:accounts` · `area:payments` · `area:billing` · `area:media` · `area:mobile` · `area:notifications` · `area:ui` · `area:frontend` · `area:backend` · `area:ai` · `area:content` · `area:growth` · `area:docs` · `area:quality` · `area:dx` · `area:architecture` · `area:apps` · `area:deps` | The part of the system or business it touches. |
 | **Owner** | `owner:oussama` | A manual action only Oussama can do: accounts, payments, DNS, Apple, Bunny, npm 2FA, legal, money. Everything else is done by contributors and Claude Code sessions. |
 | **State** | `status:blocked` | Waiting on something outside the issue — say what in a comment, with its link. |
@@ -36,7 +36,7 @@ Replaced on 2026-10-11 (issues migrated): `P0`/`P1`/`P2` → `priority:*`; `bug`
 
 Same title in every repository a milestone spans: `M0 · Société & comptes`, `M1 · Production Orochia`,
 `M2 · Lancement public & marketing`, `M3 · Orazaka hors phase locale`, `Krizaka UI · W1–W5`, `Mobile · iOS TestFlight`,
-`Novembre · Maven 0.2.0 (users, notifications, billing)`, `Yazakia · V1`, `Yororis — en construction` (no date, on
+`Novembre · Maven 0.2.0 (users, notifications, billing)`, `Yasakia · V1`, `Yororis — en construction` (no date, on
 purpose). Dates and scope: [ROADMAP.md](ROADMAP.md).
 
 ## Opening an issue
