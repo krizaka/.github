@@ -1,6 +1,14 @@
 {
   "$comment": "The know-how each Krizaka product proves — the provable sentences of krizaka.com (messages site.products.knowhow.*). Structure of the products (name, url, status, repo) comes from @krizaka/ui/sites; this file only holds words. A product listed here but not yet in the published @krizaka/ui/sites carries a `fallback` until the package knows it.",
-  "order": ["orazaka", "orochia", "yasakia", "yororis", "yomizaka"],
+  "order": [
+    "orazaka",
+    "orochia",
+    "yasakia",
+    "yororis",
+    "yomizaka",
+    "kachizaka",
+    "akinaza"
+  ],
   "products": {
     "orazaka": {
       "knowhow": "The engine",
@@ -21,13 +29,23 @@
     "yomizaka": {
       "knowhow": "Reading documents",
       "proof": "A lease checked rule by rule against the law in force on a date, a PDF examined for signs of editing: every finding quotes its passage, every check is a traced Orazaka run.",
-      "statusLabels": { "upcoming": "In development" },
+      "statusLabels": {
+        "upcoming": "In development"
+      },
       "fallback": {
         "name": "Yomizaka",
         "url": "https://dev.yomizaka.com",
         "repo": "https://github.com/krizaka/yomizaka",
         "status": "upcoming"
       }
+    },
+    "kachizaka": {
+      "knowhow": "Live data, in real time",
+      "proof": "Predictions among friends, points only and never money: scoring rules sealed at kick-off, every point explained, match facts read through Orazaka's connectors and the standings pushed live."
+    },
+    "akinaza": {
+      "knowhow": "Running a shop, for less",
+      "proof": "Bookings, bilingual invoices with GST and QST to the cent and a ledger the database keeps balanced, for independent Québec shops; the GST/QST return is prepared, and the merchant files it."
     }
   }
 }

@@ -9,7 +9,7 @@
 
 ### Know-how, in the open.
 
-We build what others take years to get right — and show it running. Five things we know how to do, each proven by a
+We build what others take years to get right — and show it running. Seven things we know how to do, each proven by a
 product; the stack under them, open source.
 
 [Website](https://www.krizaka.com) · [Products](https://www.krizaka.com/en/products) · [Open source](https://www.krizaka.com/en/open-source) · [Roadmap](https://github.com/orgs/krizaka/projects/4) · [Contact](https://www.krizaka.com/en/contact)
@@ -42,9 +42,19 @@ Each product stands on its own; each proves one skill. Claims are cheap — ever
 **Yororis** · Voice and image &nbsp;<sup>Under construction</sup><br>A listening space with a face and a voice — under construction: nothing is deployed, nothing is offered.<br>[dev.yororis.com](https://dev.yororis.com) · [Repository](https://github.com/krizaka/yororis)
 
 </td></tr>
-<tr><td valign="top" width="64"><picture><source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/krizaka/mark-dark.svg"><img src="https://krizaka-assets.b-cdn.net/brand/krizaka/mark-light.svg" alt="Yomizaka" width="48"></picture></td><td valign="top">
+<tr><td valign="top" width="64"><picture><source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/yomizaka/mark-dark.svg"><img src="https://krizaka-assets.b-cdn.net/brand/yomizaka/mark-light.svg" alt="Yomizaka" width="48"></picture></td><td valign="top">
 
 **Yomizaka** · Reading documents &nbsp;<sup>In development</sup><br>A lease checked rule by rule against the law in force on a date, a PDF examined for signs of editing: every finding quotes its passage, every check is a traced Orazaka run.<br>[dev.yomizaka.com](https://dev.yomizaka.com) · [Repository](https://github.com/krizaka/yomizaka)
+
+</td></tr>
+<tr><td valign="top" width="64"><picture><source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/kachizaka/mark-dark.svg"><img src="https://krizaka-assets.b-cdn.net/brand/kachizaka/mark-light.svg" alt="Kachizaka" width="48"></picture></td><td valign="top">
+
+**Kachizaka** · Live data, in real time &nbsp;<sup>In development</sup><br>Predictions among friends, points only and never money: scoring rules sealed at kick-off, every point explained, match facts read through Orazaka's connectors and the standings pushed live.<br>[Repository](https://github.com/krizaka/kachizaka)
+
+</td></tr>
+<tr><td valign="top" width="64"><picture><source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/akinaza/mark-dark.svg"><img src="https://krizaka-assets.b-cdn.net/brand/akinaza/mark-light.svg" alt="Akinaza" width="48"></picture></td><td valign="top">
+
+**Akinaza** · Running a shop, for less &nbsp;<sup>In development</sup><br>Bookings, bilingual invoices with GST and QST to the cent and a ledger the database keeps balanced, for independent Québec shops; the GST/QST return is prepared, and the merchant files it.<br>[Repository](https://github.com/krizaka/akinaza)
 
 </td></tr>
 </table>

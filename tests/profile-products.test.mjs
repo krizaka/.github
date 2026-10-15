@@ -11,13 +11,15 @@ const sites = [
   site("orochia", "released"),
   site("yasakia", "upcoming"),
   site("yororis", "construction"),
+  site("kachizaka", "development", { url: "https://github.com/krizaka/kachizaka" }),
+  site("akinaza", "development", { url: "https://github.com/krizaka/akinaza" }),
   { id: "ui", name: "Krizaka UI", url: "https://ui.krizaka.com", kind: "open-source", status: "released" },
 ];
 
 test("products only, in the know-how order, with their status in words", () => {
   const p = collectProducts({ sites, knowhow });
-  assert.deepEqual(p.map((x) => x.id), ["orazaka", "orochia", "yasakia", "yororis", "yomizaka"]);
-  assert.deepEqual(p.map((x) => x.status), ["Available", "Available", "Coming soon", "Under construction", "In development"]);
+  assert.deepEqual(p.map((x) => x.id), ["orazaka", "orochia", "yasakia", "yororis", "yomizaka", "kachizaka", "akinaza"]);
+  assert.deepEqual(p.map((x) => x.status), ["Available", "Available", "Coming soon", "Under construction", "In development", "In development", "In development"]);
 });
 
 test("a product the package does not know yet comes from its fallback; once known, the package wins", () => {
@@ -43,6 +45,17 @@ test("no dead link: a missing repository or mark is left out", () => {
   assert.ok(md.includes("github.com/krizaka/orazaka"));
   assert.ok(!md.includes("brand/yomizaka/"));
   assert.ok(md.includes("dev.yomizaka.com"));
+});
+
+test("a product without a site of its own links its repository once, with its own mark", () => {
+  const md = renderProducts(collectProducts({ sites, knowhow }));
+  const row = md.split("<tr>").find((r) => r.includes("**Kachizaka**"));
+  assert.equal(row.split("github.com/krizaka/kachizaka)").length - 1, 1);
+  assert.match(row, /\[Repository\]\(https:\/\/github\.com\/krizaka\/kachizaka\)/);
+  assert.ok(row.includes("brand/kachizaka/mark-dark.svg"));
+  assert.ok(md.includes("brand/akinaza/mark-light.svg"));
+  const noMark = renderProducts(collectProducts({ sites, knowhow }), { marks: (id) => id !== "akinaza" });
+  assert.ok(!noMark.includes("brand/akinaza/"));
 });
 
 test("no hard-coded version and no word the Yororis lexicon refuses", () => {
