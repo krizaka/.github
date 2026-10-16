@@ -4,6 +4,8 @@ Thank you for helping. Every Krizaka repository follows the same rules.
 
 1. **Read the contract first.** Each repository has an `AGENTS.md` (its governance contract) — the
    architecture rules, invariants and definition of done. Changes that break it are not merged.
+   The generic engineering rules (35-line functions, JSDoc, naming, mirrored `test/` folder, mobile stack) are in the
+   [engineering charter](AGENTS.template.md): a repository's `AGENTS.md` inherits it instead of copying it.
 2. **Open an issue before large changes**, so the design is agreed before the code.
 3. **No test, not done.** Every feature and every fix ships with its tests in the same pull request — a unit test for
    logic, an integration or end-to-end test for a route, an endpoint or a flow, a story or a render test for a
