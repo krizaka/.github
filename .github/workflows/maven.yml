@@ -7,6 +7,7 @@
 #       uses: krizaka/.github/.github/workflows/maven.yml@main
 #       with:
 #         upstreams: "krizaka-build krizaka-platform-kit"   # repositories built first, in order
+#         rewrite: true                                     # OpenRewrite dry run must find nothing to change
 #       secrets: inherit
 #
 # verify — on every push and pull request: the upstream Krizaka repositories are built from their
@@ -42,6 +43,11 @@ on:
         required: false
         default: "21"
         type: string
+      rewrite:
+        description: "Fail when an OpenRewrite recipe of krizaka-parent would change code (rewrite:dryRun). A repository turns it on in the pull request that applies rewrite:run."
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -72,6 +78,12 @@ jobs:
 
       - name: Verify with the release profile, unsigned
         run: ./mvnw -B -ntp verify -Prelease -Dgpg.skip
+
+      # The recipes live in krizaka-parent (one place, every repository inherits them). A change a recipe
+      # would make is debt: apply it with `./mvnw rewrite:run`, run the tests, commit.
+      - name: OpenRewrite — no change pending
+        if: inputs.rewrite
+        run: ./mvnw -B -ntp rewrite:dryRun
 
   release:
     name: Sign and upload to Maven Central

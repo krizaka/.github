@@ -32,6 +32,23 @@ Thank you for helping. Every Krizaka repository follows the same rules.
      deployment specs and secrets change in the same window.
 9. **Label and plan with the shared taxonomy** — [LABELS.md](LABELS.md) (`type:*`, `priority:*`, `product:*`, `area:*`);
    every issue lives on the [Krizaka Roadmap](https://github.com/orgs/krizaka/projects/4) ([ROADMAP.md](ROADMAP.md)).
+10. **Static rules & codemods — the code rules are checked by tools, and the debt only goes down.** Every repository
+    carries an `AGENTS.md` section « Static rules & codemods » that says exactly what runs; the shape is the same everywhere:
+   - **TypeScript** — [`@ast-grep/cli`](https://ast-grep.github.io) as a **pinned devDependency** (never a global install):
+     `sgconfig.yml`, `rules/*.yml` (message + `fix:` where safe), `rule-tests/`. `scripts/sg-ratchet.mjs` counts the
+     violations per rule and refuses any increase against `sg-ratchet.json` (same idea as `krizaka-ratchet`); it runs in
+     `npm run lint` and so in CI. `npm run sg:ratchet:update` locks a gain; `npm run sg:fix` applies the codemods
+     (hand-written time arithmetic → date-fns). The rules: no hand-written ms arithmetic, no `env` in domain code, no db
+     import in a service/rules file, no TS `enum`, no string-literal comparison of an enum field, no ambient
+     `new Date()`/`Date.now()` in domain code, no `types.ts` at a package root, no unjustified numeric `export const`
+     (`// @fixed:`).
+   - **JVM** — OpenRewrite (`rewrite-maven-plugin`, configured once in `krizaka-parent`): `./mvnw rewrite:dryRun` fails
+     when a recipe would change code (CI: `rewrite: true` on the [maven workflow](.github/workflows/maven.yml)),
+     `./mvnw rewrite:run` applies it. ArchUnit rules are shared in `krizaka-test-support` (`CodeRules`,
+     `ArchitectureRules`: layers, no cycles, naming, configuration only in config, `@Transactional` only on services);
+     what a service cannot satisfy yet is **frozen** with `FrozenRules` (`archunit_store/`, committed): a new violation
+     fails, a fixed one leaves the store.
+   - A rule is never skipped, weakened or deleted to get a PR green: fix the code, or (JVM) freeze the debt that exists.
 
 By contributing you agree that your contributions are licensed under the repository's license
 (Apache-2.0) and that you follow the [Code of Conduct](CODE_OF_CONDUCT.md).
