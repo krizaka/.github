@@ -6,7 +6,7 @@
    Config (JSON, `app-links.json` at the repository root):
      { "host": "dev.orochia.com", "iosBundleId": "com.krizaka.orochia", "androidPackage": "com.krizaka.orochia",
        "paths": ["/@*", "/watch/*", "/me", "/me/*"],            // what the AASA and the Android intent filters claim
-       "web": { "appDir": "apps/web/app", "extra": ["/@[username]"], "excluded": ["/auth/*", "/api/*"],
+       "web": { "appDir": "apps/web/app", "extra": ["/@[username]"], "excluded": ["/auth/*", "/api/*", "/[locale]/[...rest]"],
                 "aasaRoute": "apps/web/app/.well-known/apple-app-site-association/route.ts",
                 "assetlinksRoute": "apps/web/app/.well-known/assetlinks.json/route.ts" },
        "native": { "appJson": "app.json", "appDir": "src/app" } }
@@ -87,8 +87,11 @@ const concrete = (p) => p.replace(/\*/g, "x");
 /** Rule 1 — web routes against claimed paths. Returns the gaps. */
 export function checkWebRoutes({ routes, paths, excluded = [], extra = [] }) {
   const gaps = [];
-  const all = [...new Set([...routes, ...extra].map(normalizeRoute))];
-  const skip = excluded.map(globToRegExp);
+  // An exclusion written with brackets (`/[locale]/[...rest]`) is that route itself, compared before normalising: as a
+  // glob, its normalised form (`/*/*`) would match every route.
+  const literal = new Set(excluded.filter((e) => e.includes("[")));
+  const all = [...new Set([...routes, ...extra].filter((r) => !literal.has(r)).map(normalizeRoute))];
+  const skip = excluded.filter((e) => !e.includes("[")).map(globToRegExp);
   const claims = paths.map(globToRegExp);
   const shareable = all.filter((r) => !skip.some((re) => re.test(r)));
   for (const r of shareable) {

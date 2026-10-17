@@ -30,6 +30,14 @@ test("rule 1: a shareable route nobody claims, and a claimed path with no route,
   assert.match(bad.gaps.join("\n"), /\/ghost\/\* matches no shareable web route/);
 });
 
+test("an exclusion written with brackets is a literal route: a locale catch-all never hides the app's own routes", () => {
+  const routes = ["/[locale]/[...rest]", "/[locale]/privacy", "/app/[locale]", "/app/[locale]/talk"];
+  // As a glob, "/*/*" would match every route; written as the route itself, it excludes that route only.
+  const { gaps, shareable } = checkWebRoutes({ routes, paths: ["/app/*"], excluded: ["/[locale]/[...rest]", "/[locale]/privacy"] });
+  assert.deepEqual(gaps, []);
+  assert.deepEqual(shareable, ["/app/*", "/app/*/talk"]);
+});
+
 test("Orochia today: no AASA, nothing claimed -> every shareable route is a gap", () => {
   const { gaps } = checkWebRoutes({ routes: ["/dashboard", "/watch/[id]"], paths: [], excluded: [] });
   assert.equal(gaps.length, 2);
