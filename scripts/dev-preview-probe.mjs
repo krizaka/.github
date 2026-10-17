@@ -3,10 +3,11 @@
    Usage: node scripts/dev-preview-probe.mjs <product|all> [--seo <path/to/check-seo-family.mjs>] [--json]
    Needs Node 20+ and an authenticated `gh` (alerts, CI). Prints no secret: it never reads credentials. */
 import { execFileSync } from "node:child_process";
+import { checkLive } from "./check-app-links.mjs";
 
 export const PRODUCTS = {
-  orazaka: { host: "dev.orazaka.com", admin: "admin.orazaka.com", health: ["/api/healthz", "/api/health"], signup: ["/api/auth/register"], repos: ["orazaka", "orazaka-web-client", "orazaka-web-admin", "orazaka-ui-kit", "orazaka-mobile-client", "orazaka-packs", "orazaka-studio", "orazaka-edge", "orazaka-ai-engine", "orazaka-worker-media", "orazaka-job-service", "orazaka-conversation-service", "orazaka-knowledge-service", "orazaka-automation-service", "krizaka-users", "krizaka-billing", "krizaka-notifications"], ci: "orazaka" },
-  orochia: { host: "dev.orochia.com", admin: "admin.orochia.com", health: ["/api/healthz", "/api/health"], signup: ["/api/auth/register"], repos: ["orochia", "orochia-admin", "orochia-mobile"], ci: "orochia" },
+  orazaka: { host: "dev.orazaka.com", admin: "admin.orazaka.com", health: ["/api/healthz", "/api/health"], signup: ["/api/auth/register"], mobile: true, repos: ["orazaka", "orazaka-web-client", "orazaka-web-admin", "orazaka-ui-kit", "orazaka-mobile-client", "orazaka-packs", "orazaka-studio", "orazaka-edge", "orazaka-ai-engine", "orazaka-worker-media", "orazaka-job-service", "orazaka-conversation-service", "orazaka-knowledge-service", "orazaka-automation-service", "krizaka-users", "krizaka-billing", "krizaka-notifications"], ci: "orazaka" },
+  orochia: { host: "dev.orochia.com", admin: "admin.orochia.com", health: ["/api/healthz", "/api/health"], signup: ["/api/auth/register"], repos: ["orochia", "orochia-admin", "orochia-mobile"], ci: "orochia", appLinks: { iosBundleId: "com.krizaka.orochia", androidPackage: "com.krizaka.orochia", paths: ["/@*", "/watch/*", "/me", "/me/*", "/auctions", "/auctions/*", "/challenges", "/challenges/*"] } },
   yomizaka: { host: "dev.yomizaka.com", admin: "admin.yomizaka.com", health: ["/api/healthz"], signup: ["/api/auth/sign-up"], repos: ["yomizaka"], ci: "yomizaka" },
   yasakia: { host: "dev.yasakia.com", admin: "admin.yasakia.com", health: ["/api/healthz"], signup: [], repos: ["yasakia"], ci: "yasakia" },
   yororis: { host: "dev.yororis.com", admin: null, health: ["/api/healthz"], signup: [], repos: ["yororis"], ci: "yororis" },
@@ -70,6 +71,11 @@ export async function probe(id, { seo } = {}) {
   r["security.alerts"] = { ok: b.codeql + b.dependabot + b.secrets === 0, note: `codeql high ${b.codeql}, dependabot high ${b.dependabot}, secrets ${b.secrets} over ${p.repos.length} repos` };
   const runs = gh(`repos/krizaka/${p.ci}/actions/runs?branch=main&per_page=40`, ".workflow_runs[]|{name,conclusion}", false).filter((x) => x.conclusion && /^(CI|Continuous Integration)$/.test(x.name));
   r["quality.ci-green"] = { ok: runs[0]?.conclusion === "success", note: `latest ${runs[0]?.conclusion ?? "none"}` };
+  if (p.appLinks || p.mobile) {
+    // mobile.app-links: the live files, Apple's CDN and Google's API (check-app-links.mjs, rule 5).
+    const gaps = p.appLinks ? await checkLive(base, p.appLinks) : ["no app-links config for this product yet"];
+    r["mobile.app-links"] = { ok: gaps.length === 0, note: gaps.length ? gaps.slice(0, 3).join("; ") : "AASA + assetlinks served, CDNs agree" };
+  }
   if (seo) {
     try {
       execFileSync("node", [seo, "--base", base, "--host", base, "--index", "off"], { stdio: "ignore" });

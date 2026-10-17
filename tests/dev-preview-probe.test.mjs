@@ -19,3 +19,9 @@ test("the seven products are known, each with a host and at least one repository
   assert.deepEqual(Object.keys(PRODUCTS).sort(), ["akinaza", "kachizaka", "orazaka", "orochia", "yasakia", "yomizaka", "yororis"]);
   for (const p of Object.values(PRODUCTS)) assert.ok(p.host.startsWith("dev.") && p.repos.length >= 1);
 });
+
+test("mobile.app-links: Orochia declares its app-links contract, the probe knows which products have a native app", () => {
+  assert.equal(PRODUCTS.orochia.appLinks.iosBundleId, "com.krizaka.orochia");
+  assert.ok(PRODUCTS.orochia.appLinks.paths.includes("/@*"));
+  assert.equal(PRODUCTS.orazaka.mobile, true);
+});
