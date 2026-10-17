@@ -34,7 +34,7 @@ Each product stands on its own; each proves one skill. Claims are cheap — ever
 </td></tr>
 <tr><td valign="top" width="64"><picture><source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/yasakia/mark-dark.svg"><img src="https://krizaka-assets.b-cdn.net/brand/yasakia/mark-light.svg" alt="Yasakia" width="48"></picture></td><td valign="top">
 
-**Yasakia** · Geolocation &nbsp;<sup>Coming soon</sup><br>The position is rounded to about 1 km before it is stored, and the database answers the radius and matches who you are with who you seek — nearby, never exact.<br>[dev.yasakia.com](https://dev.yasakia.com) · [Repository](https://github.com/krizaka/yasakia)
+**Yasakia** · Geolocation &nbsp;<sup>In development</sup><br>The position is rounded to about 1 km before it is stored, and the database answers the radius and matches who you are with who you seek — nearby, never exact.<br>[dev.yasakia.com](https://dev.yasakia.com) · [Repository](https://github.com/krizaka/yasakia)
 
 </td></tr>
 <tr><td valign="top" width="64"><picture><source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/yororis/mark-dark.svg"><img src="https://krizaka-assets.b-cdn.net/brand/yororis/mark-light.svg" alt="Yororis" width="48"></picture></td><td valign="top">
