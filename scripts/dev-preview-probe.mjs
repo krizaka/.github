@@ -68,7 +68,7 @@ export async function probe(id, { seo } = {}) {
   }
   const b = blockingAlerts(alerts);
   r["security.alerts"] = { ok: b.codeql + b.dependabot + b.secrets === 0, note: `codeql high ${b.codeql}, dependabot high ${b.dependabot}, secrets ${b.secrets} over ${p.repos.length} repos` };
-  const runs = gh(`repos/krizaka/${p.ci}/actions/runs?branch=main&per_page=40`, ".workflow_runs[]", false).filter((x) => /^(CI|Continuous Integration)$/.test(x.name));
+  const runs = gh(`repos/krizaka/${p.ci}/actions/runs?branch=main&per_page=40`, ".workflow_runs[]|{name,conclusion}", false).filter((x) => /^(CI|Continuous Integration)$/.test(x.name));
   r["quality.ci-green"] = { ok: runs[0]?.conclusion === "success", note: `latest ${runs[0]?.conclusion ?? "none"}` };
   if (seo) {
     try {
