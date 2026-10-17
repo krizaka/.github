@@ -1,8 +1,11 @@
-# ADR-001 — Krizaka accounts for the krizaka.com properties
+# ADR-001 — Krizaka accounts, and the sign-in standard of every Krizaka product
 
 - **Status**: Accepted (the runtime waits on Oussama's cost approval, see *Cost*)
 - **Date**: 2026-10-16
-- **Scope**: blog.krizaka.com first, then any krizaka.com property (www, ui., java.). Never a product.
+- **Scope**: the sign-in standard of the family ([krizaka/.github#76](https://github.com/krizaka/.github/issues/76)):
+  every product but Orochia (Orazaka web/mobile/Mac, Yomizaka, Yasakia, Yororis, Kachizaka, Akinaza and their admin
+  consoles) and Krizaka's own accounts for the krizaka.com properties, whose first consumer is blog.krizaka.com.
+  Amended 2026-10-16 (wider scope, account linking by verified e-mail, native PKCE, `SignInProviders`).
 - **Repositories**: `krizaka-users` (the reusable block), `krizaka-accounts` (the Krizaka host, new), `krizaka-blog`
   (the first client), `krizaka-com` (privacy page)
 
@@ -72,8 +75,7 @@ does not depend on the server, so swapping the server does not touch the blog's 
 
 1. **Hardening first** (each fix starts with a failing test): persist `provider` / `provider_id` and find the user by
    them; check Google's `aud` (and `iss`, `exp`, `email_verified`); bind a GitHub token to our app
-   (`POST /applications/{client_id}/token`); derive a unique `username` from the display name; never link a new
-   identity to an existing account by e-mail silently.
+   (`POST /applications/{client_id}/token`); derive a unique `username` from the display name.
 2. **Browser sign-in** (`/api/v1/auth/web/{provider}/start` → provider → `/callback`): authorization code with PKCE and
    `state` (a signed, short-lived, host-only cookie), the code exchanged server-side, the identity reconciled, a
    session cookie set — `HttpOnly`, `Secure`, `SameSite=Lax`, host-only on accounts.krizaka.com — and a redirect to a
@@ -88,6 +90,38 @@ does not depend on the server, so swapping the server does not touch the blog's 
    `AUTH_APPLE_KEY_ID`, `AUTH_APPLE_PRIVATE_KEY`, `AUTH_FACEBOOK_CLIENT_ID/SECRET`, `AUTH_ALLOWED_ORIGINS`,
    `AUTH_PUBLIC_URL`. krizaka-users' `GOOGLE_CLIENT_ID` / `GITHUB_CLIENT_ID` are renamed (no compatibility layer; Orazaka
    does not set them).
+
+### The family standard (krizaka/.github#76)
+
+One implementation, many deployments. **The code is shared, the identities are not** (House of Brands): each
+product runs krizaka-users (embedded or as its service) with **its own database and its own OAuth apps**; a person
+who uses Orazaka and the blog has two unrelated accounts. Orochia keeps its own flow (age gating).
+
+1. **Providers, in this order everywhere**: Apple, Google, GitHub, Facebook — then e-mail (magic link or password)
+   and passkeys where cheap. On a developer-facing surface (the blog, Krizaka UI/Java sites, Orazaka's console)
+   GitHub may come first. Each product turns on the providers whose credentials it has; the code for all four
+   ships once in krizaka-users.
+2. **Buttons**: `@krizaka/ui` `SignInProviders` (web and native), drawn to each provider's official guidelines
+   (Apple's Human Interface Guidelines for Sign in with Apple, Google's branding guidelines, GitHub's mark, Meta's
+   Facebook Login button) — the provider's mark and words, never restyled into the product's palette. Same order,
+   same consent line under them, on every product.
+3. **App Store 4.8**: an iOS app that offers Google, GitHub or Facebook offers Sign in with Apple too. No product
+   ships social sign-in on iOS before Apple is on.
+4. **Account linking by verified e-mail** (industry practice): a new provider identity joins an existing account
+   **only** when the provider asserts the address is verified (Google `email_verified`, Apple `email_verified`,
+   GitHub's verified primary address) **and** the existing account's address is verified too. Facebook gives no
+   verification signal: it never links automatically. Otherwise a separate account is created; a signed-in person can
+   link a provider from their account page. One account holds several identities (`user_identities`).
+5. **PKCE on mobile and desktop** (RFC 8252): the app opens the system browser on the same `/api/v1/auth/web/{p}/start`
+   with its own PKCE challenge and an allowed app redirect (`orazaka://auth`, a claimed https link on iOS); the
+   service redirects back with a one-time code, which the app exchanges with its verifier at
+   `POST /api/v1/auth/web/token` for a session token. No embedded web view, no provider secret in an app.
+6. **Loi 25**: the same consent text under the buttons (what is kept, why, link to the product's privacy page),
+   self-service export and deletion in every product (krizaka-users' endpoints), minimal data.
+7. **Credentials**: per product and per domain, `AUTH_<PROVIDER>_CLIENT_ID` / `_SECRET` (`AUTH_APPLE_TEAM_ID`,
+   `_KEY_ID`, `_PRIVATE_KEY`) in the product's env file and its App Platform secrets. Callback:
+   `https://<product's auth host>/api/v1/auth/web/<provider>/callback`. The click-by-click steps for each product's
+   OAuth apps are in its wiring issue (label `dev-preview`, org project 4).
 
 ### Provider order for a developer audience
 
