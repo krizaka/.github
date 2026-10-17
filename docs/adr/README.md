@@ -6,3 +6,4 @@ Decisions that span several Krizaka repositories. A decision that belongs to one
 | ADR | Decision | Status |
 |---|---|---|
 | [ADR-001](ADR-001-krizaka-accounts.md) | The sign-in standard of every Krizaka product (krizaka-users, `SignInProviders`, linking by verified e-mail, native PKCE) and Krizaka accounts for the krizaka.com properties (a thin `krizaka-accounts` host with comments) | Accepted (runtime waits on cost approval) |
+| [ADR-002](ADR-002-dev-preview-status-is-data.md) | « Dev preview » is a checkable bar (docs/standards/dev-preview.md); a product's status is data (`dev-preview.json`), gated at krizaka.com's build | Accepted |

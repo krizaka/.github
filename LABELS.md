@@ -13,6 +13,7 @@ everywhere. The [Krizaka Roadmap](https://github.com/orgs/krizaka/projects/4) mi
 | **Area** — one or two | `area:infra` · `area:release` · `area:security` · `area:compliance` · `area:legal` · `area:accounts` · `area:payments` · `area:billing` · `area:media` · `area:mobile` · `area:notifications` · `area:ui` · `area:frontend` · `area:backend` · `area:ai` · `area:content` · `area:growth` · `area:docs` · `area:quality` · `area:dx` · `area:architecture` · `area:apps` · `area:deps` | The part of the system or business it touches. |
 | **Owner** | `owner:oussama` | A manual action only Oussama can do: accounts, payments, DNS, Apple, Bunny, npm 2FA, legal, money. Everything else is done by contributors and Claude Code sessions. |
 | **State** | `status:blocked` | Waiting on something outside the issue — say what in a comment, with its link. |
+| **Dev preview** | `dev-preview` | A gap against [docs/standards/dev-preview.md](docs/standards/dev-preview.md); one criterion id in the title (`dev-preview: <criterion> — <product>`). Added to the project. |
 | **Community** | `good first issue` · `help wanted` | Small and well scoped / help welcome. |
 | **Resolution** | `duplicate` · `invalid` · `wontfix` · `question` | Why an issue was closed without a change. |
 | **Automation** | `dependencies` · `javascript` · `github_actions` · `autorelease: *` | Set by Dependabot and release-please — not by hand. |
