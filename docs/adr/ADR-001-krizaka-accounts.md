@@ -122,6 +122,16 @@ who uses Orazaka and the blog has two unrelated accounts. Orochia keeps its own 
    `_KEY_ID`, `_PRIVATE_KEY`) in the product's env file and its App Platform secrets. Callback:
    `https://<product's auth host>/api/v1/auth/web/<provider>/callback`. The click-by-click steps for each product's
    OAuth apps are in its wiring issue (label `dev-preview`, org project 4).
+8. **Where it runs for the TypeScript products.** Orazaka already runs krizaka-users (a JVM of its `core`). Yomizaka,
+   Yasakia, Kachizaka and Akinaza have hand-built Node auth on their own databases. Options measured against the
+   cost gate: a JVM per product (≈ 290 MiB each, $5/month × 4 = $20/month — refused without Oussama); a TypeScript port
+   (two implementations of the same rules — refused); **one multi-tenant krizaka-users** (chosen): the
+   accounts.krizaka.com service gains *tenants* — per tenant its own database (the product's existing database and
+   PgBouncer pool, schema `identity`, so no new connection), its own OAuth apps, allowed origins and cookie, its own
+   custom domain on the same App Platform service (`auth.dev.<product>.com`, so the product never shows Krizaka).
+   $0 more than the accounts service. The products' BFFs replace their sign-in with a call to their tenant
+   (`krizaka-users#` tenants issue). Until that lands, each product keeps its current e-mail sign-in, and its wiring
+   issue lists what waits.
 
 ### Provider order for a developer audience
 
