@@ -70,10 +70,17 @@ underwriting takes four to six weeks after that, and Apple activates the develop
 
 - **Everything is an issue**, labelled with the [shared taxonomy](LABELS.md) (`type:*`, `priority:*`, `product:*`,
   `area:*`, `owner:oussama`, `status:blocked`), and added to the project.
-- **Large work is an epic** (`type:epic`) whose pieces are GitHub sub-issues — the progress bar is the status.
+- **Large work is an epic** (`type:epic`) whose pieces are GitHub sub-issues — the progress bar is the status. One epic per
+  product (each carries its **Dev preview** gaps as sub-issues, north star of the roadmap) and per org-wide stream (Krizaka UI,
+  site and blog, Infra and costs, Security, Company, Krizaka Java). Ideas not started live in the product's « queued » and
+  « parked » epics, so a product epic's percentage counts committed work only.
 - **Milestones carry the dates**; the same milestone exists in each repository it spans.
-- **Manual actions** — accounts, payments, DNS, Apple, Bunny, npm 2FA, legal — are issues labelled `owner:oussama`, so
-  the view *Actions d’Oussama* is the founder's to-do list and nothing waits silently.
+- **Manual actions** — accounts, payments, DNS, Apple, Bunny, npm 2FA, legal — are issues labelled `oussama-action`
+  (and `owner:oussama`) and assigned to Oussama, so the view *Actions d’Oussama* is the founder's to-do list and nothing waits silently.
+- **Status stays true on its own**: `scripts/roadmap-sync.mjs` (workflow *Roadmap sync*, daily) moves an item to *Done* when its
+  issue is closed, to *In review* when an open pull request closes it, to *In progress* for a draft, and adds every new
+  open issue of the org to the board. It needs the organisation secret `ROADMAP_TOKEN` (the default token cannot reach an
+  organisation project); without it the job does nothing.
 - **Weekly review (15 min)**: Board → move what changed; *Actions d’Oussama* → the next five; *P0 / P1* → anything
   blocked; *Roadmap* → does a milestone date still hold. Then refresh "Now, next, done" above.
 

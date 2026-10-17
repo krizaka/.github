@@ -1,0 +1,52 @@
+# Keeps the org project « Krizaka Roadmap » (project 4) true: Status follows the issue and pull request state
+# (closed -> Done, open pull request -> In review, draft -> In progress) and every open issue of the org is on the board.
+# Rules and tests: scripts/roadmap-sync.mjs, tests/roadmap-sync.test.mjs. Actions are pinned by commit SHA.
+#
+# It needs ONE organisation secret, ROADMAP_TOKEN: a fine-grained personal access token (or GitHub App token) of the
+# organisation with « Projects: read and write » and « Issues / Pull requests: read » on all repositories. The default
+# GITHUB_TOKEN cannot reach an organisation project. Without the secret the job does nothing (it never fails the repo).
+name: Roadmap sync
+
+on:
+  schedule:
+    - cron: "23 5 * * *"
+  workflow_dispatch:
+    inputs:
+      dry:
+        description: "Dry run: print the changes, write nothing"
+        type: boolean
+        default: false
+  pull_request:
+    paths:
+      - "scripts/roadmap-sync.mjs"
+      - "tests/roadmap-sync.test.mjs"
+      - ".github/workflows/roadmap-sync.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - run: node --test tests/roadmap-sync.test.mjs
+
+  sync:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - run: node --test tests/roadmap-sync.test.mjs
+      - name: Recompute Status and add the new issues
+        env:
+          ROADMAP_TOKEN: ${{ secrets.ROADMAP_TOKEN }}
+          DRY: ${{ inputs.dry && '--dry' || '' }}
+        run: node scripts/roadmap-sync.mjs $DRY
