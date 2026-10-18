@@ -10,7 +10,8 @@ export const PRODUCTS = {
   orochia: { host: "dev.orochia.com", admin: "admin.orochia.com", health: ["/api/healthz", "/api/health"], signup: ["/api/auth/register"], repos: ["orochia", "orochia-admin", "orochia-mobile"], ci: "orochia", appLinks: { iosBundleId: "com.krizaka.orochia", androidPackage: "com.krizaka.orochia", paths: ["/@*", "/watch/*", "/me", "/me/*", "/auctions", "/auctions/*", "/challenges", "/challenges/*", "/messages", "/messages/*"] } },
   yomizaka: { host: "dev.yomizaka.com", admin: "admin.yomizaka.com", health: ["/api/healthz"], signup: ["/api/auth/sign-up"], repos: ["yomizaka"], ci: "yomizaka" },
   yasakia: { host: "dev.yasakia.com", admin: "admin.yasakia.com", health: ["/api/healthz"], signup: [], repos: ["yasakia"], ci: "yasakia" },
-  yororis: { host: "dev.yororis.com", admin: null, health: ["/api/healthz"], signup: [], repos: ["yororis"], ci: "yororis" },
+  // Yororis: dev.yororis.com is the static « under construction » page real people see; the QA-only app (2026-10-17, yororis#23) is at qa.yororis.com.
+  yororis: { host: "qa.yororis.com", admin: null, health: ["/api/healthz"], signup: ["/api/auth/sign-up"], repos: ["yororis"], ci: "yororis" },
   kachizaka: { host: "dev.kachizaka.com", admin: "admin.kachizaka.com", health: ["/api/healthz"], signup: ["/api/auth/sign-up"], repos: ["kachizaka"], ci: "kachizaka" },
   akinaza: { host: "dev.akinaza.com", admin: "admin.akinaza.com", health: ["/api/healthz"], signup: ["/api/auth/sign-up"], repos: ["akinaza"], ci: "akinaza" },
 };
