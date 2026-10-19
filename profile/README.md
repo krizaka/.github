@@ -13,7 +13,7 @@ We build what others take years to get right — AI that never leaves your walls
 that pays every cent exactly once, a dating app where you talk first. Compliance and security aren't add-ons:
 they're compiled in.
 
-[Website](https://www.krizaka.com) · [Products](https://www.krizaka.com/en/products) · [Docs](https://www.krizaka.com/docs) · [Open source](https://www.krizaka.com/en/open-source) · [Roadmap](https://github.com/krizaka/.github/blob/main/ROADMAP.md) · [Contact](https://www.krizaka.com/en/contact)
+[Website](https://www.krizaka.com) · [Products](https://www.krizaka.com/en/products) · [Krizaka UI](https://ui.krizaka.com) · [Krizaka Java](https://java.krizaka.com) · [Blog](https://blog.krizaka.com) · [Open source](https://www.krizaka.com/en/open-source) · [Roadmap](https://github.com/krizaka/.github/blob/main/ROADMAP.md) · [Contact](https://www.krizaka.com/en/contact)
 
 [![Public repositories](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.github.com%2Forgs%2Fkrizaka&query=%24.public_repos&label=public%20repositories&color=196df5&logo=github)](https://github.com/orgs/krizaka/repositories)
 [![License](https://img.shields.io/github/license/krizaka/orochia?color=196df5)](https://github.com/krizaka/orochia/blob/main/LICENSE)
@@ -73,7 +73,7 @@ compliance — on the web and on iOS and Android ([orochia-mobile](https://githu
   <img src="assets/yazakia-light.svg" alt="" width="64">
 </picture>
 
-### Yazakia <sup>coming soon</sup>
+### Yasakia <sup>coming soon</sup>
 
 **The dating app where you talk first.**
 
@@ -81,7 +81,7 @@ No swipe, no catalogue, no score. An AI agent gets to know you, then opens a sma
 **both directions** — with reasons, never a score — and the next batch learns from your debrief. iOS and Android,
 built on the Krizaka blocks, with Orazaka as its AI engine.
 
-[Coming soon](https://www.krizaka.com/en/products/yazakia) · [Repository](https://github.com/krizaka/yazakia) · [Mobile app](https://github.com/krizaka/yazakia-mobile) · [Get notified](https://www.krizaka.com/en/contact?topic=yazakia&source=github)
+[Try dev site](https://dev.yasakia.com) · [Repository](https://github.com/krizaka/yasakia) · [Mobile app](https://github.com/krizaka/yasakia-mobile) · [Get notified](https://www.krizaka.com/en/contact?topic=yasakia&source=github)
 
 </td>
 <td width="50%" valign="top">
@@ -119,11 +119,11 @@ date.
 
 | You want to… | Go to |
 | :--- | :--- |
-| **See the products** | [krizaka.com/products](https://www.krizaka.com/en/products) · Orochia running: [dev.orochia.com](https://dev.orochia.com) · Orazaka: [demos](https://www.krizaka.com/en/products/orazaka/demos) · Yazakia: [coming soon](https://www.krizaka.com/en/products/yazakia) |
-| **Read the docs** | One place, [krizaka.com/docs](https://www.krizaka.com/docs): [Orazaka](https://www.krizaka.com/docs/orazaka) · [Orochia](https://www.krizaka.com/docs/orochia) · [UI components](https://www.krizaka.com/docs/ui) · [Java building blocks](https://www.krizaka.com/docs/java) |
+| **See the products** | [krizaka.com/products](https://www.krizaka.com/en/products) · Orochia running: [dev.orochia.com](https://dev.orochia.com) · Orazaka: [dev.orazaka.com](https://dev.orazaka.com) · Yasakia: [dev.yasakia.com](https://dev.yasakia.com) · Yomizaka: [dev.yomizaka.com](https://dev.yomizaka.com) · Blog: [blog.krizaka.com](https://blog.krizaka.com) |
+| **Read the docs** | Sovereign sites, built from code: [Krizaka UI](https://ui.krizaka.com) · [Krizaka Java](https://java.krizaka.com) · [Blog](https://blog.krizaka.com) · [Orazaka](https://dev.orazaka.com/docs) · [Orochia](https://dev.orochia.com/docs) |
 | **Run Orochia locally** | [`krizaka/orochia`](https://github.com/krizaka/orochia) — `npm run setup && npm run dev` (Node ≥ 20, Docker) |
 | **Run Orazaka locally** | [`krizaka/orazaka`](https://github.com/krizaka/orazaka) — clones every component; the [`orazaka` CLI](https://github.com/krizaka/orazaka-cli) does install → start → dev, and `orazaka demo seed` loads the demo |
-| **Understand the architecture** | [Orazaka, interactive](https://www.krizaka.com/en/products/orazaka/architecture) · [Orochia docs](https://www.krizaka.com/docs/orochia) |
+| **Understand the architecture** | [Orazaka, interactive](https://dev.orazaka.com) · [Orochia docs](https://dev.orochia.com/docs) |
 | **See where we are going** | [Roadmap](https://github.com/krizaka/.github/blob/main/ROADMAP.md) — milestones and dates · live board: [Krizaka Roadmap](https://github.com/orgs/krizaka/projects/4) |
 | **Contribute** | [Contributing](https://github.com/krizaka/.github/blob/main/CONTRIBUTING.md) · good first issues in each repository · [Code of conduct](https://github.com/krizaka/.github/blob/main/CODE_OF_CONDUCT.md) |
 | **Report a vulnerability** | Privately — [Security policy](https://github.com/krizaka/.github/blob/main/SECURITY.md) |
@@ -173,8 +173,11 @@ published on Maven Central and npm. The products consume them; they do not own t
 | Orazaka — AI engine | [`orazaka-studio`](https://github.com/krizaka/orazaka-studio) · [`orazaka-ai-engine`](https://github.com/krizaka/orazaka-ai-engine) · [`orazaka-conversation-service`](https://github.com/krizaka/orazaka-conversation-service) · [`orazaka-job-service`](https://github.com/krizaka/orazaka-job-service) · [`orazaka-knowledge-service`](https://github.com/krizaka/orazaka-knowledge-service) · [`orazaka-automation-service`](https://github.com/krizaka/orazaka-automation-service) · [`orazaka-worker-media`](https://github.com/krizaka/orazaka-worker-media) |
 | Orazaka — applications | [`orazaka-web-client`](https://github.com/krizaka/orazaka-web-client) · [`orazaka-web-admin`](https://github.com/krizaka/orazaka-web-admin) · [`orazaka-mobile-client`](https://github.com/krizaka/orazaka-mobile-client) · [`orazaka-cli`](https://github.com/krizaka/orazaka-cli) · [`orazaka-packs`](https://github.com/krizaka/orazaka-packs) |
 | Orochia | [`orochia`](https://github.com/krizaka/orochia) · [`orochia-admin`](https://github.com/krizaka/orochia-admin) · [`orochia-design-system`](https://github.com/krizaka/orochia-design-system) · [`orochia-mobile`](https://github.com/krizaka/orochia-mobile) |
-| Yazakia | [`yazakia`](https://github.com/krizaka/yazakia) — API, agent, matching, legal pages · [`yazakia-mobile`](https://github.com/krizaka/yazakia-mobile) — the iOS and Android app |
-| Site & organisation | [`krizaka-com`](https://github.com/krizaka/krizaka-com) · [`.github`](https://github.com/krizaka/.github) — this profile, community defaults and the shared Maven pipeline |
+| Yasakia | [`yasakia`](https://github.com/krizaka/yasakia) — API, agent, matching, legal pages · [`yasakia-mobile`](https://github.com/krizaka/yasakia-mobile) — the iOS and Android app |
+| Yomizaka | [`yomizaka`](https://github.com/krizaka/yomizaka) — document reading and legal verification |
+| Kachizaka | [`kachizaka`](https://github.com/krizaka/kachizaka) — predictions among friends, points only |
+| Akinaza | [`akinaza`](https://github.com/krizaka/akinaza) — all-in-one for independent Québec shops |
+| Site & organisation | [`krizaka-blog`](https://github.com/krizaka/krizaka-blog) (blog.krizaka.com) · [`krizaka-com`](https://github.com/krizaka/krizaka-com) · [`.github`](https://github.com/krizaka/.github) — this profile, community defaults and the shared Maven pipeline |
 
 Clone the whole Orazaka platform — building blocks included — with [`krizaka/orazaka`](https://github.com/krizaka/orazaka).
 

@@ -12,7 +12,11 @@ Thank you for helping. Every Krizaka repository follows the same rules.
 5. **One change per pull request**, with [Conventional Commits](https://www.conventionalcommits.org/)
    messages (`feat:`, `fix:`, `docs:`, `refactor:`, `chore:`…).
 6. **No secrets, ever** — configuration comes from the environment.
-7. **Label and plan with the shared taxonomy** — [LABELS.md](LABELS.md) (`type:*`, `priority:*`, `product:*`, `area:*`);
+7. **Code quality & DevX standards** — no dead or commented-out code; code must be clean, ergonomic, and strictly typed. Public APIs must be fully documented (Javadoc / TSDoc). Avoid code smells and security antipatterns.
+8. **Commit attribution & AI co-authors** — Commits or pull requests authored with AI assistants must attribute their co-author using official GitHub-recognized Git trailers:
+   - Claude: `Co-authored-by: Claude <noreply@anthropic.com>`
+   - Antigravity (Gemini): `Co-authored-by: Antigravity (Gemini) <200291788+gemini-code-assist@users.noreply.github.com>`
+9. **Label and plan with the shared taxonomy** — [LABELS.md](LABELS.md) (`type:*`, `priority:*`, `product:*`, `area:*`);
    every issue lives on the [Krizaka Roadmap](https://github.com/orgs/krizaka/projects/4) ([ROADMAP.md](ROADMAP.md)).
 
 By contributing you agree that your contributions are licensed under the repository's license

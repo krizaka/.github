@@ -10,8 +10,10 @@ _Last reviewed: 2026-10-12._
 
 Krizaka builds **open-source building blocks** (`@krizaka/*` on npm, `com.krizaka` on Maven Central) and the products
 that consume them: **Orochia**, the video platform where creators keep 90 %, **Orazaka**, sovereign AI that runs on
-your own machines, **Yazakia**, the dating app where you talk first (coming soon), and **Yororis**, a listening space
-with a face and a voice powered by Orazaka's wellbeing pack (under construction — nothing offered, no date). The next six
+your own machines, **Yasakia**, the dating app where you talk first (coming soon), and **Yororis**, a listening space
+with a face and a voice powered by Orazaka's wellbeing pack (under construction — nothing offered, no date). Other products
+in development include **Yomizaka** (document reading and legal checks), **Kachizaka** (sports predictions with friends, points only)
+and **Akinaza** (all-in-one for Québec independent merchants). The next six
 months take Orochia and Orazaka from "running in dev" to "open to the public":
 
 1. the company and its accounts in order (M0),
@@ -20,7 +22,7 @@ months take Orochia and Orazaka from "running in dev" to "open to the public":
 4. Orazaka out of its local phase (M3),
 
 while the platform keeps shipping — Krizaka UI beyond shadcn / Aceternity / ECharts, the mobile app on TestFlight, the
-November Java releases from CI — and Yazakia V1 is built, then Yororis in the open.
+November Java releases from CI — and Yasakia V1 is built, then Yororis in the open.
 
 ## Milestones
 
@@ -30,7 +32,7 @@ November Java releases from CI — and Yazakia V1 is built, then Yororis in the 
 | **Mobile · iOS TestFlight** | 2026-11-20 | Orochia on a real iPhone (internal TestFlight) and a release-signed APK, push on both | [orochia-mobile#11](https://github.com/krizaka/orochia-mobile/issues/11) |
 | **Novembre · Maven 0.2.0** | 2026-11-20 | krizaka-build 0.3.0, then users / notifications / billing 0.2.0, published from CI | [krizaka-build#16](https://github.com/krizaka/krizaka-build/issues/16) |
 | **Krizaka UI · W1–W5** | 2026-12-18 | Signature components, effects, `@krizaka/charts`, blocks, adopted by every product | [krizaka-ui#49](https://github.com/krizaka/krizaka-ui/issues/49) |
-| **Yazakia · V1** | 2026-12-18 | Brand, realtime / push blocks, the API and its agent, the Expo app, the site, the demo, an internal TestFlight | [yazakia#1](https://github.com/krizaka/yazakia/issues/1) |
+| **Yasakia · V1** | 2026-12-18 | Brand, realtime / push blocks, the API and its agent, the Expo app, the site, the demo, an internal TestFlight | [yasakia#1](https://github.com/krizaka/yasakia/issues/1) |
 | **Yororis — en construction** | no date | Built in the open: brand, Orazaka's voice turn, the announcement, then the product — nothing deployed or offered until the framework study concludes | [.github#35](https://github.com/krizaka/.github/issues/35) |
 | **M1 · Production Orochia** | 2027-01-29 | orochia.com live: managed database, real payments, Bunny production, 18+ legal pack, KYC, CSAM detection, monitoring | [orochia#76](https://github.com/krizaka/orochia/issues/76) |
 | **M2 · Lancement public & marketing** | 2027-02-26 | Three blogs live, Product Hunt / Show HN, campaign running with analytics | [krizaka-com#55](https://github.com/krizaka/krizaka-com/issues/55) |
@@ -43,7 +45,7 @@ underwriting takes four to six weeks after that, and Apple activates the develop
 
 **In progress**
 
-- Yazakia: the mobile components (date / time pickers, geolocation, Map) and a finer mark ([krizaka-ui#98](https://github.com/krizaka/krizaka-ui/issues/98), [#97](https://github.com/krizaka/krizaka-ui/issues/97)); next, the API foundations ([yazakia#2](https://github.com/krizaka/yazakia/issues/2))
+- Yasakia: the mobile components (date / time pickers, geolocation, Map) and a finer mark ([krizaka-ui#98](https://github.com/krizaka/krizaka-ui/issues/98), [#97](https://github.com/krizaka/krizaka-ui/issues/97)); next, the API foundations ([yasakia#2](https://github.com/krizaka/yasakia/issues/2))
 - Yororis: the brand ([krizaka-ui#99](https://github.com/krizaka/krizaka-ui/issues/99)) and Orazaka's voice turn ([orazaka#50](https://github.com/krizaka/orazaka/issues/50)); then the under-construction announcement ([krizaka-com#90](https://github.com/krizaka/krizaka-com/issues/90))
 - Krizaka UI: layouts and templates, the signature visual, mascot states ([#100](https://github.com/krizaka/krizaka-ui/issues/100), [#101](https://github.com/krizaka/krizaka-ui/issues/101), [#102](https://github.com/krizaka/krizaka-ui/issues/102)); our story with four products ([krizaka-com#92](https://github.com/krizaka/krizaka-com/issues/92))
 
