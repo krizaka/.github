@@ -24,7 +24,8 @@ export function renderTable(results) {
 
 async function main() {
   const org = process.argv[2] ?? "krizaka";
-  const names = execFileSync("gh", ["repo", "list", org, "--visibility", "public", "--limit", "200", "--json", "name,isArchived", "-q", ".[]|select(.isArchived|not)|.name"], { encoding: "utf8" }).split("\n").filter(Boolean).sort();
+  // REST, not GraphQL (`gh repo list`): the GraphQL budget is the first one a batch session exhausts.
+  const names = execFileSync("gh", ["api", "--paginate", `orgs/${org}/repos?type=public&per_page=100`, "-q", ".[]|select(.archived|not)|.name"], { encoding: "utf8" }).split("\n").filter(Boolean).sort();
   const results = [];
   for (const name of names) {
     const res = await fetch(`https://api.scorecard.dev/projects/github.com/${org}/${name}`);
