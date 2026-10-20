@@ -1,6 +1,6 @@
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/krizaka/.github/main/profile/assets/krizaka-dark.svg">
-  <img src="https://raw.githubusercontent.com/krizaka/.github/main/profile/assets/krizaka-light.svg" alt="Krizaka" width="96">
+  <source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/krizaka/mark-dark.svg?v=3.28.0">
+  <img src="https://krizaka-assets.b-cdn.net/brand/krizaka/mark-light.svg?v=3.28.0" alt="Krizaka" width="96">
 </picture>
 
 # krizaka/.github

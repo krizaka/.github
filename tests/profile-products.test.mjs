@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { END, collectProducts, renderProducts, replaceBlock } from "../scripts/profile-products.mjs";
+import { END, collectProducts, renderProducts, replaceBlock, withHeroVersion } from "../scripts/profile-products.mjs";
 
 const knowhow = JSON.parse(readFileSync(new URL("../profile/knowhow.json", import.meta.url), "utf8"));
 const site = (id, status, extra = {}) => ({ id, name: id[0].toUpperCase() + id.slice(1), url: `https://dev.${id}.com`, kind: "product", status, repo: `https://github.com/krizaka/${id}`, ...extra });
@@ -9,25 +9,25 @@ const sites = [
   { id: "krizaka", name: "Krizaka", url: "https://www.krizaka.com", kind: "company", status: "released" },
   site("orazaka", "released"),
   site("orochia", "released"),
-  site("yasakia", "upcoming"),
+  site("yasakia", "development"),
   site("yororis", "construction"),
-  site("kachizaka", "development", { url: "https://github.com/krizaka/kachizaka" }),
-  site("akinaza", "development", { url: "https://github.com/krizaka/akinaza" }),
+  site("kachizaka", "development"),
+  site("akinaza", "development"),
+  site("yomizaka", "development"),
   { id: "ui", name: "Krizaka UI", url: "https://ui.krizaka.com", kind: "open-source", status: "released" },
 ];
 
 test("products only, in the know-how order, with their status in words", () => {
   const p = collectProducts({ sites, knowhow });
   assert.deepEqual(p.map((x) => x.id), ["orazaka", "orochia", "yasakia", "yororis", "yomizaka", "kachizaka", "akinaza"]);
-  assert.deepEqual(p.map((x) => x.status), ["Available", "Available", "Coming soon", "Under construction", "In development", "In development", "In development"]);
+  assert.deepEqual(p.map((x) => x.status), ["Dev preview", "Dev preview", "In development", "Under construction", "In development", "In development", "In development"]);
 });
 
 test("a product the package does not know yet comes from its fallback; once known, the package wins", () => {
-  const before = collectProducts({ sites, knowhow }).find((x) => x.id === "yomizaka");
-  assert.equal(before.url, "https://dev.yomizaka.com");
-  const after = collectProducts({ sites: [...sites, site("yomizaka", "upcoming", { url: "https://yomizaka.example" })], knowhow }).find((x) => x.id === "yomizaka");
-  assert.equal(after.url, "https://yomizaka.example");
-  assert.equal(after.status, "In development");
+  const withFallback = { ...knowhow, products: { ...knowhow.products, yomizaka: { fallback: { name: "Yomizaka", url: "https://dev.yomizaka.com", repo: "https://github.com/krizaka/yomizaka", status: "upcoming" } } } };
+  const without = sites.filter((s) => s.id !== "yomizaka");
+  assert.equal(collectProducts({ sites: without, knowhow: withFallback }).find((x) => x.id === "yomizaka").url, "https://dev.yomizaka.com");
+  assert.equal(collectProducts({ sites: [...without, site("yomizaka", "development", { url: "https://yomizaka.example" })], knowhow: withFallback }).find((x) => x.id === "yomizaka").url, "https://yomizaka.example");
 });
 
 test("a brand-new product appears with the package's own one-line description", () => {
@@ -35,8 +35,7 @@ test("a brand-new product appears with the package's own one-line description", 
   const z = p.at(-1);
   assert.equal(z.id, "zorakia");
   assert.equal(z.line, "A new thing.");
-  assert.equal(z.knowhow, undefined);
-  assert.match(renderProducts(p), /\*\*Zorakia\*\* &nbsp;<sup>Coming soon<\/sup><br>A new thing\./);
+    assert.match(renderProducts(p), /\*\*Zorakia\*\* &nbsp;<sup>Coming soon<\/sup><br>A new thing\./);
 });
 
 test("no dead link: a missing repository or mark is left out", () => {
@@ -47,15 +46,32 @@ test("no dead link: a missing repository or mark is left out", () => {
   assert.ok(md.includes("dev.yomizaka.com"));
 });
 
-test("a product without a site of its own links its repository once, with its own mark", () => {
+test("a product with a dev site shows the site and the repository, each once; one without shows its repository once", () => {
   const md = renderProducts(collectProducts({ sites, knowhow }));
   const row = md.split("<tr>").find((r) => r.includes("**Kachizaka**"));
-  assert.equal(row.split("github.com/krizaka/kachizaka)").length - 1, 1);
-  assert.match(row, /\[Repository\]\(https:\/\/github\.com\/krizaka\/kachizaka\)/);
+  assert.match(row, /\[dev\.kachizaka\.com\]\(https:\/\/dev\.kachizaka\.com\) · \[Repository\]\(https:\/\/github\.com\/krizaka\/kachizaka\)/);
   assert.ok(row.includes("brand/kachizaka/mark-dark.svg"));
-  assert.ok(md.includes("brand/akinaza/mark-light.svg"));
-  const noMark = renderProducts(collectProducts({ sites, knowhow }), { marks: (id) => id !== "akinaza" });
-  assert.ok(!noMark.includes("brand/akinaza/"));
+  const noSite = collectProducts({ sites: sites.map((x) => (x.id === "akinaza" ? { ...x, url: x.repo } : x)), knowhow });
+  const r2 = renderProducts(noSite).split("<tr>").find((r) => r.includes("**Akinaza**"));
+  assert.equal(r2.split("github.com/krizaka/akinaza)").length - 1, 1);
+  assert.ok(!renderProducts(noSite, { marks: (id) => id !== "akinaza" }).includes("brand/akinaza/"));
+});
+
+test("the marks carry the @krizaka/ui version, so GitHub's image cache refreshes with a release", () => {
+  const md = renderProducts(collectProducts({ sites, knowhow }), { version: "3.28.0" });
+  assert.ok(md.includes("brand/orazaka/mark-dark.svg?v=3.28.0") && md.includes("brand/akinaza/mark-light.svg?v=3.28.0"));
+  assert.ok(!renderProducts(collectProducts({ sites, knowhow })).includes("?v="));
+  const hero = '<img src="https://krizaka-assets.b-cdn.net/brand/krizaka/mark-light.svg?v=1.0.0">';
+  assert.equal(withHeroVersion(hero, "3.28.0"), hero.replace("1.0.0", "3.28.0"));
+  assert.equal(withHeroVersion(withHeroVersion(hero, "3.28.0"), "3.28.0"), withHeroVersion(hero, "3.28.0"));
+});
+
+test("the READMEs wear no mark that is stored in the repository: the marks are the export of @krizaka/ui", () => {
+  for (const f of ["../README.md", "../profile/README.md", "../profile/MEMBER_README.md"]) {
+    const text = readFileSync(new URL(f, import.meta.url), "utf8");
+    assert.ok(!/profile\/assets|srcset="assets\//.test(text), f);
+    assert.ok(text.includes("brand/krizaka/mark-"), f);
+  }
 });
 
 test("no hard-coded version and no word the Yororis lexicon refuses", () => {

@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 // Regenerates the products section of profile/README.md (between the `products:start` / `products:end` markers) from
-// `@krizaka/ui/sites` — the family's single list of sites — and profile/knowhow.json (the words). A new product in the
-// package appears here without anyone remembering. Nothing else of the README is touched.
+// `@krizaka/ui/sites` — the family's single list of sites and of their one-line words — and profile/knowhow.json (order,
+// status wording, fallbacks). A new product in the package appears here without anyone remembering. The marks are the
+// Bunny `brand/` export, addressed with `?v=<@krizaka/ui version>` so GitHub's image cache (camo) refreshes when a mark
+// changes. Nothing else of the README is touched.
 //
 //   node scripts/profile-products.mjs            # rewrite the section
 //   node scripts/profile-products.mjs --check    # exit 1 when the README is out of date
@@ -36,21 +38,20 @@ export function collectProducts({ sites, descriptions = {}, knowhow }) {
         name: p.name,
         url: p.url,
         repo: p.repo,
-        knowhow: k.knowhow,
-        line: k.proof ?? descriptions[p.id] ?? "",
+        line: descriptions[p.id] ?? "",
         status: k.statusLabels?.[p.status] ?? STATUS[p.status] ?? p.status,
       };
     });
 }
 
-const markUrl = (id, theme) => `${MARKS_CDN}/${id}/mark-${theme}.svg`;
+const markUrl = (id, theme, version) => `${MARKS_CDN}/${id}/mark-${theme}.svg${version ? `?v=${version}` : ""}`;
 
 /** Markdown of the section. `marks` / `repos` say which mark and repository exist (a missing one is left out, never a dead link). */
-export function renderProducts(products, { marks = () => true, repos = () => true } = {}) {
+export function renderProducts(products, { marks = () => true, repos = () => true, version } = {}) {
   const rows = products.map((p) => {
     const id = marks(p.id) ? p.id : "krizaka";
-    const mark = `<picture><source media="(prefers-color-scheme: dark)" srcset="${markUrl(id, "dark")}"><img src="${markUrl(id, "light")}" alt="${p.name}" width="48"></picture>`;
-    const head = p.knowhow ? `**${p.name}** · ${p.knowhow}` : `**${p.name}**`;
+    const mark = `<picture><source media="(prefers-color-scheme: dark)" srcset="${markUrl(id, "dark", version)}"><img src="${markUrl(id, "light", version)}" alt="${p.name}" width="48"></picture>`;
+    const head = `**${p.name}**`;
     // A product without a site of its own (its url is its repository) shows the repository link once.
     const links = p.url === p.repo ? [] : [`[${p.url.replace(/^https?:\/\//, "")}](${p.url})`];
     if (p.repo && repos(p.repo)) links.push(`[Repository](${p.repo})`);
@@ -67,6 +68,11 @@ export function replaceBlock(readme, block) {
   return readme.slice(0, a) + block + readme.slice(b + END.length);
 }
 
+/** The hero's Krizaka mark carries the same `?v=` as the product marks, so one release refreshes them all. */
+export function withHeroVersion(readme, version) {
+  return readme.replace(/(brand\/krizaka\/mark-(?:dark|light)\.svg)(?:\?v=[^"\s]*)?/g, `$1${version ? `?v=${version}` : ""}`);
+}
+
 const exists = async (url, fetchImpl) => {
   try {
     const r = await fetchImpl(url, { method: "HEAD", redirect: "follow" });
@@ -80,18 +86,24 @@ async function main() {
   const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
   const sitesPath = process.env.SITES_MODULE ?? resolve(root, ".sites/node_modules/@krizaka/ui/dist/sites.js");
   const { sites, familyLabels } = await import(pathToFileURL(sitesPath).href);
+  const version = JSON.parse(readFileSync(resolve(dirname(sitesPath), "../package.json"), "utf8")).version;
   const knowhow = JSON.parse(readFileSync(resolve(root, "profile/knowhow.json"), "utf8"));
   const products = collectProducts({ sites, descriptions: familyLabels.en.descriptions, knowhow });
   const okMarks = new Set();
   for (const p of products) if (await exists(markUrl(p.id, "dark"), fetch)) okMarks.add(p.id);
   const okRepos = new Set();
   for (const p of products) if (p.repo && (await exists(p.repo, fetch))) okRepos.add(p.repo);
-  const block = renderProducts(products, { marks: (id) => okMarks.has(id), repos: (r) => okRepos.has(r) });
+  const block = renderProducts(products, { marks: (id) => okMarks.has(id), repos: (r) => okRepos.has(r), version });
   const file = resolve(root, "profile/README.md");
   const current = readFileSync(file, "utf8");
-  const next = replaceBlock(current, block);
+  const next = withHeroVersion(replaceBlock(current, block), version);
+  // The other READMEs that wear the Krizaka mark follow the same version.
+  const heroFiles = ["profile/MEMBER_README.md", "README.md"].map((f) => resolve(root, f));
+  const heroNext = heroFiles.map((f) => [f, readFileSync(f, "utf8")]).map(([f, text]) => [f, text, withHeroVersion(text, version)]);
+  const heroStale = heroNext.some(([, a, b]) => a !== b);
+  if (heroStale && !process.argv.includes("--check")) for (const [f, , b] of heroNext) writeFileSync(f, b);
   if (process.argv.includes("--check")) {
-    if (next !== current) {
+    if (next !== current || heroStale) {
       console.error("profile/README.md is out of date: run `node scripts/profile-products.mjs`");
       process.exit(1);
     }
