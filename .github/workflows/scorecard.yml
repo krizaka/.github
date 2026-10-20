@@ -1,6 +1,7 @@
 # OpenSSF Scorecard — supply-chain checks of this repository (krizaka/.github#28).
 # Results are published to scorecard.dev (the README badge) and uploaded to code scanning.
-# Weekly and on every push to main — never on pull requests, so it is never a required check.
+# Weekly (Monday) and when the branch protection changes — not on every push to main (CI-COST: ~30 repositories × every
+# merge was minutes for a score that moves weekly) and never on pull requests, so it is never a required check.
 # Actions are pinned by commit SHA; Dependabot (github-actions) keeps the pins current.
 name: Scorecard
 
@@ -8,8 +9,6 @@ on:
   branch_protection_rule:
   schedule:
     - cron: "23 5 * * 1"
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions: read-all

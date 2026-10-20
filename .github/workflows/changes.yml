@@ -1,0 +1,112 @@
+# Do the files of this pull request or push need the heavy jobs? (reusable; GitHub Actions minutes, krizaka/.github CI-COST)
+#
+# A repository's CI calls it first and gives every heavy job `needs: changes`:
+#
+#   jobs:
+#     changes:
+#       uses: krizaka/.github/.github/workflows/changes.yml@<sha>
+#       with:
+#         ignore: '^[^/]+\.md$|^docs/|^\.changeset/'      # JavaScript RegExp: files that never need the jobs
+#     check:
+#       name: Type-check, test, build                      # the required check keeps its name
+#       needs: changes
+#       if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
+#
+# A job skipped by its `if` reports « Skipped », which branch protection counts as passing: the required check
+# stays satisfied on a docs-only pull request, for no minute. The wording of the `if` is the safety: the jobs run
+# unless this workflow answered exactly `false`, so a failure here (API error, a cancelled job) runs everything.
+# Nothing is ever skipped because the gate itself broke.
+#
+# `code` is `true` for anything that is not a pull request or a branch push (schedule, dispatch, tag, merge queue),
+# for an empty or truncated file list, and when any changed file matches `relevant` and not `ignore`. Renames count
+# on both sides. Schedules and releases therefore always run in full.
+name: changes
+
+on:
+  workflow_call:
+    inputs:
+      relevant:
+        description: "JavaScript RegExp: a changed file matching it needs the jobs (default: every file)."
+        type: string
+        required: false
+        default: "."
+      ignore:
+        description: "JavaScript RegExp: a changed file matching it never needs the jobs (checked after `relevant`)."
+        type: string
+        required: false
+        default: ""
+    outputs:
+      code:
+        description: "'false' only when every changed file is irrelevant; otherwise 'true'."
+        value: ${{ jobs.changes.outputs.code }}
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    name: Changed files
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      code: ${{ steps.gate.outputs.code }}
+    steps:
+      - id: gate
+        env:
+          API_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          REF_TYPE: ${{ github.ref_type }}
+          PR: ${{ github.event.pull_request.number }}
+          BEFORE: ${{ github.event.before }}
+          RELEVANT: ${{ inputs.relevant }}
+          IGNORE: ${{ inputs.ignore }}
+        run: |
+          node --input-type=module - <<'GATE'
+          import { appendFileSync } from "node:fs";
+
+          const env = process.env;
+          const api = env.GITHUB_API_URL || "https://api.github.com";
+          const repo = env.GITHUB_REPOSITORY;
+          const done = (code, why) => {
+            console.log(`code=${code} (${why})`);
+            if (env.GITHUB_OUTPUT) appendFileSync(env.GITHUB_OUTPUT, `code=${code}\n`);
+            process.exit(0);
+          };
+
+          async function get(path) {
+            const res = await fetch(`${api}${path}`, {
+              headers: { accept: "application/vnd.github+json", authorization: `Bearer ${env.API_TOKEN}`, "x-github-api-version": "2022-11-28" },
+              signal: AbortSignal.timeout(20000),
+            });
+            if (!res.ok) throw new Error(`${path}: ${res.status}`);
+            return res.json();
+          }
+
+          try {
+            const relevant = new RegExp(env.RELEVANT || ".");
+            const ignore = env.IGNORE ? new RegExp(env.IGNORE) : null;
+            let files;
+            if (env.GATE_TEST_FILES) {
+              files = JSON.parse(env.GATE_TEST_FILES); // unit-test hook (tests/changes-gate.test.mjs)
+            } else if (env.EVENT === "pull_request") {
+              files = [];
+              for (let page = 1; page <= 30; page++) {
+                const batch = await get(`/repos/${repo}/pulls/${env.PR}/files?per_page=100&page=${page}`);
+                for (const f of batch) files.push(f.filename, ...(f.previous_filename ? [f.previous_filename] : []));
+                if (batch.length < 100) break;
+                if (page === 30) done("true", "more than 3000 files");
+              }
+            } else if (env.EVENT === "push" && env.REF_TYPE === "branch" && env.BEFORE && !/^0+$/.test(env.BEFORE)) {
+              const cmp = await get(`/repos/${repo}/compare/${env.BEFORE}...${env.GITHUB_SHA}?per_page=100`);
+              if (cmp.total_commits > 250 || (cmp.files || []).length >= 100) done("true", "a large push: run everything");
+              files = (cmp.files || []).flatMap((f) => [f.filename, ...(f.previous_filename ? [f.previous_filename] : [])]);
+            } else {
+              done("true", `${env.EVENT} runs in full`);
+            }
+            if (!files.length) done("true", "no changed file listed (empty commit?)");
+            const needed = files.filter((f) => relevant.test(f) && !(ignore && ignore.test(f)));
+            done(needed.length ? "true" : "false", needed.length ? `needs the jobs: ${needed.slice(0, 5).join(", ")}` : `${files.length} file(s), none relevant`);
+          } catch (error) {
+            done("true", `gate failed open: ${error.message}`);
+          }
+          GATE
