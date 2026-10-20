@@ -1,0 +1,6 @@
+{
+  "name": "Dependabot auto-merge",
+  "description": "Auto-merge Dependabot patch and minor pull requests once the required checks pass.",
+  "iconName": "octicon git-merge",
+  "categories": ["Automation"]
+}
