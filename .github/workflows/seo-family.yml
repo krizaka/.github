@@ -1,0 +1,73 @@
+# The Krizaka family SEO guard, daily (krizaka-com AGENTS §2.4).
+# Runs scripts/check-seo-family.mjs of krizaka-com against every indexed site and opens (or comments on) one issue
+# per site when it fails. The live DigitalOcean spec has twice drifted to APP_SEARCH_INDEXING=off (noindex +
+# Disallow: /), which hid a site from Google: this is the alarm. Fix the live spec with doctl and the repo's .do/app.yaml.
+name: SEO family
+
+on:
+  schedule:
+    - cron: "17 11 * * *"
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  check:
+    name: ${{ matrix.host }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      issues: write
+    strategy:
+      fail-fast: false
+      matrix:
+        host:
+          - www.krizaka.com
+          - ui.krizaka.com
+          - java.krizaka.com
+          - dev.orazaka.com
+          - dev.yasakia.com
+          - dev.yororis.com
+          - dev.yomizaka.com
+    steps:
+      - name: Fetch the guard
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/krizaka-com
+          sparse-checkout: scripts/check-seo-family.mjs
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - name: Check ${{ matrix.host }}
+        id: seo
+        run: |
+          set +e
+          node scripts/check-seo-family.mjs --base "https://${HOST}" --host "https://${HOST}" 2>&1 | tee seo.log
+          echo "code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+        env:
+          HOST: ${{ matrix.host }}
+
+      - name: Open or update the issue on failure
+        if: steps.seo.outputs.code != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HOST: ${{ matrix.host }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="SEO family check failing: ${HOST}"
+          {
+            echo "The daily check of \`${HOST}\` failed (${RUN_URL})."
+            echo
+            echo "If the log says noindex, \`Disallow: /\` or a missing sitemap, check \`APP_SEARCH_INDEXING\` in the live spec (\`doctl apps spec get <id>\`) and the repository's \`.do/app.yaml\`."
+            echo
+            echo '```'
+            head -c 6000 seo.log
+            echo '```'
+          } > body.md
+          n=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"$title\" in:title" --json number -q '.[0].number')
+          if [ -n "$n" ]; then gh issue comment "$n" --repo "$GITHUB_REPOSITORY" --body-file body.md
+          else gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body-file body.md; fi
+
+      - name: Fail the job
+        if: steps.seo.outputs.code != '0'
+        run: exit 1
