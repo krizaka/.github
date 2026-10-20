@@ -1,19 +1,19 @@
-# Dependabot version updates — the Krizaka common model (krizaka/.github#28).
-# Weekly, Monday morning (Paris). Minor and patch bumps arrive as ONE grouped pull request per ecosystem,
-# Krizaka packages in their own group, security fixes grouped apart; majors one by one.
-# Advisories are an input, not an order: a pull request is merged when CI is green and the change is understood.
+# Dependabot — the Krizaka model (monthly, quiet; DEPS 2026-10-13). This file is the template for every repository.
+# Once a month (the 1st, 06:00 Paris), ONE grouped pull request per ecosystem, at most one open per ecosystem.
+# Security fixes stay on and arrive grouped apart. It also keeps the supply-chain pins fresh (actions by SHA, images by
+# digest): docs/standards/supply-chain.md.
 version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
       time: "06:00"
       timezone: Europe/Paris
     groups:
-      actions:
+      all:
         patterns: ["*"]
     commit-message:
       prefix: "ci(deps)"
-    labels: ["type:chore", "area:deps", "dependencies"]
+    labels: ["area:deps"]
+    open-pull-requests-limit: 1
