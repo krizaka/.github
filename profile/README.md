@@ -49,12 +49,12 @@ Each product stands on its own; each proves one skill. Claims are cheap — ever
 </td></tr>
 <tr><td valign="top" width="64"><picture><source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/kachizaka/mark-dark.svg"><img src="https://krizaka-assets.b-cdn.net/brand/kachizaka/mark-light.svg" alt="Kachizaka" width="48"></picture></td><td valign="top">
 
-**Kachizaka** · Live data, in real time &nbsp;<sup>In development</sup><br>Predictions among friends, points only and never money: scoring rules sealed at kick-off, every point explained, match facts read through Orazaka's connectors and the standings pushed live.<br>[Repository](https://github.com/krizaka/kachizaka)
+**Kachizaka** · Live data, in real time &nbsp;<sup>In development</sup><br>Predictions among friends, points only and never money: scoring rules sealed at kick-off, every point explained, match facts read through Orazaka's connectors and the standings pushed live.<br>[dev.kachizaka.com](https://dev.kachizaka.com) · [Repository](https://github.com/krizaka/kachizaka)
 
 </td></tr>
 <tr><td valign="top" width="64"><picture><source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/akinaza/mark-dark.svg"><img src="https://krizaka-assets.b-cdn.net/brand/akinaza/mark-light.svg" alt="Akinaza" width="48"></picture></td><td valign="top">
 
-**Akinaza** · Running a shop, for less &nbsp;<sup>In development</sup><br>Bookings, bilingual invoices with GST and QST to the cent and a ledger the database keeps balanced, for independent Québec shops; the GST/QST return is prepared, and the merchant files it.<br>[Repository](https://github.com/krizaka/akinaza)
+**Akinaza** · Running a shop, for less &nbsp;<sup>In development</sup><br>Bookings, bilingual invoices with GST and QST to the cent and a ledger the database keeps balanced, for independent Québec shops; the GST/QST return is prepared, and the merchant files it.<br>[dev.akinaza.com](https://dev.akinaza.com) · [Repository](https://github.com/krizaka/akinaza)
 
 </td></tr>
 </table>
