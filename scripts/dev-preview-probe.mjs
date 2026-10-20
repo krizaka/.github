@@ -9,7 +9,7 @@ export const PRODUCTS = {
   orazaka: { host: "dev.orazaka.com", admin: "admin.orazaka.com", health: ["/api/healthz", "/api/health"], signup: ["/api/auth/register"], mobile: true, repos: ["orazaka", "orazaka-web-client", "orazaka-web-admin", "orazaka-ui-kit", "orazaka-mobile-client", "orazaka-packs", "orazaka-studio", "orazaka-edge", "orazaka-ai-engine", "orazaka-worker-media", "orazaka-job-service", "orazaka-conversation-service", "orazaka-knowledge-service", "orazaka-automation-service", "krizaka-users", "krizaka-billing", "krizaka-notifications"], ci: "orazaka" },
   orochia: { host: "dev.orochia.com", admin: "admin.orochia.com", health: ["/api/healthz", "/api/health"], signup: ["/api/auth/register"], repos: ["orochia", "orochia-admin", "orochia-mobile"], ci: "orochia", appLinks: { iosBundleId: "com.krizaka.orochia", androidPackage: "com.krizaka.orochia", paths: ["/@*", "/watch/*", "/me", "/me/*", "/auctions", "/auctions/*", "/challenges", "/challenges/*", "/messages", "/messages/*"] } },
   yomizaka: { host: "dev.yomizaka.com", admin: "admin.yomizaka.com", health: ["/api/healthz"], signup: ["/api/auth/sign-up"], repos: ["yomizaka"], ci: "yomizaka" },
-  yasakia: { host: "dev.yasakia.com", admin: "admin.yasakia.com", health: ["/api/healthz"], signup: [], repos: ["yasakia"], ci: "yasakia" },
+  yasakia: { host: "dev.yasakia.com", admin: "admin.yasakia.com", health: ["/api/healthz"], signup: [], signupTest: "https://github.com/krizaka/yasakia/blob/main/e2e/scenarios.mjs", repos: ["yasakia"], ci: "yasakia" },
   // Yororis: dev.yororis.com is the static « under construction » page real people see; the QA-only app (2026-10-17, yororis#23) is at qa.yororis.com.
   yororis: { host: "qa.yororis.com", admin: null, health: ["/api/healthz"], signup: ["/api/auth/sign-up"], repos: ["yororis"], ci: "yororis" },
   kachizaka: { host: "dev.kachizaka.com", admin: "admin.kachizaka.com", health: ["/api/healthz"], signup: ["/api/auth/sign-up"], repos: ["kachizaka"], ci: "kachizaka" },
@@ -56,6 +56,10 @@ export async function probe(id, { seo } = {}) {
   if (p.signup.length) {
     const codes = await Promise.all(p.signup.map((s) => status(base + s, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: "probe@example.invalid", password: "Aa1!probeprobe", username: "probe" }) })));
     r["site.signup-closed"] = { ok: codes.every((c) => c === 403), note: `POST ${p.signup.join(",")} -> ${codes.join(",")}` };
+  } else if (p.signupTest) {
+    // A passwordless product has no sign-up endpoint to POST to (the code flow answers the same 200 for anyone): the proof is its end-to-end test.
+    const seen = await status(p.signupTest);
+    r["site.signup-closed"] = { ok: seen === 200, note: `proved by a test: ${p.signupTest} -> ${seen}` };
   } else r["site.signup-closed"] = { ok: false, note: "no sign-up endpoint known: prove it by a test" };
   if (p.admin) {
     const robots = await (await fetch(`https://${p.admin}/robots.txt`, { signal: AbortSignal.timeout(20000) }).catch(() => null))?.text();

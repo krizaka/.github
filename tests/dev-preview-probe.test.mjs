@@ -31,3 +31,8 @@ test("mobile.app-links: Orochia declares its app-links contract, the probe knows
   assert.ok(PRODUCTS.orochia.appLinks.paths.includes("/@*"));
   assert.equal(PRODUCTS.orazaka.mobile, true);
 });
+
+test("a passwordless product proves « sign-up closed » by its end-to-end test, not by a POST (yasakia)", () => {
+  assert.deepEqual(PRODUCTS.yasakia.signup, []);
+  assert.match(PRODUCTS.yasakia.signupTest, /^https:\/\/github\.com\/krizaka\/yasakia\/blob\/main\/e2e\/scenarios\.mjs$/);
+});
