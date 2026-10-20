@@ -1,31 +1,14 @@
-# Dependabot auto-merge, org-wide (reusable). A repository calls it from a thin pull_request_target workflow
-# (see workflow-templates/dependabot-automerge.yml). Patch and minor updates — grouped pull requests included — are
-# set to auto-merge (squash); the required checks still gate the merge. A major update stays manual.
+# Dependabot auto-merge: patch and minor (grouped included) merge when the required checks pass; majors stay manual.
+# Logic lives in krizaka/.github; this file only hands over the event. Does not check out or run the PR's code.
 name: Dependabot auto-merge
 
-on:
-  workflow_call:
+on: pull_request_target
 
-permissions: {}
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
   automerge:
-    name: Auto-merge patch and minor
-    runs-on: ubuntu-latest
     if: github.event.pull_request.user.login == 'dependabot[bot]'
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - name: Read the update
-        id: meta
-        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
-        with:
-          github-token: ${{ github.token }}
-
-      - name: Enable auto-merge (not a major)
-        if: steps.meta.outputs.update-type != 'version-update:semver-major'
-        run: gh pr merge --auto --squash "$PR_URL"
-        env:
-          PR_URL: ${{ github.event.pull_request.html_url }}
-          GH_TOKEN: ${{ github.token }}
+    uses: krizaka/.github/.github/workflows/dependabot-automerge.yml@main
