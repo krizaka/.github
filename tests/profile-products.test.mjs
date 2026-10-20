@@ -73,3 +73,12 @@ test("replaceBlock rewrites only the section and is idempotent", () => {
   assert.equal(replaceBlock(once, block), once);
   assert.throws(() => replaceBlock("# nothing", block), /markers/);
 });
+
+test("each mark URL carries its content fingerprint so GitHub's image cache refreshes when a mark changes", () => {
+  const products = collectProducts({ sites, knowhow });
+  const md = renderProducts(products, { versions: (id, theme) => `${id}-${theme}-abc123` });
+  assert.ok(md.includes("brand/orazaka/mark-dark.svg?v=orazaka-dark-abc123"));
+  assert.ok(md.includes("brand/orazaka/mark-light.svg?v=orazaka-light-abc123"));
+  const plain = renderProducts(products);
+  assert.ok(plain.includes("brand/orazaka/mark-light.svg\""), "no version known: the plain URL");
+});

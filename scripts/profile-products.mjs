@@ -7,6 +7,7 @@
 //   node scripts/profile-products.mjs --check    # exit 1 when the README is out of date
 //
 // SITES_MODULE overrides the path of the installed `@krizaka/ui` sites module (default: .sites/node_modules/…).
+import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -43,13 +44,15 @@ export function collectProducts({ sites, descriptions = {}, knowhow }) {
     });
 }
 
-const markUrl = (id, theme) => `${MARKS_CDN}/${id}/mark-${theme}.svg`;
+// GitHub serves README images through its camo cache, keyed by URL: a mark redrawn under the same URL keeps showing the
+// old drawing. Each URL therefore carries the first 10 hex of the SVG's SHA-256, so it changes exactly when the mark does.
+const markUrl = (id, theme, v) => `${MARKS_CDN}/${id}/mark-${theme}.svg${v ? `?v=${v}` : ""}`;
 
 /** Markdown of the section. `marks` / `repos` say which mark and repository exist (a missing one is left out, never a dead link). */
-export function renderProducts(products, { marks = () => true, repos = () => true } = {}) {
+export function renderProducts(products, { marks = () => true, repos = () => true, versions = () => "" } = {}) {
   const rows = products.map((p) => {
     const id = marks(p.id) ? p.id : "krizaka";
-    const mark = `<picture><source media="(prefers-color-scheme: dark)" srcset="${markUrl(id, "dark")}"><img src="${markUrl(id, "light")}" alt="${p.name}" width="48"></picture>`;
+    const mark = `<picture><source media="(prefers-color-scheme: dark)" srcset="${markUrl(id, "dark", versions(id, "dark"))}"><img src="${markUrl(id, "light", versions(id, "light"))}" alt="${p.name}" width="48"></picture>`;
     const head = p.knowhow ? `**${p.name}** · ${p.knowhow}` : `**${p.name}**`;
     // A product without a site of its own (its url is its repository) shows the repository link once.
     const links = p.url === p.repo ? [] : [`[${p.url.replace(/^https?:\/\//, "")}](${p.url})`];
@@ -83,10 +86,23 @@ async function main() {
   const knowhow = JSON.parse(readFileSync(resolve(root, "profile/knowhow.json"), "utf8"));
   const products = collectProducts({ sites, descriptions: familyLabels.en.descriptions, knowhow });
   const okMarks = new Set();
-  for (const p of products) if (await exists(markUrl(p.id, "dark"), fetch)) okMarks.add(p.id);
+  const hashes = new Map();
+  const fingerprint = async (id, theme) => {
+    try {
+      const r = await fetch(markUrl(id, theme), { redirect: "follow" });
+      if (!r.ok) return "";
+      return createHash("sha256").update(Buffer.from(await r.arrayBuffer())).digest("hex").slice(0, 10);
+    } catch {
+      return "";
+    }
+  };
+  for (const id of ["krizaka", ...products.map((p) => p.id)]) {
+    for (const theme of ["dark", "light"]) hashes.set(`${id}/${theme}`, await fingerprint(id, theme));
+    if (id !== "krizaka" && hashes.get(`${id}/dark`)) okMarks.add(id);
+  }
   const okRepos = new Set();
   for (const p of products) if (p.repo && (await exists(p.repo, fetch))) okRepos.add(p.repo);
-  const block = renderProducts(products, { marks: (id) => okMarks.has(id), repos: (r) => okRepos.has(r) });
+  const block = renderProducts(products, { marks: (id) => okMarks.has(id), repos: (r) => okRepos.has(r), versions: (id, theme) => hashes.get(`${id}/${theme}`) ?? "" });
   const file = resolve(root, "profile/README.md");
   const current = readFileSync(file, "utf8");
   const next = replaceBlock(current, block);
