@@ -73,6 +73,39 @@ A repository adds `.krizaka-deploy.json`:
 In CI: `uses: krizaka/.github/actions/deploy@<sha>` with `digitalocean-token` (the Krizaka team's token, a repository secret) and `contents: read`.
 The unit tests (`deploy/tests`) mock doctl and HTTP and cover each guard.
 
+## What it costs and saves (phase 1, measured)
+
+GitHub bills **each job rounded up to a minute**, so a pipeline of small jobs costs more than its seconds. The shared pipeline has a `changes` job
+(krizaka-com and the Orazaka repositories already had one), the `gate` job and, while the required checks keep their old names, one shim job per name.
+Measured on the pilots, pull-request runs of `ci.yml`: **billed minutes** (sum of jobs rounded up) · **compute** (sum of job seconds) · wall clock.
+
+| Pilot | Code PR, before | Code PR, after | Docs-only PR, before | Docs-only PR, after |
+| :--- | :--- | :--- | :--- | :--- |
+| orazaka-knowledge-service | 3 min · 146 s · ~190 s | 6 min · 174 s · 184 s | 3 min · ~150 s (everything ran) | 3 min · **13 s** · 19 s |
+| akinaza | 5 min · 249 s · 269 s | 8 min · 282 s · 292 s (warm main push: 9 · 315 s) | 5 min · ~250 s (everything ran) | 3 min · **10 s** · 17 s |
+| krizaka-com | 8 min · 352 s · 265 s (gate and `.next` cache already there) | 12 min · 452 s · 405 s (includes a check another PR added to the container smoke, +~60 s) | ~1 min · ~5 s (gate already there) | 4 min · **15 s** · 19 s |
+
+What the numbers say, honestly:
+
+- The **seconds** of a code PR do not fall: the Next.js build cache saves ~15–20 s and the Playwright browsers cache ~10 s; PostgreSQL in Docker and the
+  gate add about as much. The big costs (tests, the browser checks after the build, the Maven build of the upstreams) are not cache problems.
+- The **billed minutes** of a code PR rise by the three small jobs (`changes` where it did not exist, `gate`, one shim per required check).
+- A **docs-only PR** stops building: 10–15 s of compute instead of 2.5–4.5 minutes, and a green required check at once.
+- The repositories are public: nothing is charged today, but the report that counts minutes counts these.
+
+Two follow-ups remove most of the rise: (1) require `ci / CI gate` instead of the former names and delete the shims (−1 to −2 billed minutes per PR);
+(2) take the `changes` decision inside the verify job instead of in a job of its own (−1). A buildx + Actions-cache layer cache for the container job was
+tried and removed: 94 s against 77 s for a plain `docker build`, and its export competes with the other caches for the repository's 10 GB.
+
+## Findings the pilots surfaced
+
+- A reusable workflow's **skipped** job shows its raw `name:` expression (`inputs.x`): job names are static.
+- `defaults.run.working-directory` applies to the first `run` step, before the checkout: validate inputs after it.
+- Repositories' own tests read `ci.yml` (`check:overflow`, `check-motion`): when a step moves to a script, the test reads the script.
+- `krizaka-deploy --dry-run --apply` found real drift in `akinaza-dev` (the file lacked the `MEDIA_*` variables, a lowered connection budget and a second allowed address that the live app has): an apply of the file would have deleted or reverted them.
+- doctl parses a spec as YAML 1.1, where an unquoted `off` is a boolean: the tool sends JSON.
+- A flaky or externally-driven check surfaced on the way (`check-motion` once, `java-redirects` against krizaka-build's guide list, the Dev-preview evidence of `admin.orazaka.com/robots.txt`): the pilots never merged red, and each was fixed or waited for at its source.
+
 ## Rolling out
 
 Phase 1 piloted both on `krizaka-com`, `orazaka-knowledge-service` and `akinaza`; the rollout list for the other repositories is in the epic.
