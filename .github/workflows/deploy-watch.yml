@@ -6,8 +6,9 @@
 # A deployment that started and ended ERROR / CANCELED is listed as failed (it is not a missing one). Apps without
 # deploy_on_push (orazaka-dev core) are deployed by hand and never expected to start by themselves.
 #
-# Needs the repository (or organization) secret DIGITALOCEAN_ACCESS_TOKEN (the Krizaka team's token): without it the job
-# says so in a warning and does nothing.
+# Reads the secret DIGITALOCEAN_ACCESS_TOKEN of the `dev` environment (an app-scoped token; the environment only
+# deploys from protected branches, so a pull request never sees it): without it the job says so in a warning and does
+# nothing. A future `prod` environment gets its own token.
 #
 # A repository does not need to call it: the schedule below covers the whole team. To run it from a workflow:
 #   uses: krizaka/.github/.github/workflows/deploy-watch.yml@v1
@@ -55,6 +56,7 @@ jobs:
     name: A merge starts a deployment
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    environment: dev
     env:
       DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
     steps:
