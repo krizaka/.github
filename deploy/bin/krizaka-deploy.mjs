@@ -1,0 +1,62 @@
+#!/usr/bin/env node
+// krizaka-deploy — one way to deploy a Krizaka app to DigitalOcean App Platform (krizaka/.github#113).
+//
+//   krizaka-deploy deploy [--config .krizaka-deploy.json] [--dry-run] [--apply] [--expect-sha <sha>] [--allow-drop KEY,KEY]
+//   krizaka-deploy check  [--config .krizaka-deploy.json]        live checks only (health, robots/noindex, SEO family)
+//
+// --dry-run reads everything (guards, live spec, the file's merge, the live site) and changes nothing.
+// Exit codes: 0 done · 1 a guard refused or a check failed · 2 usage.
+import { appendFileSync } from "node:fs";
+import { loadConfig } from "../lib/config.mjs";
+import { createDoctl } from "../lib/doctl.mjs";
+import { createSecretProvider } from "../lib/secrets.mjs";
+import { deploy, runChecks } from "../lib/deploy.mjs";
+import { GuardError } from "../lib/errors.mjs";
+
+const argv = process.argv.slice(2);
+const command = argv[0] && !argv[0].startsWith("-") ? argv.shift() : "deploy";
+const flag = (name) => argv.includes(name);
+const value = (name) => {
+  const i = argv.findIndex((a) => a === name || a.startsWith(`${name}=`));
+  if (i < 0) return undefined;
+  return argv[i].includes("=") ? argv[i].slice(name.length + 1) : argv[i + 1];
+};
+
+if (flag("--help") || !["deploy", "check"].includes(command)) {
+  console.log("usage: krizaka-deploy [deploy|check] [--config file] [--dry-run] [--apply] [--expect-sha sha] [--allow-drop KEY,…]");
+  process.exit(command === "deploy" || command === "check" ? 0 : 2);
+}
+
+try {
+  const config = loadConfig(value("--config") ?? ".krizaka-deploy.json");
+  const doctl = createDoctl();
+  const secret = createSecretProvider({ product: config.product });
+  const summary = process.env.GITHUB_STEP_SUMMARY;
+  const out = process.env.GITHUB_OUTPUT;
+  if (command === "check") {
+    await runChecks(config, { fetch: globalThis.fetch, step: (n, d) => console.log(`${n}${d ? `: ${d}` : ""}`), sleepFn: (ms) => new Promise((r) => setTimeout(r, ms)) });
+    process.exit(0);
+  }
+  const report = await deploy(
+    config,
+    {
+      dryRun: flag("--dry-run"),
+      apply: flag("--apply"),
+      expectSha: value("--expect-sha") || null,
+      allowDrop: (value("--allow-drop") ?? "").split(",").filter(Boolean),
+    },
+    { doctl, secret, argv: process.argv.slice(2) },
+  );
+  if (out) {
+    appendFileSync(out, `app-id=${report.appId}\nprevious-deployment=${report.previous?.id ?? ""}\ndeployment=${report.deployment?.id ?? ""}\n`);
+  }
+  if (summary) {
+    appendFileSync(
+      summary,
+      `### krizaka-deploy ${report.app}${report.dryRun ? " (dry run)" : ""}\n\n${report.steps.map((s) => `- **${s.name}** ${s.detail}`).join("\n")}\n\n\`\`\`\n${report.rollback}\n\`\`\`\n`,
+    );
+  }
+} catch (error) {
+  console.error(error instanceof GuardError ? `REFUSED ${error.message}` : `FAILED ${error.message}`);
+  process.exit(1);
+}

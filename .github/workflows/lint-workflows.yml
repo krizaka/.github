@@ -48,3 +48,9 @@ jobs:
 
       - name: Unit tests of the shared CI
         run: node --test tests/ci-workflows.test.mjs
+
+      - name: krizaka-deploy — unit tests (doctl and HTTP mocked)
+        working-directory: deploy
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm test

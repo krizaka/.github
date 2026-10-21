@@ -1,0 +1,88 @@
+# krizaka-deploy as a step (krizaka/.github#113): the same guards as the local CLI, in CI.
+#
+#   - uses: krizaka/.github/actions/deploy@<sha> # v1.0.0
+#     with:
+#       digitalocean-token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}   # the Krizaka team's token, a repository secret
+#       config: .krizaka-deploy.json
+#       expect-sha: ${{ github.sha }}
+#     env:
+#       KRIZAKA_SECRET_MAIL_API_KEY: ${{ secrets.MAIL_API_KEY }}       # only for --apply with value-less SECRET variables
+#
+# The job needs `contents: read`; nothing else. The token is masked and only handed to doctl.
+name: krizaka-deploy
+description: Deploy a Krizaka app to DigitalOcean App Platform — default context only, apply, force-rebuild, wait for ACTIVE, indexing asserted, live checks, rollback note.
+author: Krizaka
+
+inputs:
+  digitalocean-token:
+    description: "Access token of the Krizaka DigitalOcean team (a repository secret)."
+    required: true
+  config:
+    description: "Path of the repository's .krizaka-deploy.json."
+    default: .krizaka-deploy.json
+  apply:
+    description: "Also send the repository's spec (true / false). Secrets are carried over from the live app; placeholders come from KRIZAKA_SECRET_* variables."
+    default: "false"
+  dry-run:
+    description: "Read everything, change nothing (true / false)."
+    default: "false"
+  expect-sha:
+    description: "The commit the ACTIVE deployment must have built (default: the commit of the workflow run)."
+    default: ${{ github.sha }}
+  allow-drop:
+    description: "Comma-separated live variables an apply may delete."
+    default: ""
+  working-directory:
+    description: "Repository directory holding the configuration."
+    default: "."
+  node-version:
+    description: "Node.js version for the CLI."
+    default: "22"
+
+outputs:
+  app-id:
+    description: "The App Platform app id."
+    value: ${{ steps.deploy.outputs.app-id }}
+  previous-deployment:
+    description: "The deployment that was ACTIVE before: the rollback target."
+    value: ${{ steps.deploy.outputs.previous-deployment }}
+  deployment:
+    description: "The deployment this run created (empty in a dry run)."
+    value: ${{ steps.deploy.outputs.deployment }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Install doctl
+      uses: digitalocean/action-doctl@3cb3953159719656269e044e0e24ca16dd2a690f # v2.5.2
+      with:
+        token: ${{ inputs.digitalocean-token }}
+
+    - name: Install the CLI
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+      run: npm ci --omit=dev --ignore-scripts --no-audit --no-fund --prefix "$ACTION_PATH/../../deploy"
+
+    - name: Deploy
+      id: deploy
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        CONFIG: ${{ inputs.config }}
+        APPLY: ${{ inputs.apply }}
+        DRY_RUN: ${{ inputs.dry-run }}
+        EXPECT_SHA: ${{ inputs.expect-sha }}
+        ALLOW_DROP: ${{ inputs.allow-drop }}
+      run: |
+        args=(deploy --config "$CONFIG")
+        [ "$APPLY" = "true" ] && args+=(--apply)
+        [ "$DRY_RUN" = "true" ] && args+=(--dry-run)
+        [ -n "$EXPECT_SHA" ] && args+=(--expect-sha "$EXPECT_SHA")
+        [ -n "$ALLOW_DROP" ] && args+=(--allow-drop "$ALLOW_DROP")
+        node "$ACTION_PATH/../../deploy/bin/krizaka-deploy.mjs" "${args[@]}"

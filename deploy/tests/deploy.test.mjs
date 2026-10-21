@@ -1,0 +1,99 @@
+// The deploy flow end to end with doctl and HTTP mocked: order of the calls, the wait, the commit guard, dry-run, rollback note.
+import test from "node:test";
+import assert from "node:assert/strict";
+import { deploy, waitActive, commitsOf, rollbackNote } from "../lib/deploy.mjs";
+import { GuardError } from "../lib/errors.mjs";
+import { SHA, APP_ID, baseConfig, fakeDoctl, fakeFetch, ROBOTS_ON } from "./helpers.mjs";
+
+const site = () => fakeFetch({ "/api/health": { status: 200 }, "/robots.txt": { body: ROBOTS_ON } });
+const quiet = { log: () => {}, sleep: async () => {} };
+const verbs = (calls) => calls.map((c) => c.args.slice(0, 2).join(" "));
+
+test("deploy: force-rebuild, wait for ACTIVE, verify the commit and the checks, leave a rollback note", async () => {
+  const { doctl, calls } = fakeDoctl();
+  const report = await deploy(baseConfig(), { expectSha: SHA }, { doctl, fetch: site(), ...quiet });
+  const order = verbs(calls);
+  assert.ok(order.indexOf("apps create-deployment") > order.indexOf("apps get"), "create-deployment follows the reads");
+  assert.ok(!order.includes("apps update"), "no spec change without --apply");
+  const create = calls.find((c) => c.args[1] === "create-deployment");
+  assert.ok(create.args.includes("--force-rebuild"), "always --force-rebuild");
+  assert.ok(order.filter((v) => v === "apps get-deployment").length >= 4, "it waited through the phases");
+  assert.equal(report.deployment.id, "new-1");
+  assert.equal(report.deployment.commit, SHA);
+  assert.equal(report.previous.id, "prev-1");
+  assert.match(report.rollback, /previous deployment prev-1 \(commit aaaaaaaa/);
+  assert.match(report.rollback, new RegExp(`/v2/apps/${APP_ID}/rollback`));
+});
+
+test("deploy --apply: validate, then apply, then force-rebuild — in that order, the secrets carried over", async () => {
+  const { doctl, calls } = fakeDoctl();
+  const fileSpec = "name: krizaka-com\nservices:\n  - name: web\n    envs:\n      - key: MAIL_API_KEY\n        type: SECRET\n      - key: MAIL_DOMAIN\n      - key: NEXT_PUBLIC_MEDIA_CDN_URL\n        value: https://krizaka-assets.b-cdn.net\n";
+  await deploy(baseConfig(), { apply: true }, { doctl, fetch: site(), readFile: async () => fileSpec, ...quiet });
+  const order = verbs(calls);
+  assert.ok(order.indexOf("apps spec") < order.indexOf("apps update"), "validated before applied");
+  assert.ok(order.indexOf("apps update") < order.indexOf("apps create-deployment"), "applied before the rebuild");
+  const update = calls.find((c) => c.args[1] === "update");
+  assert.match(update.input, /EV\[1:ciphertext-a\]/, "the encrypted live value is sent back, not blanked");
+  assert.match(update.input, /mg\.krizaka\.com/);
+});
+
+test("deploy --dry-run: guards and checks run, nothing is changed", async () => {
+  const { doctl, calls } = fakeDoctl();
+  const fileSpec = "name: krizaka-com\nservices:\n  - name: web\n    envs:\n      - key: MAIL_API_KEY\n        type: SECRET\n      - key: MAIL_DOMAIN\n      - key: NEXT_PUBLIC_MEDIA_CDN_URL\n        value: https://krizaka-assets.b-cdn.net\n";
+  const fetch = site();
+  const report = await deploy(baseConfig(), { dryRun: true, apply: true }, { doctl, fetch, readFile: async () => fileSpec, ...quiet });
+  assert.ok(!verbs(calls).some((v) => ["apps update", "apps create-deployment"].includes(v)), "no mutating call");
+  assert.ok(fetch.calls.some((u) => u.endsWith("/api/health")), "the live site is still checked");
+  assert.equal(report.deployment, undefined);
+  assert.equal(report.previous.id, "prev-1", "the rollback target is recorded even in a dry run");
+});
+
+test("deploy: a deployment that ends in ERROR fails and the checks never run", async () => {
+  const { doctl } = fakeDoctl({ phases: ["BUILDING", "ERROR"] });
+  const fetch = site();
+  await assert.rejects(deploy(baseConfig(), {}, { doctl, fetch, ...quiet }), (e) => e instanceof GuardError && e.guard === "deployment" && /ERROR/.test(e.message));
+  assert.equal(fetch.calls.length, 0);
+});
+
+test("deploy: SUPERSEDED and a timeout are failures too", async () => {
+  const a = fakeDoctl({ phases: ["SUPERSEDED"] });
+  await assert.rejects(waitActive(a.doctl, APP_ID, "new-1", { timeoutMs: 1000, sleep: async () => {} }), /SUPERSEDED/);
+  const b = fakeDoctl({ phases: ["BUILDING"] });
+  let t = 0;
+  await assert.rejects(waitActive(b.doctl, APP_ID, "new-1", { timeoutMs: 60_000, pollMs: 30_000, sleep: async () => {}, now: () => (t += 40_000) }), /still BUILDING/);
+});
+
+test("deploy: refuses when the ACTIVE deployment is not the expected commit (the old image served)", async () => {
+  const { doctl } = fakeDoctl({ commit: "bbbbbbbb" });
+  await assert.rejects(deploy(baseConfig(), { expectSha: SHA }, { doctl, fetch: site(), ...quiet }), (e) => e.guard === "commit");
+});
+
+test("deploy: refuses when the live spec flipped to the wrong indexing during the deploy", async () => {
+  const flipped = { name: "x", services: [{ name: "web", envs: [{ key: "APP_SEARCH_INDEXING", value: "off" }] }] };
+  const ok = { name: "x", services: [{ name: "web", envs: [{ key: "APP_SEARCH_INDEXING", value: "on" }] }] };
+  const { doctl } = fakeDoctl({ spec: ok, specAfter: flipped });
+  await assert.rejects(deploy(baseConfig({ indexingVariable: true }), {}, { doctl, fetch: site(), ...quiet }), (e) => e.guard === "indexing" && /after the deploy/.test(e.message));
+});
+
+test("deploy: a failing live check fails the deploy and names the rollback target", async () => {
+  const { doctl } = fakeDoctl();
+  const fetch = fakeFetch({ "/api/health": { status: 200 }, "/robots.txt": { body: "User-agent: *\nDisallow: /\n" } });
+  const lines = [];
+  await assert.rejects(deploy(baseConfig(), {}, { doctl, fetch, log: (m) => lines.push(m), sleep: async () => {} }), (e) => e.guard === "robots");
+  assert.ok(lines.some((l) => /previous deployment prev-1/.test(l)), "the rollback note is printed on failure");
+});
+
+test("deploy: the SEO family script runs from the repository root when configured", async () => {
+  const { doctl } = fakeDoctl();
+  const seen = [];
+  const config = baseConfig({ seoFamily: { script: "scripts/check-seo-family.mjs", args: ["--organization"] } });
+  await deploy(config, {}, { doctl, fetch: site(), spawnCheck: async (args, o) => (seen.push([args, o.cwd]), { code: 0, log: "" }), ...quiet });
+  assert.equal(seen[0][1], "/repo");
+  assert.equal(seen[0][0][0], "scripts/check-seo-family.mjs");
+});
+
+test("rollback note: names the previous deployment and its commit, or says there is none", () => {
+  assert.match(rollbackNote({ app: "a", appId: "id", previous: { id: "p", commit: "c0ffee" } }), /p \(commit c0ffee\)/);
+  assert.match(rollbackNote({ app: "a", appId: "id", previous: null }), /no previous ACTIVE deployment/);
+  assert.deepEqual(commitsOf({ services: [{ source_commit_hash: "x" }, { source_commit_hash: "x" }] }), ["x"]);
+});
