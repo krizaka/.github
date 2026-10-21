@@ -73,7 +73,8 @@ test("cli: refuses credentials of another team", async () => {
 test("cli: a dry run reads, never writes (every doctl call is a read, always in the default context)", async () => {
   const sb = sandbox();
   config(sb.dir);
-  const r = await runCli(["deploy", "--dry-run"], { dir: sb.dir });
+  // One attempt, no wait: the unreachable site must not cost the 12 x 10 s of a real deploy (118 s -> ~6 s).
+  const r = await runCli(["deploy", "--dry-run", "--health-attempts", "1", "--health-delay-ms", "0"], { dir: sb.dir });
   // The site is unreachable on purpose (127.0.0.1:1): the dry run gets as far as the live checks, having changed nothing.
   assert.equal(r.code, 1);
   assert.match(r.out, /\[dry-run\] create-deployment: would run with --force-rebuild/);

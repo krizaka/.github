@@ -24,7 +24,7 @@ const value = (name) => {
 };
 
 if (flag("--help") || !["deploy", "check", "watch"].includes(command)) {
-  console.log("usage: krizaka-deploy [deploy|check|watch] [--config file] [--dry-run] [--apply] [--expect-sha sha] [--skip-head-check] [--allow-drop KEY,…] [--allow-change KEY,…]");
+  console.log("usage: krizaka-deploy [deploy|check|watch] [--config file] [--dry-run] [--apply] [--expect-sha sha] [--skip-head-check] [--allow-drop KEY,…] [--allow-change KEY,…] [--health-attempts n] [--health-delay-ms ms]");
   process.exit(["deploy", "check", "watch"].includes(command) ? 0 : 2);
 }
 
@@ -50,6 +50,9 @@ try {
       skipHeadCheck: flag("--skip-head-check"),
       allowDrop: (value("--allow-drop") ?? "").split(",").filter(Boolean),
       allowChange: (value("--allow-change") ?? "").split(",").filter(Boolean),
+      // Defaults (12 x 10 s) stay those of a real deploy; tests and local dry runs may shorten the wait.
+      ...(value("--health-attempts") ? { healthAttempts: Number(value("--health-attempts")) } : {}),
+      ...(value("--health-delay-ms") ? { healthDelayMs: Number(value("--health-delay-ms")) } : {}),
     },
     { doctl, secret, argv: process.argv.slice(2) },
   );
