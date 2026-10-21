@@ -61,7 +61,7 @@ export async function deploy(config, options = {}, deps) {
     env = process.env,
     argv = [],
   } = deps;
-  const { dryRun = false, apply = false, expectSha = null, allowDrop = [], pollMs = 15_000, healthAttempts = 12, healthDelayMs = 10_000 } = options;
+  const { dryRun = false, apply = false, expectSha = null, allowDrop = [], allowChange = [], pollMs = 15_000, healthAttempts = 12, healthDelayMs = 10_000 } = options;
   const report = { app: config.app, dryRun, steps: [] };
   const step = (name, detail = "") => {
     report.steps.push({ name, detail });
@@ -96,7 +96,7 @@ export async function deploy(config, options = {}, deps) {
     if (!config.spec) throw new GuardError("config", '--apply needs "spec" in the configuration');
     const fileSpec = parseSpec(await readFile(resolve(config.root, config.spec), "utf8"));
     assertIndexing(fileSpec, { ...indexingOptions, label: config.spec });
-    const merged = await mergeWithLive(fileSpec, liveSpec, { secret, allowDrop });
+    const merged = await mergeWithLive(fileSpec, liveSpec, { secret, allowDrop, allowChange });
     if (merged.problems.length) throw new GuardError("secrets", `${config.spec} cannot be applied:\n  - ${merged.problems.join("\n  - ")}`);
     assertIndexing(merged.spec, { ...indexingOptions, label: "merged spec" });
     const text = dumpSpec(merged.spec);

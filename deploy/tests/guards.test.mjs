@@ -126,3 +126,13 @@ test("secrets: KEY: __KEY__ (the placeholder named like its key) keeps the live 
   assert.equal(envs.MAIL_API_KEY, "EV[1:ciphertext-a]", "the live encrypted value is kept");
   assert.equal(envs.OTHER, "vault");
 });
+
+test("values: a plain variable whose value differs from the live one is refused (the live app may be ahead), never printed for secrets", async () => {
+  const file = { services: [{ name: "web", envs: [{ key: "MAIL_DOMAIN", value: "other.example" }, { key: "MAIL_API_KEY", type: "SECRET", value: "new-secret" }, { key: "NEXT_PUBLIC_MEDIA_CDN_URL", value: "https://krizaka-assets.b-cdn.net" }] }] };
+  const merged = await mergeWithLive(file, liveSpec(), {});
+  assert.equal(merged.problems.length, 1);
+  assert.match(merged.problems[0], /MAIL_DOMAIN is 'mg\.krizaka\.com' in the live app and 'other\.example' in the file/);
+  assert.doesNotMatch(merged.problems.join(), /new-secret|ciphertext/);
+  const allowed = await mergeWithLive(file, liveSpec(), { allowChange: ["MAIL_DOMAIN"] });
+  assert.deepEqual(allowed.problems, []);
+});

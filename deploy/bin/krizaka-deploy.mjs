@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // krizaka-deploy — one way to deploy a Krizaka app to DigitalOcean App Platform (krizaka/.github#113).
 //
-//   krizaka-deploy deploy [--config .krizaka-deploy.json] [--dry-run] [--apply] [--expect-sha <sha>] [--allow-drop KEY,KEY]
+//   krizaka-deploy deploy [--config .krizaka-deploy.json] [--dry-run] [--apply] [--expect-sha <sha>] [--allow-drop KEY,KEY] [--allow-change KEY,KEY]
 //   krizaka-deploy check  [--config .krizaka-deploy.json]        live checks only (health, robots/noindex, SEO family)
 //
 // --dry-run reads everything (guards, live spec, the file's merge, the live site) and changes nothing.
@@ -23,7 +23,7 @@ const value = (name) => {
 };
 
 if (flag("--help") || !["deploy", "check"].includes(command)) {
-  console.log("usage: krizaka-deploy [deploy|check] [--config file] [--dry-run] [--apply] [--expect-sha sha] [--allow-drop KEY,…]");
+  console.log("usage: krizaka-deploy [deploy|check] [--config file] [--dry-run] [--apply] [--expect-sha sha] [--allow-drop KEY,…] [--allow-change KEY,…]");
   process.exit(command === "deploy" || command === "check" ? 0 : 2);
 }
 
@@ -44,6 +44,7 @@ try {
       apply: flag("--apply"),
       expectSha: value("--expect-sha") || null,
       allowDrop: (value("--allow-drop") ?? "").split(",").filter(Boolean),
+      allowChange: (value("--allow-change") ?? "").split(",").filter(Boolean),
     },
     { doctl, secret, argv: process.argv.slice(2) },
   );

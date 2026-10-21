@@ -37,6 +37,18 @@ test("deploy --apply: validate, then apply, then force-rebuild — in that order
   assert.match(update.input, /mg\.krizaka\.com/);
 });
 
+test("deploy --apply sends JSON: 'off' stays a string for doctl's YAML 1.1 parser", async () => {
+  const live = { name: "x", services: [{ name: "web", envs: [{ key: "APP_SEARCH_INDEXING", value: "off" }] }] };
+  const { doctl, calls } = fakeDoctl({ spec: live });
+  const file = "name: x\nservices:\n  - name: web\n    envs:\n      - key: APP_SEARCH_INDEXING\n        value: 'off'\n";
+  const config = baseConfig({ indexing: "off", indexingVariable: true });
+  const fetch = fakeFetch({ "/api/health": { status: 200 }, "/robots.txt": { body: "User-agent: *\nDisallow: /\n" }, "/": { headers: { "x-robots-tag": "noindex" } } });
+  await deploy(config, { apply: true }, { doctl, fetch, readFile: async () => file, ...quiet });
+  const sent = calls.find((c) => c.args[1] === "update").input;
+  assert.doesNotThrow(() => JSON.parse(sent));
+  assert.match(sent, /"value": "off"/);
+});
+
 test("deploy --dry-run: guards and checks run, nothing is changed", async () => {
   const { doctl, calls } = fakeDoctl();
   const fileSpec = "name: krizaka-com\nservices:\n  - name: web\n    envs:\n      - key: MAIL_API_KEY\n        type: SECRET\n      - key: MAIL_DOMAIN\n      - key: NEXT_PUBLIC_MEDIA_CDN_URL\n        value: https://krizaka-assets.b-cdn.net\n";

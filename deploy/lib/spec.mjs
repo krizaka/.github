@@ -2,14 +2,18 @@
 // A spec is applied whole: a variable the file leaves without a value would be BLANKED in the app. The merge carries the
 // live value over (DigitalOcean returns secrets encrypted, `EV[…]`, and accepts them back), renders `__NAME__` placeholders
 // from the secret provider, and refuses what it cannot fill. Only keys are ever named in an error; never a value.
-import { parse, stringify } from "yaml";
+import { parse } from "yaml";
 import { GuardError } from "./errors.mjs";
 
 export const INDEXING_KEY = "APP_SEARCH_INDEXING";
 const SECTIONS = ["services", "workers", "jobs", "static_sites", "functions"];
 
 export const parseSpec = (text) => parse(text);
-export const dumpSpec = (spec) => stringify(spec, { lineWidth: 0 });
+/**
+ * What is sent to doctl: JSON, never YAML. doctl's parser reads YAML 1.1, where an unquoted `off` / `on` / `no` is a boolean:
+ * a YAML dump of APP_SEARCH_INDEXING=off is refused (« cannot unmarshal bool »), or worse, turned into `false`.
+ */
+export const dumpSpec = (spec) => `${JSON.stringify(spec, null, 2)}\n`;
 
 /** Every environment variable of a spec as { where, env }, `where` being « <section>/<component> » or « app ». */
 export function envEntries(spec) {
@@ -75,10 +79,12 @@ async function render(node, secret, missing) {
  *  - `__NAME__` placeholders come from `secret(NAME)`;
  *  - a variable without a value — or whose value is its own placeholder, `KEY: __KEY__` — takes the live one (same component,
  *    same key), else `secret(KEY)`, else it is a problem;
- *  - a live variable the file does not mention would be DELETED by the apply: a problem, unless listed in `allowDrop`.
- * Returns { spec, carried, resolved, problems } — keys only.
+ *  - a live variable the file does not mention would be DELETED by the apply: a problem, unless listed in `allowDrop`;
+ *  - a plain (non-secret) variable whose value differs from the live one would be CHANGED: a problem, unless listed in
+ *    `allowChange` — the live app is often ahead of the file (a limit lowered by hand), and an apply must not silently revert it.
+ * Returns { spec, carried, resolved, problems } — keys only, and the values of plain variables when they differ.
  */
-export async function mergeWithLive(fileSpec, liveSpec, { secret = async () => undefined, allowDrop = [] } = {}) {
+export async function mergeWithLive(fileSpec, liveSpec, { secret = async () => undefined, allowDrop = [], allowChange = [] } = {}) {
   const missing = new Set();
   const draft = structuredClone(fileSpec);
   // `KEY: __KEY__` is a value-less variable written the Orazaka way: the live value wins, the vault is the fallback.
@@ -102,8 +108,14 @@ export async function mergeWithLive(fileSpec, liveSpec, { secret = async () => u
     const seen = new Set();
     for (const env of envs ?? []) {
       seen.add(env.key);
-      if (env.value !== undefined && env.value !== null && env.value !== "") continue;
       const fromLive = live.get(env.key);
+      if (env.value !== undefined && env.value !== null && env.value !== "") {
+        const plain = env.type !== "SECRET" && fromLive?.type !== "SECRET" && !String(fromLive?.value).startsWith("EV[");
+        if (plain && fromLive?.value !== undefined && String(fromLive.value) !== String(env.value) && !allowChange.includes(env.key) && !allowChange.includes(`${where}:${env.key}`)) {
+          problems.push(`${where}: ${env.key} is '${fromLive.value}' in the live app and '${env.value}' in the file — applying would change it (fix the file, or --allow-change ${env.key})`);
+        }
+        continue;
+      }
       if (fromLive?.value !== undefined && fromLive.value !== "") {
         env.value = fromLive.value;
         carried.push(`${where}:${env.key}`);
