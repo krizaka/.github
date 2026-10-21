@@ -19,8 +19,8 @@
 #              code-scanning ruleset stay satisfied on a docs-only change, and never on a broken one.
 #
 # Check names. GitHub names the checks of a reusable workflow « <caller job> / <job name> ». A repository whose branch
-# protection still requires the former job names (« Build & Validate ») keeps them with a shim job in its ci.yml,
-# which reads the verdict of the call:
+# protection still requires the former job names (« Build & Validate ») keeps them with a shim job in its ci.yml, which
+# reads the gate's verdict (a failure anywhere turns every shim red; that is the price of a stable name):
 #
 #     validate:
 #       name: Build & Validate
@@ -29,9 +29,9 @@
 #       runs-on: ubuntu-latest
 #       timeout-minutes: 2
 #       env:
-#         VERIFY: ${{ needs.ci.outputs.verify-result }}
+#         RESULT: ${{ needs.ci.outputs.result }}
 #       steps:
-#         - run: case "$VERIFY" in success|skipped) ;; *) exit 1 ;; esac
+#         - run: test "$RESULT" = success
 #
 # Once the protection requires « ci / CI gate », the shim is deleted.
 #
