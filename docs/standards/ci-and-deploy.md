@@ -22,7 +22,7 @@ jobs:
 | :--- | :--- |
 | `changes` | The [`changes.yml`](../../.github/workflows/changes.yml) gate: a docs-only change skips the heavy jobs. **Fail-open**: the heavy jobs run unless the gate answered exactly `false`. |
 | `verify` | Checkout, install (npm / pnpm store cached), lint, typecheck, tests, build (`.next/cache` restored), optional PostgreSQL, optional Playwright (browsers cached), a repository script after the build. Java: JDK + `~/.m2` cache, `mvnw verify`, OpenRewrite dry run, or the Orazaka workspace flow. |
-| `container` | (node, optional) `docker build` with the layer cache, then a repository smoke script against the image. |
+| `container` | (node, optional) `docker build`, then a repository smoke script against the image. |
 | `gate` | **Always reports.** Red on a failure, a cancellation, or a heavy job skipped without the gate's `false`; green otherwise. |
 
 Every job has a timeout, every action is pinned by SHA, the token is `contents: read`. The unit tests of the gate verdict are

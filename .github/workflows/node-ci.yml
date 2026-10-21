@@ -13,7 +13,7 @@
 #   changes    the changes.yml gate: a docs-only change skips the heavy jobs (fail-open: a broken gate runs everything).
 #   verify     checkout, install (cached), lint, typecheck, tests, build (.next/cache restored), optional services
 #              (PostgreSQL), optional browsers (Playwright, cached) and a repository script after the build.
-#   container  optional: build the Dockerfile (layer cache) and run a repository smoke script against the image.
+#   container  optional: build the Dockerfile and run a repository smoke script against the image.
 #   gate       ALWAYS reports. Green when every job that had to run succeeded or was legitimately skipped by the gate; red
 #              on a failure, a cancellation or a heavy job skipped without the gate asking for it. Required checks and the
 #              code-scanning ruleset stay satisfied on a docs-only change, and never on a broken one.
@@ -306,20 +306,24 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
-
-      # Docker layers (dependencies installed, base image) are restored from the Actions cache; the source layer is rebuilt.
+      # A plain `docker build`: measured on krizaka.com, the Actions-cache layer export (buildx, mode=max) cost more than it saved
+      # and competes with the npm / Next.js / Playwright caches for the repository's 10 GB.
       - name: Build the image
-        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
-        with:
-          context: ${{ inputs.container-context }}
-          file: ${{ inputs.container-dockerfile }}
-          load: true
-          push: false
-          tags: ${{ inputs.container-image }}
-          build-args: ${{ inputs.container-build-args }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+        env:
+          IMAGE: ${{ inputs.container-image }}
+          CONTEXT: ${{ inputs.container-context }}
+          DOCKERFILE: ${{ inputs.container-dockerfile }}
+          BUILD_ARGS: ${{ inputs.container-build-args }}
+        run: |
+          args=()
+          while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            case "$line" in
+              [A-Za-z_]*=*) args+=(--build-arg "$line") ;;
+              *) echo "::error::container-build-args: '$line' is not KEY=VALUE"; exit 1 ;;
+            esac
+          done <<< "$BUILD_ARGS"
+          docker build "${args[@]}" -f "${DOCKERFILE:-$CONTEXT/Dockerfile}" -t "$IMAGE" "$CONTEXT"
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
