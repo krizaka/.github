@@ -24,37 +24,37 @@ Each product stands on its own; each proves one skill. Claims are cheap — ever
 <table>
 <tr><td valign="top" width="64"><picture><source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/orazaka/mark-dark.svg?v=5adc3bcf5f"><img src="https://krizaka-assets.b-cdn.net/brand/orazaka/mark-light.svg?v=5adc3bcf5f" alt="Orazaka" width="48"></picture></td><td valign="top">
 
-**Orazaka** · The engine &nbsp;<sup>Available</sup><br>Every request crosses a deterministic pipeline to the best local model: your documents, your models, your network — nothing leaves.<br>[dev.orazaka.com](https://dev.orazaka.com) · [Repository](https://github.com/krizaka/orazaka)
+**Orazaka** · The engine &nbsp;<sup>Available</sup><br>Every request crosses a deterministic pipeline to the best local model: your documents, your models, your network — nothing leaves.<br>[www.orazaka.com](https://www.orazaka.com) · [Repository](https://github.com/krizaka/orazaka)
 
 </td></tr>
 <tr><td valign="top" width="64"><picture><source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/orochia/mark-dark.svg?v=e3569a0b60"><img src="https://krizaka-assets.b-cdn.net/brand/orochia/mark-light.svg?v=e3569a0b60" alt="Orochia" width="48"></picture></td><td valign="top">
 
-**Orochia** · Mastery of media &nbsp;<sup>Available</sup><br>Uploads go straight to the CDN over Tus, an adaptive transcoder encodes, playback uses signed HLS links that expire after five minutes, and every transaction settles through escrow.<br>[dev.orochia.com](https://dev.orochia.com) · [Repository](https://github.com/krizaka/orochia)
+**Orochia** · Mastery of media &nbsp;<sup>Available</sup><br>Uploads go straight to the CDN over Tus, an adaptive transcoder encodes, playback uses signed HLS links that expire after five minutes, and every transaction settles through escrow.<br>[www.orochia.com](https://www.orochia.com) · [Repository](https://github.com/krizaka/orochia)
 
 </td></tr>
 <tr><td valign="top" width="64"><picture><source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/yasakia/mark-dark.svg?v=9b3918fba0"><img src="https://krizaka-assets.b-cdn.net/brand/yasakia/mark-light.svg?v=9b3918fba0" alt="Yasakia" width="48"></picture></td><td valign="top">
 
-**Yasakia** · Geolocation &nbsp;<sup>In development</sup><br>The position is rounded to about 1 km before it is stored, and the database answers the radius and matches who you are with who you seek — nearby, never exact.<br>[dev.yasakia.com](https://dev.yasakia.com) · [Repository](https://github.com/krizaka/yasakia)
+**Yasakia** · Geolocation &nbsp;<sup>In development</sup><br>The position is rounded to about 1 km before it is stored, and the database answers the radius and matches who you are with who you seek — nearby, never exact.<br>[www.yasakia.com](https://www.yasakia.com) · [Repository](https://github.com/krizaka/yasakia)
 
 </td></tr>
 <tr><td valign="top" width="64"><picture><source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/yororis/mark-dark.svg?v=aad49f5ad3"><img src="https://krizaka-assets.b-cdn.net/brand/yororis/mark-light.svg?v=aad49f5ad3" alt="Yororis" width="48"></picture></td><td valign="top">
 
-**Yororis** · Voice and image &nbsp;<sup>Under construction</sup><br>A listening space with a face and a voice — under construction: nothing is deployed, nothing is offered.<br>[dev.yororis.com](https://dev.yororis.com) · [Repository](https://github.com/krizaka/yororis)
+**Yororis** · Voice and image &nbsp;<sup>Under construction</sup><br>A listening space with a face and a voice — under construction: nothing is deployed, nothing is offered.<br>[www.yororis.com](https://www.yororis.com) · [Repository](https://github.com/krizaka/yororis)
 
 </td></tr>
 <tr><td valign="top" width="64"><picture><source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/yomizaka/mark-dark.svg?v=c4fbf96eee"><img src="https://krizaka-assets.b-cdn.net/brand/yomizaka/mark-light.svg?v=c4fbf96eee" alt="Yomizaka" width="48"></picture></td><td valign="top">
 
-**Yomizaka** · Reading documents &nbsp;<sup>In development</sup><br>A lease checked rule by rule against the law in force on a date, a PDF examined for signs of editing: every finding quotes its passage, every check is a traced Orazaka run.<br>[dev.yomizaka.com](https://dev.yomizaka.com) · [Repository](https://github.com/krizaka/yomizaka)
+**Yomizaka** · Reading documents &nbsp;<sup>In development</sup><br>A lease checked rule by rule against the law in force on a date, a PDF examined for signs of editing: every finding quotes its passage, every check is a traced Orazaka run.<br>[www.yomizaka.com](https://www.yomizaka.com) · [Repository](https://github.com/krizaka/yomizaka)
 
 </td></tr>
 <tr><td valign="top" width="64"><picture><source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/kachizaka/mark-dark.svg?v=bd069f08b5"><img src="https://krizaka-assets.b-cdn.net/brand/kachizaka/mark-light.svg?v=bd069f08b5" alt="Kachizaka" width="48"></picture></td><td valign="top">
 
-**Kachizaka** · Live data, in real time &nbsp;<sup>In development</sup><br>Predictions among friends, points only and never money: scoring rules sealed at kick-off, every point explained, match facts read through Orazaka's connectors and the standings pushed live.<br>[dev.kachizaka.com](https://dev.kachizaka.com) · [Repository](https://github.com/krizaka/kachizaka)
+**Kachizaka** · Live data, in real time &nbsp;<sup>In development</sup><br>Predictions among friends, points only and never money: scoring rules sealed at kick-off, every point explained, match facts read through Orazaka's connectors and the standings pushed live.<br>[www.kachizaka.com](https://www.kachizaka.com) · [Repository](https://github.com/krizaka/kachizaka)
 
 </td></tr>
 <tr><td valign="top" width="64"><picture><source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/akinaza/mark-dark.svg?v=8268ecf1bf"><img src="https://krizaka-assets.b-cdn.net/brand/akinaza/mark-light.svg?v=8268ecf1bf" alt="Akinaza" width="48"></picture></td><td valign="top">
 
-**Akinaza** · Running a shop, for less &nbsp;<sup>In development</sup><br>Bookings, bilingual invoices with GST and QST to the cent and a ledger the database keeps balanced, for independent Québec shops; the GST/QST return is prepared, and the merchant files it.<br>[dev.akinaza.com](https://dev.akinaza.com) · [Repository](https://github.com/krizaka/akinaza)
+**Akinaza** · Running a shop, for less &nbsp;<sup>In development</sup><br>Bookings, bilingual invoices with GST and QST to the cent and a ledger the database keeps balanced, for independent Québec shops; the GST/QST return is prepared, and the merchant files it.<br>[www.akinaza.com](https://www.akinaza.com) · [Repository](https://github.com/krizaka/akinaza)
 
 </td></tr>
 </table>
