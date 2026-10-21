@@ -1,0 +1,235 @@
+# The CI of a Krizaka Java (Maven) repository (reusable; krizaka/.github#113).
+#
+# A repository's .github/workflows/ci.yml calls it and keeps its own triggers, concurrency and permissions:
+#
+#   jobs:
+#     ci:
+#       uses: krizaka/.github/.github/workflows/java-ci.yml@<sha> # v1.0.0
+#       with:
+#         workspace-component: orazaka-knowledge-service   # an Orazaka service: verified inside the workspace
+#         rewrite: true
+#
+# What it owns (same shape as node-ci.yml):
+#   changes   the changes.yml gate: a docs-only change skips the heavy job (fail-open).
+#   verify    JDK + the Maven repository cache (~/.m2), then either `mvnw verify` in the repository, or — for an Orazaka
+#             service — the workspace flow: the Orazaka workspace is checked out, every other repository is cloned at its
+#             path, this one is placed at the commit under test, and `scripts/workspace.mjs ci <component>` builds its
+#             upstream repositories from source before verifying it (the cross-repository rules run exactly as locally).
+#   gate      ALWAYS reports (see node-ci.yml): green when verify succeeded or the gate legitimately skipped it.
+#
+# It verifies; it never publishes. A repository that publishes on a v* tag keeps a `publish` job of its own, with the
+# write permissions only that job holds.
+name: java-ci
+
+on:
+  workflow_call:
+    inputs:
+      java-version:
+        description: "JDK version."
+        type: string
+        default: "21"
+      java-distribution:
+        description: "setup-java distribution."
+        type: string
+        default: temurin
+      working-directory:
+        description: "Directory of the Maven project (default: the repository root). Ignored by the workspace flow."
+        type: string
+        default: "."
+      maven-goals:
+        description: "Goals of the verify step."
+        type: string
+        default: verify
+      maven-args:
+        description: "Extra arguments (e.g. -Prelease -Dgpg.skip)."
+        type: string
+        default: ""
+      workspace-component:
+        description: "An Orazaka repository name (orazaka.workspace.json): verify it inside the workspace instead of alone."
+        type: string
+        default: ""
+      rewrite:
+        description: "Fail when an OpenRewrite recipe of krizaka-parent would change code (rewrite:dryRun)."
+        type: boolean
+        default: false
+      relevant:
+        description: "changes.yml: JavaScript RegExp, a changed file matching it needs the jobs."
+        type: string
+        default: "."
+      ignore:
+        description: "changes.yml: JavaScript RegExp, a changed file matching it never needs the jobs."
+        type: string
+        default: '^[^/]+\.md$|^docs/|^\.changeset/|^(LICENSE|NOTICE)$|^\.github/(ISSUE_TEMPLATE/|pull_request_template\.md$|FUNDING\.yml$|dependabot\.yml$)'
+      verify-name:
+        description: "Display name of the verify job."
+        type: string
+        default: "Verify"
+      timeout-minutes:
+        description: "Timeout of the verify job."
+        type: number
+        default: 45
+    outputs:
+      result:
+        description: "success or failure: the gate's verdict."
+        value: ${{ jobs.gate.outputs.result }}
+      verify-result:
+        description: "success, failure, cancelled or skipped."
+        value: ${{ jobs.gate.outputs.verify }}
+      code:
+        description: "'false' when the change needed no heavy job."
+        value: ${{ jobs.changes.outputs.code }}
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    name: Changed files
+    permissions:
+      contents: read
+    uses: krizaka/.github/.github/workflows/changes.yml@ccd224612f5bb9db815335654f359a595a597fbb # main
+    with:
+      relevant: ${{ inputs.relevant }}
+      ignore: ${{ inputs.ignore }}
+
+  verify:
+    name: ${{ inputs.verify-name }}
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    permissions:
+      contents: read
+    env:
+      COMPONENT: ${{ inputs.workspace-component }}
+    steps:
+      # ── the workspace flow (an Orazaka service) ────────────────────────────────────────────────────────────────
+      - name: Check out the Orazaka workspace
+        if: ${{ inputs.workspace-component != '' }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/orazaka
+          path: workspace
+          persist-credentials: false
+
+      - name: Check out ${{ inputs.workspace-component }} at the commit under test
+        if: ${{ inputs.workspace-component != '' }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: incoming
+          persist-credentials: false
+
+      - name: Place the component at its workspace path
+        if: ${{ inputs.workspace-component != '' }}
+        working-directory: workspace
+        run: |
+          target=$(node -e "const m=require('./orazaka.workspace.json');const r=m.repositories.find(x=>x.name===process.env.COMPONENT);if(!r){process.exit(2)}console.log(r.path)")
+          mkdir -p "$(dirname "$target")"
+          mv ../incoming "$target"
+
+      - name: Clone every other repository
+        if: ${{ inputs.workspace-component != '' }}
+        working-directory: workspace
+        run: node scripts/workspace.mjs clone --depth 1
+
+      # ── the plain flow ─────────────────────────────────────────────────────────────────────────────────────────
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: ${{ inputs.workspace-component == '' }}
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+        with:
+          distribution: ${{ inputs.java-distribution }}
+          java-version: ${{ inputs.java-version }}
+          cache: maven
+          # The workspace holds every repository's pom: a change upstream rebuilds the key, the restore key keeps ~/.m2.
+          cache-dependency-path: |
+            **/pom.xml
+            **/.mvn/wrapper/maven-wrapper.properties
+          server-id: github
+          server-username: GITHUB_ACTOR
+          server-password: GITHUB_TOKEN
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: ${{ inputs.workspace-component != '' }}
+        with:
+          node-version: "22"
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        if: ${{ inputs.workspace-component != '' }}
+        with:
+          python-version: "3.12"
+
+      - name: Verify ${{ inputs.workspace-component }} against its upstreams
+        if: ${{ inputs.workspace-component != '' }}
+        working-directory: workspace
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/workspace.mjs ci "$COMPONENT"
+
+      - name: Verify
+        if: ${{ inputs.workspace-component == '' }}
+        working-directory: ${{ inputs.working-directory }}
+        env:
+          GOALS: ${{ inputs.maven-goals }}
+          ARGS: ${{ inputs.maven-args }}
+        run: |
+          mvn_cmd=mvn
+          [ -x ./mvnw ] && mvn_cmd=./mvnw
+          # shellcheck disable=SC2086  # goals and arguments are word-split on purpose
+          "$mvn_cmd" -B -ntp $ARGS $GOALS
+
+      # The recipes live in krizaka-parent (every repository inherits them). A change a recipe would make is debt:
+      # `./mvnw rewrite:run` then `./mvnw spotless:apply` (twice until clean), run the tests, commit.
+      - name: OpenRewrite — no change pending
+        if: ${{ inputs.rewrite }}
+        env:
+          WORKDIR: ${{ inputs.working-directory }}
+        run: |
+          if [ -n "$COMPONENT" ]; then
+            cd workspace
+            target=$(node -e "const m=require('./orazaka.workspace.json');console.log(m.repositories.find(x=>x.name===process.env.COMPONENT).path)")
+            cd "$target"
+          else
+            cd "$WORKDIR"
+          fi
+          mvn_cmd=mvn
+          [ -x ./mvnw ] && mvn_cmd=./mvnw
+          "$mvn_cmd" -B -ntp rewrite:dryRun
+
+  gate:
+    name: CI gate
+    needs: [changes, verify]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    outputs:
+      result: ${{ steps.verdict.outputs.result }}
+      verify: ${{ needs.verify.result }}
+    steps:
+      - id: verdict
+        env:
+          CODE: ${{ needs.changes.outputs.code }}
+          CHANGES: ${{ needs.changes.result }}
+          VERIFY: ${{ needs.verify.result }}
+        run: |
+          fail=0
+          echo "gate: code=${CODE:-unknown} changes=$CHANGES verify=$VERIFY"
+          # A broken gate (changes) is never a reason to fail: the heavy job ran in full.
+          [ "$CHANGES" = success ] || echo "::warning::the changes gate did not succeed ($CHANGES): the job ran in full"
+          case "$VERIFY" in success|skipped) ;; *) echo "::error::verify $VERIFY"; fail=1 ;; esac
+          # The heavy job runs unless the gate answered exactly `false`: a skip without that answer is a bug, not a pass.
+          if [ "$CODE" != "false" ] && [ "$VERIFY" != success ]; then
+            echo "::error::verify must run when the gate did not answer false"; fail=1
+          fi
+          if [ "$fail" = 0 ]; then echo "result=success" >> "$GITHUB_OUTPUT"; else echo "result=failure" >> "$GITHUB_OUTPUT"; fi
+          {
+            echo "### CI gate"
+            echo "| job | result |"
+            echo "| --- | --- |"
+            echo "| changes | $CHANGES (code=${CODE:-unknown}) |"
+            echo "| verify | $VERIFY |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit "$fail"

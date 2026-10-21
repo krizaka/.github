@@ -1,0 +1,50 @@
+# Lint of the workflows and the unit tests of the shared CI (krizaka/.github#113): actionlint (with shellcheck on every
+# `run:`), the supply-chain pin check, and the tests of the gate logic. Cheap; runs whenever a workflow, a script or a test changes.
+name: Workflows lint
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/**"
+      - "actions/**"
+      - "deploy/**"
+      - "scripts/**"
+      - "tests/**"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/**"
+      - "actions/**"
+      - "deploy/**"
+      - "tests/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  lint:
+    name: actionlint, pins, tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: actionlint (shellcheck included)
+        run: docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667 -color
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+
+      - name: Every action pinned by SHA
+        run: node scripts/pin-supply-chain.mjs . --no-docker --check
+
+      - name: Unit tests of the shared CI
+        run: node --test tests/ci-workflows.test.mjs

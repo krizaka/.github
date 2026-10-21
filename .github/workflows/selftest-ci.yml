@@ -1,0 +1,125 @@
+# Self-test of the reusable CI workflows (krizaka/.github#113): node-ci.yml and java-ci.yml run against the tiny projects of
+# tests/fixtures/, the way a repository calls them. It proves the two outcomes that matter: a change that needs the heavy
+# jobs RUNS them, and a change that needs none SKIPS them while the gate still reports green. Runs only when the
+# workflows or the fixtures change.
+name: CI workflows self-test
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/node-ci.yml"
+      - ".github/workflows/java-ci.yml"
+      - ".github/workflows/changes.yml"
+      - ".github/workflows/selftest-ci.yml"
+      - "tests/fixtures/**"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/node-ci.yml"
+      - ".github/workflows/java-ci.yml"
+      - ".github/workflows/selftest-ci.yml"
+      - "tests/fixtures/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  node-runs:
+    name: node-ci runs (npm, env, after-build, next cache)
+    permissions:
+      contents: read
+    uses: ./.github/workflows/node-ci.yml
+    with:
+      working-directory: tests/fixtures/node-app
+      typecheck-script: typecheck
+      next-cache-paths: tests/fixtures/node-app/.next/cache
+      env: |
+        FIXTURE_FLAG=on
+      after-build: scripts/after-build.sh
+      timeout-minutes: 10
+
+  node-container:
+    name: node-ci container (build + smoke)
+    permissions:
+      contents: read
+    uses: ./.github/workflows/node-ci.yml
+    with:
+      working-directory: tests/fixtures/node-app
+      lint-script: ""
+      test-script: ""
+      build-script: ""
+      container: true
+      container-image: fixture:ci
+      container-smoke: tests/fixtures/node-app/scripts/container-smoke.sh
+      timeout-minutes: 10
+
+  node-skips:
+    name: node-ci skips when nothing is relevant
+    permissions:
+      contents: read
+    uses: ./.github/workflows/node-ci.yml
+    with:
+      working-directory: tests/fixtures/node-app
+      ignore: "."
+      timeout-minutes: 10
+
+  java-runs:
+    name: java-ci runs
+    permissions:
+      contents: read
+    uses: ./.github/workflows/java-ci.yml
+    with:
+      working-directory: tests/fixtures/java-app
+      timeout-minutes: 10
+
+  java-skips:
+    name: java-ci skips when nothing is relevant
+    permissions:
+      contents: read
+    uses: ./.github/workflows/java-ci.yml
+    with:
+      working-directory: tests/fixtures/java-app
+      ignore: "."
+      timeout-minutes: 10
+
+  verdict:
+    name: The runs ran, the skips skipped, every gate reported
+    needs: [node-runs, node-container, node-skips, java-runs, java-skips]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    env:
+      EVENT: ${{ github.event_name }}
+      NODE_RUNS: ${{ needs.node-runs.outputs.verify-result }}
+      NODE_RUNS_GATE: ${{ needs.node-runs.outputs.result }}
+      CONTAINER: ${{ needs.node-container.outputs.container-result }}
+      CONTAINER_GATE: ${{ needs.node-container.outputs.result }}
+      NODE_SKIPS: ${{ needs.node-skips.outputs.verify-result }}
+      NODE_SKIPS_GATE: ${{ needs.node-skips.outputs.result }}
+      JAVA_RUNS: ${{ needs.java-runs.outputs.verify-result }}
+      JAVA_RUNS_GATE: ${{ needs.java-runs.outputs.result }}
+      JAVA_SKIPS: ${{ needs.java-skips.outputs.verify-result }}
+      JAVA_SKIPS_GATE: ${{ needs.java-skips.outputs.result }}
+    steps:
+      - run: |
+          fail=0
+          expect() { if [ "$2" != "$3" ]; then echo "::error::$1: expected '$3', got '$2'"; fail=1; else echo "ok  $1 = $2"; fi; }
+          expect "node-runs verify"       "$NODE_RUNS"       success
+          expect "node-runs gate"         "$NODE_RUNS_GATE"  success
+          expect "node-container"         "$CONTAINER"       success
+          expect "node-container gate"    "$CONTAINER_GATE"  success
+          expect "java-runs verify"       "$JAVA_RUNS"       success
+          expect "java-runs gate"         "$JAVA_RUNS_GATE"  success
+          # The skip is only decided on a pull request or a branch push; a manual run executes everything.
+          if [ "$EVENT" = pull_request ] || [ "$EVENT" = push ]; then skipped=skipped; else skipped=success; fi
+          expect "node-skips verify"      "$NODE_SKIPS"      "$skipped"
+          expect "node-skips gate"        "$NODE_SKIPS_GATE" success
+          expect "java-skips verify"      "$JAVA_SKIPS"      "$skipped"
+          expect "java-skips gate"        "$JAVA_SKIPS_GATE" success
+          exit "$fail"

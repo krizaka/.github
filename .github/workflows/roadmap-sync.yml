@@ -49,4 +49,4 @@ jobs:
         env:
           ROADMAP_TOKEN: ${{ secrets.ROADMAP_TOKEN }}
           DRY: ${{ inputs.dry && '--dry' || '' }}
-        run: node scripts/roadmap-sync.mjs $DRY
+        run: node scripts/roadmap-sync.mjs ${DRY:+"$DRY"}
