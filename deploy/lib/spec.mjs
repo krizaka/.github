@@ -73,13 +73,17 @@ async function render(node, secret, missing) {
 /**
  * The spec to apply: the repository's file, completed from the live app.
  *  - `__NAME__` placeholders come from `secret(NAME)`;
- *  - a variable without a value takes the live one (same component, same key), else `secret(KEY)`, else it is a problem;
+ *  - a variable without a value — or whose value is its own placeholder, `KEY: __KEY__` — takes the live one (same component,
+ *    same key), else `secret(KEY)`, else it is a problem;
  *  - a live variable the file does not mention would be DELETED by the apply: a problem, unless listed in `allowDrop`.
  * Returns { spec, carried, resolved, problems } — keys only.
  */
 export async function mergeWithLive(fileSpec, liveSpec, { secret = async () => undefined, allowDrop = [] } = {}) {
   const missing = new Set();
-  const spec = await render(structuredClone(fileSpec), secret, missing);
+  const draft = structuredClone(fileSpec);
+  // `KEY: __KEY__` is a value-less variable written the Orazaka way: the live value wins, the vault is the fallback.
+  for (const { env } of envEntries(draft)) if (env.value === `__${env.key}__`) delete env.value;
+  const spec = await render(draft, secret, missing);
   const carried = [];
   const resolved = [];
   const problems = [];

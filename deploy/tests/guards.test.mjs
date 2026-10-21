@@ -114,3 +114,15 @@ test("deploy refuses an app that is not exactly one in the Krizaka team", async 
   const { doctl } = fakeDoctl({ apps: [] });
   await refuses("app", () => deploy(baseConfig(), {}, { doctl, fetch: fakeFetch({}), log: () => {}, sleep: async () => {} }));
 });
+
+test("secrets: KEY: __KEY__ (the placeholder named like its key) keeps the live value, and falls back to the vault", async () => {
+  const file = { services: [{ name: "web", envs: [{ key: "MAIL_API_KEY", type: "SECRET", value: "__MAIL_API_KEY__" }, { key: "OTHER", type: "SECRET", value: "__OTHER__" }] }] };
+  const merged = await mergeWithLive(file, liveSpec(), {
+    secret: async (k) => ({ OTHER: "vault" })[k],
+    allowDrop: ["NEXT_PUBLIC_MEDIA_CDN_URL", "MAIL_DOMAIN"],
+  });
+  assert.deepEqual(merged.problems, []);
+  const envs = Object.fromEntries(merged.spec.services[0].envs.map((e) => [e.key, e.value]));
+  assert.equal(envs.MAIL_API_KEY, "EV[1:ciphertext-a]", "the live encrypted value is kept");
+  assert.equal(envs.OTHER, "vault");
+});
