@@ -4,7 +4,7 @@ import { readFile as readFileFs } from "node:fs/promises";
 import { resolve } from "node:path";
 import { GuardError } from "./errors.mjs";
 import { assertContext } from "./doctl.mjs";
-import { assertIndexing, mergeWithLive, parseSpec, dumpSpec } from "./spec.mjs";
+import { assertIndexing, assertIngressRoutes, mergeWithLive, parseSpec, dumpSpec } from "./spec.mjs";
 import { componentsOf, verifyRunningHead } from "./head.mjs";
 import { checkHealth, checkIndexing, checkSeoFamily } from "./checks.mjs";
 
@@ -97,6 +97,7 @@ export async function deploy(config, options = {}, deps) {
     if (!config.spec) throw new GuardError("config", '--apply needs "spec" in the configuration');
     const fileSpec = parseSpec(await readFile(resolve(config.root, config.spec), "utf8"));
     assertIndexing(fileSpec, { ...indexingOptions, label: config.spec });
+    assertIngressRoutes(fileSpec, { label: config.spec });
     const merged = await mergeWithLive(fileSpec, liveSpec, { secret, allowDrop, allowChange });
     if (merged.problems.length) throw new GuardError("secrets", `${config.spec} cannot be applied:\n  - ${merged.problems.join("\n  - ")}`);
     assertIndexing(merged.spec, { ...indexingOptions, label: "merged spec" });

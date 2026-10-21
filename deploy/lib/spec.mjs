@@ -137,3 +137,29 @@ export async function mergeWithLive(fileSpec, liveSpec, { secret = async () => u
   }
   return { spec, carried, resolved, problems };
 }
+
+/**
+ * Ingress routes: never listed one by one. App Platform's `rules[].match` takes `path`/`authority` with `prefix` or `exact` ONLY — no regex
+ * (checked 2026-10-21: the docs list none, and `doctl apps spec validate` answers « unknown field "regex" »). So a spec keeps one broad prefix
+ * per component (`/`, and one sibling-service prefix such as `/api`) and the fine routing — redirects, locale, which page — is regex or
+ * matchers in the app (Next.js `proxy.ts` / `next.config` `redirects`, Spring path patterns), as tested code.
+ * A component (or the redirects) with more than MAX_PATH_RULES path rules is refused. Authority-only rules (the www redirect) are free.
+ * Returns the count per target.
+ */
+// @fixed: `/`, one service prefix, one extra — beyond that it is a list of routes, and the app must route.
+export const MAX_PATH_RULES = 3;
+export function assertIngressRoutes(spec, { label = "spec" } = {}) {
+  const counts = {};
+  for (const rule of spec?.ingress?.rules ?? []) {
+    if (!rule?.match?.path) continue;
+    const target = rule.component?.name ?? (rule.redirect ? "redirects" : "other");
+    counts[target] = (counts[target] ?? 0) + 1;
+  }
+  for (const [target, n] of Object.entries(counts)) {
+    if (n > MAX_PATH_RULES) {
+      const who = target === "redirects" || target === "other" ? target : `component '${target}'`;
+      throw new GuardError("routes", `${label}: ${who} has ${n} path rules (max ${MAX_PATH_RULES}); App Platform has no regex, so keep one broad prefix per component and route finely in the app (see addendum 2026-10-21)`);
+    }
+  }
+  return counts;
+}

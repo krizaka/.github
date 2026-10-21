@@ -3,6 +3,7 @@
 //
 //   krizaka-deploy deploy [--config .krizaka-deploy.json] [--dry-run] [--apply] [--expect-sha <sha>] [--skip-head-check] [--allow-drop KEY,KEY] [--allow-change KEY,KEY]
 //   krizaka-deploy watch  [--grace 10] [--trigger] [--apps a,b]   post-merge check: a merge to main must start a deployment within the grace period (exit 1 if not)
+//   krizaka-deploy routes <spec.yaml>…                            offline: fails a spec that lists routes one by one (max 3 path rules per component)
 //   krizaka-deploy check  [--config .krizaka-deploy.json]        live checks only (health, robots/noindex, SEO family)
 //
 // --dry-run reads everything (guards, live spec, the file's merge, the live site) and changes nothing.
@@ -23,9 +24,20 @@ const value = (name) => {
   return argv[i].includes("=") ? argv[i].slice(name.length + 1) : argv[i + 1];
 };
 
-if (flag("--help") || !["deploy", "check", "watch"].includes(command)) {
+if (flag("--help") || !["deploy", "check", "watch", "routes"].includes(command)) {
   console.log("usage: krizaka-deploy [deploy|check|watch] [--config file] [--dry-run] [--apply] [--expect-sha sha] [--skip-head-check] [--allow-drop KEY,…] [--allow-change KEY,…] [--health-attempts n] [--health-delay-ms ms]");
-  process.exit(["deploy", "check", "watch"].includes(command) ? 0 : 2);
+  process.exit(["deploy", "check", "watch", "routes"].includes(command) ? 0 : 2);
+}
+
+if (command === "routes") {
+  const { readFileSync } = await import("node:fs");
+  const { parseSpec, assertIngressRoutes } = await import("../lib/spec.mjs");
+  let failed = false;
+  for (const file of argv.filter((a) => !a.startsWith("-"))) {
+    try { console.log(`${file}: ${JSON.stringify(assertIngressRoutes(parseSpec(readFileSync(file, "utf8")), { label: file }))}`); }
+    catch (e) { if (!(e instanceof GuardError)) throw e; console.error(e.message); failed = true; }
+  }
+  process.exit(failed ? 1 : 0);
 }
 
 import { watchCommand } from "../lib/watch-cli.mjs";

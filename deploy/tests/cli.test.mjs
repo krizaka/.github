@@ -114,3 +114,18 @@ test("config: loads a file and resolves the health path against the site", () =>
   assert.throws(() => loadConfig(join(dir, "missing.json")), /cannot read/);
 });
 
+
+test("routes: the offline command fails a spec that lists routes", async () => {
+  const { execFileSync, spawnSync } = await import("node:child_process");
+  const { writeFileSync, mkdtempSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const dir = mkdtempSync(`${tmpdir()}/routes-`);
+  const rules = (paths) => paths.map((p) => `    - match: { path: { prefix: ${p} } }\n      component: { name: web }`).join("\n");
+  writeFileSync(`${dir}/good.yaml`, `ingress:\n  rules:\n${rules(["/api", "/"])}\n`);
+  writeFileSync(`${dir}/bad.yaml`, `ingress:\n  rules:\n${rules(["/a", "/b", "/c", "/"])}\n`);
+  const bin = new URL("../bin/krizaka-deploy.mjs", import.meta.url).pathname;
+  assert.doesNotThrow(() => execFileSync("node", [bin, "routes", `${dir}/good.yaml`], { stdio: "pipe" }));
+  const bad = spawnSync("node", [bin, "routes", `${dir}/bad.yaml`], { encoding: "utf8" });
+  assert.equal(bad.status, 1);
+  assert.match(bad.stderr, /4 path rules/);
+});

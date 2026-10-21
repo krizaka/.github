@@ -109,3 +109,9 @@ tried and removed: 94 s against 77 s for a plain `docker build`, and its export 
 ## Rolling out
 
 Phase 1 piloted both on `krizaka-com`, `orazaka-knowledge-service` and `akinaza`; the rollout list for the other repositories is in the epic.
+
+## Ingress routes — never one by one (2026-10-21)
+
+- App Platform's `ingress.rules[].match` takes `path` and `authority`, each with `prefix` **or** `exact`. **No regex** (checked 2026-10-21: absent from the app-spec reference; `doctl apps spec validate` answers `unknown field "regex"`; regex exists only in `cors`).
+- So a spec keeps **one broad prefix per component** (`/`, plus one sibling-service prefix such as `/api` or `/edge`), and the fine routing — redirects, locale, which page — is done **in the app** with regex or matchers (Next.js `proxy.ts` / `next.config` `redirects` with `source` patterns, Spring path patterns), as tested code.
+- `krizaka-deploy` refuses a spec with more than `MAX_PATH_RULES` (3) path rules for one component, or for the redirects (`assertIngressRoutes`, run by `deploy --apply`). Offline, in a repository's CI: `krizaka-deploy routes deploy/…/app.yaml`. Authority-only rules (the apex → www 308) are free.
