@@ -109,6 +109,14 @@ on:
         description: "Newline-separated KEY=VALUE docker build arguments."
         type: string
         default: ""
+      container-context:
+        description: "Docker build context, relative to the repository root."
+        type: string
+        default: "."
+      container-dockerfile:
+        description: "Dockerfile, relative to the repository root. Empty: <context>/Dockerfile."
+        type: string
+        default: ""
       container-image:
         description: "Tag given to the image (passed to the smoke script as CI_IMAGE)."
         type: string
@@ -129,14 +137,6 @@ on:
         description: "changes.yml: JavaScript RegExp, a changed file matching it never needs the jobs. Keep out of it every file a test reads."
         type: string
         default: '^\.changeset/|^(LICENSE|SECURITY|CODE_OF_CONDUCT|SUPPORT)(\.md)?$|^\.github/(ISSUE_TEMPLATE/|pull_request_template\.md$|FUNDING\.yml$|dependabot\.yml$)'
-      verify-name:
-        description: "Display name of the verify job."
-        type: string
-        default: "Verify"
-      container-name:
-        description: "Display name of the container job."
-        type: string
-        default: "Container image"
       timeout-minutes:
         description: "Timeout of the verify job (the container job gets the same)."
         type: number
@@ -169,7 +169,7 @@ jobs:
       ignore: ${{ inputs.ignore }}
 
   verify:
-    name: ${{ inputs.verify-name }}
+    name: Verify
     needs: changes
     if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     runs-on: ubuntu-latest
@@ -182,13 +182,13 @@ jobs:
     env:
       PM: ${{ inputs.package-manager }}
     steps:
-      - name: Check the inputs
-        run: |
-          case "$PM" in npm|pnpm) ;; *) echo "::error::package-manager must be npm or pnpm, got '$PM'"; exit 1 ;; esac
-
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+
+      - name: Check the inputs
+        run: |
+          case "$PM" in npm|pnpm) ;; *) echo "::error::package-manager must be npm or pnpm, got '$PM'"; exit 1 ;; esac
 
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         if: ${{ inputs.package-manager == 'pnpm' }}
@@ -294,7 +294,7 @@ jobs:
         run: bash "$SCRIPT"
 
   container:
-    name: ${{ inputs.container-name }}
+    name: Container image
     needs: changes
     if: ${{ inputs.container && !cancelled() && needs.changes.outputs.code != 'false' }}
     runs-on: ubuntu-latest
@@ -312,7 +312,8 @@ jobs:
       - name: Build the image
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
-          context: .
+          context: ${{ inputs.container-context }}
+          file: ${{ inputs.container-dockerfile }}
           load: true
           push: false
           tags: ${{ inputs.container-image }}

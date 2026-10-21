@@ -54,6 +54,7 @@ jobs:
       test-script: ""
       build-script: ""
       container: true
+      container-context: tests/fixtures/node-app
       container-image: fixture:ci
       container-smoke: tests/fixtures/node-app/scripts/container-smoke.sh
       timeout-minutes: 10
