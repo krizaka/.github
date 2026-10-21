@@ -58,7 +58,7 @@ outside and prints what it could not.
 | `admin.ux-review` | `ux.ia-review` for the console: the operator's jobs → at most about 5 sections, no mixed concepts | as `ux.ia-review` | no |
 | `admin.ci` | The console's code is covered by CI with tests (own repository today, or the product repository once merged by host routing) | CI link | no |
 
-Merging the consoles into the product apps by host routing (orochia#232, orazaka-web-admin#31) is the way to deliver
+Merging the consoles into the product apps by host routing (orochia#232; orazaka-web-admin#31 before its retirement) is the way to deliver
 `admin.*` for every product without a new App Platform app each; the criteria do not change, only where the code lives.
 
 ## The checklist file
