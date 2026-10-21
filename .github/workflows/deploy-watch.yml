@@ -1,0 +1,99 @@
+# Post-merge deploy check (krizaka/.github#113 P2-8). A merge to main of a DigitalOcean-deployed repository must start a
+# deployment within the grace period (DigitalOcean's push webhook is lost now and then: ~3 % of the merges of
+# 2026-10-20/21 on krizaka-blog, akinaza, yasakia, orazaka-web-client, krizaka-com, orochia). One small job looks at every
+# app of the Krizaka team with a few doctl reads — never a job that sleeps per merge — and, for the head of a branch
+# older than the grace period with no deployment, starts a plain deployment and fails so that the miss is visible.
+# A deployment that started and ended ERROR / CANCELED is listed as failed (it is not a missing one). Apps without
+# deploy_on_push (orazaka-dev core) are deployed by hand and never expected to start by themselves.
+#
+# Needs the repository (or organization) secret DIGITALOCEAN_ACCESS_TOKEN (the Krizaka team's token): without it the job
+# says so in a warning and does nothing.
+#
+# A repository does not need to call it: the schedule below covers the whole team. To run it from a workflow:
+#   uses: krizaka/.github/.github/workflows/deploy-watch.yml@v1
+#   secrets: { DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }} }
+name: deploy-watch
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+    inputs:
+      grace-minutes:
+        description: "Minutes a merge may wait for its deployment."
+        default: "10"
+      trigger:
+        description: "Start the missing deployments (true) or only report them (false)."
+        default: "true"
+      apps:
+        description: "Comma-separated app names (default: every app)."
+        default: ""
+  workflow_call:
+    inputs:
+      grace-minutes:
+        type: string
+        default: "10"
+      trigger:
+        type: string
+        default: "true"
+      apps:
+        type: string
+        default: ""
+    secrets:
+      DIGITALOCEAN_ACCESS_TOKEN:
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    name: A merge starts a deployment
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+    steps:
+      - name: Is the DigitalOcean token set?
+        id: gate
+        run: |
+          if [ -z "$DIGITALOCEAN_ACCESS_TOKEN" ]; then
+            echo "::warning title=deploy-watch is off::the secret DIGITALOCEAN_ACCESS_TOKEN is not set (krizaka/.github#113 P2-8); no merge is being watched"
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.gate.outputs.enabled == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - if: steps.gate.outputs.enabled == 'true'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+
+      - if: steps.gate.outputs.enabled == 'true'
+        uses: digitalocean/action-doctl@3cb3953159719656269e044e0e24ca16dd2a690f # v2.5.2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - if: steps.gate.outputs.enabled == 'true'
+        name: Install the CLI
+        run: npm ci --omit=dev --ignore-scripts --no-audit --no-fund --prefix deploy
+
+      - if: steps.gate.outputs.enabled == 'true'
+        name: Watch
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GRACE: ${{ inputs.grace-minutes || '10' }}
+          TRIGGER: ${{ inputs.trigger || 'true' }}
+          APPS: ${{ inputs.apps }}
+        run: |
+          args=(watch --grace "$GRACE")
+          [ "$TRIGGER" = "true" ] && args+=(--trigger)
+          [ -n "$APPS" ] && args+=(--apps "$APPS")
+          node deploy/bin/krizaka-deploy.mjs "${args[@]}"

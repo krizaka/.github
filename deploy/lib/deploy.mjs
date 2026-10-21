@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import { GuardError } from "./errors.mjs";
 import { assertContext } from "./doctl.mjs";
 import { assertIndexing, mergeWithLive, parseSpec, dumpSpec } from "./spec.mjs";
+import { componentsOf, verifyRunningHead } from "./head.mjs";
 import { checkHealth, checkIndexing, checkSeoFamily } from "./checks.mjs";
 
 const FAILED = new Set(["ERROR", "CANCELED", "SUPERSEDED"]);
@@ -33,7 +34,7 @@ export async function waitActive(doctl, appId, id, { timeoutMs, pollMs = 15_000,
 }
 
 /** The commit a deployment built (one per component; they all come from the same push). */
-export const commitsOf = (deployment) => [...new Set((deployment?.services ?? []).map((s) => s.source_commit_hash).filter(Boolean))];
+export const commitsOf = (deployment) => [...new Set(componentsOf(deployment).map((s) => s.source_commit_hash).filter(Boolean))];
 
 export function rollbackNote({ app, appId, previous }) {
   if (!previous) return `Rollback: no previous ACTIVE deployment was recorded for ${app}; redeploy the last good commit.`;
@@ -61,7 +62,7 @@ export async function deploy(config, options = {}, deps) {
     env = process.env,
     argv = [],
   } = deps;
-  const { dryRun = false, apply = false, expectSha = null, allowDrop = [], allowChange = [], pollMs = 15_000, healthAttempts = 12, healthDelayMs = 10_000 } = options;
+  const { dryRun = false, apply = false, expectSha = null, skipHeadCheck = false, allowDrop = [], allowChange = [], pollMs = 15_000, healthAttempts = 12, healthDelayMs = 10_000 } = options;
   const report = { app: config.app, dryRun, steps: [] };
   const step = (name, detail = "") => {
     report.steps.push({ name, detail });
@@ -132,6 +133,12 @@ export async function deploy(config, options = {}, deps) {
         step("commit", `${expectSha.slice(0, 10)} is what runs`);
       }
       const after = await doctl.json(["apps", "get", appId]);
+      // What runs is the head of the branch the app follows — never a cached clone (the deployment's own word is not enough).
+      if (skipHeadCheck) step("head", "skipped (--skip-head-check)");
+      else {
+        const verified = await verifyRunningHead({ doctl, fetch, appId, deployment, spec: after?.spec ?? {}, env });
+        step("head", verified.length ? [...new Set(verified.map((v) => `${v.repo}@${v.branch} ${v.commit.slice(0, 10)}`))].join(", ") + " is what runs (deployment, build log and branch head agree)" : "no GitHub component to verify");
+      }
       assertIndexing(after?.spec ?? {}, { ...indexingOptions, label: "live spec after the deploy" });
       step("indexing (after)", config.indexing);
     }
@@ -151,8 +158,8 @@ export async function deploy(config, options = {}, deps) {
 export async function runChecks(config, { fetch, spawnCheck, healthAttempts = 12, healthDelayMs = 10_000, sleepFn, step = () => {} }) {
   const health = await checkHealth(config.health, { fetch, attempts: healthAttempts, delayMs: healthDelayMs, sleepFn });
   step("health", `${config.health} → ${health.status}`);
-  const indexing = await checkIndexing(config.url, config.indexing, { fetch });
-  step("robots", `${indexing.robots}${indexing.noindex ? `, noindex by ${indexing.noindex}` : ""}`);
+  const indexing = await checkIndexing(config.url, config.indexing, { fetch, healthUrl: config.health });
+  step("robots", `${indexing.robots}${indexing.noindex ? `, noindex by ${indexing.noindex}` : ""}${indexing.redirect ? `, HTML 308 to ${indexing.redirect}` : ""}`);
   if (config.seoFamily) {
     await checkSeoFamily(config.url, { script: config.seoFamily.script, args: config.seoFamily.args ?? [], index: config.indexing, cwd: config.root, spawnCheck });
     step("seo-family", "contract met");

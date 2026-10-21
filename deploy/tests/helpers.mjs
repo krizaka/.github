@@ -23,6 +23,7 @@ export const liveSpec = (over = {}) => ({
   services: [
     {
       name: "web",
+      github: { repo: "krizaka/krizaka-com", branch: "main", deploy_on_push: true },
       envs: [
         { key: "NEXT_PUBLIC_MEDIA_CDN_URL", scope: "RUN_AND_BUILD_TIME", value: "https://krizaka-assets.b-cdn.net" },
         { key: "MAIL_API_KEY", scope: "RUN_TIME", type: "SECRET", value: "EV[1:ciphertext-a]" },
@@ -40,6 +41,8 @@ export function fakeDoctl(state = {}, calls = []) {
     spec: liveSpec(),
     phases: ["PENDING_BUILD", "BUILDING", "DEPLOYING", "ACTIVE"],
     commit: SHA,
+    buildLogSha: undefined, // what the build log says it checked out (default: the commit)
+    cause: { type: "MANUAL" },
     previous: { id: "prev-1", commit: "aaaaaaaa11111111aaaaaaaa11111111aaaaaaaa" },
     ...state,
   };
@@ -62,8 +65,9 @@ export function fakeDoctl(state = {}, calls = []) {
     if (key === "apps get-deployment") {
       const phase = s.phases[Math.min(polls++, s.phases.length - 1)];
       if (phase === "ACTIVE") s.deployed = true;
-      return JSON.stringify([{ id: "new-1", phase, services: [{ name: "web", source_commit_hash: s.commit }] }]);
+      return JSON.stringify([{ id: "new-1", phase, cause_details: s.cause, services: [{ name: "web", source_commit_hash: s.commit }] }]);
     }
+    if (key === "apps logs") return s.noLog ? "" : `web 2026-10-21T17:00:00Z \u001b[34m│\u001b[0m => Checking out commit "${s.buildLogSha ?? s.commit}"\n`;
     if (key === "apps spec") return "";
     if (key === "apps update") return "";
     throw new Error(`unscripted doctl call: ${args.slice(2).join(" ")}`);
@@ -86,6 +90,10 @@ export function fakeFetch(table) {
   fetch.calls = calls;
   return fetch;
 }
+
+/** GitHub's answer for the head of krizaka-com main (Accept: application/vnd.github.sha). */
+export const HEAD_URL = "https://api.github.com/repos/krizaka/krizaka-com/commits/main";
+export const head = (sha = SHA) => ({ [HEAD_URL]: { body: sha } });
 
 export const ROBOTS_ON = "User-agent: *\nAllow: /\n\nSitemap: https://www.krizaka.com/sitemap.xml\n";
 export const ROBOTS_OFF = "User-agent: *\nDisallow: /\n";
