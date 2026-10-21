@@ -79,8 +79,10 @@ export function spawnNode(args, { cwd }) {
 }
 
 /** The family SEO contract (krizaka-com scripts/check-seo-family.mjs, identical in every site). */
-export async function checkSeoFamily(baseUrl, { script, args = [], cwd = process.cwd(), spawnCheck = spawnNode }) {
-  const { code, log } = await spawnCheck([script, "--base", baseUrl, "--host", baseUrl, ...args], { cwd });
+export async function checkSeoFamily(baseUrl, { script, args = [], index, cwd = process.cwd(), spawnCheck = spawnNode }) {
+  // The script takes the site's intent from --index; the configuration's `indexing` is the one source of it.
+  const intent = index && !args.includes("--index") ? ["--index", index] : [];
+  const { code, log } = await spawnCheck([script, "--base", baseUrl, "--host", baseUrl, ...intent, ...args], { cwd });
   if (code !== 0) throw new GuardError("seo-family", `${script} failed (exit ${code}):\n${log.split("\n").slice(-15).join("\n")}`);
   return { exit: 0 };
 }

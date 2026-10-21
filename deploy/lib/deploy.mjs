@@ -154,7 +154,7 @@ export async function runChecks(config, { fetch, spawnCheck, healthAttempts = 12
   const indexing = await checkIndexing(config.url, config.indexing, { fetch });
   step("robots", `${indexing.robots}${indexing.noindex ? `, noindex by ${indexing.noindex}` : ""}`);
   if (config.seoFamily) {
-    await checkSeoFamily(config.url, { script: config.seoFamily.script, args: config.seoFamily.args ?? [], cwd: config.root, spawnCheck });
+    await checkSeoFamily(config.url, { script: config.seoFamily.script, args: config.seoFamily.args ?? [], index: config.indexing, cwd: config.root, spawnCheck });
     step("seo-family", "contract met");
   }
 }

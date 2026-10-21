@@ -49,8 +49,8 @@ test("robots (noindex site): needs Disallow: / and a noindex on the home (header
 test("seo-family: runs the repository's script against the live site and fails with its log", async () => {
   const seen = [];
   const pass = async (args, { cwd }) => (seen.push({ args, cwd }), { code: 0, log: "" });
-  await checkSeoFamily(BASE, { script: "scripts/check-seo-family.mjs", args: ["--organization"], cwd: "/repo", spawnCheck: pass });
-  assert.deepEqual(seen[0], { args: ["scripts/check-seo-family.mjs", "--base", BASE, "--host", BASE, "--organization"], cwd: "/repo" });
+  await checkSeoFamily(BASE, { script: "scripts/check-seo-family.mjs", args: ["--organization"], index: "off", cwd: "/repo", spawnCheck: pass });
+  assert.deepEqual(seen[0], { args: ["scripts/check-seo-family.mjs", "--base", BASE, "--host", BASE, "--index", "off", "--organization"], cwd: "/repo" });
   const fail = async () => ({ code: 1, log: "x\nsitemap.xml missing" });
   await assert.rejects(checkSeoFamily(BASE, { script: "s.mjs", spawnCheck: fail }), (e) => e.guard === "seo-family" && /sitemap\.xml missing/.test(e.message));
 });

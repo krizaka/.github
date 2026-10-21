@@ -90,6 +90,7 @@ test("deploy: the SEO family script runs from the repository root when configure
   await deploy(config, {}, { doctl, fetch: site(), spawnCheck: async (args, o) => (seen.push([args, o.cwd]), { code: 0, log: "" }), ...quiet });
   assert.equal(seen[0][1], "/repo");
   assert.equal(seen[0][0][0], "scripts/check-seo-family.mjs");
+  assert.deepEqual(seen[0][0].slice(-3), ["--index", "on", "--organization"], "the configuration's indexing reaches the family check");
 });
 
 test("rollback note: names the previous deployment and its commit, or says there is none", () => {
