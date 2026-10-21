@@ -66,10 +66,11 @@ What the products are built on, published for anyone to use.
 
 | Package | Latest |
 | :--- | :--- |
-| **[Krizaka UI](https://ui.krizaka.com)** — components, tokens, icons and charts, web and React Native | [![npm](https://img.shields.io/npm/v/@krizaka/ui?label=%40krizaka%2Fui&color=196df5&logo=npm)](https://www.npmjs.com/package/@krizaka/ui) |
-| **[Krizaka Java](https://java.krizaka.com)** — Spring Boot building blocks on Maven Central | [![Maven Central](https://img.shields.io/maven-central/v/com.krizaka/krizaka-bom?label=com.krizaka%3Akrizaka-bom&color=196df5&logo=apachemaven)](https://central.sonatype.com/artifact/com.krizaka/krizaka-bom) |
+| **[Krizaka UI](https://ui.krizaka.com)**: components, tokens, icons and charts, web and React Native | [![npm](https://img.shields.io/npm/v/@krizaka/ui?label=%40krizaka%2Fui&color=3e76a8&logo=npm)](https://www.npmjs.com/package/@krizaka/ui) |
+| **[Krizaka Java](https://java.krizaka.com)**: Spring Boot building blocks on Maven Central | [![Maven Central](https://img.shields.io/maven-central/v/com.krizaka/krizaka-bom?label=com.krizaka%3Akrizaka-bom&color=3e76a8&logo=apachemaven)](https://central.sonatype.com/artifact/com.krizaka/krizaka-bom) |
+| **[Krizaka Motion](https://krizaka.github.io/krizaka-motion/)**: the motion library of Krizaka UI, its configurable primitives and the live lab | [![@krizaka/ui/motion](https://img.shields.io/npm/v/@krizaka/ui?label=%40krizaka%2Fui%2Fmotion&color=3e76a8&logo=npm)](https://www.npmjs.com/package/@krizaka/ui) |
 
-[![Public repositories](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.github.com%2Forgs%2Fkrizaka&query=%24.public_repos&label=public%20repositories&color=196df5&logo=github)](https://github.com/orgs/krizaka/repositories)
+[![Public repositories](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.github.com%2Forgs%2Fkrizaka&query=%24.public_repos&label=public%20repositories&color=3e76a8&logo=github)](https://github.com/orgs/krizaka/repositories)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/krizaka/.github/badge)](https://scorecard.dev/viewer/?uri=github.com/krizaka/.github)
 
 ## Get involved
