@@ -56,7 +56,8 @@ jobs:
         id: seo
         run: |
           set +e
-          node scripts/check-seo-family.mjs --base "https://${HOST}" --host "https://${HOST}" ${ARGS} 2>&1 | tee seo.log
+          read -r -a extra <<< "${ARGS}"
+          node scripts/check-seo-family.mjs --base "https://${HOST}" --host "https://${HOST}" "${extra[@]}" 2>&1 | tee seo.log
           echo "code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
         env:
           HOST: ${{ matrix.host }}
