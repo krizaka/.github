@@ -166,7 +166,9 @@ jobs:
           case "$GITHUB_REF_NAME" in *-*) flags="--prerelease";; esac
           notes="$PRODUCT for macOS (Apple Silicon)."
           [ "$SIGNED" = "true" ] || notes="$notes Not signed yet: right-click the app, then Open."
-          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 \
-            && gh release upload "$GITHUB_REF_NAME" ./*.dmg ./*.sha256 --clobber \
-            || gh release create "$GITHUB_REF_NAME" ./*.dmg ./*.sha256 $flags \
-                 --title "$PRODUCT ${GITHUB_REF_NAME#"$PREFIX"}" --notes "$notes"
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" ./*.dmg ./*.sha256 --clobber
+          else
+            # shellcheck disable=SC2086
+            gh release create "$GITHUB_REF_NAME" ./*.dmg ./*.sha256 $flags --title "$PRODUCT ${GITHUB_REF_NAME#"$PREFIX"}" --notes "$notes"
+          fi
