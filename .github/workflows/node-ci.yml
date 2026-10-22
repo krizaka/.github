@@ -316,8 +316,8 @@ jobs:
           INSTALL: ${{ inputs.install-command }}
         run: |
           if [ -n "$INSTALL" ]; then bash -c "$INSTALL"
-          elif [ "$PM" = pnpm ]; then pnpm install --frozen-lockfile
-          else npm ci; fi
+          elif [ "$PM" = pnpm ]; then pnpm install --frozen-lockfile --prefer-offline
+          else npm ci --prefer-offline --no-audit --no-fund; fi
 
       - name: Lint
         if: ${{ inputs.lint-script != '' && (matrix.task == 'all' || matrix.task == 'lint') }}
@@ -444,8 +444,8 @@ jobs:
           INSTALL: ${{ inputs.install-command }}
         run: |
           if [ -n "$INSTALL" ]; then bash -c "$INSTALL"
-          elif [ "$PM" = pnpm ]; then pnpm install --frozen-lockfile
-          else npm ci; fi
+          elif [ "$PM" = pnpm ]; then pnpm install --frozen-lockfile --prefer-offline
+          else npm ci --prefer-offline --no-audit --no-fund; fi
 
       - name: Next.js build cache
         if: ${{ inputs.next-cache-paths != '' }}
