@@ -8,6 +8,7 @@
 #       permissions: { contents: read }
 #       uses: krizaka/.github/.github/workflows/expo-ci.yml@<sha> # v1.3.0
 #       with:
+#         lockfile-directory: .           # the app is a workspace package: its lockfile is the repository's
 #         typecheck-script: typecheck
 #         eas-profile: production         # EAS only on a v* tag; empty: never
 #       secrets:
@@ -37,6 +38,10 @@ on:
         description: "Directory of the app (monorepo sub-folder)."
         type: string
         default: "."
+      lockfile-directory:
+        description: "Directory of the lockfile and of the package.json that names the package manager, when it is not the app's own (an app inside a pnpm workspace: the repository root, \".\")."
+        type: string
+        default: ""
       install-command:
         description: "Replaces the default install (npm ci / pnpm install --frozen-lockfile)."
         type: string
@@ -143,14 +148,14 @@ jobs:
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         if: ${{ steps.which.outputs.script != '' && inputs.package-manager == 'pnpm' }}
         with:
-          package_json_file: ${{ inputs.working-directory }}/package.json
+          package_json_file: ${{ inputs.lockfile-directory || inputs.working-directory }}/package.json
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         if: ${{ steps.which.outputs.script != '' }}
         with:
           node-version: ${{ inputs.node-version }}
           cache: ${{ inputs.package-manager }}
-          cache-dependency-path: ${{ inputs.working-directory }}/${{ inputs.package-manager == 'pnpm' && 'pnpm-lock.yaml' || 'package-lock.json' }}
+          cache-dependency-path: ${{ inputs.lockfile-directory || inputs.working-directory }}/${{ inputs.package-manager == 'pnpm' && 'pnpm-lock.yaml' || 'package-lock.json' }}
 
       - name: Install
         if: ${{ steps.which.outputs.script != '' }}
@@ -192,13 +197,13 @@ jobs:
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         if: ${{ inputs.package-manager == 'pnpm' }}
         with:
-          package_json_file: ${{ inputs.working-directory }}/package.json
+          package_json_file: ${{ inputs.lockfile-directory || inputs.working-directory }}/package.json
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ inputs.node-version }}
           cache: ${{ inputs.package-manager }}
-          cache-dependency-path: ${{ inputs.working-directory }}/${{ inputs.package-manager == 'pnpm' && 'pnpm-lock.yaml' || 'package-lock.json' }}
+          cache-dependency-path: ${{ inputs.lockfile-directory || inputs.working-directory }}/${{ inputs.package-manager == 'pnpm' && 'pnpm-lock.yaml' || 'package-lock.json' }}
 
       - uses: expo/expo-github-action@9da89d3617bb88139671bad31b09c65714c2ee06 # v9
         with:
