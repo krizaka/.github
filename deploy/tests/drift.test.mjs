@@ -36,3 +36,13 @@ test("drift: App Platform's stored path « / » on an authority-only rule is not
   const live = { ...liveSpec(), ingress: { rules: [{ ...rule, match: { ...rule.match, path: { prefix: "/" } } }] } };
   assert.deepEqual(await specDrift({ ...liveSpec(), ingress: { rules: [rule] } }, live), []);
 });
+
+test("drift: a value built on a __PLACEHOLDER__ equals the live one that fits it, and differs when the rest differs", async () => {
+  const live = liveSpec();
+  live.services[0].envs[0].value = "jdbc:postgresql://db.example.com:25061/pool-a?sslmode=require";
+  const f = structuredClone(live);
+  f.services[0].envs[0].value = "jdbc:postgresql://__DATABASE_HOST__:25061/pool-a?sslmode=require";
+  assert.deepEqual(await specDrift(structuredClone(f), live), []);
+  f.services[0].envs[0].value = "jdbc:postgresql://__DATABASE_HOST__:25061/pool-b?sslmode=require";
+  assert.ok((await specDrift(f, live)).some((d) => /NEXT_PUBLIC_MEDIA_CDN_URL/.test(d)));
+});

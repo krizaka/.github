@@ -4,7 +4,7 @@ import { readFile as readFileFs } from "node:fs/promises";
 import { resolve } from "node:path";
 import { GuardError } from "./errors.mjs";
 import { assertContext } from "./doctl.mjs";
-import { mergeWithLive, parseSpec } from "./spec.mjs";
+import { envEntries, mergeWithLive, parseSpec } from "./spec.mjs";
 
 const SECTIONS = ["services", "workers", "jobs", "static_sites", "functions"];
 const sortKeys = (v) => (Array.isArray(v) ? v.map(sortKeys) : v && typeof v === "object" ? Object.fromEntries(Object.keys(v).sort().map((k) => [k, sortKeys(v[k])])) : v);
@@ -22,6 +22,17 @@ export async function specDrift(fileSpec, liveSpec) {
   for (const section of SECTIONS) {
     const names = (s) => (s?.[section] ?? []).map((c) => c.name).sort().join(",");
     if (names(fileSpec) !== names(liveSpec)) out.push(`${section}: components differ (file: ${names(fileSpec) || "none"}; live: ${names(liveSpec) || "none"})`);
+  }
+  // A value that embeds `__NAME__` (a host the vault supplies at apply time, e.g. jdbc:postgresql://__DATABASE_HOST__:25061/db) is a
+  // template: it equals the live value when the live one fits the pattern around the placeholder.
+  const liveEnvs = new Map(envEntries(liveSpec).map(({ where, env }) => [`${where}:${env.key}`, env]));
+  for (const { where, env } of envEntries(fileSpec)) {
+    const v = env.value;
+    if (typeof v !== "string" || v === `__${env.key}__` || !/__[A-Z0-9_]+__/.test(v)) continue;
+    const liveValue = liveEnvs.get(`${where}:${env.key}`)?.value;
+    if (typeof liveValue !== "string") continue;
+    const pattern = v.split(/__[A-Z0-9_]+__/).map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("[^/:]+");
+    if (new RegExp(`^${pattern}$`).test(liveValue)) env.value = liveValue;
   }
   // Plain values that differ, variables missing either way; a value-less variable takes the live one (not a drift).
   const merged = await mergeWithLive(fileSpec, liveSpec, { secret: async () => "x" });
