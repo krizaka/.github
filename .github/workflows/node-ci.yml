@@ -140,6 +140,10 @@ on:
         description: "changes.yml: JavaScript RegExp, a changed file matching it never needs the jobs. Keep out of it every file a test reads."
         type: string
         default: '^\.changeset/|^(LICENSE|SECURITY|CODE_OF_CONDUCT|SUPPORT)(\.md)?$|^\.github/(ISSUE_TEMPLATE/|pull_request_template\.md$|FUNDING\.yml$|dependabot\.yml$)'
+      quality-scripts:
+        description: "Newline-separated package.json scripts run in a `quality` leg (depcruise, ast-grep, the ratchets: clean imports, debt counters that only go down). Part of the serial job when parallel is false."
+        type: string
+        default: ""
       parallel:
         description: "Run lint, typecheck, test and build as parallel jobs (one install each, from the cache) instead of one serial job. Leave false when the tests read the build output."
         type: boolean
@@ -221,6 +225,7 @@ jobs:
         env:
           PARALLEL: ${{ inputs.parallel }}
           LINT: ${{ inputs.lint-script }}
+          QUALITY: ${{ inputs.quality-scripts }}
           TYPECHECK: ${{ inputs.typecheck-script }}
           TEST: ${{ inputs.test-script }}
           BUILD: ${{ inputs.build-script }}
@@ -230,6 +235,7 @@ jobs:
           if [ "$PARALLEL" = true ]; then
             tasks=()
             [ -n "$LINT" ] && tasks+=(lint)
+            [ -n "$QUALITY" ] && tasks+=(quality)
             [ -n "$TYPECHECK" ] && tasks+=(typecheck)
             [ -n "$TEST" ] && tasks+=(test)
             { [ -n "$BUILD" ] || [ -n "$AFTER" ]; } && tasks+=(build)
@@ -324,6 +330,16 @@ jobs:
         env:
           SCRIPT: ${{ inputs.lint-script }}
         run: '"$PM" run "$SCRIPT"'
+
+      - name: Quality (depcruise, ast-grep, ratchets)
+        if: ${{ inputs.quality-scripts != '' && (matrix.task == 'all' || matrix.task == 'quality') }}
+        env:
+          SCRIPTS: ${{ inputs.quality-scripts }}
+        run: |
+          while IFS= read -r script; do
+            [ -z "$script" ] && continue
+            "$PM" run "$script"
+          done <<< "$SCRIPTS"
 
       - name: Typecheck
         if: ${{ inputs.typecheck-script != '' && (matrix.task == 'all' || matrix.task == 'typecheck') }}

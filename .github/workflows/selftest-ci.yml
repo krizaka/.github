@@ -72,6 +72,9 @@ jobs:
       working-directory: tests/fixtures/node-app
       parallel: true
       typecheck-script: typecheck
+      quality-scripts: |
+        lint
+        typecheck
       turbo-cache: true
       e2e-script: e2e
       e2e-shards: 2

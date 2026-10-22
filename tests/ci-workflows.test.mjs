@@ -154,9 +154,10 @@ test("node-ci: parallel plan — a leg per task, e2e shards 1..n", () => {
     execFileSync("bash", ["-c", run], { env: { PATH: process.env.PATH, GITHUB_OUTPUT: file, ...vars }, stdio: "pipe" });
     return readFileSync(file, "utf8");
   };
-  const base = { PARALLEL: "true", LINT: "lint", TYPECHECK: "", TEST: "test", BUILD: "build", AFTER: "", SHARDS: "3" };
+  const base = { PARALLEL: "true", LINT: "lint", TYPECHECK: "", QUALITY: "", TEST: "test", BUILD: "build", AFTER: "", SHARDS: "3" };
   assert.match(out(base), /tasks=\["lint","test","build"\]/);
   assert.match(out(base), /shards=\[1,2,3\]/);
+  assert.match(out({ ...base, QUALITY: "depcruise" }), /tasks=\["lint","quality","test","build"\]/);
   assert.match(out({ ...base, PARALLEL: "false" }), /tasks=\["all"\]/);
   assert.match(out({ ...base, BUILD: "", AFTER: "scripts/x.sh" }), /"build"/, "an after-build script alone still needs the build leg");
   assert.throws(() => out({ ...base, SHARDS: "9" }));
