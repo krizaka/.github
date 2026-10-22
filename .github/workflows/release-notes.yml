@@ -1,0 +1,69 @@
+# Release notes, org-wide (reusable; krizaka/.github#184). On a push to main, the merged feat / fix / perf pull requests
+# since the last release become one GitHub Release tagged YYYY.MM.DD.N, with an English and a French section (a PR's own
+# `Release-note-en:` / `Release-note-fr:` lines win, else its title). chore, ci, deps and docs are skipped; with nothing
+# new there is no release. Then krizaka.com is told (`repository_dispatch`, event `product-release`) so its changelog
+# rebuilds within minutes; its daily schedule covers the day this step cannot run.
+#
+# A repository calls it from a thin workflow (workflow-templates/release-notes.yml):
+#   on: { push: { branches: [main] } }
+#   jobs:
+#     release:
+#       permissions: { contents: write }
+#       uses: krizaka/.github/.github/workflows/release-notes.yml@<sha> # v1
+#       secrets: { RELEASE_APP_PRIVATE_KEY: ${{ secrets.RELEASE_APP_PRIVATE_KEY }} }
+#
+# The dispatch needs the same GitHub App as krizaka-ui's release workflow: the repository variable RELEASE_APP_ID and the
+# secret RELEASE_APP_PRIVATE_KEY (an App installed on krizaka-com with contents write). Without them the release is still
+# written and the dispatch step says it is skipped.
+name: Release notes
+
+on:
+  workflow_call:
+    secrets:
+      RELEASE_APP_PRIVATE_KEY:
+        description: "Private key of the GitHub App that may send repository_dispatch to krizaka-com (optional)."
+        required: false
+
+permissions: {}
+
+jobs:
+  release:
+    name: Release notes
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    concurrency:
+      group: release-notes-${{ github.repository }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+
+      - id: notes
+        uses: krizaka/.github/actions/release-notes@0f0e18e0d8ece73a9d5b8565d0e10ca1f516c797 # main
+        with:
+          token: ${{ github.token }}
+
+      - id: app
+        if: ${{ steps.notes.outputs.tag != '' && vars.RELEASE_APP_ID != '' }}
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: krizaka
+          repositories: krizaka-com
+          permission-contents: write
+
+      - name: Tell krizaka.com
+        if: ${{ steps.app.outputs.token != '' }}
+        run: gh api repos/krizaka/krizaka-com/dispatches -f event_type=product-release -f "client_payload[repo]=$REPO" -f "client_payload[tag]=$TAG"
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ steps.notes.outputs.tag }}
+
+      - name: Dispatch skipped
+        if: ${{ steps.notes.outputs.tag != '' && steps.app.outputs.token == '' }}
+        run: echo "::notice title=krizaka.com is not told::set RELEASE_APP_ID and RELEASE_APP_PRIVATE_KEY (krizaka/.github#184); the changelog rebuilds on its daily schedule"

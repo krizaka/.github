@@ -1,0 +1,6 @@
+{
+  "name": "Release notes",
+  "description": "A bilingual GitHub Release for every merge that has news (feat, fix, perf).",
+  "iconName": "octicon rocket",
+  "categories": ["Deployment"]
+}
