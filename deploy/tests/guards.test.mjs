@@ -2,7 +2,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { assertContext, createDoctl } from "../lib/doctl.mjs";
-import { assertIndexing, assertIngressRoutes, MAX_PATH_RULES, mergeWithLive } from "../lib/spec.mjs";
+import { assertIndexing, assertIngressRoutes, MAX_PATH_RULES, MAX_REDIRECT_RULES, mergeWithLive } from "../lib/spec.mjs";
 import { validateConfig } from "../lib/config.mjs";
 import { deploy } from "../lib/deploy.mjs";
 import { GuardError } from "../lib/errors.mjs";
@@ -137,17 +137,21 @@ test("values: a plain variable whose value differs from the live one is refused 
   assert.deepEqual(allowed.problems, []);
 });
 
-test("routes: DO ingress matches are prefix/exact only, so a component may carry at most MAX_PATH_RULES path rules", () => {
+test("routes: a component may carry at most MAX_PATH_RULES routing rules; retired-URL redirects are capped apart, at MAX_REDIRECT_RULES", () => {
   const rule = (prefix, target = { component: { name: "web" } }) => ({ match: { path: { prefix } }, ...target });
   const ok = { ingress: { rules: [rule("/api", { component: { name: "api" } }), rule("/")] } };
   assert.deepEqual(assertIngressRoutes(ok, { label: "ok" }), { web: 1, api: 1 });
   // authority-only rules (the www redirect) never count
   assert.doesNotThrow(() => assertIngressRoutes({ ingress: { rules: [{ match: { authority: { exact: "x.com" } }, redirect: { authority: "www.x.com" } }, rule("/")] } }));
   assert.equal(MAX_PATH_RULES, 3);
-  // yororis' shape: one rule per path, same component
+  assert.equal(MAX_REDIRECT_RULES, 10);
+  // yororis' shape: one routing rule per path, same component
   const listed = { ingress: { rules: ["/api", "/.well-known", "/robots.txt", "/"].map((p) => rule(p)) } };
   assert.throws(() => assertIngressRoutes(listed, { label: "qa.app.yaml" }), (e) => e instanceof GuardError && e.guard === "routes" && /component 'web' has 4 path rules/.test(e.message));
-  // blog's shape: hard-coded redirects
-  const redirects = { ingress: { rules: ["/a", "/b", "/c", "/d"].map((p) => rule(p, { redirect: { uri: "/z", redirect_code: 308 } })) } };
-  assert.throws(() => assertIngressRoutes(redirects), /redirects.*4 path rules/);
+  // retired URLs: real 308s, not counted as routes, up to the cap
+  const redirect = (p) => rule(p, { redirect: { uri: "/z", redirect_code: 308 } });
+  const four = { ingress: { rules: [...["/a", "/b", "/c", "/d"].map(redirect), rule("/api", { component: { name: "oauth" } }), rule("/")] } };
+  assert.deepEqual(assertIngressRoutes(four), { redirects: 4, oauth: 1, web: 1 });
+  const many = { ingress: { rules: Array.from({ length: 11 }, (_, i) => redirect(`/old${i}`)) } };
+  assert.throws(() => assertIngressRoutes(many, { label: "app.yaml" }), /11 redirect rules for retired URLs \(max 10\)/);
 });
