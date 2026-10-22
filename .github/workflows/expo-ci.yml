@@ -53,6 +53,10 @@ on:
         description: "package.json script for the tests; empty skips the job."
         type: string
         default: test
+      extra-scripts:
+        description: "Newline-separated package.json scripts run one after another in a fourth parallel job `extra` (bundle export, link checks)."
+        type: string
+        default: ""
       eas-profile:
         description: "EAS build profile built on a v* tag; empty: no EAS job."
         type: string
@@ -107,7 +111,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        task: [lint, typecheck, test]
+        task: [lint, typecheck, test, extra]
     permissions:
       contents: read
     defaults:
@@ -118,15 +122,17 @@ jobs:
       LINT: ${{ inputs.lint-script }}
       TYPECHECK: ${{ inputs.typecheck-script }}
       TEST: ${{ inputs.test-script }}
+      EXTRA: ${{ inputs.extra-scripts }}
       TASK: ${{ matrix.task }}
     steps:
       - name: Which script
         id: which
         working-directory: .
         run: |
-          case "$TASK" in lint) s="$LINT" ;; typecheck) s="$TYPECHECK" ;; test) s="$TEST" ;; esac
+          case "$TASK" in lint) s="$LINT" ;; typecheck) s="$TYPECHECK" ;; test) s="$TEST" ;; extra) s="$EXTRA" ;; esac
           case "$PM" in npm|pnpm) ;; *) echo "::error::package-manager must be npm or pnpm, got '$PM'"; exit 1 ;; esac
-          echo "script=$s" >> "$GITHUB_OUTPUT"
+          # a multi-line value goes through a delimiter
+          { echo "script<<KZ_EOF"; echo "$s"; echo "KZ_EOF"; } >> "$GITHUB_OUTPUT"
           [ -n "$s" ] || echo "::notice::$TASK has no script: nothing to do"
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -158,8 +164,12 @@ jobs:
       - name: Run
         if: ${{ steps.which.outputs.script != '' }}
         env:
-          SCRIPT: ${{ steps.which.outputs.script }}
-        run: '"$PM" run "$SCRIPT"'
+          SCRIPTS: ${{ steps.which.outputs.script }}
+        run: |
+          while IFS= read -r script; do
+            [ -z "$script" ] && continue
+            "$PM" run "$script"
+          done <<< "$SCRIPTS"
 
   eas:
     name: EAS build (tag)

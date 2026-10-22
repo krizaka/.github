@@ -99,6 +99,9 @@ jobs:
     uses: ./.github/workflows/expo-ci.yml
     with:
       working-directory: tests/fixtures/node-app
+      extra-scripts: |
+        lint
+        build
       eas-profile: production
       timeout-minutes: 10
 
