@@ -1,0 +1,28 @@
+# Weekly: which repositories call the reusable workflows with an old release? (krizaka/.github#152). Report only.
+name: Callers report
+
+on:
+  schedule:
+    - cron: "0 7 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Report
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node scripts/callers-report.mjs | tee report.txt
+          { echo '### Callers of the reusable workflows'; echo '```'; cat report.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
