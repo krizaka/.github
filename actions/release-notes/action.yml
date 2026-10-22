@@ -1,0 +1,24 @@
+# Release notes of a product repository (krizaka/.github#184): the merged feat / fix / perf pull requests since the last
+# release become a bilingual GitHub Release tagged YYYY.MM.DD.N. Called by .github/workflows/release-notes.yml.
+name: release-notes
+description: Write a bilingual GitHub Release from the pull requests merged since the last one.
+author: Krizaka
+
+inputs:
+  token:
+    description: "A GitHub token that can create releases on the repository (the job's own, with contents: write)."
+    required: true
+
+outputs:
+  tag:
+    description: "The release tag created, empty when there was no news."
+    value: ${{ steps.notes.outputs.tag }}
+
+runs:
+  using: composite
+  steps:
+    - id: notes
+      shell: bash
+      run: node "${{ github.action_path }}/release-notes.mjs"
+      env:
+        GH_TOKEN: ${{ inputs.token }}

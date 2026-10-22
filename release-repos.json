@@ -1,0 +1,21 @@
+{
+  "_about": "The repositories whose GitHub Releases krizaka.com's changelog and the weekly digest read (krizaka/.github#184). One product can be several repositories (Orazaka). A product appears here before its first release: no release yet is fine.",
+  "products": [
+    {
+      "id": "orazaka",
+      "name": "Orazaka",
+      "repos": [
+        "orazaka-web-client", "orazaka-edge", "orazaka-studio", "orazaka-packs", "orazaka-contracts", "orazaka-ai-engine",
+        "orazaka-job-service", "orazaka-knowledge-service", "orazaka-conversation-service", "orazaka-automation-service",
+        "orazaka-cli", "orazaka-worker-media"
+      ]
+    },
+    { "id": "akinaza", "name": "Akinaza", "repos": ["akinaza"] },
+    { "id": "yomizaka", "name": "Yomizaka", "repos": ["yomizaka"] },
+    { "id": "orochia", "name": "Orochia", "repos": ["orochia"] },
+    { "id": "yasakia", "name": "Yasakia", "repos": ["yasakia"] },
+    { "id": "yororis", "name": "Yororis", "repos": ["yororis"] },
+    { "id": "kachizaka", "name": "Kachizaka", "repos": ["kachizaka"] },
+    { "id": "java", "name": "Krizaka Java", "repos": ["krizaka-build"] }
+  ]
+}

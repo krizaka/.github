@@ -47,7 +47,7 @@ jobs:
         run: node scripts/pin-supply-chain.mjs . --no-docker --check
 
       - name: Unit tests of the shared CI
-        run: node --test tests/ci-workflows.test.mjs actions/dup-check/dup-ratchet.test.mjs
+        run: node --test tests/ci-workflows.test.mjs tests/weekly-digest.test.mjs actions/dup-check/dup-ratchet.test.mjs actions/release-notes/release-notes.test.mjs
 
       - name: krizaka-deploy — unit tests (doctl and HTTP mocked)
         working-directory: deploy
