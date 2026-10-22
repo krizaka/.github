@@ -75,16 +75,29 @@ async function render(node, secret, missing) {
 }
 
 /**
+ * A secret's value in a spec file that means « managed live, I do not hold it »: `unset`, empty, `<…>`, `__KEY__`, `changeme`, `REPLACE_ME`,
+ * `todo`, `xxx`, `***`. Applying such a value would overwrite the live encrypted secret (the krizaka-blog incident, krizaka/.github#167).
+ */
+export function isSecretPlaceholder(value) {
+  if (value === undefined || value === null) return true;
+  const v = String(value).trim();
+  if (v === "") return true;
+  return /^(unset|changeme|change-me|replace[_-]?me|todo|tbd|xxx+|\*+|none|null|secret)$/i.test(v) || /^<[^>]*>$/.test(v) || /^__[A-Z0-9_]+__$/.test(v);
+}
+
+/**
  * The spec to apply: the repository's file, completed from the live app.
  *  - `__NAME__` placeholders come from `secret(NAME)`;
  *  - a variable without a value — or whose value is its own placeholder, `KEY: __KEY__` — takes the live one (same component,
  *    same key), else `secret(KEY)`, else it is a problem;
+ *  - a SECRET (typed so in the file, or live) whose value in the file is unset / empty / a placeholder KEEPS THE LIVE ENCRYPTED VALUE; the
+ *    vault never replaces a live secret by itself — only `setSecret` (--set-secret KEY) does, with the vault's value (a problem when it has none);
  *  - a live variable the file does not mention would be DELETED by the apply: a problem, unless listed in `allowDrop`;
  *  - a plain (non-secret) variable whose value differs from the live one would be CHANGED: a problem, unless listed in
  *    `allowChange` — the live app is often ahead of the file (a limit lowered by hand), and an apply must not silently revert it.
  * Returns { spec, carried, resolved, problems } — keys only, and the values of plain variables when they differ.
  */
-export async function mergeWithLive(fileSpec, liveSpec, { secret = async () => undefined, allowDrop = [], allowChange = [] } = {}) {
+export async function mergeWithLive(fileSpec, liveSpec, { secret = async () => undefined, allowDrop = [], allowChange = [], setSecret = [] } = {}) {
   const missing = new Set();
   const draft = structuredClone(fileSpec);
   // `KEY: __KEY__` is a value-less variable written the Orazaka way: the live value wins, the vault is the fallback.
@@ -109,6 +122,22 @@ export async function mergeWithLive(fileSpec, liveSpec, { secret = async () => u
     for (const env of envs ?? []) {
       seen.add(env.key);
       const fromLive = live.get(env.key);
+      const liveIsSecret = fromLive?.type === "SECRET" || String(fromLive?.value).startsWith("EV[");
+      if (setSecret.includes(env.key) || setSecret.includes(`${where}:${env.key}`)) {
+        const fromVault = await secret(env.key);
+        if (!fromVault) problems.push(`${where}: ${env.key} --set-secret was given but the vault has no value for it (KRIZAKA_SECRET_${env.key} or secret.sh)`);
+        else {
+          env.value = fromVault;
+          resolved.push(`${where}:${env.key}`);
+        }
+        continue;
+      }
+      // « unset » for a secret means managed live: never overwrite the live encrypted value with a placeholder.
+      if ((env.type === "SECRET" || liveIsSecret) && fromLive?.value !== undefined && fromLive.value !== "" && isSecretPlaceholder(env.value)) {
+        env.value = fromLive.value;
+        carried.push(`${where}:${env.key}`);
+        continue;
+      }
       if (env.value !== undefined && env.value !== null && env.value !== "") {
         const plain = env.type !== "SECRET" && fromLive?.type !== "SECRET" && !String(fromLive?.value).startsWith("EV[");
         if (plain && fromLive?.value !== undefined && String(fromLive.value) !== String(env.value) && !allowChange.includes(env.key) && !allowChange.includes(`${where}:${env.key}`)) {

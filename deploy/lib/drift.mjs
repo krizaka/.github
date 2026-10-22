@@ -4,7 +4,7 @@ import { readFile as readFileFs } from "node:fs/promises";
 import { resolve } from "node:path";
 import { GuardError } from "./errors.mjs";
 import { assertContext } from "./doctl.mjs";
-import { envEntries, mergeWithLive, parseSpec } from "./spec.mjs";
+import { envEntries, isSecretPlaceholder, mergeWithLive, parseSpec } from "./spec.mjs";
 
 const SECTIONS = ["services", "workers", "jobs", "static_sites", "functions"];
 const sortKeys = (v) => (Array.isArray(v) ? v.map(sortKeys) : v && typeof v === "object" ? Object.fromEntries(Object.keys(v).sort().map((k) => [k, sortKeys(v[k])])) : v);
@@ -40,6 +40,17 @@ export async function specDrift(fileSpec, liveSpec) {
   return out;
 }
 
+/** Keys of secrets the file leaves to the live app (unset / empty / placeholder while the live env is a SECRET): « secret managed live », not drift. */
+export function secretsManagedLive(fileSpec, liveSpec) {
+  const live = new Map(envEntries(liveSpec).map(({ where, env }) => [`${where}:${env.key}`, env]));
+  return envEntries(fileSpec)
+    .filter(({ where, env }) => {
+      const l = live.get(`${where}:${env.key}`);
+      return (env.type === "SECRET" || l?.type === "SECRET" || String(l?.value).startsWith("EV[")) && l && isSecretPlaceholder(env.value);
+    })
+    .map(({ where, env }) => `${where}:${env.key}`);
+}
+
 /** `krizaka-deploy drift`: throws a GuardError when the repository's spec is not the live one. */
 export async function driftCommand(config, { doctl, readFile = readFileFs, env = process.env, argv = [], log = console.log }) {
   assertContext({ env, argv });
@@ -52,4 +63,5 @@ export async function driftCommand(config, { doctl, readFile = readFileFs, env =
   const drift = await specDrift(file, live);
   if (drift.length) throw new GuardError("drift", `${config.spec} is not the live spec of ${config.app}:\n  - ${drift.join("\n  - ")}`);
   log(`${config.spec} equals the live spec of ${config.app}`);
+  for (const key of secretsManagedLive(file, live)) log(`  secret managed live: ${key} (kept as is by an apply; --set-secret to replace)`);
 }

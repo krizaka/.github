@@ -151,3 +151,12 @@ test("head check: each component is held to the head of its own repository", asy
   assert.equal((await verifyRunningHead({ doctl, fetch: f("1".repeat(40), "2".repeat(40)), appId: "a", deployment, spec })).length, 2);
   await assert.rejects(verifyRunningHead({ doctl, fetch: f("1".repeat(40), "3".repeat(40)), appId: "a", deployment, spec }), (e) => /web/.test(e.message));
 });
+
+test("the krizaka-blog wipe: a spec whose secret is written 'unset' still sends the live encrypted secret on --apply (krizaka/.github#167)", async () => {
+  const { doctl, calls } = fakeDoctl();
+  const fileSpec = "name: krizaka-com\nservices:\n  - name: web\n    envs:\n      - key: MAIL_API_KEY\n        type: SECRET\n        value: unset\n      - key: MAIL_DOMAIN\n      - key: NEXT_PUBLIC_MEDIA_CDN_URL\n";
+  await deploy(baseConfig(), { apply: true }, { doctl, fetch: site(), readFile: async () => fileSpec, ...quiet });
+  const update = calls.find((c) => c.args[1] === "update");
+  assert.match(update.input, /EV\[1:ciphertext-a\]/, "the live encrypted secret survives the apply");
+  assert.doesNotMatch(update.input, /"unset"/, "the placeholder is never sent");
+});

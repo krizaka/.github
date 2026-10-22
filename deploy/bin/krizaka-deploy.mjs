@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // krizaka-deploy — one way to deploy a Krizaka app to DigitalOcean App Platform (krizaka/.github#113).
 //
-//   krizaka-deploy deploy [--config .krizaka-deploy.json] [--dry-run] [--apply] [--expect-sha <sha>] [--skip-head-check] [--allow-drop KEY,KEY] [--allow-change KEY,KEY]
+//   krizaka-deploy deploy [--config .krizaka-deploy.json] [--dry-run] [--apply] [--expect-sha <sha>] [--skip-head-check] [--allow-drop KEY,KEY] [--allow-change KEY,KEY] [--set-secret KEY,KEY]
 //   krizaka-deploy watch  [--grace 10] [--trigger] [--apps a,b]   post-merge check: a merge to main must start a deployment within the grace period (exit 1 if not)
 //   krizaka-deploy routes <spec.yaml>…                            offline: fails a spec that lists routes one by one (max 3 path rules per component)
 //   krizaka-deploy drift [--config …]                              the repository's spec equals the live spec (read-only; exit 1 and the differences otherwise)
@@ -82,6 +82,7 @@ try {
       skipHeadCheck: flag("--skip-head-check"),
       allowDrop: (value("--allow-drop") ?? "").split(",").filter(Boolean),
       allowChange: (value("--allow-change") ?? "").split(",").filter(Boolean),
+      setSecret: (value("--set-secret") ?? "").split(",").filter(Boolean),
       // Defaults (12 x 10 s) stay those of a real deploy; tests and local dry runs may shorten the wait.
       ...(value("--health-attempts") ? { healthAttempts: Number(value("--health-attempts")) } : {}),
       ...(value("--health-delay-ms") ? { healthDelayMs: Number(value("--health-delay-ms")) } : {}),
