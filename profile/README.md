@@ -39,7 +39,7 @@ Each product stands on its own; each proves one skill. Claims are cheap — ever
 </td></tr>
 <tr><td valign="top" width="64"><picture><source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/yororis/mark-dark.svg?v=aad49f5ad3"><img src="https://krizaka-assets.b-cdn.net/brand/yororis/mark-light.svg?v=aad49f5ad3" alt="Yororis" width="48"></picture></td><td valign="top">
 
-**Yororis** · Voice and image &nbsp;<sup>Under construction</sup><br>A listening space with a face and a voice — under construction: nothing is deployed, nothing is offered.<br>[www.yororis.com](https://www.yororis.com) · [Repository](https://github.com/krizaka/yororis)
+**Yororis** · Voice and image &nbsp;<sup>In development</sup><br>A listening space with a face and a voice — under construction: nothing is deployed, nothing is offered.<br>[www.yororis.com](https://www.yororis.com) · [Repository](https://github.com/krizaka/yororis)
 
 </td></tr>
 <tr><td valign="top" width="64"><picture><source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/yomizaka/mark-dark.svg?v=c4fbf96eee"><img src="https://krizaka-assets.b-cdn.net/brand/yomizaka/mark-light.svg?v=c4fbf96eee" alt="Yomizaka" width="48"></picture></td><td valign="top">
