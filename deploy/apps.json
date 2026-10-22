@@ -11,8 +11,6 @@
     { "app": "yomizaka-dev", "repo": "krizaka/yomizaka", "spec": "deploy/digitalocean/dev.app.yaml" },
     { "app": "yororis-qa", "repo": "krizaka/yororis", "spec": "deploy/digitalocean/qa.app.yaml" },
     { "app": "orochia-dev", "repo": "krizaka/orochia", "spec": "deploy/digitalocean/app-spec.dev.yaml" },
-    { "app": "orochia-admin-dev", "repo": "krizaka/orochia-admin", "spec": "deploy/app-spec.dev.yaml" },
-    { "app": "orazaka-dev", "repo": "krizaka/orazaka", "spec": "infra/deploy/orazaka-dev.app.yaml" },
-    { "app": "orazaka-admin-dev", "repo": "krizaka/orazaka", "spec": "infra/deploy/orazaka-admin-dev.app.yaml" }
+    { "app": "orazaka-dev", "repo": "krizaka/orazaka", "spec": "infra/deploy/orazaka-dev.app.yaml" }
   ]
 }
