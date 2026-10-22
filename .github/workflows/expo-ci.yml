@@ -122,6 +122,7 @@ jobs:
     steps:
       - name: Which script
         id: which
+        working-directory: .
         run: |
           case "$TASK" in lint) s="$LINT" ;; typecheck) s="$TYPECHECK" ;; test) s="$TEST" ;; esac
           case "$PM" in npm|pnpm) ;; *) echo "::error::package-manager must be npm or pnpm, got '$PM'"; exit 1 ;; esac
