@@ -1,8 +1,17 @@
 {
   "minLines": 8,
   "minTokens": 80,
-  "format": ["typescript", "tsx", "javascript", "jsx", "java", "python"],
-  "reporters": ["json"],
+  "format": [
+    "typescript",
+    "tsx",
+    "javascript",
+    "jsx",
+    "java",
+    "python"
+  ],
+  "reporters": [
+    "json"
+  ],
   "ignore": [
     "**/node_modules/**",
     "**/.next/**",
@@ -19,14 +28,16 @@
     "**/*.stories.*",
     "**/*IT.java",
     "**/*Test.java",
-    "**/test/**",
-    "**/tests/**",
     "**/e2e/**",
     "**/generated/**",
     "**/*.generated.*",
     "**/.turbo/**",
     "**/.venv/**",
-    "**/venv/**"
+    "**/venv/**",
+    "**/src/test/**",
+    "**/scripts/test/**",
+    "**/tests/**",
+    "**/__tests__/**"
   ],
   "gitignore": true,
   "absolute": false
