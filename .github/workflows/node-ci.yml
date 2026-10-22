@@ -300,7 +300,7 @@ jobs:
           fi
 
       - name: PostgreSQL
-        if: ${{ inputs.postgres-image != '' && (matrix.task == 'all' || matrix.task == 'test') }}
+        if: ${{ inputs.postgres-image != '' && (matrix.task == 'all' || matrix.task == 'test' || matrix.task == 'build') }}
         env:
           IMAGE: ${{ inputs.postgres-image }}
           NAME: ${{ inputs.postgres-name }}
@@ -341,7 +341,7 @@ jobs:
           restore-keys: turbo-${{ runner.os }}-${{ matrix.task }}-
 
       - name: Test
-        if: ${{ inputs.test-script != '' && (matrix.task == 'all' || matrix.task == 'test') }}
+        if: ${{ inputs.test-script != '' && (matrix.task == 'all' || matrix.task == 'test' || matrix.task == 'build') }}
         env:
           SCRIPT: ${{ inputs.test-script }}
         run: '"$PM" run "$SCRIPT"'
