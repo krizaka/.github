@@ -18,6 +18,8 @@ name: deploy-watch
 on:
   schedule:
     - cron: "*/15 * * * *"
+    # once a day: the drift of the spec files against the live apps (job `drift`, report only)
+    - cron: "23 5 * * *"
   workflow_dispatch:
     inputs:
       grace-minutes:
@@ -54,6 +56,7 @@ concurrency:
 jobs:
   watch:
     name: A merge starts a deployment
+    if: ${{ github.event.schedule != '23 5 * * *' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     environment: dev
@@ -99,3 +102,44 @@ jobs:
           [ "$TRIGGER" = "true" ] && args+=(--trigger)
           [ -n "$APPS" ] && args+=(--apps "$APPS")
           node deploy/bin/krizaka-deploy.mjs "${args[@]}"
+
+  # Once a day (and on demand): every app's spec file equals its live app. Reports only — it never applies a spec.
+  drift:
+    name: Spec files equal the live apps
+    if: ${{ github.event.schedule == '23 5 * * *' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: dev
+    env:
+      DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+    steps:
+      - name: Is the DigitalOcean token set?
+        id: gate
+        run: |
+          if [ -z "$DIGITALOCEAN_ACCESS_TOKEN" ]; then
+            echo "::warning title=drift is off::the secret DIGITALOCEAN_ACCESS_TOKEN is not set"
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.gate.outputs.enabled == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - if: steps.gate.outputs.enabled == 'true'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+
+      - if: steps.gate.outputs.enabled == 'true'
+        uses: digitalocean/action-doctl@3cb3953159719656269e044e0e24ca16dd2a690f # v2.5.2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - if: steps.gate.outputs.enabled == 'true'
+        name: Install the CLI
+        run: npm ci --omit=dev --ignore-scripts --no-audit --no-fund --prefix deploy
+
+      - if: steps.gate.outputs.enabled == 'true'
+        name: Drift (report only)
+        run: node deploy/bin/krizaka-deploy.mjs drift-all

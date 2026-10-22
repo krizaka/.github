@@ -10,10 +10,14 @@ const SECTIONS = ["services", "workers", "jobs", "static_sites", "functions"];
 const sortKeys = (v) => (Array.isArray(v) ? v.map(sortKeys) : v && typeof v === "object" ? Object.fromEntries(Object.keys(v).sort().map((k) => [k, sortKeys(v[k])])) : v);
 const same = (a, b) => JSON.stringify(sortKeys(a ?? null)) === JSON.stringify(sortKeys(b ?? null));
 
+/** App Platform stores every ingress match with a path (an authority-only rule gets `path: { prefix: "/" }`): compare like with like. */
+const normalizedIngress = (ingress) =>
+  ingress ? { ...ingress, rules: (ingress.rules ?? []).map((r) => ({ ...r, match: { ...r.match, path: r.match?.path ?? { prefix: "/" } } })) } : ingress;
+
 /** Differences between a file spec and the live one: strings, empty when they agree. */
 export async function specDrift(fileSpec, liveSpec) {
   const out = [];
-  if (!same(fileSpec.ingress, liveSpec.ingress)) out.push("ingress differs from the live app");
+  if (!same(normalizedIngress(fileSpec.ingress), normalizedIngress(liveSpec.ingress))) out.push("ingress differs from the live app");
   if (!same(fileSpec.domains, liveSpec.domains)) out.push("domains differ from the live app");
   for (const section of SECTIONS) {
     const names = (s) => (s?.[section] ?? []).map((c) => c.name).sort().join(",");

@@ -30,3 +30,9 @@ test("drift: the command reads the live app (context default) and refuses on a d
   await run(file());
   await assert.rejects(run(bad), (e) => e instanceof GuardError && e.guard === "drift" && /MAIL_DOMAIN/.test(e.message));
 });
+
+test("drift: App Platform's stored path « / » on an authority-only rule is not a difference", async () => {
+  const rule = { match: { authority: { exact: "x.com" } }, redirect: { authority: "www.x.com", redirect_code: 308 } };
+  const live = { ...liveSpec(), ingress: { rules: [{ ...rule, match: { ...rule.match, path: { prefix: "/" } } }] } };
+  assert.deepEqual(await specDrift({ ...liveSpec(), ingress: { rules: [rule] } }, live), []);
+});
