@@ -48,6 +48,11 @@ on:
         required: false
         default: false
         type: boolean
+      duplication:
+        description: "Run the duplicate-code check (actions/dup-check: jscpd + the repository's dup-ratchet.json, which may only go down)."
+        required: false
+        default: false
+        type: boolean
       threads:
         description: "Maven reactor threads for the verify step (-T, e.g. 2 or 1C) in a multi-module repository whose modules are independent; empty: serial."
         required: false
@@ -110,6 +115,21 @@ jobs:
       - name: OpenRewrite — no change pending
         if: inputs.rewrite
         run: ./mvnw -B -ntp rewrite:dryRun
+
+  duplication:
+    name: Duplicate code
+    needs: changes
+    if: ${{ inputs.duplication && !cancelled() && needs.changes.outputs.code != 'false' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: "22"
+      - uses: krizaka/.github/actions/dup-check@d468b5eb10b785034c2834f31c0dd671b51ca0fe # main
 
   release:
     name: Sign and upload to Maven Central

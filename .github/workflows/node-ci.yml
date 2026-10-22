@@ -140,6 +140,14 @@ on:
         description: "changes.yml: JavaScript RegExp, a changed file matching it never needs the jobs. Keep out of it every file a test reads."
         type: string
         default: '^\.changeset/|^(LICENSE|SECURITY|CODE_OF_CONDUCT|SUPPORT)(\.md)?$|^\.github/(ISSUE_TEMPLATE/|pull_request_template\.md$|FUNDING\.yml$|dependabot\.yml$)'
+      duplication:
+        description: "Run the duplicate-code check (actions/dup-check: jscpd + the repository's dup-ratchet.json, which may only go down)."
+        type: boolean
+        default: false
+      duplication-paths:
+        description: "Space-separated paths the duplicate-code check scans (default: the whole checkout; tests and generated code are ignored by the shared config)."
+        type: string
+        default: "."
       quality-scripts:
         description: "Newline-separated package.json scripts run in a `quality` leg (depcruise, ast-grep, the ratchets: clean imports, debt counters that only go down). Part of the serial job when parallel is false."
         type: string
@@ -179,6 +187,9 @@ on:
       verify-result:
         description: "success, failure, cancelled or skipped."
         value: ${{ jobs.gate.outputs.verify }}
+      duplication-result:
+        description: "success, failure, cancelled or skipped."
+        value: ${{ jobs.gate.outputs.duplication }}
       container-result:
         description: "success, failure, cancelled or skipped."
         value: ${{ jobs.gate.outputs.container }}
@@ -493,6 +504,26 @@ jobs:
           SHARDS: ${{ inputs.e2e-shards }}
         run: '"$PM" run "$SCRIPT" -- --shard="$SHARD/$SHARDS"'
 
+  duplication:
+    name: Duplicate code
+    needs: changes
+    if: ${{ inputs.duplication && !cancelled() && needs.changes.outputs.code != 'false' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ inputs.node-version }}
+      - uses: krizaka/.github/actions/dup-check@d468b5eb10b785034c2834f31c0dd671b51ca0fe # main
+        with:
+          paths: ${{ inputs.duplication-paths }}
+          working-directory: ${{ inputs.working-directory }}
+
   container:
     name: Container image
     needs: changes
@@ -547,7 +578,7 @@ jobs:
 
   gate:
     name: CI gate
-    needs: [changes, ui-changes, plan, verify, e2e, container]
+    needs: [changes, ui-changes, plan, verify, e2e, duplication, container]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -557,6 +588,7 @@ jobs:
       verify: ${{ needs.verify.result }}
       container: ${{ needs.container.result }}
       e2e: ${{ needs.e2e.result }}
+      duplication: ${{ needs.duplication.result }}
     steps:
       - id: verdict
         env:
@@ -569,13 +601,15 @@ jobs:
           E2E_WANTED: ${{ inputs.e2e-script != '' }}
           UI_CODE: ${{ needs.ui-changes.outputs.code }}
           PLAN: ${{ needs.plan.result }}
+          DUP: ${{ needs.duplication.result }}
+          DUP_WANTED: ${{ inputs.duplication }}
         run: |
           fail=0
           echo "gate: code=${CODE:-unknown} changes=$CHANGES plan=${PLAN:-success} verify=$VERIFY container=$CONTAINER (container wanted: $CONTAINER_WANTED) e2e=${E2E:-skipped} (wanted: ${E2E_WANTED:-false}, ui=${UI_CODE:-unknown})"
           [ "${PLAN:-success}" = success ] || { echo "::error::plan ${PLAN}"; fail=1; }
           # A broken gate (changes) is never a reason to fail: the heavy jobs ran in full.
           [ "$CHANGES" = success ] || echo "::warning::the changes gate did not succeed ($CHANGES): the jobs ran in full"
-          for pair in "verify:$VERIFY" "container:$CONTAINER" "e2e:${E2E:-skipped}"; do
+          for pair in "verify:$VERIFY" "container:$CONTAINER" "e2e:${E2E:-skipped}" "duplication:${DUP:-skipped}"; do
             case "${pair#*:}" in
               success|skipped) ;;
               *) echo "::error::${pair%%:*} ${pair#*:}"; fail=1 ;;
@@ -592,6 +626,9 @@ jobs:
           if [ "$CODE" != "false" ] && [ "${E2E_WANTED:-false}" = "true" ] && [ "${UI_CODE:-}" != "false" ] && [ "${E2E:-skipped}" != success ]; then
             echo "::error::e2e must run when no gate answered false"; fail=1
           fi
+          if [ "$CODE" != "false" ] && [ "${DUP_WANTED:-false}" = "true" ] && [ "${DUP:-skipped}" != success ]; then
+            echo "::error::duplication must run when the gate did not answer false"; fail=1
+          fi
           if [ "$fail" = 0 ]; then echo "result=success" >> "$GITHUB_OUTPUT"; else echo "result=failure" >> "$GITHUB_OUTPUT"; fi
           {
             echo "### CI gate"
@@ -600,6 +637,7 @@ jobs:
             echo "| changes | $CHANGES (code=${CODE:-unknown}) |"
             echo "| verify | $VERIFY |"
             echo "| container | $CONTAINER |"
+            echo "| duplication | ${DUP:-skipped} |"
             echo "| e2e | ${E2E:-skipped} (ui=${UI_CODE:-unknown}) |"
           } >> "$GITHUB_STEP_SUMMARY"
           exit "$fail"

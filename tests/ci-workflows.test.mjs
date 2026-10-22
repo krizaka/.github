@@ -163,6 +163,14 @@ test("node-ci: parallel plan — a leg per task, e2e shards 1..n", () => {
   assert.throws(() => out({ ...base, SHARDS: "9" }));
 });
 
+test("node gate: the duplication check must run unless the gate said false, and a failure is red", () => {
+  const wanted = { DUP_WANTED: "true" };
+  assert.equal(runGate("node-ci", NODE({ ...wanted, DUP: "success" })).status, 0);
+  assert.equal(runGate("node-ci", NODE({ ...wanted, DUP: "failure" })).status, 1);
+  assert.equal(runGate("node-ci", NODE({ ...wanted, DUP: "skipped" })).status, 1);
+  assert.equal(runGate("node-ci", NODE({ ...wanted, CODE: "false", VERIFY: "skipped", DUP: "skipped" })).status, 0);
+});
+
 const JAVA = (o) => ({ CODE: "true", CHANGES: "success", VERIFY: "success", ...o });
 
 test("java gate: green when verify succeeded, and on a docs-only change", () => {
