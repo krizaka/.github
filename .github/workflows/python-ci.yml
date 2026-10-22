@@ -127,7 +127,7 @@ jobs:
         if: ${{ steps.which.outputs.run == 'true' && inputs.package-manager == 'pip' }}
         with:
           python-version: ${{ inputs.python-version }}
-          cache: pip
+          cache: ${{ inputs.requirements != '' && 'pip' || '' }}
           cache-dependency-path: ${{ inputs.requirements }}
 
       - name: Install
