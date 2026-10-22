@@ -48,13 +48,29 @@ on:
         required: false
         default: false
         type: boolean
+      ignore:
+        description: "changes.yml: JavaScript RegExp, a changed file matching it never needs the build."
+        required: false
+        default: '^\.changeset/|^(LICENSE|NOTICE|SECURITY|CODE_OF_CONDUCT|SUPPORT)(\.md)?$|^\.github/(ISSUE_TEMPLATE/|pull_request_template\.md$|FUNDING\.yml$|dependabot\.yml$)'
+        type: string
 
 permissions:
   contents: read
 
 jobs:
+  # A change no build can read (licence, templates) skips `verify` (reported « Skipped », which passes branch protection).
+  # Fail-open; a tag, a schedule and a dispatch run in full.
+  changes:
+    permissions:
+      contents: read
+    uses: krizaka/.github/.github/workflows/changes.yml@ccd224612f5bb9db815335654f359a595a597fbb # main
+    with:
+      ignore: ${{ inputs.ignore }}
+
   verify:
     name: Verify (tests, javadoc, sources)
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -73,7 +89,8 @@ jobs:
         run: |
           for repository in $UPSTREAMS; do
             git clone --depth 1 "https://github.com/krizaka/${repository}.git" "../${repository}"
-            (cd "../${repository}" && ./mvnw -B -ntp install -DskipTests)
+            # -DskipTests alone still runs the Failsafe integration tests (Testcontainers): an upstream is built to be installed.
+            (cd "../${repository}" && ./mvnw -B -ntp install -DskipTests -DskipITs)
           done
 
       - name: Verify with the release profile, unsigned
@@ -124,4 +141,4 @@ jobs:
           MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
           MAVEN_GPG_KEY: ${{ secrets.MAVEN_GPG_KEY }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
-        run: ./mvnw -B -ntp deploy -Prelease -DskipTests
+        run: ./mvnw -B -ntp deploy -Prelease -DskipTests -DskipITs
