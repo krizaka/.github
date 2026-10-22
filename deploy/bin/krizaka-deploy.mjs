@@ -4,6 +4,7 @@
 //   krizaka-deploy deploy [--config .krizaka-deploy.json] [--dry-run] [--apply] [--expect-sha <sha>] [--skip-head-check] [--allow-drop KEY,KEY] [--allow-change KEY,KEY]
 //   krizaka-deploy watch  [--grace 10] [--trigger] [--apps a,b]   post-merge check: a merge to main must start a deployment within the grace period (exit 1 if not)
 //   krizaka-deploy routes <spec.yaml>…                            offline: fails a spec that lists routes one by one (max 3 path rules per component)
+//   krizaka-deploy drift [--config …]                              the repository's spec equals the live spec (read-only; exit 1 and the differences otherwise)
 //   krizaka-deploy check  [--config .krizaka-deploy.json]        live checks only (health, robots/noindex, SEO family)
 //
 // --dry-run reads everything (guards, live spec, the file's merge, the live site) and changes nothing.
@@ -24,9 +25,9 @@ const value = (name) => {
   return argv[i].includes("=") ? argv[i].slice(name.length + 1) : argv[i + 1];
 };
 
-if (flag("--help") || !["deploy", "check", "watch", "routes"].includes(command)) {
+if (flag("--help") || !["deploy", "check", "watch", "routes", "drift"].includes(command)) {
   console.log("usage: krizaka-deploy [deploy|check|watch] [--config file] [--dry-run] [--apply] [--expect-sha sha] [--skip-head-check] [--allow-drop KEY,…] [--allow-change KEY,…] [--health-attempts n] [--health-delay-ms ms]");
-  process.exit(["deploy", "check", "watch", "routes"].includes(command) ? 0 : 2);
+  process.exit(["deploy", "check", "watch", "routes", "drift"].includes(command) ? 0 : 2);
 }
 
 if (command === "routes") {
@@ -49,6 +50,11 @@ try {
   const secret = createSecretProvider({ product: config.product });
   const summary = process.env.GITHUB_STEP_SUMMARY;
   const out = process.env.GITHUB_OUTPUT;
+  if (command === "drift") {
+    const { driftCommand } = await import("../lib/drift.mjs");
+    await driftCommand(config, { doctl, argv: process.argv.slice(2) });
+    process.exit(0);
+  }
   if (command === "check") {
     await runChecks(config, { fetch: globalThis.fetch, step: (n, d) => console.log(`${n}${d ? `: ${d}` : ""}`), sleepFn: (ms) => new Promise((r) => setTimeout(r, ms)) });
     process.exit(0);
