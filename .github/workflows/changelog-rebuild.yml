@@ -1,0 +1,37 @@
+# krizaka.com's changelog is read at build (krizaka-com scripts/gen-changelog.mjs). A product's release-notes workflow sends
+# `product-release` (repository_dispatch) here; this job forces a rebuild of the krizaka-com app on DigitalOcean, with the
+# `dev` environment's token, as deploy-watch does (krizaka/.github#184). The daily run covers a missed dispatch.
+name: Changelog rebuild
+
+on:
+  repository_dispatch:
+    types: [product-release]
+  schedule:
+    - cron: "23 5 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: changelog-rebuild
+  cancel-in-progress: false
+
+jobs:
+  rebuild:
+    name: Rebuild krizaka.com
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: dev
+    steps:
+      - uses: digitalocean/action-doctl@3cb3953159719656269e044e0e24ca16dd2a690f # v2.5.2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Force a rebuild
+        env:
+          FROM: ${{ github.event.client_payload.repo || github.event_name }} ${{ github.event.client_payload.tag }}
+        run: |
+          id=$(doctl apps list --format ID,Spec.Name --no-header | awk '$2 == "krizaka-com" { print $1 }')
+          test -n "$id" || { echo "::error::no app named krizaka-com"; exit 1; }
+          doctl apps create-deployment "$id" --force-rebuild --wait
+          echo "Rebuilt for $FROM"

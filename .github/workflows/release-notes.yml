@@ -1,8 +1,8 @@
 # Release notes, org-wide (reusable; krizaka/.github#184). On a push to main, the merged feat / fix / perf pull requests
 # since the last release become one GitHub Release tagged YYYY.MM.DD.N, with an English and a French section (a PR's own
 # `Release-note-en:` / `Release-note-fr:` lines win, else its title). chore, ci, deps and docs are skipped; with nothing
-# new there is no release. Then krizaka.com is told (`repository_dispatch`, event `product-release`) so its changelog
-# rebuilds within minutes; its daily schedule covers the day this step cannot run.
+# new there is no release. Then krizaka/.github is told (`repository_dispatch`, event `product-release`); its
+# changelog-rebuild.yml redeploys krizaka.com within minutes, and runs daily too.
 #
 # A repository calls it from a thin workflow (workflow-templates/release-notes.yml):
 #   on: { push: { branches: [main] } }
@@ -13,7 +13,7 @@
 #       secrets: { RELEASE_APP_PRIVATE_KEY: ${{ secrets.RELEASE_APP_PRIVATE_KEY }} }
 #
 # The dispatch needs the same GitHub App as krizaka-ui's release workflow: the repository variable RELEASE_APP_ID and the
-# secret RELEASE_APP_PRIVATE_KEY (an App installed on krizaka-com with contents write). Without them the release is still
+# secret RELEASE_APP_PRIVATE_KEY (an App installed on krizaka/.github with contents write). Without them the release is still
 # written and the dispatch step says it is skipped.
 name: Release notes
 
@@ -53,12 +53,12 @@ jobs:
           app-id: ${{ vars.RELEASE_APP_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
           owner: krizaka
-          repositories: krizaka-com
+          repositories: .github
           permission-contents: write
 
-      - name: Tell krizaka.com
+      - name: Tell krizaka/.github (rebuilds krizaka.com)
         if: ${{ steps.app.outputs.token != '' }}
-        run: gh api repos/krizaka/krizaka-com/dispatches -f event_type=product-release -f "client_payload[repo]=$REPO" -f "client_payload[tag]=$TAG"
+        run: gh api repos/krizaka/.github/dispatches -f event_type=product-release -f "client_payload[repo]=$REPO" -f "client_payload[tag]=$TAG"
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
           REPO: ${{ github.repository }}
@@ -66,4 +66,4 @@ jobs:
 
       - name: Dispatch skipped
         if: ${{ steps.notes.outputs.tag != '' && steps.app.outputs.token == '' }}
-        run: echo "::notice title=krizaka.com is not told::set RELEASE_APP_ID and RELEASE_APP_PRIVATE_KEY (krizaka/.github#184); the changelog rebuilds on its daily schedule"
+        run: echo "::notice title=the rebuild is not triggered::set RELEASE_APP_ID and RELEASE_APP_PRIVATE_KEY (krizaka/.github#184); the changelog rebuilds on its daily schedule"
