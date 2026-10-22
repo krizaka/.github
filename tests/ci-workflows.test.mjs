@@ -7,7 +7,7 @@ import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const WORKFLOWS = ["node-ci", "java-ci"];
+const WORKFLOWS = ["node-ci", "java-ci", "expo-ci", "python-ci"];
 const read = (name) => readFileSync(new URL(`../.github/workflows/${name}.yml`, import.meta.url), "utf8");
 
 /** The jobs of a workflow, as { id, text } (top-level `jobs:` entries, two-space indented). */
@@ -130,6 +130,38 @@ test("node gate: a broken changes gate does not fail a run whose jobs all passed
   assert.deepEqual(runGate("node-ci", NODE({ CHANGES: "failure", CODE: "" })), { status: 0, result: "success" });
 });
 
+test("node gate: e2e wanted must run unless the UI gate said false", () => {
+  const wanted = { E2E_WANTED: "true", UI_CODE: "true" };
+  assert.deepEqual(runGate("node-ci", NODE({ ...wanted, E2E: "success" })), { status: 0, result: "success" });
+  assert.equal(runGate("node-ci", NODE({ ...wanted, E2E: "skipped" })).status, 1);
+  assert.equal(runGate("node-ci", NODE({ ...wanted, E2E: "failure" })).status, 1);
+  // no UI file changed: the e2e is legitimately skipped, the gate stays green
+  assert.equal(runGate("node-ci", NODE({ ...wanted, UI_CODE: "false", E2E: "skipped" })).status, 0);
+  // docs-only: nothing ran
+  assert.equal(runGate("node-ci", NODE({ ...wanted, CODE: "false", VERIFY: "skipped", E2E: "skipped" })).status, 0);
+  // a broken plan fails the gate
+  assert.equal(runGate("node-ci", NODE({ PLAN: "failure" })).status, 1);
+});
+
+test("node-ci: parallel plan — a leg per task, e2e shards 1..n", () => {
+  const src = read("node-ci");
+  const lines = src.slice(src.indexOf("      - id: plan"), src.indexOf("  verify:")).split("\n");
+  const run = lines.slice(lines.findIndex((l) => l === "        run: |") + 1).map((l) => l.slice(10)).join("\n");
+  const out = (vars) => {
+    const dir = mkdtempSync(join(tmpdir(), "plan-"));
+    const file = join(dir, "output");
+    writeFileSync(file, "");
+    execFileSync("bash", ["-c", run], { env: { PATH: process.env.PATH, GITHUB_OUTPUT: file, ...vars }, stdio: "pipe" });
+    return readFileSync(file, "utf8");
+  };
+  const base = { PARALLEL: "true", LINT: "lint", TYPECHECK: "", TEST: "test", BUILD: "build", AFTER: "", SHARDS: "3" };
+  assert.match(out(base), /tasks=\["lint","test","build"\]/);
+  assert.match(out(base), /shards=\[1,2,3\]/);
+  assert.match(out({ ...base, PARALLEL: "false" }), /tasks=\["all"\]/);
+  assert.match(out({ ...base, BUILD: "", AFTER: "scripts/x.sh" }), /"build"/, "an after-build script alone still needs the build leg");
+  assert.throws(() => out({ ...base, SHARDS: "9" }));
+});
+
 const JAVA = (o) => ({ CODE: "true", CHANGES: "success", VERIFY: "success", ...o });
 
 test("java gate: green when verify succeeded, and on a docs-only change", () => {
@@ -154,4 +186,23 @@ test("the daily SEO check covers the www addresses and the dev hosts (--redirect
   }
   assert.match(yml, /host: www\.orochia\.com, args: "--index off"/, "Orochia's www stays noindex");
   assert.doesNotMatch(yml, /^\s+- dev\./m, "no dev host is checked as an indexed site");
+});
+
+const SIMPLE = (o) => ({ CODE: "true", CHANGES: "success", VERIFY: "success", EAS: "skipped", ...o });
+
+test("expo and python gates: green on success and docs-only, red on failure or an unasked skip, open on a broken changes gate", () => {
+  for (const name of ["expo-ci", "python-ci"]) {
+    assert.equal(runGate(name, SIMPLE({})).status, 0, name);
+    assert.equal(runGate(name, SIMPLE({ CODE: "false", VERIFY: "skipped" })).status, 0, name);
+    assert.equal(runGate(name, SIMPLE({ VERIFY: "failure" })).status, 1, name);
+    assert.equal(runGate(name, SIMPLE({ VERIFY: "skipped" })).status, 1, name);
+    assert.equal(runGate(name, SIMPLE({ CHANGES: "failure", CODE: "" })).status, 0, name);
+  }
+});
+
+test("expo-ci: the EAS job only exists on a v* tag and needs the checks to succeed", () => {
+  const eas = jobs(read("expo-ci")).find((j) => j.id === "eas");
+  assert.match(eas.text, /startsWith\(github\.ref, 'refs\/tags\/v'\)/);
+  assert.match(eas.text, /needs\.checks\.result == 'success'/);
+  assert.equal(runGate("expo-ci", SIMPLE({ EAS: "failure" })).status, 1);
 });

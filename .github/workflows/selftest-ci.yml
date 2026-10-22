@@ -1,4 +1,4 @@
-# Self-test of the reusable CI workflows (krizaka/.github#113): node-ci.yml and java-ci.yml run against the tiny projects of
+# Self-test of the reusable CI workflows (krizaka/.github#113): node-ci.yml, expo-ci.yml, python-ci.yml and java-ci.yml run against the tiny projects of
 # tests/fixtures/, the way a repository calls them. It proves the two outcomes that matter: a change that needs the heavy
 # jobs RUNS them, and a change that needs none SKIPS them while the gate still reports green. Runs only when the
 # workflows or the fixtures change.
@@ -9,6 +9,8 @@ on:
     paths:
       - ".github/workflows/node-ci.yml"
       - ".github/workflows/java-ci.yml"
+      - ".github/workflows/expo-ci.yml"
+      - ".github/workflows/python-ci.yml"
       - ".github/workflows/changes.yml"
       - ".github/workflows/selftest-ci.yml"
       - "tests/fixtures/**"
@@ -17,6 +19,8 @@ on:
     paths:
       - ".github/workflows/node-ci.yml"
       - ".github/workflows/java-ci.yml"
+      - ".github/workflows/expo-ci.yml"
+      - ".github/workflows/python-ci.yml"
       - ".github/workflows/selftest-ci.yml"
       - "tests/fixtures/**"
   workflow_dispatch:
@@ -59,6 +63,68 @@ jobs:
       container-smoke: tests/fixtures/node-app/scripts/container-smoke.sh
       timeout-minutes: 10
 
+  node-parallel:
+    name: node-ci parallel (a leg per task) and sharded e2e
+    permissions:
+      contents: read
+    uses: ./.github/workflows/node-ci.yml
+    with:
+      working-directory: tests/fixtures/node-app
+      parallel: true
+      typecheck-script: typecheck
+      turbo-cache: true
+      e2e-script: e2e
+      e2e-shards: 2
+      e2e-browsers: ""
+      timeout-minutes: 10
+
+  node-e2e-skips:
+    name: node-ci skips the e2e when no UI file changed
+    permissions:
+      contents: read
+    uses: ./.github/workflows/node-ci.yml
+    with:
+      working-directory: tests/fixtures/node-app
+      parallel: true
+      e2e-script: e2e
+      e2e-shards: 2
+      e2e-browsers: ""
+      e2e-relevant: '^no-such-ui-file$'
+      timeout-minutes: 10
+
+  expo-runs:
+    name: expo-ci runs (lint, typecheck, test side by side; no EAS off a tag)
+    permissions:
+      contents: read
+    uses: ./.github/workflows/expo-ci.yml
+    with:
+      working-directory: tests/fixtures/node-app
+      eas-profile: production
+      timeout-minutes: 10
+
+  python-runs:
+    name: python-ci runs (pip cache, pytest-xdist, lint beside test)
+    permissions:
+      contents: read
+    uses: ./.github/workflows/python-ci.yml
+    with:
+      working-directory: tests/fixtures/python-app
+      requirements: tests/fixtures/python-app/requirements.txt
+      lint-command: bash lint.sh
+      test-command: pytest -n 2
+      timeout-minutes: 10
+
+  python-skips:
+    name: python-ci skips when nothing is relevant
+    permissions:
+      contents: read
+    uses: ./.github/workflows/python-ci.yml
+    with:
+      working-directory: tests/fixtures/python-app
+      requirements: tests/fixtures/python-app/requirements.txt
+      ignore: "."
+      timeout-minutes: 10
+
   node-skips:
     name: node-ci skips when nothing is relevant
     permissions:
@@ -90,7 +156,7 @@ jobs:
 
   verdict:
     name: The runs ran, the skips skipped, every gate reported
-    needs: [node-runs, node-container, node-skips, java-runs, java-skips]
+    needs: [node-runs, node-container, node-parallel, node-e2e-skips, node-skips, expo-runs, python-runs, python-skips, java-runs, java-skips]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -101,6 +167,13 @@ jobs:
       NODE_RUNS_GATE: ${{ needs.node-runs.outputs.result }}
       CONTAINER: ${{ needs.node-container.outputs.container-result }}
       CONTAINER_GATE: ${{ needs.node-container.outputs.result }}
+      PARALLEL_GATE: ${{ needs.node-parallel.outputs.result }}
+      PARALLEL_E2E: ${{ needs.node-parallel.outputs.e2e-result }}
+      E2E_SKIPS_GATE: ${{ needs.node-e2e-skips.outputs.result }}
+      E2E_SKIPS: ${{ needs.node-e2e-skips.outputs.e2e-result }}
+      EXPO_GATE: ${{ needs.expo-runs.outputs.result }}
+      PYTHON_GATE: ${{ needs.python-runs.outputs.result }}
+      PYTHON_SKIPS_GATE: ${{ needs.python-skips.outputs.result }}
       NODE_SKIPS: ${{ needs.node-skips.outputs.verify-result }}
       NODE_SKIPS_GATE: ${{ needs.node-skips.outputs.result }}
       JAVA_RUNS: ${{ needs.java-runs.outputs.verify-result }}
@@ -115,6 +188,14 @@ jobs:
           expect "node-runs gate"         "$NODE_RUNS_GATE"  success
           expect "node-container"         "$CONTAINER"       success
           expect "node-container gate"    "$CONTAINER_GATE"  success
+          expect "node-parallel gate"     "$PARALLEL_GATE"   success
+          expect "node-parallel e2e"      "$PARALLEL_E2E"    success
+          expect "node-e2e-skips gate"    "$E2E_SKIPS_GATE"  success
+          if [ "$EVENT" = pull_request ] || [ "$EVENT" = push ]; then e2eskipped=skipped; else e2eskipped=success; fi
+          expect "node-e2e-skips e2e"     "$E2E_SKIPS"       "$e2eskipped"
+          expect "expo gate"              "$EXPO_GATE"       success
+          expect "python gate"            "$PYTHON_GATE"     success
+          expect "python-skips gate"      "$PYTHON_SKIPS_GATE" success
           expect "java-runs verify"       "$JAVA_RUNS"       success
           expect "java-runs gate"         "$JAVA_RUNS_GATE"  success
           # The skip is only decided on a pull request or a branch push; a manual run executes everything.

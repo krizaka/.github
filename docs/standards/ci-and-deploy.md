@@ -35,6 +35,27 @@ keeps that name with a three-line shim job (see the header of `node-ci.yml`); on
 **The `ignore` expression.** Keep out of it every file a test reads (a README whose env table is checked, `AGENTS.md` read by a lint, `content/`).
 The default only skips the files that no test or build can read: changesets, licence and policy text, issue and PR templates.
 
+### v1.3 — parallel, sharded, per technology (CI-CARBURE, [#113](https://github.com/krizaka/.github/issues/113))
+
+| Workflow | For | What it adds |
+| :--- | :--- | :--- |
+| `node-ci.yml` | Next.js, Node, monorepos | `parallel: true`: lint, typecheck, test and build are **side by side** legs (each installs from the npm / pnpm cache) instead of one serial job. `turbo-cache: true`: `.turbo` restored and saved. `e2e-script` + `e2e-shards` (1 to 8) + `e2e-relevant`: Playwright runs as **shards in parallel**, and **only when a changed file matches `e2e-relevant`** (the UI files; a second `changes.yml` call). The gate stays one check, `ci / CI gate`. |
+| `expo-ci.yml` | Expo apps | lint, typecheck and test side by side; the **EAS build exists only on a `v*` tag** and when `eas-profile` is set (official `expo/expo-github-action`, secret `EXPO_TOKEN`). |
+| `python-ci.yml` | workers, scripts | `pip` (setup-python wheel cache) or `uv` (setup-uv cache); lint and test side by side; `pytest -n auto` (pytest-xdist). |
+| `java-ci.yml` | Maven | unchanged (JDK + `~/.m2` cache, workspace flow). Parallel unit / IT jobs: [#150](https://github.com/krizaka/.github/issues/150). |
+
+All of them: the `changes.yml` gate (fail-open), an always-reporting `gate`, `contents: read`, a timeout per job, actions pinned by SHA
+(Dependabot's `github-actions` group moves the SHAs of the actions here **once**; a caller only moves the pin of this repository's release).
+`concurrency` with `cancel-in-progress` on pull requests stays in the caller's `ci.yml` (a reusable workflow cannot cancel its caller's runs):
+
+```yaml
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+```
+
+`paths` filters are replaced by the gate (a path filter on a required check leaves it pending forever; the gate reports « skipped » instead).
+
 ## `krizaka-deploy` — `deploy/` (CLI) and `actions/deploy` (the same, as a step)
 
 Located **here** and not in a new repository: the CI workflows and the deploy tool share one release tag and one review path; this repository

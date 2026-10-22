@@ -1,0 +1,199 @@
+# The CI of a Krizaka Python project, e.g. a media worker (reusable; krizaka/.github#113, #149).
+#
+#   jobs:
+#     worker:
+#       permissions: { contents: read }
+#       uses: krizaka/.github/.github/workflows/python-ci.yml@<sha> # v1.3.0
+#       with:
+#         working-directory: message-authenticity/worker
+#         requirements: message-authenticity/worker/requirements.txt     # pip; or package-manager: uv (pyproject + uv.lock)
+#         lint-command: ruff check .
+#         test-command: pytest -n auto                                    # pytest-xdist: all the runner's cores
+#
+# Jobs: changes (the changes.yml gate, fail-open) · lint and test SIDE BY SIDE (each installs from the cache: pip's wheel
+# cache via setup-python, uv's cache via setup-uv) · gate (ALWAYS reports; required check `<caller job> / CI gate`).
+# `extra-packages` installs what the tests need on top (default: pytest-xdist, so `-n auto` works).
+#
+# Permissions: contents: read; nothing else is asked.
+name: python-ci
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        description: "Python version."
+        type: string
+        default: "3.12"
+      package-manager:
+        description: "pip or uv. uv uses pyproject.toml + uv.lock (`uv sync --frozen`); pip uses `requirements`."
+        type: string
+        default: pip
+      working-directory:
+        description: "Directory the commands run in (relative to the repository root)."
+        type: string
+        default: "."
+      requirements:
+        description: "pip: newline-separated requirements files (relative to the repository root); they key the cache."
+        type: string
+        default: ""
+      extra-packages:
+        description: "pip: packages installed after the requirements (space-separated)."
+        type: string
+        default: "pytest-xdist"
+      setup-command:
+        description: "Shell command run after the install (fetch pinned models, generate fixtures); empty: none."
+        type: string
+        default: ""
+      lint-command:
+        description: "Lint command (e.g. `ruff check .`); empty skips the lint job."
+        type: string
+        default: ""
+      test-command:
+        description: "Test command (e.g. `pytest -n auto`); empty skips the test job."
+        type: string
+        default: "pytest -n auto"
+      relevant:
+        description: "changes.yml: JavaScript RegExp, a changed file matching it needs the jobs."
+        type: string
+        default: "."
+      ignore:
+        description: "changes.yml: JavaScript RegExp, a changed file matching it never needs the jobs."
+        type: string
+        default: '^[^/]+\.md$|^docs/|^\.changeset/|^(LICENSE|NOTICE)$|^\.github/(ISSUE_TEMPLATE/|pull_request_template\.md$|FUNDING\.yml$|dependabot\.yml$)'
+      timeout-minutes:
+        description: "Timeout of each job."
+        type: number
+        default: 20
+    outputs:
+      result:
+        description: "success or failure: the gate's verdict."
+        value: ${{ jobs.gate.outputs.result }}
+      code:
+        description: "'false' when the change needed no heavy job."
+        value: ${{ jobs.changes.outputs.code }}
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    name: Changed files
+    permissions:
+      contents: read
+    uses: krizaka/.github/.github/workflows/changes.yml@ccd224612f5bb9db815335654f359a595a597fbb # main
+    with:
+      relevant: ${{ inputs.relevant }}
+      ignore: ${{ inputs.ignore }}
+
+  checks:
+    name: ${{ matrix.task }}
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    strategy:
+      fail-fast: false
+      matrix:
+        task: [lint, test]
+    permissions:
+      contents: read
+    env:
+      PM: ${{ inputs.package-manager }}
+      TASK: ${{ matrix.task }}
+      LINT: ${{ inputs.lint-command }}
+      TEST: ${{ inputs.test-command }}
+    steps:
+      - name: Which command
+        id: which
+        run: |
+          case "$TASK" in lint) c="$LINT" ;; test) c="$TEST" ;; esac
+          case "$PM" in pip|uv) ;; *) echo "::error::package-manager must be pip or uv, got '$PM'"; exit 1 ;; esac
+          printf 'run=%s\n' "$([ -n "$c" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          [ -n "$c" ] || echo "::notice::$TASK has no command: nothing to do"
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: ${{ steps.which.outputs.run == 'true' }}
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        if: ${{ steps.which.outputs.run == 'true' && inputs.package-manager == 'uv' }}
+        with:
+          python-version: ${{ inputs.python-version }}
+          enable-cache: true
+          cache-dependency-glob: ${{ inputs.working-directory }}/uv.lock
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        if: ${{ steps.which.outputs.run == 'true' && inputs.package-manager == 'pip' }}
+        with:
+          python-version: ${{ inputs.python-version }}
+          cache: pip
+          cache-dependency-path: ${{ inputs.requirements }}
+
+      - name: Install
+        if: ${{ steps.which.outputs.run == 'true' }}
+        working-directory: ${{ inputs.working-directory }}
+        env:
+          EXTRA: ${{ inputs.extra-packages }}
+          REQUIREMENTS: ${{ inputs.requirements }}
+          ROOT: ${{ github.workspace }}
+        run: |
+          if [ "$PM" = uv ]; then
+            uv sync --frozen
+          else
+            args=()
+            while IFS= read -r f; do [ -n "$f" ] && args+=(-r "$ROOT/$f"); done <<< "$REQUIREMENTS"
+            [ "${#args[@]}" -gt 0 ] && pip install "${args[@]}"
+            # shellcheck disable=SC2086  # packages are word-split on purpose
+            [ -n "$EXTRA" ] && pip install $EXTRA
+          fi
+          true
+
+      - name: Setup
+        if: ${{ steps.which.outputs.run == 'true' && inputs.setup-command != '' }}
+        working-directory: ${{ inputs.working-directory }}
+        env:
+          SETUP: ${{ inputs.setup-command }}
+        run: bash -c "$SETUP"
+
+      - name: Run
+        if: ${{ steps.which.outputs.run == 'true' }}
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          case "$TASK" in lint) c="$LINT" ;; test) c="$TEST" ;; esac
+          if [ "$PM" = uv ]; then uv run bash -c "$c"; else bash -c "$c"; fi
+
+  gate:
+    name: CI gate
+    needs: [changes, checks]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    outputs:
+      result: ${{ steps.verdict.outputs.result }}
+    steps:
+      - id: verdict
+        env:
+          CODE: ${{ needs.changes.outputs.code }}
+          CHANGES: ${{ needs.changes.result }}
+          VERIFY: ${{ needs.checks.result }}
+        run: |
+          fail=0
+          echo "gate: code=${CODE:-unknown} changes=$CHANGES checks=$VERIFY"
+          # A broken gate (changes) is never a reason to fail: the checks ran in full.
+          [ "$CHANGES" = success ] || echo "::warning::the changes gate did not succeed ($CHANGES): the jobs ran in full"
+          case "$VERIFY" in success|skipped) ;; *) echo "::error::checks $VERIFY"; fail=1 ;; esac
+          # The checks run unless the gate answered exactly `false`: a skip without that answer is a bug, not a pass.
+          if [ "$CODE" != "false" ] && [ "$VERIFY" != success ]; then
+            echo "::error::checks must run when the gate did not answer false"; fail=1
+          fi
+          if [ "$fail" = 0 ]; then echo "result=success" >> "$GITHUB_OUTPUT"; else echo "result=failure" >> "$GITHUB_OUTPUT"; fi
+          {
+            echo "### CI gate"
+            echo "| job | result |"
+            echo "| --- | --- |"
+            echo "| changes | $CHANGES (code=${CODE:-unknown}) |"
+            echo "| checks | $VERIFY |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit "$fail"
