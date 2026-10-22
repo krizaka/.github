@@ -48,6 +48,11 @@ on:
         required: false
         default: false
         type: boolean
+      threads:
+        description: "Maven reactor threads for the verify step (-T, e.g. 2 or 1C) in a multi-module repository whose modules are independent; empty: serial."
+        required: false
+        default: ""
+        type: string
       ignore:
         description: "changes.yml: JavaScript RegExp, a changed file matching it never needs the build."
         required: false
@@ -94,7 +99,11 @@ jobs:
           done
 
       - name: Verify with the release profile, unsigned
-        run: ./mvnw -B -ntp verify -Prelease -Dgpg.skip
+        env:
+          THREADS: ${{ inputs.threads }}
+        run: |
+          # shellcheck disable=SC2086  # -T and its value are word-split on purpose
+          ./mvnw -B -ntp ${THREADS:+-T $THREADS} verify -Prelease -Dgpg.skip
 
       # The recipes live in krizaka-parent (one place, every repository inherits them). A change a recipe
       # would make is debt: apply it with `./mvnw rewrite:run`, run the tests, commit.
