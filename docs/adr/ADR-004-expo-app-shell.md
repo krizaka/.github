@@ -1,4 +1,4 @@
-# ADR-004 — Expo apps share one package, `@krizaka/app-shell`, and one template
+# ADR-004 — Expo apps share one package, `@krizaka/app-client`, and one template
 
 - **Status**: Accepted
 - **Date**: 2026-10-22
@@ -14,7 +14,7 @@ the product's address, mark and message keys. The org already learned that « ke
 
 ## Decision
 
-1. **Logic lives in one package**, `@krizaka/app-shell`, in `krizaka-ui/packages` beside `@krizaka/discovery`,
+1. **Logic lives in one package**, (named `app-client`, not `app-shell`, which is already the AppShell layout component of `@krizaka/ui`) `@krizaka/app-client`, in `krizaka-ui/packages` beside `@krizaka/discovery`,
    `@krizaka/app-config` and `@krizaka/push`. It is built on `@krizaka/ui/native` and has subpath exports, one concern each:
    - `/session`: the bearer token in Keychain / Keystore (web fallback), chunked storage for the signed manifest;
    - `/discovery`: `createAppDiscovery({ product, bakedAddresses, hostSuffixes })`, reading `EXPO_PUBLIC_APP_URL` and `EXPO_PUBLIC_APP_ENV`;
