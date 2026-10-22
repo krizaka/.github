@@ -1,0 +1,33 @@
+{
+  "minLines": 8,
+  "minTokens": 80,
+  "format": ["typescript", "tsx", "javascript", "jsx", "java", "python"],
+  "reporters": ["json"],
+  "ignore": [
+    "**/node_modules/**",
+    "**/.next/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/target/**",
+    "**/out/**",
+    "**/coverage/**",
+    "**/drizzle/**",
+    "**/__snapshots__/**",
+    "**/__screenshots__/**",
+    "**/*.test.*",
+    "**/*.spec.*",
+    "**/*.stories.*",
+    "**/*IT.java",
+    "**/*Test.java",
+    "**/test/**",
+    "**/tests/**",
+    "**/e2e/**",
+    "**/generated/**",
+    "**/*.generated.*",
+    "**/.turbo/**",
+    "**/.venv/**",
+    "**/venv/**"
+  ],
+  "gitignore": true,
+  "absolute": false
+}
