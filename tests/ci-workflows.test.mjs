@@ -58,7 +58,7 @@ for (const name of WORKFLOWS) {
 
   test(`${name}: the heavy jobs run unless the gate answered exactly 'false' (fail-open)`, () => {
     for (const job of jobs(src).filter((j) => ["verify", "container"].includes(j.id))) {
-      assert.match(job.text, /!cancelled\(\) && needs\.changes\.outputs\.code != 'false'/, `${name}/${job.id}`);
+      assert.match(job.text, /!cancelled\(\) && \(?needs\.changes\.outputs\.code != 'false'/, `${name}/${job.id}`);
     }
   });
 }
@@ -103,7 +103,7 @@ test("node gate: green when everything that had to run succeeded", () => {
 });
 
 test("node gate: green on a docs-only change (the gate said false, the heavy jobs were skipped)", () => {
-  const vars = NODE({ CODE: "false", VERIFY: "skipped", CONTAINER: "skipped", CONTAINER_WANTED: "true" });
+  const vars = NODE({ CODE: "false", VERIFY: "skipped", CONTAINER: "skipped", CONTAINER_WANTED: "true", DOCKER_CODE: "false" });
   assert.deepEqual(runGate("node-ci", vars), { status: 0, result: "success" });
 });
 
@@ -169,6 +169,16 @@ test("node gate: the duplication check must run unless the gate said false, and 
   assert.equal(runGate("node-ci", NODE({ ...wanted, DUP: "failure" })).status, 1);
   assert.equal(runGate("node-ci", NODE({ ...wanted, DUP: "skipped" })).status, 1);
   assert.equal(runGate("node-ci", NODE({ ...wanted, CODE: "false", VERIFY: "skipped", DUP: "skipped" })).status, 0);
+});
+
+test("node gate: the image is built whenever a Dockerfile, manifest or lockfile changed, even when the main gate said false", () => {
+  const base = { CODE: "false", VERIFY: "skipped", CONTAINER_WANTED: "true" };
+  assert.equal(runGate("node-ci", NODE({ ...base, DOCKER_CODE: "true", CONTAINER: "success" })).status, 0);
+  assert.equal(runGate("node-ci", NODE({ ...base, DOCKER_CODE: "true", CONTAINER: "skipped" })).status, 1, "skipped although a Docker file changed");
+  assert.equal(runGate("node-ci", NODE({ ...base, DOCKER_CODE: "true", CONTAINER: "failure" })).status, 1);
+  assert.equal(runGate("node-ci", NODE({ ...base, DOCKER_CODE: "false", CONTAINER: "skipped" })).status, 0);
+  // a broken Docker gate (no answer) runs the build
+  assert.equal(runGate("node-ci", NODE({ ...base, DOCKER_CODE: "", CONTAINER: "skipped" })).status, 1);
 });
 
 const JAVA = (o) => ({ CODE: "true", CHANGES: "success", VERIFY: "success", ...o });

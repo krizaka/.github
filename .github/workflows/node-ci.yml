@@ -213,6 +213,19 @@ jobs:
       relevant: ${{ inputs.relevant }}
       ignore: ${{ inputs.ignore }}
 
+  docker-changes:
+    name: Changed Docker files
+    if: ${{ inputs.container }}
+    permissions:
+      contents: read
+    uses: krizaka/.github/.github/workflows/changes.yml@ccd224612f5bb9db815335654f359a595a597fbb # main
+    with:
+      # What can break an image build whatever the caller's `ignore` says: the Dockerfile and .dockerignore, the manifests and
+      # lockfiles the install COPYs, the workspace definition. Any other path a COPY names is covered by `relevant: .` of the main gate
+      # (deleted paths are listed too).
+      relevant: '(^|/)(Dockerfile[^/]*|\.dockerignore|package\.json|pnpm-workspace\.yaml|pnpm-lock\.yaml|package-lock\.json|\.npmrc)$'
+      ignore: ""
+
   ui-changes:
     name: Changed UI files
     if: ${{ inputs.e2e-script != '' }}
@@ -526,8 +539,8 @@ jobs:
 
   container:
     name: Container image
-    needs: changes
-    if: ${{ inputs.container && !cancelled() && needs.changes.outputs.code != 'false' }}
+    needs: [changes, docker-changes]
+    if: ${{ inputs.container && !cancelled() && (needs.changes.outputs.code != 'false' || needs.docker-changes.outputs.code != 'false') }}
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.timeout-minutes }}
     permissions:
@@ -537,24 +550,21 @@ jobs:
         with:
           persist-credentials: false
 
-      # A plain `docker build`: measured on krizaka.com, the Actions-cache layer export (buildx, mode=max) cost more than it saved
-      # and competes with the npm / Next.js / Playwright caches for the repository's 10 GB.
+      # buildx with the Actions cache: layers (the dependency install above all) are restored on every run and written on main only,
+      # so a pull request never pays for the export. The image is loaded into the local daemon for the smoke script.
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
       - name: Build the image
-        env:
-          IMAGE: ${{ inputs.container-image }}
-          CONTEXT: ${{ inputs.container-context }}
-          DOCKERFILE: ${{ inputs.container-dockerfile }}
-          BUILD_ARGS: ${{ inputs.container-build-args }}
-        run: |
-          args=()
-          while IFS= read -r line; do
-            [ -z "$line" ] && continue
-            case "$line" in
-              [A-Za-z_]*=*) args+=(--build-arg "$line") ;;
-              *) echo "::error::container-build-args: '$line' is not KEY=VALUE"; exit 1 ;;
-            esac
-          done <<< "$BUILD_ARGS"
-          docker build "${args[@]}" -f "${DOCKERFILE:-$CONTEXT/Dockerfile}" -t "$IMAGE" "$CONTEXT"
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: ${{ inputs.container-context }}
+          file: ${{ inputs.container-dockerfile != '' && inputs.container-dockerfile || format('{0}/Dockerfile', inputs.container-context) }}
+          tags: ${{ inputs.container-image }}
+          build-args: ${{ inputs.container-build-args }}
+          load: true
+          push: false
+          cache-from: type=gha,scope=${{ github.repository }}-container
+          cache-to: ${{ github.ref == 'refs/heads/main' && format('type=gha,mode=max,scope={0}-container', github.repository) || '' }}
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -578,7 +588,7 @@ jobs:
 
   gate:
     name: CI gate
-    needs: [changes, ui-changes, plan, verify, e2e, duplication, container]
+    needs: [changes, ui-changes, docker-changes, plan, verify, e2e, duplication, container]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -600,6 +610,7 @@ jobs:
           E2E: ${{ needs.e2e.result }}
           E2E_WANTED: ${{ inputs.e2e-script != '' }}
           UI_CODE: ${{ needs.ui-changes.outputs.code }}
+          DOCKER_CODE: ${{ needs.docker-changes.outputs.code }}
           PLAN: ${{ needs.plan.result }}
           DUP: ${{ needs.duplication.result }}
           DUP_WANTED: ${{ inputs.duplication }}
@@ -618,9 +629,10 @@ jobs:
           # The heavy jobs run unless the gate answered exactly `false`: a skip without that answer is a bug, not a pass.
           if [ "$CODE" != "false" ]; then
             [ "$VERIFY" = success ] || { echo "::error::verify must run when the gate did not answer false"; fail=1; }
-            if [ "$CONTAINER_WANTED" = "true" ] && [ "$CONTAINER" != success ]; then
-              echo "::error::container must run when the gate did not answer false"; fail=1
-            fi
+          fi
+          # The image is built unless NEITHER gate answered false: a Dockerfile, a manifest or a lockfile always builds it.
+          if [ "$CONTAINER_WANTED" = "true" ] && { [ "$CODE" != "false" ] || [ "${DOCKER_CODE:-}" != "false" ]; } && [ "$CONTAINER" != success ]; then
+            echo "::error::container must run when a gate did not answer false"; fail=1
           fi
           # The e2e job runs unless the main gate or the UI gate answered exactly `false`.
           if [ "$CODE" != "false" ] && [ "${E2E_WANTED:-false}" = "true" ] && [ "${UI_CODE:-}" != "false" ] && [ "${E2E:-skipped}" != success ]; then
