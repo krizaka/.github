@@ -9,7 +9,7 @@
 #   jobs:
 #     release:
 #       permissions: { contents: write }
-#       uses: krizaka/.github/.github/workflows/release-notes.yml@<sha> # v1
+#       uses: krizaka/.github/.github/workflows/release-notes.yml@5a6ae3ac28625b1dd1d1468ca31b44dddd133094 # main
 #       secrets: { RELEASE_APP_PRIVATE_KEY: ${{ secrets.RELEASE_APP_PRIVATE_KEY }} }
 #
 # The dispatch needs the same GitHub App as krizaka-ui's release workflow: the repository variable RELEASE_APP_ID and the
