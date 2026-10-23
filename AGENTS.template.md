@@ -86,3 +86,26 @@ test/               # mirrors src/ (section 5)
 3. No function above 35 lines; every export documented.
 4. Light and dark themes work (`useTheme()`); accessibility roles and labels are present.
 5. The pull request is merged with green CI (no merge with a pending check).
+
+## 8. Coding agents (GitHub Copilot, Claude, any agent)
+
+The rules every agent follows on an issue, learned from the first runs (2026-10-23). The full standard and its
+reasons are in [docs/standards/coding-agents.md](docs/standards/coding-agents.md).
+
+1. **Read first.** The repository's `AGENTS.md`, then this charter. The issue's « Scope of the agent's run » is the brief.
+2. **Build before you push.** Compile, format (the repository's formatter), lint and run the tests before every push.
+   A pull request that was never built is not done. If your sandbox cannot build (a missing workspace, a parent
+   POM, a service), **say so on the issue and in the PR, and stop**: never push code you could not compile.
+3. **Keep us posted.** Comment on the issue at each milestone: your plan (what already exists, what you will change),
+   the first push, tests green, and every blocker. Oussama follows the work from the issues.
+4. **Tests are hermetic.** A unit test never needs the network. A check that must reach a service (a CDN manifest, a
+   registry) runs in CI after the build, not in the pre-push check.
+5. **Never invent.** No repository, URL, law article, price, address, figure or result that you did not read in a
+   source. When you are not sure, write `TO VALIDATE` and say who should.
+6. **Never weaken a guard.** A rule, a ratchet or a test is never skipped, loosened or deleted to get green. When a
+   guard lives in another repository (a governance list, a shared rule), open the change there or say so on the
+   issue. Do not work around it.
+7. **The admin configures.** Every knob is a row the administrator edits (settings in the database), never a
+   constant or an environment-only value. Words live in the message catalogues (FR and EN).
+8. **One issue, one pull request.** It is small, says `Closes #<n>`, and changes nothing unrelated. No captures, logs or
+   secrets are committed: captures go to Bunny, secrets stay in the environment.

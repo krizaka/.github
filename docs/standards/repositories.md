@@ -14,7 +14,7 @@ exception: it is named after the product alone, with no role suffix.
   for a deployable backend service; `services` for the umbrella repository; `worker-<name>` for a worker; and `packs`,
   `cli`, `contracts` or `build`.
 - **Shared repositories:** `krizaka-ui` (all design kits are packages there), `krizaka-ts`, `krizaka-build` (Java),
-  `krizaka-com` (company site), `krizaka-blog`, `krizaka-infra` (IaC) and `krizaka-motion` (motion library); or
+  `krizaka-com` (company site), `krizaka-blog`, `krizaka-infra` (IaC), `krizaka-motion` (motion library) and `krizaka-qa` (internal end-to-end scenarios, private); or
   `krizaka-<capability>` for a shared service. The current capabilities are `accounts`, `billing`, `notifications` and
   `users`.
 - **Templates:** `template-<stack>-app`.
@@ -43,6 +43,7 @@ shape fits, but whose role needs discussion.
 | `krizaka-com` | Shared company site | Complies |
 | `krizaka-infra` | Shared infrastructure as code | Complies |
 | `krizaka-motion` | Shared motion library | Complies |
+| `krizaka-qa` | Internal end-to-end scenarios (private) | Complies |
 | `krizaka-notifications` | Shared capability service | Complies |
 | `krizaka-platform-kit` | Contains forbidden `kit` | Breaks — to decide |
 | `krizaka-tauri-kit` | Contains forbidden `kit` | Breaks — to decide |
