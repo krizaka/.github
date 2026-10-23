@@ -13,3 +13,4 @@ Organisation-wide defaults for every [Krizaka](https://github.com/krizaka) repos
 - `.github/ISSUE_TEMPLATE/` and `.github/pull_request_template.md` — default issue forms and PR template.
 - `.github/workflows/node-ci.yml`, `java-ci.yml` — the reusable CI of every Node.js / Maven repository; `deploy/` + `actions/deploy` —
   `krizaka-deploy`, the one guarded way to deploy to DigitalOcean App Platform. See [docs/standards/ci-and-deploy.md](docs/standards/ci-and-deploy.md).
+- `docs/audits/` — cross-repository audits, read-only on the audited repositories: [UX navigation, 2026-10](docs/audits/2026-10-ux-navigation.md).
