@@ -30,7 +30,7 @@ How GitHub coding agents (Copilot, Claude) work in the krizaka organisation. The
 
 | Kind of task | Model | Examples |
 | :--- | :--- | :--- |
-| Mechanical: one file, a clear fix, a rename, a baseline, a version bump without API change | `claude-haiku-5.5` | DataTable wrap (ui#543), separator prop (ui#544), functional renames (ts#40) |
+| Mechanical: one file, a clear fix, a rename, a baseline, a version bump without API change | `auto` (empty model: Haiku 5.5 is refused by the cloud agent — « ruleset violation » error on 2026-10-23) | DataTable wrap (ui#543), separator prop (ui#544), functional renames (ts#40) |
 | A feature with a clear scope: a component, a CLI command, a screen, a refactor sweep, blog editing, dependency upgrades for CVEs | `claude-sonnet-5.5` | TextStyle (ui#561), KpiExplained (ui#558), `orazaka runs` (cli#90), the blog tidy (blog#103), the CVEs (build#79) |
 | Judgement: ADRs, architecture, audits, security and CVEs, legal, cross-repository design | `claude-opus-5.5` | ADR-087/088, the UX audit (.github#215), Scorecard (.github#32) |
 | Unsure | `auto` (the empty model) | — |
