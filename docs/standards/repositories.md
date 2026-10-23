@@ -67,7 +67,7 @@ shape fits, but whose role needs discussion.
 | `orazaka-web-client` | Web app | **Rename → `orazaka-web`** |
 | `orazaka-worker-media` | Worker | Complies |
 | `orochia` | Main product repository | Complies |
-| `orochia-admin` | Admin app | Complies |
+| `orochia-admin` | Former admin console, merged into `orochia` (served on admin.orochia.com, `apps/web/app/console`) | **Archive** |
 | `orochia-design-system` | Orochia's design packages | **Fold into `krizaka-ui`**, then archive |
 | `orochia-mobile` | Mobile app | Complies |
 | `template-expo-app` | Template | Complies |
@@ -107,7 +107,7 @@ name for git and the API, but everything that **names** the repository is update
 | 6 | `orazaka-studio` | `orazaka-studio-service` | medium: in the workspace, deployed, many links |
 | 7 | `orazaka-web-client` | `orazaka-web` | high: the public site's deployment builds from it |
 
-Archive: `orazaka-web-admin` (the console now lives in `orazaka-web-client`, under `src/app/console`; its last open issue moved there as orazaka-web-client#264). One app serves the site and the console: there is no separate admin repository for Orazaka.
+Archive: `orochia-admin` (merged into `orochia`, orochia#232) and `orazaka-web-admin` (the console now lives in `orazaka-web-client`, under `src/app/console`; its last open issue moved there as orazaka-web-client#264). One app serves the site and the console: there is no separate admin repository for Orazaka.
 
 Folds: `orazaka-ui-kit` and `orochia-design-system` become packages of `krizaka-ui` (the npm names stay), then the
 repositories are archived. Each fold is its own issue.
