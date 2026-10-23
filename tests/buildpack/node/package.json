@@ -1,0 +1,13 @@
+{
+  "name": "buildpack-fixture-node",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Fixture of the build pack (krizaka-ci.yml, krizaka/.github#113): npm, no dependency, every script a one-liner.",
+  "scripts": {
+    "lint": "node -e \"console.log('lint ok')\"",
+    "typecheck": "node -e \"console.log('typecheck ok')\"",
+    "depcruise": "node -e \"console.log('depcruise ok')\"",
+    "test": "node --test scripts/*.test.mjs",
+    "build": "node -e \"require('fs').mkdirSync('dist',{recursive:true});console.log('build ok')\""
+  }
+}

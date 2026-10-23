@@ -1,0 +1,72 @@
+# The build pack's build step (krizaka/.github#113): the package build with the Next.js cache, and a container image when the
+# repository has a Dockerfile (buildx; the layers are read from the Actions cache and written on main only, so a pull request
+# never pays for the export). The image is loaded into the local daemon for actions/after-build (CI_IMAGE).
+name: build
+description: Build a Krizaka repository (package build, Next.js cache, container image).
+author: Krizaka
+
+inputs:
+  working-directory:
+    description: "Directory of the project, relative to the repository root."
+    default: "."
+  package-manager:
+    description: "node / blog: npm or pnpm (its lockfile keys the Next.js cache)."
+    default: npm
+  build-script:
+    description: "node / blog: package.json script run as the build step; empty skips it."
+    default: ""
+  next-cache-paths:
+    description: "Newline-separated Next.js build caches to restore and save, relative to the repository root. Empty: none."
+    default: ""
+  container:
+    description: "Build the Dockerfile ('true' / 'false')."
+    default: "false"
+  container-context:
+    description: "Docker build context, relative to the repository root."
+    default: "."
+  container-dockerfile:
+    description: "Dockerfile, relative to the repository root. Empty: <context>/Dockerfile."
+    default: ""
+  container-image:
+    description: "Tag given to the image."
+    default: "ci-image:ci"
+  container-build-args:
+    description: "Newline-separated KEY=VALUE docker build arguments."
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    # The Next.js build cache (webpack / SWC): the build reuses what the sources did not change.
+    - name: Next.js build cache
+      if: ${{ inputs.next-cache-paths != '' }}
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ inputs.next-cache-paths }}
+        key: next-${{ runner.os }}-${{ hashFiles(format('{0}/{1}', inputs.working-directory, inputs.package-manager == 'pnpm' && 'pnpm-lock.yaml' || 'package-lock.json')) }}-${{ github.sha }}
+        restore-keys: next-${{ runner.os }}-${{ hashFiles(format('{0}/{1}', inputs.working-directory, inputs.package-manager == 'pnpm' && 'pnpm-lock.yaml' || 'package-lock.json')) }}-
+
+    - name: Build
+      if: ${{ inputs.build-script != '' }}
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        PM: ${{ inputs.package-manager }}
+        SCRIPT: ${{ inputs.build-script }}
+      run: '"$PM" run "$SCRIPT"'
+
+    - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      if: ${{ inputs.container == 'true' }}
+
+    - name: Build the image
+      if: ${{ inputs.container == 'true' }}
+      uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+      with:
+        context: ${{ inputs.container-context }}
+        file: ${{ inputs.container-dockerfile != '' && inputs.container-dockerfile || format('{0}/Dockerfile', inputs.container-context) }}
+        tags: ${{ inputs.container-image }}
+        build-args: ${{ inputs.container-build-args }}
+        load: true
+        push: false
+        cache-from: type=gha,scope=${{ github.repository }}-container
+        cache-to: ${{ github.ref == 'refs/heads/main' && format('type=gha,mode=max,scope={0}-container', github.repository) || '' }}

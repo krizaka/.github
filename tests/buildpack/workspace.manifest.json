@@ -1,0 +1,9 @@
+{
+  "$comment": "A trimmed orazaka.workspace.json for the detection tests (tests/buildpack.test.mjs).",
+  "org": "krizaka",
+  "repositories": [
+    { "name": "krizaka-build", "path": "krizaka/krizaka-build", "kind": "maven" },
+    { "name": "orazaka-edge", "path": "orazaka-apps/services/orazaka-edge", "kind": "maven" },
+    { "name": "orazaka-ui-kit", "path": "orazaka-apps/ui/orazaka-ui-kit", "kind": "npm" }
+  ]
+}

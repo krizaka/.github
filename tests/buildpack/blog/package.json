@@ -1,0 +1,9 @@
+{
+  "name": "buildpack-fixture-blog",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.0.0",
+  "scripts": {
+    "build": "node -e \"console.log('build ok')\""
+  }
+}

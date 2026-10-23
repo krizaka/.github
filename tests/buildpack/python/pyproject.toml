@@ -1,0 +1,6 @@
+# Fixture of the build pack (krizaka-ci.yml, krizaka/.github#113): pip, ruff, pytest.
+[tool.ruff]
+line-length = 120
+
+[tool.pytest.ini_options]
+testpaths = ["."]

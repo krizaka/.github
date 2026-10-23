@@ -1,0 +1,133 @@
+# The build pack's test step (krizaka/.github#113).
+#
+#   node / blog  `<pm> run <test-script> [-- <test-args>]`, with Turborepo's local cache (.turbo) when asked
+#   maven        `mvnw -B -ntp <maven-args> <maven-goals>` (verify: compile, tests, the build's own checks)
+#   workspace    `node scripts/workspace.mjs ci <component>`: the upstreams built from source, then the component verified
+#   python       python-test (e.g. `pytest -n auto`)
+#   iac          for each module: `tofu init -backend=false`, `tofu validate`, and `tofu test` when it has tests. A test whose
+#                run blocks do not all say `command = plan` is refused: nothing here ever applies.
+name: test
+description: Tests of a Krizaka repository (Node, Maven, Orazaka workspace, Python, OpenTofu).
+author: Krizaka
+
+inputs:
+  stack:
+    description: "node, blog, maven, workspace, python or iac."
+    default: node
+  working-directory:
+    description: "Directory of the project, relative to the repository root."
+    default: "."
+  package-manager:
+    description: "node / blog: npm or pnpm."
+    default: npm
+  test-script:
+    description: "node / blog: package.json script run as the test step; empty skips it."
+    default: ""
+  test-args:
+    description: "node / blog: one argument passed to the script after `--` (e.g. --shard=1/4)."
+    default: ""
+  turbo-cache:
+    description: "node / blog: restore and save .turbo (Turborepo's local cache)."
+    default: "false"
+  cache-scope:
+    description: "node / blog: part of the .turbo cache key (one per parallel leg)."
+    default: all
+  maven-goals:
+    description: "maven: goals of the verify step."
+    default: verify
+  maven-args:
+    description: "maven: extra arguments."
+    default: ""
+  component:
+    description: "workspace: the repository name, as listed in orazaka.workspace.json."
+    default: ""
+  workspace-path:
+    description: "workspace: where krizaka/orazaka is checked out."
+    default: workspace
+  token:
+    description: "workspace: GITHUB_TOKEN of the Maven `github` server (read-only)."
+    default: ${{ github.token }}
+  python-test:
+    description: "python: test command; empty skips it."
+    default: ""
+  python-manager:
+    description: "python: pip or uv."
+    default: pip
+  tf-dirs:
+    description: "iac: newline-separated OpenTofu root modules, relative to the working directory."
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    # Turborepo's local cache: tasks already done for the same inputs are replayed, not run.
+    - name: Turbo cache
+      if: ${{ inputs.turbo-cache == 'true' }}
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ inputs.working-directory }}/.turbo
+        key: turbo-${{ runner.os }}-${{ inputs.cache-scope }}-${{ github.sha }}
+        restore-keys: turbo-${{ runner.os }}-${{ inputs.cache-scope }}-
+
+    - name: Test
+      if: ${{ inputs.test-script != '' }}
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        PM: ${{ inputs.package-manager }}
+        SCRIPT: ${{ inputs.test-script }}
+        ARGS: ${{ inputs.test-args }}
+      run: if [ -n "$ARGS" ]; then "$PM" run "$SCRIPT" -- "$ARGS"; else "$PM" run "$SCRIPT"; fi
+
+    - name: Verify
+      if: ${{ inputs.stack == 'maven' }}
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        GOALS: ${{ inputs.maven-goals }}
+        ARGS: ${{ inputs.maven-args }}
+      run: |
+        mvn_cmd=mvn
+        [ -x ./mvnw ] && mvn_cmd=./mvnw
+        # shellcheck disable=SC2086  # goals and arguments are word-split on purpose
+        "$mvn_cmd" -B -ntp $ARGS $GOALS
+
+    - name: Verify ${{ inputs.component }} against its upstreams
+      if: ${{ inputs.stack == 'workspace' }}
+      shell: bash
+      working-directory: ${{ inputs.workspace-path }}
+      env:
+        COMPONENT: ${{ inputs.component }}
+        GITHUB_TOKEN: ${{ inputs.token }}
+      run: node scripts/workspace.mjs ci "$COMPONENT"
+
+    - name: Python tests
+      if: ${{ inputs.stack == 'python' && inputs.python-test != '' }}
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        PY_PM: ${{ inputs.python-manager }}
+        TEST: ${{ inputs.python-test }}
+      run: if [ "$PY_PM" = uv ]; then uv run bash -c "$TEST"; else bash -c "$TEST"; fi
+
+    - name: OpenTofu — validate and test (never apply)
+      if: ${{ inputs.stack == 'iac' }}
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        DIRS: ${{ inputs.tf-dirs }}
+        GUARD: ${{ github.action_path }}/../detect/detect.mjs
+      run: |
+        set -euo pipefail
+        [ -n "$DIRS" ] || { echo "::error::no OpenTofu module given (tf-dirs)"; exit 1; }
+        while IFS= read -r dir; do
+          [ -z "$dir" ] && continue
+          echo "::group::$dir"
+          tofu -chdir="$dir" init -backend=false -input=false
+          tofu -chdir="$dir" validate
+          if compgen -G "$dir/*.tftest.hcl" > /dev/null || compgen -G "$dir/tests/*.tftest.hcl" > /dev/null; then
+            node "$GUARD" --tofu-guard "$dir"
+            tofu -chdir="$dir" test
+          fi
+          echo "::endgroup::"
+        done <<< "$DIRS"
