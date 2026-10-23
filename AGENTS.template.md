@@ -107,5 +107,6 @@ reasons are in [docs/standards/coding-agents.md](docs/standards/coding-agents.md
    issue. Do not work around it.
 7. **The admin configures.** Every knob is a row the administrator edits (settings in the database), never a
    constant or an environment-only value. Words live in the message catalogues (FR and EN).
-8. **One issue, one pull request.** It is small, says `Closes #<n>`, and changes nothing unrelated. No captures, logs or
+8. **Names follow the standard.** A new repository, package or app is named by [docs/standards/repositories.md](docs/standards/repositories.md) before it exists; never rename a repository yourself: renames are the orchestrator's, in the documented order.
+9. **One issue, one pull request.** It is small, says `Closes #<n>`, and changes nothing unrelated. No captures, logs or
    secrets are committed: captures go to Bunny, secrets stay in the environment.

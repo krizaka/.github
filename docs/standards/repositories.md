@@ -10,13 +10,13 @@ exception: it is named after the product alone, with no role suffix.
 
 - **Owner:** `krizaka` for shared repositories, or a product name. The current products are `akinaza`, `kachizaka`,
   `orazaka`, `orochia`, `yasakia`, `yomizaka` and `yororis`.
-- **Product roles:** no suffix for the main repository; `mobile`, `desktop` or `admin` for another app; `<name>-service`
+- **Product roles:** no suffix for the main repository; `web` for the web app when the main repository is an umbrella (Orazaka); `engine` for an engine product's core library; `mobile`, `desktop` or `admin` for another app; `<name>-service`
   for a deployable backend service; `services` for the umbrella repository; `worker-<name>` for a worker; and `packs`,
   `cli`, `contracts` or `build`.
 - **Shared repositories:** `krizaka-ui` (all design kits are packages there), `krizaka-ts`, `krizaka-build` (Java),
   `krizaka-com` (company site), `krizaka-blog`, `krizaka-infra` (IaC), `krizaka-motion` (motion library) and `krizaka-qa` (internal end-to-end scenarios, private); or
-  `krizaka-<capability>` for a shared service. The current capabilities are `accounts`, `billing`, `notifications` and
-  `users`.
+  `krizaka-<capability>` for a shared service. The current capabilities are `accounts`, `billing`, `notifications`,
+  `users`, `platform` (the Java cross-cutting blocks) and `desktop` (the shared Tauri crate).
 - **Templates:** `template-<stack>-app`.
 
 This is a closed role vocabulary. A new product or shared capability must be added to this standard and the name checker
@@ -28,8 +28,7 @@ Never use `client`, `web-client`, `design-system` or `kit` in a repository name.
 ## Current repository names
 
 Inventory as of 2026-10-23. It covers the 44 product and shared repositories; `.github` is the reserved organization
-profile repository and is outside this naming rule. **Breaks — to decide** means the name is outside the rule; it does
-not propose a rename, archive or fold. Any such decision belongs to Oussama. `To decide` marks a name whose current
+profile repository and is outside this naming rule. **Rename** and **Fold** are decided (Oussama, 2026-10-23) and are carried out in the order below. `To decide` marks a name whose current
 shape fits, but whose role needs discussion.
 
 | Repository | Current role | Status |
@@ -45,31 +44,31 @@ shape fits, but whose role needs discussion.
 | `krizaka-motion` | Shared motion library | Complies |
 | `krizaka-qa` | Internal end-to-end scenarios (private) | Complies |
 | `krizaka-notifications` | Shared capability service | Complies |
-| `krizaka-platform-kit` | Contains forbidden `kit` | Breaks — to decide |
-| `krizaka-tauri-kit` | Contains forbidden `kit` | Breaks — to decide |
+| `krizaka-platform-kit` | Java cross-cutting blocks | **Rename → `krizaka-platform`** |
+| `krizaka-tauri-kit` | Shared Tauri crate | **Rename → `krizaka-desktop`** |
 | `krizaka-ts` | Shared TypeScript building blocks | Complies |
 | `krizaka-ui` | Shared design system | Complies |
 | `krizaka-users` | Shared capability service | Complies |
 | `orazaka` | Main product repository | Complies |
-| `orazaka-ai-engine` | Role not in the vocabulary | Breaks — to decide |
+| `orazaka-ai-engine` | The engine's core library | **Rename → `orazaka-engine`** |
 | `orazaka-automation-service` | Deployable backend service | Complies |
 | `orazaka-build` | Product build repository | Complies |
 | `orazaka-cli` | CLI | Complies |
 | `orazaka-contracts` | Contracts | Complies |
 | `orazaka-conversation-service` | Deployable backend service | Complies |
-| `orazaka-edge` | Role not in the vocabulary | Breaks — to decide |
+| `orazaka-edge` | The HTTP edge service | **Rename → `orazaka-edge-service`** |
 | `orazaka-job-service` | Deployable backend service | Complies |
 | `orazaka-knowledge-service` | Deployable backend service | Complies |
-| `orazaka-mobile-client` | Contains forbidden `client` | Breaks — to decide |
+| `orazaka-mobile-client` | Mobile app | **Rename → `orazaka-mobile`** |
 | `orazaka-packs` | Packs | Complies |
-| `orazaka-studio` | Role unclear (API, client and service modules) | Breaks — to decide |
-| `orazaka-ui-kit` | Contains forbidden `kit` | Breaks — to decide |
-| `orazaka-web-admin` | Role not in the vocabulary | Breaks — to decide |
-| `orazaka-web-client` | Contains forbidden `client` | Breaks — to decide |
+| `orazaka-studio` | The Studio service (with its API and client modules) | **Rename → `orazaka-studio-service`** |
+| `orazaka-ui-kit` | Orazaka's UI packages | **Fold into `krizaka-ui`**, then archive |
+| `orazaka-web-admin` | Admin console | **Rename → `orazaka-admin`** |
+| `orazaka-web-client` | Web app | **Rename → `orazaka-web`** |
 | `orazaka-worker-media` | Worker | Complies |
 | `orochia` | Main product repository | Complies |
 | `orochia-admin` | Admin app | Complies |
-| `orochia-design-system` | Contains forbidden `design-system` | Breaks — to decide |
+| `orochia-design-system` | Orochia's design packages | **Fold into `krizaka-ui`**, then archive |
 | `orochia-mobile` | Mobile app | Complies |
 | `template-expo-app` | Template | Complies |
 | `template-next-app` | Template | Complies |
@@ -85,3 +84,31 @@ shape fits, but whose role needs discussion.
 The weekly **Repository names** workflow reports names outside the rule in its job summary. It is read-only: it does not
 rename repositories or open issues. The checker and its unit tests are in `scripts/repository-names.mjs` and
 `scripts/repository-names.test.mjs`.
+
+## Decided renames (Oussama, 2026-10-23)
+
+Renames run one at a time, by the orchestrator, when no agent run is open on the repository. GitHub redirects the old
+name for git and the API, but everything that **names** the repository is updated in the same change:
+
+1. `orazaka.workspace.json` (name and path), and every `component.yml` caller and `copilot-setup-steps` input.
+2. Package `repository` fields, README links and badges, `AGENTS.md`, and the docs that link it.
+3. krizaka.com and the blog (`lib/stack.ts`, `lib/org-data.ts`, the services map, the generated org data).
+4. Deployments that build from it (DigitalOcean App Platform `source_repository`), krizaka-infra stacks, and Bunny
+   prefixes that carry the name.
+5. Dependabot, CodeQL and Scorecard settings that name it, and the branch protection, checked after the rename.
+
+| Order | From | To | Risk |
+| :--- | :--- | :--- | :--- |
+| 1 | `krizaka-tauri-kit` | `krizaka-desktop` | low: no deployment |
+| 2 | `orazaka-mobile-client` | `orazaka-mobile` | low |
+| 3 | `orazaka-web-admin` | `orazaka-admin` | medium: a DigitalOcean app |
+| 4 | `krizaka-platform-kit` | `krizaka-platform` | medium: in the workspace, Maven artifacts unchanged |
+| 5 | `orazaka-ai-engine` | `orazaka-engine` | medium: in the workspace, upstream of most services |
+| 6 | `orazaka-edge` | `orazaka-edge-service` | medium: in the workspace, deployed |
+| 7 | `orazaka-studio` | `orazaka-studio-service` | medium: in the workspace, deployed, many links |
+| 8 | `orazaka-web-client` | `orazaka-web` | high: the public site's deployment builds from it |
+
+Folds: `orazaka-ui-kit` and `orochia-design-system` become packages of `krizaka-ui` (the npm names stay), then the
+repositories are archived. Each fold is its own issue.
+
+A **new** repository is named by this standard before it is created; the weekly check reports any drift.

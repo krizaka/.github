@@ -15,10 +15,12 @@ const SHARED_REPOSITORIES = new Set([
   "krizaka-billing",
   "krizaka-notifications",
   "krizaka-users",
+  "krizaka-platform",
+  "krizaka-desktop",
 ]);
 const FORBIDDEN = /(?:^|-)(?:client|design-system|kit)(?:-|$)/;
 const SLUG = "[a-z0-9]+(?:-[a-z0-9]+)*";
-const PRODUCT_ROLE = new RegExp(`^(?:mobile|desktop|admin|services|packs|cli|contracts|build|${SLUG}-service|worker-${SLUG})$`);
+const PRODUCT_ROLE = new RegExp(`^(?:web|engine|mobile|desktop|admin|services|packs|cli|contracts|build|${SLUG}-service|worker-${SLUG})$`);
 
 /** Whether a repository name follows the approved owner and role vocabulary. */
 export function isValidRepositoryName(name) {
