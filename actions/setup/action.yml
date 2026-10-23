@@ -115,10 +115,16 @@ runs:
       run: node scripts/workspace.mjs clone --depth 1
 
     # ── toolchains and caches ───────────────────────────────────────────────────────────────────────────────────
+    - id: pnpm-version
+      if: ${{ (inputs.stack == 'node' || inputs.stack == 'blog') && inputs.package-manager == 'pnpm' }}
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: node "$GITHUB_ACTION_PATH/../detect/detect.mjs" --pnpm-version >> "$GITHUB_OUTPUT"
+
     - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
       if: ${{ (inputs.stack == 'node' || inputs.stack == 'blog') && inputs.package-manager == 'pnpm' }}
       with:
-        package_json_file: ${{ inputs.working-directory }}/package.json
+        version: ${{ steps.pnpm-version.outputs.version }}
 
     - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
       if: ${{ inputs.stack == 'node' || inputs.stack == 'blog' }}

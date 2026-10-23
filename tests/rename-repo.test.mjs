@@ -20,7 +20,25 @@ function mockSearch(pages) {
   const fetchImpl = async (url, init) => {
     calls.push({ url, init });
     const page = Number(new URL(url).searchParams.get("page"));
-    return { ok: true, status: 200, json: async () => ({ items: pages[page - 1] ?? [] }) };
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({
+        items: pages[page - 1] ?? [],
+        total_count: pages.reduce((count, items) => count + items.length, 0),
+        incomplete_results: false,
+      }),
+    };
+  };
+  return { calls, fetchImpl };
+}
+
+function mockSearchMeta(pages, metadata) {
+  const { calls, fetchImpl: base } = mockSearch(pages);
+  const fetchImpl = async (...args) => {
+    const response = await base(...args);
+    const body = await response.json();
+    return { ...response, json: async () => ({ ...body, ...metadata }) };
   };
   return { calls, fetchImpl };
 }
@@ -77,4 +95,11 @@ test("refuses: no --dry-run (real mode is a TODO), an unknown name, a taken or n
 test("a failing search is an error, never an empty list", async () => {
   const fetchImpl = async () => ({ ok: false, status: 403, json: async () => ({}) });
   await assert.rejects(run(["orazaka-edge", "orazaka-edge-service", "--dry-run"], { fetchImpl, token: "t", registry }), /code search: 403/);
+});
+
+test("an incomplete or over-limit search is an error, never a complete-looking inventory", async () => {
+  const { fetchImpl: overLimit } = mockSearchMeta([[]], { total_count: 1001 });
+  await assert.rejects(run(["orazaka-edge", "orazaka-edge-service", "--dry-run"], { fetchImpl: overLimit, token: "t", registry }), /exceeds the 1,000-result limit/);
+  const { fetchImpl: incomplete } = mockSearchMeta([[]], { incomplete_results: true });
+  await assert.rejects(run(["orazaka-edge", "orazaka-edge-service", "--dry-run"], { fetchImpl: incomplete, token: "t", registry }), /incomplete code search results/);
 });

@@ -67,12 +67,18 @@ test("node: npm, the package.json scripts that exist, the quality scripts, .kriz
   assert.equal(plan.container, false);
 });
 
-test("node: pnpm from the lockfile, the workspace file or packageManager; a Dockerfile builds an image", () => {
+test("node: pnpm version from package metadata or lockfile; a Dockerfile builds an image", () => {
   for (const files of [{ "pnpm-lock.yaml": "" }, { "pnpm-workspace.yaml": "packages: []" }, {}]) {
     const pkg = Object.keys(files).length ? "{}" : '{ "packageManager": "pnpm@10.0.0" }';
     const plan = detect({ root: checkout({ "package.json": pkg, ...files }), manifest });
     assert.equal(plan.packageManager, "pnpm");
+    assert.ok(plan.pnpmVersion);
   }
+  assert.equal(detect({ root: checkout({ "package.json": '{"packageManager":"pnpm@9.15.0"}', "pnpm-lock.yaml": "lockfileVersion: '9.0'" }), manifest }).pnpmVersion, "9.15.0");
+  assert.equal(detect({ root: checkout({ "package.json": '{"devEngines":{"packageManager":{"name":"pnpm","version":"8.15.0"}}}', "pnpm-lock.yaml": "lockfileVersion: '6.0'" }), manifest }).pnpmVersion, "8.15.0");
+  assert.equal(detect({ root: checkout({ "package.json": "{}", "pnpm-lock.yaml": "lockfileVersion: '6.0'" }), manifest }).pnpmVersion, "8");
+  assert.equal(detect({ root: checkout({ "package.json": "{}", "pnpm-lock.yaml": "lockfileVersion: '9.0'" }), manifest }).pnpmVersion, "9");
+  assert.equal(detect({ root: checkout({ "package.json": "{}", "pnpm-workspace.yaml": "packages: []" }), manifest }).pnpmVersion, "10");
   const plan = detect({ root: checkout({ "package.json": "{}", Dockerfile: "FROM scratch", "dup-ratchet.json": "{}" }), manifest });
   assert.equal(plan.container, true);
   assert.equal(plan.containerDockerfile, "Dockerfile");
@@ -99,6 +105,14 @@ test("python: pip, the requirements (repository-relative), ruff and pytest-xdist
   const uv = detect({ root: checkout({ "pyproject.toml": "[project]\nname = 'x'\n", "uv.lock": "" }), manifest });
   assert.equal(uv.pythonManager, "uv");
   assert.equal(uv.pythonTest, "", "no test, no pytest");
+  const uvTests = detect({ root: checkout({ "pyproject.toml": "[project]\nname = 'x'\n", "uv.lock": "", "test_app.py": "" }), manifest });
+  assert.equal(uvTests.pythonTest, "pytest");
+  const installableWithRequirements = detect({
+    root: checkout({ "pyproject.toml": "[project]\nname = 'x'\n", "requirements.txt": "requests", "test_app.py": "" }),
+    manifest,
+  });
+  assert.match(installableWithRequirements.pythonExtras, /-e \./);
+  assert.match(installableWithRequirements.pythonExtras, /pytest-xdist/);
   const sub = detect({ root: FIXTURES, base: "python", manifest });
   assert.equal(sub.workingDirectory, "python");
   assert.equal(sub.requirements, "python/requirements.txt", "requirements are relative to the checkout (they key the cache)");
@@ -115,10 +129,17 @@ test("iac: every OpenTofu module, never applied", () => {
   assert.deepEqual(unsafeTofuTests([{ path: "main.tftest.hcl", text }]), [], "the fixture's test only plans");
 });
 
-test("iac: a run block without `command = plan` is refused (it would apply)", () => {
+test("iac: only an active top-level `command = plan` makes a run block safe", () => {
   const text = 'run "plans" {\n  command = plan\n}\n\nrun "applies" {\n  assert {\n    condition = true\n  }\n}\n';
   assert.deepEqual(unsafeTofuTests([{ path: "t.tftest.hcl", text }]), ['t.tftest.hcl: run "applies"']);
   assert.deepEqual(unsafeTofuTests([{ path: "t.tftest.hcl", text: 'run "a" {\n  command = apply\n}\n' }]), ['t.tftest.hcl: run "a"']);
+  for (const text of [
+    'run "commented" {\n  /* command = plan\n     this is still a comment */\n  command = apply\n}\n',
+    'run "missing" {\n  # command = plan\n  assert { condition = true }\n}\n',
+    'run "nested" {\n  assert { command = plan }\n}\n',
+    'run "string" {\n  note = "command = plan"\n}\n',
+    'run "heredoc" {\n  note = <<-EOT\n    command = plan\n  EOT\n  command = apply\n}\n',
+  ]) assert.deepEqual(unsafeTofuTests([{ path: "t.tftest.hcl", text }]), ['t.tftest.hcl: run "' + /run "([^"]+)/.exec(text)[1] + '"']);
 });
 
 test("the detection order: workspace before maven before node before python before iac", () => {

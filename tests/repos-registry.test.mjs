@@ -80,3 +80,7 @@ test("the generator keeps a private repository of the standard, and reports drif
 test("repos.json is what serialize() writes (never edited by hand)", () => {
   assert.equal(read("repos.json"), serialize(repositories));
 });
+
+test("weekly registry drift preserves generator failures through tee", () => {
+  assert.match(read(".github/workflows/repos-registry.yml"), /shell: bash\n\s+run: node scripts\/gen-repos\.mjs --check \| tee -a "\$GITHUB_STEP_SUMMARY"/);
+});

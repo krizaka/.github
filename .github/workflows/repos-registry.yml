@@ -50,4 +50,5 @@ jobs:
       - name: Compare repos.json with the org
         env:
           GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
         run: node scripts/gen-repos.mjs --check | tee -a "$GITHUB_STEP_SUMMARY"

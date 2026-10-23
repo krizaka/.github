@@ -59,6 +59,24 @@ export const QUALITY_SCRIPTS = ["depcruise", "ast-grep", "ratchet", "ratchets"];
 const SKIP_DIRS = new Set([".git", "node_modules", ".terraform", ".venv", "venv", "target", "dist", ".next"]);
 const KEY = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
+/** The pnpm release declared by the project, or one compatible with its lockfile. */
+export function resolvePnpmVersion(pkg, lockfile = "") {
+  const declared = String(pkg.packageManager ?? "").match(/^pnpm@([^+]+)/)?.[1];
+  if (declared) return declared;
+  const engine = pkg.devEngines?.packageManager;
+  if (engine?.name === "pnpm" && typeof engine.version === "string" && engine.version) return engine.version;
+  const lockVersion = lockfile.match(/^lockfileVersion:\s*["']?([\d.]+)/m)?.[1];
+  if (!lockVersion) return "10";
+  if (lockVersion.startsWith("9.")) return "9";
+  if (lockVersion.startsWith("6.")) return "8";
+  if (lockVersion.startsWith("5.4")) return "7";
+  if (lockVersion.startsWith("5.3")) return "6";
+  if (lockVersion.startsWith("5.2")) return "5";
+  if (lockVersion.startsWith("5.1")) return "4";
+  if (lockVersion.startsWith("5.")) return "3";
+  return "10";
+}
+
 /** Files of `dir` (relative paths) down to `depth` levels, skipping dependency and build folders. */
 function walk(dir, depth, base = dir, out = []) {
   let entries;
@@ -123,15 +141,79 @@ export function readConfig(root) {
   return config;
 }
 
-/** The run blocks of OpenTofu test files that do not declare `command = plan` (they would apply): ["file: run \"x\""]. */
+/** Tokenize enough HCL syntax to ignore comments, quoted strings and heredocs while inspecting run blocks. */
+function hclTokens(text) {
+  const tokens = [];
+  for (let i = 0; i < text.length;) {
+    if (/\s/.test(text[i])) {
+      i++;
+    } else if (text[i] === "#" || text.startsWith("//", i)) {
+      while (i < text.length && text[i] !== "\n") i++;
+    } else if (text.startsWith("/*", i)) {
+      const end = text.indexOf("*/", i + 2);
+      i = end < 0 ? text.length : end + 2;
+    } else if (text.startsWith("<<", i)) {
+      const heredoc = text.slice(i).match(/^<<-?\s*([A-Za-z_][A-Za-z0-9_]*)[^\r\n]*\r?\n/);
+      if (!heredoc) {
+        tokens.push({ type: "symbol", value: "<" });
+        i++;
+        continue;
+      }
+      const delimiter = heredoc[1];
+      i += heredoc[0].length;
+      while (i < text.length) {
+        const end = text.indexOf("\n", i);
+        const lineEnd = end < 0 ? text.length : end;
+        const line = text.slice(i, lineEnd).replace(/\r$/, "");
+        i = end < 0 ? text.length : end + 1;
+        if (line.trim() === delimiter) break;
+      }
+      tokens.push({ type: "string", value: "" });
+    } else if (text[i] === '"') {
+      let value = "";
+      i++;
+      while (i < text.length && text[i] !== '"') {
+        if (text[i] === "\\" && i + 1 < text.length) {
+          value += text[i + 1];
+          i += 2;
+        } else value += text[i++];
+      }
+      if (text[i] === '"') i++;
+      tokens.push({ type: "string", value });
+    } else if (/[A-Za-z_]/.test(text[i])) {
+      const identifier = text.slice(i).match(/^[A-Za-z_][A-Za-z0-9_-]*/)[0];
+      tokens.push({ type: "identifier", value: identifier });
+      i += identifier.length;
+    } else {
+      tokens.push({ type: "symbol", value: text[i] });
+      i++;
+    }
+  }
+  return tokens;
+}
+
+/** Run blocks without an active top-level `command = plan` (they would apply): ["file: run \"x\""]. */
 export function unsafeTofuTests(files) {
   const unsafe = [];
   for (const { path, text } of files) {
-    const starts = [...text.matchAll(/^\s*run\s+"([^"]*)"\s*\{/gm)];
-    starts.forEach((m, i) => {
-      const block = text.slice(m.index, i + 1 < starts.length ? starts[i + 1].index : text.length);
-      if (!/^\s*command\s*=\s*plan\b/m.test(block)) unsafe.push(`${path}: run "${m[1]}"`);
-    });
+    const tokens = hclTokens(text);
+    for (let i = 0; i < tokens.length - 2; i++) {
+      if (tokens[i].type !== "identifier" || tokens[i].value !== "run" ||
+          tokens[i + 1].type !== "string" || tokens[i + 2].value !== "{") continue;
+      let depth = 1;
+      let safe = false;
+      let end = i + 3;
+      for (; end < tokens.length && depth; end++) {
+        const token = tokens[end];
+        if (token.value === "{") depth++;
+        else if (token.value === "}") depth--;
+        else if (depth === 1 && token.type === "identifier" && token.value === "command" &&
+                 tokens[end + 1]?.value === "=" && tokens[end + 2]?.type === "identifier" &&
+                 tokens[end + 2].value === "plan") safe = true;
+      }
+      if (!safe) unsafe.push(`${path}: run "${tokens[i + 1].value}"`);
+      i = end - 1;
+    }
   }
   return unsafe;
 }
@@ -164,6 +246,7 @@ export function detect({ root, base = ".", repository = "", manifest = null, tim
     workingDirectory,
     component: "",
     packageManager: "",
+    pnpmVersion: "",
     nodeVersion: config.nodeVersion ?? "22",
     lint: "",
     typecheck: "",
@@ -214,6 +297,10 @@ export function detect({ root, base = ".", repository = "", manifest = null, tim
     plan.stack = mdx ? "blog" : "node";
     const pm = String(pkg?.packageManager ?? "");
     plan.packageManager = pm.startsWith("pnpm") || has(dir, "pnpm-lock.yaml") || has(dir, "pnpm-workspace.yaml") ? "pnpm" : "npm";
+    if (plan.packageManager === "pnpm") {
+      const lockfile = has(dir, "pnpm-lock.yaml") ? readFileSync(join(dir, "pnpm-lock.yaml"), "utf8") : "";
+      plan.pnpmVersion = resolvePnpmVersion(pkg, lockfile);
+    }
     const scripts = pkg?.scripts ?? {};
     for (const key of ["lint", "typecheck", "test", "build"]) plan[key] = scripts[key] ? key : "";
     plan.quality = lines(QUALITY_SCRIPTS.filter((s) => scripts[s]));
@@ -228,9 +315,9 @@ export function detect({ root, base = ".", repository = "", manifest = null, tim
     const ruff = /^\[tool\.ruff/m.test(pyproject) || has(dir, "ruff.toml") || has(dir, ".ruff.toml");
     const tests = /^\[tool\.pytest/m.test(pyproject) || files.some((f) => /(^|\/)(test_[^/]*|[^/]*_test)\.py$/.test(f));
     plan.pythonLint = ruff ? "ruff check ." : "";
-    plan.pythonTest = tests ? "pytest -n auto" : "";
+    plan.pythonTest = tests ? (plan.pythonManager === "pip" ? "pytest -n auto" : "pytest") : "";
     if (plan.pythonManager === "pip") {
-      plan.pythonExtras = [installable && !reqs.length ? "-e ." : "", tests ? "pytest-xdist" : "", ruff ? "ruff" : ""].filter(Boolean).join(" ");
+      plan.pythonExtras = [installable ? "-e ." : "", tests ? "pytest-xdist" : "", ruff ? "ruff" : ""].filter(Boolean).join(" ");
     }
   } else if (files.some((f) => f.endsWith(".tf"))) {
     plan.stack = "iac";
@@ -272,6 +359,14 @@ function arg(argv, name, fallback) {
 }
 
 async function main(argv = process.argv.slice(2)) {
+  if (argv.includes("--pnpm-version")) {
+    const root = arg(argv, "--dir", ".");
+    const pkg = readJson(join(root, "package.json"));
+    const lockfilePath = join(root, "pnpm-lock.yaml");
+    const lockfile = existsSync(lockfilePath) ? readFileSync(lockfilePath, "utf8") : "";
+    console.log(`version=${resolvePnpmVersion(pkg, lockfile)}`);
+    return;
+  }
   if (argv.includes("--tofu-guard")) {
     const dir = arg(argv, "--tofu-guard", ".");
     const unsafe = unsafeTofuTests(tofuTestFiles(dir).map((path) => ({ path, text: readFileSync(path, "utf8") })));

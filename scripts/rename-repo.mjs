@@ -35,6 +35,8 @@ export async function search({ from, token, fetchImpl = fetch }) {
   if (!token) throw new Error("the code search API needs a token: set GITHUB_TOKEN");
   const match = nameMatcher(from);
   const files = new Map();
+  let totalCount = null;
+  let resultCount = 0;
   for (let page = 1; page <= MAX_PAGES; page++) {
     const query = encodeURIComponent(`"${from}" org:${ORG}`);
     const response = await fetchImpl(`https://api.github.com/search/code?q=${query}&per_page=${PAGE}&page=${page}`, {
@@ -47,7 +49,20 @@ export async function search({ from, token, fetchImpl = fetch }) {
     });
     if (!response.ok) throw new Error(`GitHub code search: ${response.status}`);
     const body = await response.json();
-    for (const item of body.items ?? []) {
+    if (body.incomplete_results) throw new Error("GitHub code search returned incomplete code search results");
+    if (!Number.isInteger(body.total_count) || body.total_count < 0) {
+      throw new Error("GitHub code search response has no valid total_count");
+    }
+    if (body.total_count > PAGE * MAX_PAGES) {
+      throw new Error(`GitHub code search exceeds the ${(PAGE * MAX_PAGES).toLocaleString("en-US")}-result limit`);
+    }
+    if (totalCount !== null && body.total_count !== totalCount) {
+      throw new Error("GitHub code search result count changed during pagination");
+    }
+    totalCount = body.total_count;
+    const items = body.items ?? [];
+    resultCount += items.length;
+    for (const item of items) {
       const lines = (item.text_matches ?? [])
         .flatMap((text) => String(text.fragment ?? "").split("\n"))
         .filter((line) => match.test(line))
@@ -58,8 +73,12 @@ export async function search({ from, token, fetchImpl = fetch }) {
       file.lines.push(...lines.filter((line) => !file.lines.includes(line)));
       files.set(key, file);
     }
-    if ((body.items ?? []).length < PAGE) break;
+    if (items.length < PAGE) {
+      if (resultCount < totalCount) throw new Error("GitHub code search returned an incomplete inventory");
+      break;
+    }
   }
+  if (resultCount < totalCount) throw new Error("GitHub code search returned an incomplete inventory");
   return [...files.values()].sort((a, b) => a.repository.localeCompare(b.repository) || a.path.localeCompare(b.path));
 }
 
