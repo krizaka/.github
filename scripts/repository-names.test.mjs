@@ -18,6 +18,10 @@ test("repository names follow the owner-role vocabulary", () => {
     "krizaka-ts",
     "krizaka-build",
     "krizaka-billing",
+    "krizaka-com",
+    "krizaka-blog",
+    "krizaka-infra",
+    "krizaka-motion",
     "template-next-app",
   ]) {
     assert.equal(isValidRepositoryName(name), true, name);
