@@ -225,7 +225,7 @@ Files: `apps/web/components/{SiteChrome,BarSession,SiteFooter}.tsx`, `apps/web/l
 | Right 2 | `ThemeToggle` (md+) | | `SiteChrome.tsx:46-48` |
 | Right 3 | `NavBar.Language` (md+) | | `SiteChrome.tsx:49-51` |
 | Right 4 — primary | **`ProductBarActions`**: Sign in / Se connecter, or Try Yomizaka / Essayer Yomizaka. Signed in: Open the app / Ouvrir l'app + `AccountMenu` (Settings / Réglages → `/app/settings`; Sign out / Se déconnecter), visible at every width | | `BarSession.tsx:50-76`; `en.json:15`, `:30-34` |
-| Panel | The 3 links · Preferences / Préférences (theme, language) · actions. **No GitHub; signed in, no account menu and no sign-out** (`BarSession.tsx:55`). | | `SiteChrome.tsx:54-64` |
+| Panel | The 3 links · Preferences / Préférences (theme, language) · actions. **No GitHub.** Signed in: Open the app; Settings and Sign out remain accessible through the header account menu at every width, including while this non-modal panel is open. | | `SiteChrome.tsx:54-64`; `BarSession.tsx:52-65`; `krizaka-ui:packages/ui/src/nav-bar/nav-bar.tsx:340-480` |
 | Footer | `SiteFooter family={false}`. Column « Yomizaka »: Download / Télécharger, Privacy (again), Terms / Conditions, Source code, **Contact / Contact → `krizaka.com/contact?topic=yomizaka&source=dev-yomizaka-footer`**. Legal row: version, Krizaka UI, dev notice. | | `SiteFooter.tsx:18-46`; `site.ts:15-16` |
 | 404 | Shared `ErrorPage`, **hard-coded bilingual** « Not found · Introuvable », one link « Yomizaka » → `/` | | `not-found.tsx:8-16` |
 | Locale | Prefix `/en`, `/fr`; unprefixed → cookie, else EN; unknown locale → 404 | | `proxy.ts:8-15`; `i18n.ts:14-16` |
@@ -252,7 +252,7 @@ Files: `apps/web/components/SiteChrome.tsx`, `apps/web/components/account/{BarSe
 | Left | Akinaza mark + « Akinaza » | `/{l}` | `SiteChrome.tsx:36-41` |
 | Centre | **Product ▾ / Produit**: Overview / Vue d'ensemble (→ `/{l}`, the brand's target); The demo shop / La boutique de démonstration → `/{l}/s/pattes-saint-henri` | | `SiteChrome.tsx:17-18`, `:43`; `en.json:11`, `:28-33` |
 | Right | `NavBar.Repo` « Source code » (lg+) · `ThemeToggle` · `NavBar.Language` · **`ProductBarActions`** (Sign in / Se connecter or Try Akinaza / Essayer Akinaza); signed in: Open the app / Ouvrir l'app + `AkinazaAccountMenu` | | `SiteChrome.tsx:53-60`; `BarSession.tsx:36-45` |
-| Panel | **Hand-rolled** group `div role="group"` (not `NavBar.MobileGroup`) · Preferences · actions. No GitHub; signed in, no sign-out. | | `SiteChrome.tsx:63-75` |
+| Panel | **Hand-rolled** group `div role="group"` (not `NavBar.MobileGroup`) · Preferences · actions. No GitHub. Signed in: Open the app; Settings and Sign out remain in the header account menu at every width. | | `SiteChrome.tsx:63-75`; `BarSession.tsx:36-41` |
 | Footer | `SiteFooter family={false}`. Column « Akinaza »: The demo shop, Privacy / Confidentialité, Source code, **Contact → `krizaka.com/contact?topic=akinaza…`**. No Terms. | | `SiteFooter.tsx:36-44` |
 | 404 | Shared `ErrorPage`, hard-coded bilingual, one link « Akinaza » | | `not-found.tsx:8-16` |
 | Locale | Unprefixed → cookie, else **French** unless the browser asks only for English (Loi 96). `/es/s/<slug>` for shops. | | `locale-negotiation.ts:3-20` |
@@ -282,7 +282,7 @@ Files: `apps/web/components/{ClientLayoutShell,AppBar,AppRail,LanguageSwitch,Sit
 | Header right 2 | Language — local wrapper around the shared `language-switch` | | `AppBar.tsx:68`; `LanguageSwitch.tsx:3`, `:41` |
 | Header right 3 | `ThemeToggle` | | `AppBar.tsx:69` |
 | Header right (member) | `MessagesButton`, `NotificationBell`, **`AccountMenu` at every width** (name, `@username` in the email slot, avatar): View profile / Voir le profil, Dashboard / Tableau de bord, Earnings / Revenus, Messages (again), Wallet / Portefeuille, The app / L'appli, Settings / Paramètres, Sign out / Se déconnecter | | `AppBar.tsx:72-96`; `app-nav.ts:24-33` |
-| Header right (visitor) | Upload / Téléverser (lg+) · Sign in / Se connecter → `/auth/login` · **Join / S'inscrire** (primary, when sign-up is open) | | `AppBar.tsx:101-115`; `en.json:300-303` |
+| Header right (visitor) | Upload / Téléverser (lg+) · Sign in / Se connecter → `/auth/login` (always ghost) · **Join / S'inscrire** → `/auth/register` (primary, only when sign-up is open). **No filled primary when sign-up is closed**, contrary to krizaka-ui#505 / orochia#403. | | `AppBar.tsx:101-115`; `en.json:300-303` |
 | GitHub | **none** | | `lib/seo.ts:24` (SEO only) |
 | Rail (bottom bar on phones) | Home / Accueil · Explore / Explorer · Auctions / Enchères · Challenges / Défis — foot: Create / Créer (same target as Upload) | | `app-nav.ts:9-14`; `AppRail.tsx:24-39` |
 | Footer | `SiteFooter family={false}` inside the rail body. Column « Orochia »: Explore, How it works / Comment ça marche, The app / L'appli, **Docs (EN) / Documentation (FR)**. Legal row: version → changelog, 18+ statement, Terms, Privacy, 2257, DMCA. **No Contact.** | | `SiteFooter.tsx:33-50`; `en.json:328` vs `fr.json:328` |
@@ -294,10 +294,20 @@ Files: `apps/web/components/{ClientLayoutShell,AppBar,AppRail,LanguageSwitch,Sit
 
 | Part | Items | Evidence |
 | :--- | :--- | :--- |
-| Shell | `AppShell`, brand « Orochia Control Plane »; **14 items** in 5 groups (Overview › Overview, Tasks; People; Content; Money; Platform) | `console/lib/nav.ts:34-77` |
+| Shell | `AppShell`, brand « Orochia Control Plane »; **15 destinations** in 5 groups. The first group is unlabelled: its Overview heading is not rendered. Destinations listed below. | `console/lib/nav.ts:34-77`; `ConsoleShell.tsx:102-115` |
 | Identity | Name in the **sidebar footer** (hidden on phones), no `AccountMenu`; « Open Consumer App » → falls back to **`http://localhost:3000`** | `ConsoleShell.tsx:85-99`, `:91` |
 | Header | BuildBadge, `ThemeToggle`, sign-out icon | `ConsoleShell.tsx:117-127` |
 | 404 | none under `app/console` | |
+
+Console destinations (EN only, relative to `admin.orochia.com`):
+
+| Rendered group | Label → target | Evidence |
+| :--- | :--- | :--- |
+| Unlabelled | Overview → `/` · Tasks → `/tasks` | `console/lib/nav.ts:35-39`; `ConsoleShell.tsx:104` |
+| People | 2257 Creator Verification → `/compliance` · Creator Registry → `/creators` · Accounts → `/users` | `console/lib/nav.ts:41-48` |
+| Content | Content Reports → `/moderation` · Catalogue → `/catalogue` | `console/lib/nav.ts:50-56` |
+| Money | Treasury & Payouts → `/treasury` · Auctions → `/auctions` | `console/lib/nav.ts:58-64` |
+| Platform | Operations → `/operations` · Storage & Abuse → `/storage` · Explorer on Orazaka → `/explorer` · App versions → `/app-versions` · Platform & Database → `/platform` · Audit log → `/audit` | `console/lib/nav.ts:66-77` |
 
 ### 1.12 Yasakia — product site (static landing), legal pages and app (`yasakia/apps/site`, `yasakia/apps/web`)
 
@@ -319,8 +329,9 @@ Files: `apps/site/components/SiteChrome.tsx`, `apps/site/lib/{nav,site}.ts`, `ap
 
 | Part | Items (EN / FR) | Evidence |
 | :--- | :--- | :--- |
-| Sidebar (`AppShell`) | Your space / Ton espace: Home / Accueil, Talk to your agent / Parle à ton agent, Photos, Your batch / Ton lot, Introductions / Présentations — admin group: Overview, People, Introductions, Rules, System | `console-nav.ts:18-44` |
-| Identity | Account / Compte + **« Signed in as {email} » / « Connecté·e : {email} » in the sidebar footer** (hidden on phones); no `AccountMenu`, no avatar | `ConsoleShell.tsx:73-85` |
+| Sidebar (`AppShell`) | Targets below are relative to `/app/<l>`. Your space / Ton espace: Home / Accueil → base path, Talk to your agent / Parle à ton agent → `/talk`, Photos / Photos → `/photos`, Your batch / Ton lot → `/batch`, Introductions / Présentations → `/intros`. Administration / Administration: Overview / Aperçu → `/admin`, People / Personnes → `/admin/users`, Introductions / Présentations → `/admin/intros`, Rules / Règles → `/admin/rules`, System / Système → `/admin/audit`. | `console-nav.ts:18-44`; `apps/web/messages/{en,fr}.json:229-264` (`console.shell`) |
+| Secondary admin navigation | People / Personnes: People / Personnes → `/app/<l>/admin/users`, Reports / Signalements → `/app/<l>/admin/reports`. System / Système: Audit log / Journal d’audit → `/app/<l>/admin/audit`, Health / Santé → `/app/<l>/admin/health`, Analytics / Statistiques → `/app/<l>/admin/analytics`. Rendered above the page only for entries with multiple pages. | `console-nav.ts:23-44`; `ConsoleShell.tsx:124-138`; `apps/web/messages/{en,fr}.json:229-264` |
+| Identity | Account / Compte → `/app/<l>/account` + **« Signed in as {email} » / « Connecté·e : {email} » in the sidebar footer** (hidden on phones); no `AccountMenu`, no avatar | `ConsoleShell.tsx:73-85`; `console-nav.ts:20` |
 | Header | Page title, DEV badge (admin host), `LanguageSwitch`, `ThemeToggle`, Sign out / Se déconnecter | `ConsoleShell.tsx:101-123` |
 | 404 | **none inside the app** (Next default). Public 404 (`PageState`, no chrome) links only Privacy, Terms, Delete your account, « Yasakia on krizaka.com », Contact us | `apps/web/app/[locale]/not-found.tsx:28-44` |
 | Locale | Three prefix schemes on one domain: landing EN bare / FR `/fr`; legal `/en/…`, `/fr/…`; app `/app/en/…`, `/app/fr/…` | `proxy.ts:77-85`; `apps/site/lib/site.ts:13-18` |
@@ -391,9 +402,9 @@ What each column checks, and against which rule:
 | ts.krizaka.com | ✗ « Krizaka TS » `en.json:3` | ✗ « Packages » → first package `:50-52` | n/a | ✓ `:79` | ✗ `:75` | ✗ lg+ `:73` | ✓ none | ✗ | n/a | ✓ | ✓ | ? | ✗ as java |
 | Motion lab | ✓ `App:73-78` | ✗ « Guides » = brand, hard-coded `:61-65` | n/a | n/a EN only `messages.ts:1` | ✗ `:90-100` | ✗ md+ `:89` | ✓ none | ✗ wrong id `:116` | n/a | ✓ | n/a | n/a | ✗ no 404 `router.ts:236-242` |
 | www.orazaka.com | ✓ `LandingNav:42-47` | ✓ Product ▾ · Docs `:50-61` | ✗ « Docs » col. / « Documentation » link `translations.landing:16,107` | ✓ `:67-69` | ✓ `:66` | ✗ lg+ `:65` | ✗ **Talk to us** `:73-75` | ✓ `LandingFooter:39-41` | n/a (no session in bar) | ✓ | ✓ docs only | ✓ docs `DocArticle:48-52` | ✗ no 404; `lang="en"` `layout:65` |
-| www.yomizaka.com | ✓ `SiteChrome:30-35` | ✗ Privacy in the bar (and footer) `nav.ts:10` | n/a | ✓ `:49-51` | ✓ `:46-48` | ✗ lg+ `:45` | ✓ `BarSession:70-76` | ✓ `SiteFooter:46` | ✓ bar; ✗ panel `BarSession:55` | ✓ `:19` | n/a | n/a | ✗ hard-coded, 1 way back `not-found:11-16` |
-| www.akinaza.com | ✓ `SiteChrome:36-41` | ✗ « Overview » = brand `:17` | n/a | ✓ `:57-59` | ✓ `:54-56` | ✗ lg+ `:53` | ✓ `BarSession:45` | ✓ `SiteFooter:44` | ✓ bar; ✗ panel `BarSession:39-41` | ✓ | n/a | n/a | ✗ hard-coded, 1 way back `not-found:8-16` |
-| www.orochia.com (shell) | ✓ `AppBar:51-53` | ✓ rail 4 + Create `app-nav:9-14` | ✗ Docs / Documentation `en/fr.json:328` | ✓ shared switch `AppBar:68` | ✓ `:69` | ✗ none | ✓ Join / Sign in `:101-115` | ✗ `SiteFooter:33-50` | ✓ `:72-96` | ✓ | ✗ dead ⌘K `:63` | ✓ docs `DocArticle:39-43` | ✓ in shell, search + 3 ways `not-found:27-56` |
+| www.yomizaka.com | ✓ `SiteChrome:30-35` | ✗ Privacy in the bar (and footer) `nav.ts:10` | n/a | ✓ `:49-51` | ✓ `:46-48` | ✗ lg+ `:45` | ✓ `BarSession:70-76` | ✓ `SiteFooter:46` | ✓ header at every width `BarSession:55-65` | ✓ `:19` | n/a | n/a | ✗ hard-coded, 1 way back `not-found:11-16` |
+| www.akinaza.com | ✓ `SiteChrome:36-41` | ✗ « Overview » = brand `:17` | n/a | ✓ `:57-59` | ✓ `:54-56` | ✗ lg+ `:53` | ✓ `BarSession:45` | ✓ `SiteFooter:44` | ✓ header at every width `BarSession:39-41` | ✓ | n/a | n/a | ✗ hard-coded, 1 way back `not-found:8-16` |
+| www.orochia.com (shell) | ✓ `AppBar:51-53` | ✓ rail 4 + Create `app-nav:9-14` | ✗ Docs / Documentation `en/fr.json:328` | ✓ shared switch `AppBar:68` | ✓ `:69` | ✗ none | ✗ Sign in stays ghost when sign-up is closed `:108-115`; orochia#403 / krizaka-ui#505 | ✗ `SiteFooter:33-50` | ✓ `:72-96` | ✓ | ✗ dead ⌘K `:63` | ✓ docs `DocArticle:39-43` | ✓ in shell, search + 3 ways `not-found:27-56` |
 | www.yasakia.com | ✓ `SiteChrome:31-36` | ✗ « Overview » = brand `nav.ts:26` | n/a | ✓ | ✓ | ✗ lg+ | ✗ **Talk to us** `en.json:20` | ✓ but labelled « Talk to us » `:102-110` | n/a | ✓ `:23-24` | n/a | n/a | ✗ no chrome, legal links only `not-found:28-44` |
 | www.yororis.com | ✓ `Bar:46-51` | ✗ dead anchors on changelog `:52-58` | n/a | ✓ `:65-67` | ✗ `:25-31` | ✗ lg+ `:61` | ✗ **Talk to us about Yororis**; no Sign in `:68-70` | ✗ mailto only `Footer:33-40` | n/a | ✓ | n/a | n/a | ✗ 404 not deployed `next.config:39-40` |
 | www.kachizaka.com | ✓ `SiteChrome:33-38` | ✗ « Overview » = brand `:15-18` | n/a | ✓ | ✓ | ✗ lg+ | ✗ **Talk to us** `:60-62` | ✓ `SiteFooter:37-43` | n/a | ✓ | n/a | n/a | ✗ hard-coded, no catch-all `not-found:8-17` |
@@ -404,20 +415,20 @@ What each column checks, and against which rule:
 | :--- | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
 | Orazaka app | ✓ `Header:31-38` | ✗ Settings in rail **and** menu, two targets `Header:58` | n/a | ✓ menu submenu | ✓ `:41` | n/a | ✓ new chat on home | n/a | ✓ `Header:48-67` | ✓ | ✗ palette lists sections only `AppCommandPalette:13-27` | ✗ none | ✗ Next default |
 | Orazaka console | ✓ `ConsoleNav:31-38` | ✓ 5 items `sections.ts:17-44` | n/a | ✗ none; EN/FR mixed | ✓ | n/a | n/a | n/a | ✗ **no identity** `:50-53` | ✓ | n/a | ✗ | ✗ plain text `proxy.ts:116-118` |
-| Yomizaka app | ✓ `ConsoleShell:107-108` | ✗ « Account » in rail and menu `:83`, `:51` | n/a | ✓ in menu `:52` | ✓ in menu `:55-57` | n/a | ✓ Check | n/a | ✓ `:39-65` | ✓ | ✓ rail Search | ✗ hand-rolled `PlaceView:44-52` | ✓ shared `ErrorPage` |
+| Yomizaka app | ✓ `ConsoleShell:107-108` | ✗ « Account » in rail and menu `:83`, `:51` | n/a | ✓ in menu `:52` | ✓ in menu `:55-57` | n/a | ✓ Check | n/a | ✓ `:39-65` | ✓ | ✓ rail Search | ✗ hand-rolled `PlaceView:44-52` | ✗ inherited bilingual `ErrorPage`, 1 link → `/` `app/[locale]/not-found.tsx:8-16` |
 | Akinaza app | ✓ `AppFrame:49-52` | ✗ Profile twice; client items both → `/app` `routes.ts:46-47` | n/a | ✓ in menu | ✓ in menu | n/a | n/a | n/a | ✓ `AppFrame:76` | ✓ | n/a | ✗ none | ✓ `notFound()` in shop layout |
-| Orochia console | ✓ `ConsoleShell:77-84` | ✗ 14 items; « Overview » in « Overview » `nav.ts:34-77` | n/a | n/a EN only | ✓ | n/a | n/a | n/a | ✗ sidebar footer only `:85-99` | ✓ | n/a | ✗ | ✗ none |
+| Orochia console | ✓ `ConsoleShell:77-84` | ✓ 15 destinations in 5 groups; first heading suppressed `nav.ts:34-77`, `ConsoleShell:104` | n/a | n/a EN only | ✓ | n/a | n/a | n/a | ✗ sidebar footer only `:85-99` | ✓ | n/a | ✗ | ✗ none |
 | Yasakia app | ✓ | ✓ 5 items `console-nav:18` | n/a | ✓ `ConsoleShell:101-123` | ✓ | n/a | n/a | n/a | ✗ sidebar footer `:73-85` | ✓ | n/a | ✗ | ✗ Next default |
 | Yororis app | ✓ | ✓ 3 + 2 `ConsoleShell:66-76` | n/a | ✗ hand-rolled `:84-87` | ✓ | n/a | n/a | n/a | ✗ sidebar footer `:54-64` | ✓ | n/a | ✗ | ✗ `(app)` only `not-found:18-24` |
 | Kachizaka app/console | ✓ | ✗ two items current `AppFrame:35,57` | n/a | ✓ `:71-75` | ✓ | n/a | n/a | n/a | ✗ sidebar footer `:47-53` | ✓ | n/a | ✗ | ✗ hard-coded |
 
-**Reading the matrix.** Three columns fail almost everywhere. **F**: GitHub disappears below `lg` on every site that has it, because `NavBar.Repo` is never put in the panel. **M**: the 404. **I**: the account in four of eight shells. **G** (« Talk to us ») fails on four products. The family switcher (**J**) is already gone everywhere, as decided on 2026-10-22.
+**Reading the matrix.** Three columns fail almost everywhere. **F**: GitHub disappears below the bar link's breakpoint (`lg` on most sites, `md` on Motion), because the panel lacks a repo link; the blog has a hand-made link with a different panel target. **M**: the 404. **I**: the account in five of eight shells. **G** fails on five products: four show « Talk to us »; Orochia has no filled primary when sign-up is closed. The family switcher (**J**) is already gone everywhere, as decided on 2026-10-22.
 
 ---
 
 ## 3 · Findings, ranked by user impact
 
-The tally: **5 high, 12 medium, 10 low**. Each finding names who it hurts: **V** is a first-time visitor, **O** a signed-in owner or member, **D** a developer, whether reading the docs or coding the surface.
+The tally: **4 high, 12 medium, 10 low**. Each finding names who it hurts: **V** is a first-time visitor, **O** a signed-in owner or member, **D** a developer, whether reading the docs or coding the surface.
 
 ### High
 
@@ -437,7 +448,7 @@ The tally: **5 high, 12 medium, 10 low**. Each finding names who it hurts: **V**
   - Oussama's capture of www.orazaka.com shows the button live.
 - *Recommendation.* Replace the hand-written buttons with **`ProductBarActions`** (`nav-bar/product-actions.tsx:47-61`) in both `placement="bar"` and `placement="panel"`. Contact stays a footer link. The adoption is already filed (krizaka-ui#505 → orazaka-web-client#265, yasakia#174, kachizaka#109, yororis#128); do not file duplicates. In krizaka-ui, fix `meta.ts:64` and `navigation.mdx:50` so no new site copies the old pattern.
 
-**H2 · Four of eight shells hide who is signed in on a phone, and two consoles never show it.**
+**H2 · Five of eight shells lack the account menu in the header on a phone.**
 - *Problem.* The 2026-10-23 rule: "the account menu sits in the header, at every width, in every product" (krizaka-ui#551). Three products ignore it:
   - Yasakia, Yororis and Kachizaka put « Signed in as {email} » in the `AppShell` sidebar footer. On phones the sidebar is `hidden … md:flex` (`app-shell.tsx:25`), so the identity sits inside a closed drawer.
   - The Orochia console does the same (`ConsoleShell.tsx:85-99`).
@@ -497,12 +508,6 @@ The tally: **5 high, 12 medium, 10 low**. Each finding names who it hurts: **V**
   - Yororis: `ProductBarActions` (H1) gives it « Sign in ».
   - Orazaka: add Automations to `APP_SECTIONS`, or remove the route — **TO VALIDATE (Oussama)**.
 
-**H5 · On phones, a signed-in member cannot sign out or reach settings from the product site's panel.**
-- *Problem.* On Yomizaka and Akinaza, a signed-in visitor's phone panel shows only « Open the app ». The `AccountMenu` (Settings, Sign out) renders only for `placement === "bar"`.
-- *Hurts.* O on a phone. The account menu does stay in the bar (✓ for #551), but the panel then contradicts it.
-- *Evidence.* `yomizaka:apps/web/components/BarSession.tsx:55-65`; `akinaza:apps/web/components/account/BarSession.tsx:36-41`.
-- *Recommendation.* Ship **`NavBar.Session`** (krizaka-ui#551), so one component renders the signed-out `ProductBarActions` and the signed-in « Open the app » plus `AccountMenu`, the same way in the bar and the panel. Both products then delete their `BarSession`.
-
 ### Medium
 
 **M1 · The shared contract contradicts itself, so agents copy stale rules.**
@@ -552,10 +557,10 @@ The tally: **5 high, 12 medium, 10 low**. Each finding names who it hurts: **V**
 - *Hurts.* V, D.
 - *Recommendation.* « Docs » in the bar and footer, in both languages. « Documentation » only in running text and page titles.
 
-**M5 · GitHub disappears below `lg` on every site, because `NavBar.Repo` is never in the panel.**
+**M5 · GitHub is not reachable at every width.**
 - *Evidence.* krizaka-com `MobilePanel.tsx:31-66`; ui `SiteBar.tsx:79`; java `TopBar.tsx:78`; ts `TopBar.tsx:73`; motion `App.tsx:89`; Orazaka `LandingNav.tsx:65`; Yomizaka `SiteChrome.tsx:45`; Akinaza `:53`; Yasakia, Yororis and Kachizaka likewise. The blog's panel goes to the org instead of the repo (`TopBar.tsx:102`). Orochia has no repo link at all.
 - *Hurts.* D on a phone or a narrow window.
-- *Recommendation.* `NavBar.Mobile` should render `NavBar.Repo` as a row itself (a `@krizaka/ui` change, so all surfaces gain it in one release), or document `<NavBar.Repo placement="panel">`.
+- *Recommendation.* `NavBar.Mobile` should render `NavBar.Repo` as a row itself, or document `<NavBar.Repo placement="panel">`. Align the bar link's visibility with the panel breakpoint: the shared toggle and panel are `md:hidden` (`krizaka-ui:packages/ui/src/nav-bar/nav-bar.tsx:57-59`), so a bar repo hidden until `lg` still leaves a gap from `md` to `lg`. Show the bar repo from `md`, or keep the panel available until `lg`. Every caller must adopt the same boundary; verify phone, intermediate and desktop widths.
 
 **M6 · Theme toggles are hand-rolled on the company and tool sites.**
 - *Evidence.* krizaka-com `TopNavBar.tsx:86-96`; blog `TopBar.tsx:83-85`; ui `SiteBar.tsx:81-83`; java `TopBar.tsx:80-82`; ts `TopBar.tsx:75`; motion `App.tsx:90-100`; Yororis `Bar.tsx:25-31`. All the products except Yororis use `ThemeToggle`.
@@ -633,7 +638,7 @@ The tally: **5 high, 12 medium, 10 low**. Each finding names who it hurts: **V**
     - absent on ui, java, ts, blog and the Yasakia landing;
     - Terms absent on Akinaza and Yororis.
 - *Hurts.* V.
-- *Recommendation.* Add a `contact` prop (or a default « Contact » link for non-`krizaka` sites) and a `legal` default to `SiteFooter`. The blog then declares `current="blog"`.
+- *Recommendation.* Add a `contact` prop (or a default « Contact » link for non-`krizaka` sites) and a `legal` default to `SiteFooter`. First register `blog` in `SiteId`, `sites` and the EN/FR descriptions (`krizaka-ui:packages/ui/src/sites/sites.ts:9`, `:46-61`, `:120-133`, `:146-159`); `siteById` throws for an unknown id (`:67-70`). Only after that release can the blog declare `current="blog"`.
 
 ### Low
 
@@ -694,7 +699,7 @@ The rule every surface follows. It restates what `@krizaka/ui` already decided (
 - **Left:** the site's mark and full name, which links home. No family switcher (`nav-bar.tsx:483`). A version badge sits beside the brand on tool sites only (`NavBar.Badge`).
 - **Centre:** only this site's own sections, never a link to another site. At most 5 items in all (`meta.ts:24`; `dev-preview.md:38`). A menu of ≤3 links is inlined automatically (`meta.ts:26`). Never a link that repeats the brand (« Overview » → `/`).
 - **Right, in this order:** search, where there is content to search · `NavBar.Repo` · `ThemeToggle` · `NavBar.Language` · the site's primary action, if it has one.
-- **Phone panel:** the same groups in the same order (`NavBar.MobileGroup`), then the GitHub row, then Preferences (theme, language), then the primary or the session (`navigation.mdx:22`).
+- **Phone panel:** the same groups in the same order (`NavBar.MobileGroup`), then the GitHub row, then Preferences (theme, language), then the primary or the session (`navigation.mdx:22`). Signed in: « Open the app »; `AccountMenu` stays in the header at every width. A second account menu in the panel is optional, not required by #551. Align the repo's bar/panel visibility at one breakpoint (`md` today), with no gap at intermediate widths.
 - **Footer:** `SiteFooter`. The site's own column holds only what the bar does not. Then the « A Krizaka … » signature, which is the way back to krizaka.com. Always a **Contact** link → `www.krizaka.com/contact?topic=<site>`. Always Privacy and Terms when the pages exist. The version links the changelog.
 - **404:** `ErrorPage` inside the bar and footer, in the visitor's language, with Home, the main section, search if there is one, and Contact.
 
@@ -737,9 +742,9 @@ Rail / Sidebar:  3–7 destinations, no duplicates        (bottom bar or drawer 
 
 ### 4.4 What belongs in `@krizaka/ui`
 
-1. **`NavBar.Session`** (krizaka-ui#551). Signed out it renders `ProductBarActions`; signed in, « Open the app » plus `AccountMenu`. It works in both `placement="bar"` and `placement="panel"`. Replaces Yomizaka's and Akinaza's `BarSession`, and fixes H5.
-2. **`NavBar.Mobile` renders the repo row.** When `NavBar.Repo` is present, the panel shows it as a row. Fixes M5 on every site at once.
-3. **`SiteFooter` contact and legal defaults.** A `contact` prop (topic, source) that every non-`krizaka` site renders as « Contact », plus a `legal` slot convention (Privacy, Terms). Fixes M12, and lets the blog declare `current="blog"`.
+1. **`NavBar.Session`** (krizaka-ui#551). Signed out it renders `ProductBarActions`; signed in, « Open the app » plus `AccountMenu` in the bar, and « Open the app » in the panel. Preserve the header account menu at every width; duplicating it in the panel is optional. Consolidates Yomizaka's and Akinaza's already-compliant `BarSession` implementations.
+2. **`NavBar.Mobile` renders the repo row.** When `NavBar.Repo` is present, the panel shows it as a row. Align caller breakpoints: with the current `md:hidden` panel, the bar repo must be visible from `md`, not `lg`. Alternatively change the panel and toggle boundary together. Fixes M5 only after each caller adopts the aligned boundary; test below `md`, from `md` to `lg`, and at/above `lg`.
+3. **`SiteFooter` contact and legal defaults, and blog registration.** A `contact` prop (topic, source) that every non-`krizaka` site renders as « Contact », plus a `legal` slot convention (Privacy, Terms). Add `blog` to `SiteId`, `sites` (URL `https://blog.krizaka.com`) and both `familyLabels` descriptions before releasing support for `current="blog"`; `siteById("blog")` must resolve. Fixes M12 and unblocks the blog migration.
 4. **`AppShell.Header` account slot.** A documented `account` slot for `AccountMenu`. Rewrite `app-shell/meta.ts:15` and `rail-nav/meta.ts:5` ("account in the header, at every width"). Fixes H2.
 5. **`ErrorPage` localised defaults.** EN/FR default title, body and ways-back labels, plus a `global-not-found` recipe for static exports. Fixes H3.
 6. **`Breadcrumb`.** A shared component for nested app and docs pages (none is exported today). Replaces `PlaceView.tsx:44-52`.
@@ -759,7 +764,7 @@ Rail / Sidebar:  3–7 destinations, no duplicates        (bottom bar or drawer 
 | orazaka-web-client | `ProductBarActions` (#265); a 404; `<html lang>`; `LegalPage` → site bar; app: Settings once, `/automation`; console: identity, FR/EN, login link |
 | yomizaka | `NavBar.Session`; Privacy out of the bar; one name for Account/Settings; localised 404 |
 | akinaza | Link `/forgot-password`; sign-up copy from `signupOpen`; `NavBar.MobileGroup`; « Overview » out; shell duplicates; page titles |
-| orochia | Footer Contact; repo link; ⌘K handler or remove the hint; « Docs » in FR; console identity in the header + 404 + no localhost |
+| orochia | Primary Sign in when sign-up is closed (#403); footer Contact; repo link; ⌘K handler or remove the hint; « Docs » in FR; console identity in the header + 404 + no localhost |
 | yasakia | `ProductBarActions` (#174); footer legal links + `env`; legal pages on the site bar; AccountMenu in the app header; app 404 |
 | yororis | `ProductBarActions` with Sign in (#128); anchors only on the home; footer Contact, Terms + `env`; `ThemeToggle`; AccountMenu; shared language switch; deployed 404 |
 | kachizaka | `ProductBarActions` (#109); AccountMenu in the header; one current item; page titles; DEV badge from env; catch-all 404 |
@@ -770,13 +775,15 @@ Rail / Sidebar:  3–7 destinations, no duplicates        (bottom bar or drawer 
 
 The CTO files these; this audit opens none. Each one cites this document (`krizaka/.github:docs/audits/2026-10-ux-navigation.md`). Where an adoption issue for krizaka-ui#505 already exists, the new issue **adds to it or references it**, never duplicates it. **File the krizaka-ui issue first**: items 2, 3, 4 and 5 of §4.4 unblock the others.
 
+**Acceptance shared by all repo-link adoptions below:** the repo is reachable by keyboard below `md`, throughout `md`–`lg`, and at/above `lg`, including immediately either side of each breakpoint. With the current `md:hidden` panel, replace caller `hidden lg:inline-flex` repo visibility with `hidden md:inline-flex` (or align both panel and toggle to the chosen boundary). A panel row alone is not sufficient.
+
 ### 5.1 krizaka/krizaka-ui — navigation contract: Session, panel repo, footer contact, shell account, 404, docs
 
 - **Scope:** `packages/ui/src/{nav-bar,site-footer,app-shell,rail-nav,error-page,sites,theme}`, `apps/site`.
 - **Changes:**
-  1. Ship `NavBar.Session` (#551) with `placement` bar/panel.
-  2. `NavBar.Mobile` renders `NavBar.Repo` as a row.
-  3. `SiteFooter`: a `contact` prop (« Contact » → `www.krizaka.com/contact?topic=<id>&source=<id>-footer`) rendered for every `current !== "krizaka"`, plus a `legal` convention.
+  1. Ship `NavBar.Session` (#551) with `placement` bar/panel, preserving `AccountMenu` in the header at every width. A second account menu in the panel is optional.
+  2. `NavBar.Mobile` renders `NavBar.Repo` as a row. Align the bar repo, panel and toggle breakpoints and document the caller migration (`lg` → `md` for bar visibility with today's panel).
+  3. `SiteFooter`: a `contact` prop (« Contact » → `www.krizaka.com/contact?topic=<id>&source=<id>-footer`) rendered for every `current !== "krizaka"`, plus a `legal` convention. Register `blog` in `SiteId`, `sites` (URL `https://blog.krizaka.com`) and `familyLabels.en/fr.descriptions` before the blog adopts `current="blog"`; see `sites.ts:9`, `:46-61`, `:67-70`, `:120-159`.
   4. `AppShell.Header`: an `account` slot. Rewrite `app-shell/meta.ts:15` and `rail-nav/meta.ts:5` to "AccountMenu in the header, at every width".
   5. `ErrorPage`: EN/FR default labels and a static `global-not-found` recipe.
   6. Add a `Breadcrumb` component.
@@ -799,6 +806,9 @@ The CTO files these; this audit opens none. Each one cites this document (`kriza
 - **Acceptance:**
   - No `NavBar.Family` or « Talk to us » left in any `meta.ts` or `.mdx`.
   - Storybook or docs examples for `NavBar.Session`, the panel repo row, the footer `contact` prop and the header account slot.
+  - Session examples keep the account accessible in the header at phone and desktop widths without requiring a panel duplicate.
+  - Repo-link examples and the ui site meet the shared breakpoint acceptance above, including `md`–`lg`.
+  - `siteById("blog")` resolves, both locale descriptions exist, and `SiteFooter current="blog"` renders in EN/FR without the company-only family columns.
   - `/fr/does-not-exist` on ui.krizaka.com shows a French 404 with the bar and footer.
   - The changelog entry lists each change.
 
@@ -823,7 +833,7 @@ The CTO files these; this audit opens none. Each one cites this document (`kriza
   2. `NavBar.Language` replaces the plain link (`:86-90`).
   3. `ThemeToggle` replaces `:83-85`.
   4. `closeLabel` uses a « Close » key (`:95`), and the brand gets an aria-label (`:41`).
-  5. The footer declares `current="blog"` (or the id krizaka-ui assigns), with Privacy, Terms and Contact, and stops listing the whole family.
+  5. After adopting the krizaka-ui release that registers `blog` (§5.1), the footer declares `current="blog"`, with Privacy, Terms and Contact, and stops listing the whole family.
   6. A 404 with TopBar and footer, following the user's theme, in the page's language.
   7. Link `/series` from the bar or footer.
   8. Fix the `TopBar.tsx:4-5` and `AGENTS.md:16` comments (no family switcher).
@@ -901,13 +911,13 @@ The CTO files these; this audit opens none. Each one cites this document (`kriza
 
 - **Scope:** `apps/web/components/{SiteChrome,BarSession,SiteFooter}.tsx`, `apps/web/lib/nav.ts`, `apps/web/components/console/{ConsoleShell,PlaceView}.tsx`, `apps/web/app/[locale]/not-found.tsx`, `messages/*.json`.
 - **Changes:**
-  1. Adopt `NavBar.Session`, so the panel shows the account and Sign out when signed in (`BarSession.tsx:55`).
+  1. Adopt `NavBar.Session` to consolidate `BarSession`, preserving the account and Sign out in the header at every width (`BarSession.tsx:55-65`); no second account menu is required in the panel. Add the repo row and align bar visibility from `lg` to the panel's `md` boundary (`SiteChrome.tsx:45`).
   2. Privacy leaves the bar; it stays in the footer (`nav.ts:10`).
   3. Rename « A real run » / « Une vraie vérification » to one meaning in both languages (**TO VALIDATE** the wording).
   4. One name for `/app/settings`: the rail's « Account » is removed (the menu holds it), and the site menu says the same word.
   5. A localised 404 from the catalogue, with 2–3 ways back.
   6. The shared `Breadcrumb` replaces `PlaceView.tsx:44-52` once it ships.
-- **Acceptance:** at 375 px a signed-in visitor can sign out from the site panel. There is no Privacy in the bar. `/fr/nope` is French only.
+- **Acceptance:** at 375 px a signed-in visitor can reach Settings and Sign out through the header account menu, including with the non-modal panel open. The repo meets the shared breakpoint acceptance. There is no Privacy in the bar. Public and app 404s are localised with 2–3 ways back; `/fr/nope` is French only.
 
 ### 5.9 krizaka/akinaza — complements akinaza#255
 
@@ -917,7 +927,7 @@ The CTO files these; this audit opens none. Each one cites this document (`kriza
   2. The sign-in page reads `signupOpen` (`sign-in/page.tsx:41-48`).
   3. Remove « Overview » from Product ▾ (`SiteChrome.tsx:17`).
   4. `NavBar.MobileGroup` replaces `:63-70`.
-  5. Adopt `NavBar.Session`.
+  5. Adopt `NavBar.Session`, preserving the header account menu at every width; a panel duplicate is optional. Add the repo row and align bar visibility with the panel breakpoint (`SiteChrome.tsx:53`).
   6. In the shell:
      - Profile appears once (`routes.ts:46`);
      - the client gets no « My shop page » → `/app` (`:47`);
@@ -925,7 +935,7 @@ The CTO files these; this audit opens none. Each one cites this document (`kriza
   7. Contact labels: « Contact » in the footer; the hero and founder links read « Contact » or are removed — **TO VALIDATE** the wording.
   8. A localised 404.
   9. Fix the `AkinazaAccountMenu.tsx:21-22` comment.
-- **Acceptance:** a locked-out owner reaches `/forgot-password` in one click from sign-in. No two sidebar items share a target. The FR and EN contact labels match.
+- **Acceptance:** a locked-out owner reaches `/forgot-password` in one click from sign-in. No two sidebar items share a target. The FR and EN contact labels match. At 375 px the header account menu still provides Settings and Sign out, including with the panel open. The repo meets the shared breakpoint acceptance.
 
 ### 5.10 krizaka/orochia — complements orochia#403
 
@@ -938,10 +948,10 @@ The CTO files these; this audit opens none. Each one cites this document (`kriza
   5. Console:
      - `AccountMenu` in the header with the operator's identity (`ConsoleShell.tsx:85-99`);
      - « Open Consumer App » uses the public URL, never `localhost` (`:91`);
-     - a console 404;
-     - rename the « Overview » item inside the « Overview » group.
+     - a console 404.
   6. **TO VALIDATE (Oussama):** « Join » vs « Try Orochia ».
-- **Acceptance:** the footer shows Contact. The FR footer says « Docs ». ⌘K opens search. The console shows the operator's email at 375 px.
+  7. Reference #403 for the outstanding visitor primary: when sign-up is closed, Sign in must be primary rather than ghost (`AppBar.tsx:108-115`); do not duplicate the adoption issue.
+- **Acceptance:** the footer shows Contact. The FR footer says « Docs ». ⌘K opens search. The console shows the operator's email at 375 px. Signed out with sign-up closed, Sign in is the filled primary; with sign-up open, Join/Try is primary and Sign in is secondary (#403).
 
 ### 5.11 krizaka/yasakia — complements yasakia#174
 
