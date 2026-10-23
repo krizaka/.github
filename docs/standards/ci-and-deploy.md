@@ -56,6 +56,96 @@ concurrency:
 
 `paths` filters are replaced by the gate (a path filter on a required check leaves it pending forever; the gate reports « skipped » instead).
 
+## The build pack — `krizaka-ci.yml` (v2, slice 1)
+
+One line for a repository; the pack detects the stack and runs the right pipeline:
+
+```yaml
+jobs:
+  ci:
+    uses: krizaka/.github/.github/workflows/krizaka-ci.yml@v2
+    secrets: inherit
+```
+
+(`v2` is cut after review. Until then, and as the supply-chain standard asks afterwards, pin the SHA: `@<sha> # v2.0.0`.)
+Jobs: `detect` (the stack, a few seconds) → `changes` (the same `changes.yml` gate, fail-open, with the stack's paths) →
+`verify` → `CI gate` (always reports; red when no stack is found or `.krizaka/ci.json` is invalid). The required check is
+`ci / CI gate`. Inputs: `working-directory` (default `.`), `timeout-minutes` (default: the stack's).
+
+### Detection order (`actions/detect`)
+
+The first match wins, in the caller's checkout (`working-directory`):
+
+| # | Stack | When | Pipeline | Timeout |
+| --: | :--- | :--- | :--- | --: |
+| 1 | `workspace` | The repository's name is a member of krizaka/orazaka's `orazaka.workspace.json` (read from main; unreadable is an error, never a guess). | Today's `component.yml`: the workspace cloned beside the component, `node scripts/workspace.mjs ci <component>`, then the OpenRewrite dry run only if the pom has the plugin. Nothing is published, no image is built. | 60 |
+| 2 | `maven` | `pom.xml` | Java 21 (Temurin, `~/.m2` cached), Spotless check and OpenRewrite dry run (when the pom names them or inherits `krizaka-parent`/`orazaka-*`; `"rewrite": false` opts out), `mvnw`/`mvn verify`. | 45 |
+| 3 | `blog` | `package.json` **and** MDX under `content/` | The Node pipeline. | 25 |
+| 4 | `node` | `pnpm-workspace.yaml` or `package.json` | `node-ci.yml`'s: npm or pnpm (from the lockfile), lint, quality scripts that exist (depcruise, ast-grep, ratchets), typecheck, test, build, a container image when there is a `Dockerfile`, the after-build script; jscpd when `dup-ratchet.json` exists. | 25 |
+| 5 | `python` | `pyproject.toml` | Python (uv when `uv.lock` exists, else pip), ruff when configured, `pytest -n auto` when there are tests. | 20 |
+| 6 | `iac` | `*.tf` | OpenTofu `fmt -check`, `init -backend=false`, `validate`, `test`. **Never `apply`, never `plan` against real state, never a deploy**: a `run` block without `command = plan` makes `tofu test` refuse to start. | 15 |
+
+The blog is checked **before** plain Node, not last as listed in the epic: every Krizaka blog is a Next.js app, so an
+MDX `content/` folder only tells a blog apart from another Node repository; MDX alone is "no stack detected".
+
+The steps are composite actions in [`actions/`](../../actions), so `node-ci.yml` and the pack run the same code:
+`setup` (toolchains, caches, `.krizaka/ci.json` env, PostgreSQL, install), `quality`, `test`, `build` (the build script,
+then a buildx image when there is a Dockerfile, layers cached, written on main only), `after-build` (Playwright browsers,
+the repository's script, `CI_IMAGE` set when an image was built) and `agent-setup` (below).
+
+### `.krizaka/ci.json` — values, never steps
+
+Optional, in the project folder. Unknown keys are an error ("it never lists steps"); keys starting with `$` are comments.
+
+```json
+{
+  "$comment": "Read by krizaka-ci.yml (docs/standards/ci-and-deploy.md).",
+  "postgres": "pgvector/pgvector:pg17",
+  "postgresName": "akinaza",
+  "env": { "NEXT_TELEMETRY_DISABLED": "1", "AUTH_URL": "http://localhost:3000" },
+  "ignore": "^docs/",
+  "afterBuild": "scripts/ci-after-build.sh",
+  "playwright": "chromium"
+}
+```
+
+Keys: `workingDirectory`, `postgres`, `postgresName`, `env`, `ignore`, `relevant`, `afterBuild`, `playwright`, `rewrite`,
+`nodeVersion`, `javaVersion`, `pythonVersion`, `timeoutMinutes`. `ignore`/`relevant` replace the stack's defaults of the
+`changes` gate. An Orazaka component cannot declare `afterBuild` (component.yml has none).
+
+### `agent-setup` — a coding agent's sandbox
+
+`uses: krizaka/.github/actions/agent-setup@<sha>` in a repository's `copilot-setup-steps.yml`, after the checkout. It
+generalises orazaka's `copilot-workspace`: for a workspace component, Java 21 + Node 22, the workspace cloned,
+`node scripts/workspace.mjs upstreams <component>`, and the workspace's manifest and packs linked beside the checkout; for
+the other stacks, the toolchain and the dependencies.
+
+### Migrating a caller
+
+1. Replace the `jobs:` of `ci.yml` with the three lines above (keep the triggers, `concurrency`, `permissions: contents: read`).
+2. Move what the old inputs said into `.krizaka/ci.json` (PostgreSQL, env, after-build, ignore); drop what the pack detects
+   (package manager, scripts, Java version).
+3. Required checks become `ci / CI gate` (or keep a shim job until protection is switched).
+4. `node-ci.yml` callers do not have to move: it keeps its inputs, jobs and check names and runs the same actions.
+
+The pack's own action pins are `@<sha> # main`: after the merge, `node scripts/pin-supply-chain.mjs --refresh` moves them
+to main's head, then `v2` is tagged.
+
+### The registry — `repos.json`
+
+One row per repository: `name`, `owner` (product or `krizaka`), `role` (from [repositories.md](repositories.md)), `team`
+(the owner until GitHub teams exist — to validate), `kind` (`maven`, `npm`, `app`, `site`, `iac`, `python`, `rust`, `none`),
+`deploy` (its apps in `deploy/apps.json`), `archived`, `visibility`, `status` (and `renameTo` / `foldInto`). Generated by
+`node scripts/gen-repos.mjs` from the GitHub API, the standard and `deploy/apps.json`, never by hand; the weekly
+**Repository registry** workflow runs `--check` and reports drift in its summary (read-only). Repositories the token cannot
+see (private) keep what the standard says.
+
+### Renames — `scripts/rename-repo.mjs`
+
+`GITHUB_TOKEN=… node scripts/rename-repo.mjs <from> <to> --dry-run` checks `<from>` in the registry and `<to>` against the
+naming checker, then lists every file of the org that names `<from>` (code search, whole-name matches only) and what code
+search cannot see (deploy targets, settings). It changes nothing. The real mode is not written yet (TODO in the script).
+
 ## `krizaka-deploy` — `deploy/` (CLI) and `actions/deploy` (the same, as a step)
 
 Located **here** and not in a new repository: the CI workflows and the deploy tool share one release tag and one review path; this repository
