@@ -95,8 +95,12 @@ product) are closed; their issues live here.
 - Every repository without a `FUNDING.yml` of its own uses the organisation default
   ([`.github/FUNDING.yml`](https://github.com/krizaka/.github/blob/main/.github/FUNDING.yml)): GitHub Sponsors and the
   contact form (topic *partnership*, source *sponsor*).
-- GitHub Sponsors for the organisation — enrolment, profile and proposed tiers: [.github#27](https://github.com/krizaka/.github/issues/27).
-  Until it is live, the public README promises nothing beyond "write to us".
+- GitHub Sponsors for the organisation — enrolment, profile and tiers: [.github#27](https://github.com/krizaka/.github/issues/27).
+  The public README carries the [Sponsors section](README.md#sponsors): the three tiers, what each one promises, and the
+  contact link used until the profile opens.
+  - When GitHub accepts the organisation: point the section's badge at `https://github.com/sponsors/krizaka`, then tick
+    **Sponsorships** (Settings → General → Features) on orazaka, orochia, krizaka-ui, krizaka-platform-kit,
+    krizaka-build, krizaka-com and orochia-mobile — that is what makes the Sponsor button appear.
 - Security tooling still to roll out (private reporting everywhere, secret scanning, CodeQL, OpenSSF Scorecard):
   [.github#28](https://github.com/krizaka/.github/issues/28).
 

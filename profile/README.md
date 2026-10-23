@@ -78,6 +78,25 @@ Product and shared repository names follow [one standard](https://github.com/kri
 [![Public repositories](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.github.com%2Forgs%2Fkrizaka&query=%24.public_repos&label=public%20repositories&color=3e76a8&logo=github)](https://github.com/orgs/krizaka/repositories)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/krizaka/.github/badge)](https://scorecard.dev/viewer/?uri=github.com/krizaka/.github)
 
+## Sponsors
+
+Krizaka builds in the open, under Apache-2.0: Java building blocks on Maven Central (`com.krizaka`), the `@krizaka` UI
+packages on npm, and the products built on them. Sponsorship pays for the CI, the hosting of the demos and the time to
+keep the blocks maintained — N and N-1 supported, deprecations with codemods.
+
+The organisation's **GitHub Sponsors** profile is being set up ([#27](https://github.com/krizaka/.github/issues/27)).
+Until it opens, sponsorship is arranged through the contact form (topic *partnership*, source *sponsor*):
+
+[![Sponsor Krizaka](https://img.shields.io/badge/Sponsor-Krizaka-ea4aaa?logo=githubsponsors&logoColor=white)](https://www.krizaka.com/en/contact?topic=partnership&source=sponsor)
+
+| Tier | Monthly | What you get |
+| :--- | ---: | :--- |
+| **Supporter** | $5 | Our thanks, the sponsor badge on GitHub, and a mention in the release notes of the month. |
+| **Backer** | $25 | Everything above, plus your name (or handle) in this section, and an `area:` label of your choice prioritised in the monthly triage of good first issues. |
+| **Partner** (companies) | $250 | Everything above, plus your logo in this section, answers within 2 business days on the products' GitHub Discussions, and a 30-minute call per quarter on the roadmap. No SLA, no private fork — paid support stays a separate contract. |
+
+Monthly, in USD. One-time contributions are welcome, from $5.
+
 ## Get involved
 
 [Contributing](https://github.com/krizaka/.github/blob/main/CONTRIBUTING.md) · [Code of conduct](https://github.com/krizaka/.github/blob/main/CODE_OF_CONDUCT.md) · [Report a vulnerability, privately](https://github.com/krizaka/.github/blob/main/SECURITY.md) · [Support](https://github.com/krizaka/.github/blob/main/SUPPORT.md)
