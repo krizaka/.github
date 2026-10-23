@@ -71,6 +71,10 @@ What the products are built on, published for anyone to use.
 | **[Krizaka TS](https://github.com/krizaka/krizaka-ts#readme)**: TypeScript backend building blocks on npm, accounts and roles, settings, API keys, webhooks, organizing, the weekly brief | [![@krizaka/auth](https://img.shields.io/npm/v/@krizaka/auth?label=%40krizaka%2Fauth&color=3e76a8&logo=npm)](https://www.npmjs.com/package/@krizaka/auth) [![@krizaka/brief](https://img.shields.io/npm/v/@krizaka/brief?label=%40krizaka%2Fbrief&color=3e76a8&logo=npm)](https://www.npmjs.com/package/@krizaka/brief) |
 | **[Krizaka Motion](https://krizaka.github.io/krizaka-motion/)**: the motion library of Krizaka UI, its configurable primitives and the live lab | [![@krizaka/ui/motion](https://img.shields.io/npm/v/@krizaka/ui?label=%40krizaka%2Fui%2Fmotion&color=3e76a8&logo=npm)](https://www.npmjs.com/package/@krizaka/ui) |
 
+## Naming
+
+Product and shared repository names follow [one standard](https://github.com/krizaka/.github/blob/main/docs/standards/repositories.md).
+
 [![Public repositories](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.github.com%2Forgs%2Fkrizaka&query=%24.public_repos&label=public%20repositories&color=3e76a8&logo=github)](https://github.com/orgs/krizaka/repositories)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/krizaka/.github/badge)](https://scorecard.dev/viewer/?uri=github.com/krizaka/.github)
 

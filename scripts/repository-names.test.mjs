@@ -34,6 +34,7 @@ test("legacy and unknown roles are reported, but the org profile repository is e
     "krizaka-platform-kit",
     "orazaka-edge",
     "orazaka-ai-engine",
+    "orazaka-studio",
     "orazaka_uppercase",
     "template-app",
   ]) {

@@ -1,0 +1,45 @@
+# Read-only weekly report of repositories outside docs/standards/repositories.md.
+name: Repository names
+
+on:
+  schedule:
+    - cron: "31 7 * * 1"
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "docs/standards/repositories.md"
+      - "profile/README.md"
+      - "scripts/repository-names.mjs"
+      - "scripts/repository-names.test.mjs"
+      - ".github/workflows/repository-names.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - run: node --test scripts/repository-names.test.mjs
+
+  report:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: List repositories outside the standard
+        run: node scripts/repository-names.mjs | tee -a "$GITHUB_STEP_SUMMARY"
