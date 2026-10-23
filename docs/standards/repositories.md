@@ -63,7 +63,7 @@ shape fits, but whose role needs discussion.
 | `orazaka-packs` | Packs | Complies |
 | `orazaka-studio` | The Studio service (with its API and client modules) | **Rename → `orazaka-studio-service`** |
 | `orazaka-ui-kit` | Orazaka's UI packages | **Fold into `krizaka-ui`**, then archive |
-| `orazaka-web-admin` | Admin console | **Rename → `orazaka-admin`** |
+| `orazaka-web-admin` | Former admin console, merged into `orazaka-web-client` (served on admin.orazaka.com by host routing) | **Archive** |
 | `orazaka-web-client` | Web app | **Rename → `orazaka-web`** |
 | `orazaka-worker-media` | Worker | Complies |
 | `orochia` | Main product repository | Complies |
@@ -101,12 +101,13 @@ name for git and the API, but everything that **names** the repository is update
 | :--- | :--- | :--- | :--- |
 | 1 | `krizaka-tauri-kit` | `krizaka-desktop` | low: no deployment |
 | 2 | `orazaka-mobile-client` | `orazaka-mobile` | low |
-| 3 | `orazaka-web-admin` | `orazaka-admin` | medium: a DigitalOcean app |
-| 4 | `krizaka-platform-kit` | `krizaka-platform` | medium: in the workspace, Maven artifacts unchanged |
-| 5 | `orazaka-ai-engine` | `orazaka-engine` | medium: in the workspace, upstream of most services |
-| 6 | `orazaka-edge` | `orazaka-edge-service` | medium: in the workspace, deployed |
-| 7 | `orazaka-studio` | `orazaka-studio-service` | medium: in the workspace, deployed, many links |
-| 8 | `orazaka-web-client` | `orazaka-web` | high: the public site's deployment builds from it |
+| 3 | `krizaka-platform-kit` | `krizaka-platform` | medium: in the workspace, Maven artifacts unchanged |
+| 4 | `orazaka-ai-engine` | `orazaka-engine` | medium: in the workspace, upstream of most services |
+| 5 | `orazaka-edge` | `orazaka-edge-service` | medium: in the workspace, deployed |
+| 6 | `orazaka-studio` | `orazaka-studio-service` | medium: in the workspace, deployed, many links |
+| 7 | `orazaka-web-client` | `orazaka-web` | high: the public site's deployment builds from it |
+
+Archive: `orazaka-web-admin` (the console now lives in `orazaka-web-client`, under `src/app/console`; its last open issue moved there as orazaka-web-client#264). One app serves the site and the console: there is no separate admin repository for Orazaka.
 
 Folds: `orazaka-ui-kit` and `orochia-design-system` become packages of `krizaka-ui` (the npm names stay), then the
 repositories are archived. Each fold is its own issue.
