@@ -81,7 +81,7 @@
     "repo": "krizaka-ui",
     "issue": 561,
     "action": "comment",
-    "body": "Checkpoint 2026-10-23 (late afternoon): the finisher session is reduced to krizaka-ui#563, krizaka-ui#564 and krizaka-com#377. This issue stays priority:p0 but is not started until a session frees up (at most 3 active sessions, one heavy task at a time)."
+    "body": "Checkpoint 2026-10-23 (late afternoon): this issue is being finished through the active krizaka-ui#564 PR, which explicitly fixes #561. It is not waiting for a session slot. Source: https://github.com/krizaka/krizaka-ui/pull/564; checkpoint: https://github.com/krizaka/.github/issues/227"
   },
   {
     "repo": "krizaka-ui",
@@ -93,7 +93,7 @@
     "repo": ".github",
     "issue": 225,
     "action": "comment",
-    "body": "Checkpoint 2026-10-23: the Apple secrets (Developer ID, App Store Connect, APNs) are added only after this issue is merged: no secret on a pull request. Proposed priority:p0; Copilot first in the next batch."
+    "body": "Checkpoint 2026-10-23: the Apple secrets (Developer ID, App Store Connect, APNs) are added only after this issue is merged: no secret on a pull request. Proposed priority:p0; Copilot first in the next batch. Source: https://github.com/krizaka/.github/issues/227"
   },
   {
     "repo": ".github",
@@ -136,7 +136,7 @@
     "repo": "orazaka",
     "issue": 393,
     "action": "comment",
-    "body": "Checkpoint 2026-10-23: ADR-087 points for Oussama: access to LégisQuébec and the Registraire, Brave storage rights, a lawyer's reading of the AGPL. Not verified by this run (orazaka is not readable by the agent)."
+    "body": "Checkpoint 2026-10-23: ADR-087 points for Oussama: access to LégisQuébec and the Registraire, Brave storage rights, a lawyer's reading of the AGPL. Not verified by this run (orazaka is not readable by the agent). Source: https://github.com/krizaka/.github/issues/227"
   },
   {
     "repo": "krizaka-ts",
