@@ -7,7 +7,7 @@ import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const WORKFLOWS = ["node-ci", "java-ci", "expo-ci", "python-ci"];
+const WORKFLOWS = ["node-ci", "java-ci", "expo-ci", "python-ci", "krizaka-ci"];
 const read = (name) => readFileSync(new URL(`../.github/workflows/${name}.yml`, import.meta.url), "utf8");
 
 /** The jobs of a workflow, as { id, text } (top-level `jobs:` entries, two-space indented). */
@@ -120,6 +120,7 @@ test("node gate: red when the container job fails", () => {
 test("node gate: red when verify was skipped although the gate did not say false", () => {
   assert.equal(runGate("node-ci", NODE({ VERIFY: "skipped" })).status, 1);
   assert.equal(runGate("node-ci", NODE({ CODE: "", VERIFY: "skipped" })).status, 1);
+  assert.equal(runGate("krizaka-ci", PACK({ DETECT: "failure", CODE: "false", VERIFY: "skipped" })).status, 1);
 });
 
 test("node gate: red when the container job was wanted and skipped without the gate's answer", () => {
@@ -224,4 +225,60 @@ test("expo-ci: the EAS job only exists on a v* tag and needs the checks to succe
   assert.match(eas.text, /startsWith\(github\.ref, 'refs\/tags\/v'\)/);
   assert.match(eas.text, /needs\.checks\.result == 'success'/);
   assert.equal(runGate("expo-ci", SIMPLE({ EAS: "failure" })).status, 1);
+});
+
+const PACK = (o) => ({ DETECT: "success", STACK: "node", CODE: "true", CHANGES: "success", VERIFY: "success", ...o });
+
+test("krizaka-ci gate: green on success and docs-only; red on failure, an unasked skip, or no stack; open on a broken changes gate", () => {
+  assert.deepEqual(runGate("krizaka-ci", PACK({})), { status: 0, result: "success" });
+  assert.equal(runGate("krizaka-ci", PACK({ CODE: "false", VERIFY: "skipped" })).status, 0);
+  assert.equal(runGate("krizaka-ci", PACK({ VERIFY: "failure" })).status, 1);
+  assert.equal(runGate("krizaka-ci", PACK({ VERIFY: "cancelled" })).status, 1);
+  assert.equal(runGate("krizaka-ci", PACK({ VERIFY: "skipped" })).status, 1);
+  assert.equal(runGate("krizaka-ci", PACK({ CHANGES: "failure", CODE: "" })).status, 0);
+  // A repository the pack cannot read (no stack, a bad .krizaka/ci.json) is red, even though nothing else ran.
+  assert.equal(runGate("krizaka-ci", PACK({ DETECT: "failure", STACK: "", CHANGES: "skipped", CODE: "", VERIFY: "skipped" })).status, 1);
+  assert.equal(runGate("krizaka-ci", PACK({ DETECT: "failure", CODE: "false", VERIFY: "skipped" })).status, 1);
+});
+
+test("krizaka-ci: one line for the caller (no required input), and nothing that publishes, deploys or applies", () => {
+  const src = read("krizaka-ci");
+  assert.doesNotMatch(src, /required: true/);
+  assert.doesNotMatch(src, /\b(tofu|terraform) (apply|plan)\b|doctl|krizaka-deploy|npm publish|workspace\.mjs publish|deploy\b.*@/);
+  const verify = jobs(src).find((j) => j.id === "verify");
+  assert.match(verify.text, /needs\.detect\.result == 'success'/);
+});
+
+/** The `inputs:` of one of this repository's composite actions. */
+function actionInputs(name) {
+  const src = readFileSync(new URL(`../actions/${name}/action.yml`, import.meta.url), "utf8");
+  const block = src.slice(src.indexOf("\ninputs:\n") + 9, src.search(/\n(outputs|runs):\n/));
+  return new Set([...block.matchAll(/^ {2}([\w-]+):\s*$/gm)].map((m) => m[1]));
+}
+
+test("every call of a build-pack action passes only inputs the action declares", () => {
+  const files = [...WORKFLOWS.map((n) => `.github/workflows/${n}.yml`), "actions/agent-setup/action.yml"];
+  let calls = 0;
+  for (const file of files) {
+    const lines = readFileSync(new URL(`../${file}`, import.meta.url), "utf8").split("\n");
+    lines.forEach((line, i) => {
+      const m = line.match(/^(\s*)(?:-\s+)?uses: krizaka\/\.github\/actions\/([\w-]+)@/);
+      if (!m) return;
+      calls++;
+      const declared = actionInputs(m[2]);
+      const indent = m[1].length + 2;
+      let j = i + 1;
+      while (j < lines.length && (lines[j].trim() === "" || lines[j].search(/\S/) >= indent) && !/^\s*-\s/.test(lines[j])) {
+        if (/^\s*with:\s*$/.test(lines[j])) {
+          const keyIndent = lines[j].search(/\S/) + 2;
+          for (let k = j + 1; k < lines.length && (lines[k].trim() === "" || lines[k].search(/\S/) >= keyIndent); k++) {
+            const key = lines[k].match(/^\s*([\w-]+):/);
+            if (key && lines[k].search(/\S/) === keyIndent) assert.ok(declared.has(key[1]), `${file}:${k + 1} ${m[2]} has no input "${key[1]}"`);
+          }
+        }
+        j++;
+      }
+    });
+  }
+  assert.ok(calls >= 15, `found ${calls} calls`);
 });

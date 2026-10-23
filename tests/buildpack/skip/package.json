@@ -1,0 +1,9 @@
+{
+  "name": "buildpack-fixture-skip",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Fixture of the build pack's skip: its .krizaka/ci.json ignores every path, so verify must be skipped and the gate green.",
+  "scripts": {
+    "test": "node -e \"process.exit(1)\""
+  }
+}

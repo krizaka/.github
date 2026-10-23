@@ -32,7 +32,8 @@ test("workspace: a repository listed in orazaka.workspace.json is verified insid
   assert.equal(plan.timeout, 60);
   assert.equal(plan.ignore, DEFAULT_IGNORE.workspace);
   // A Node member is a workspace member too (component.yml verifies orazaka-ui-kit the same way).
-  assert.equal(fixture("node", "krizaka/orazaka-ui-kit").stack, "workspace");
+  assert.throws(() => fixture("node", "krizaka/orazaka-ui-kit"), /afterBuild" does not apply/, "the node fixture declares an afterBuild");
+  assert.equal(fixture("blog", "krizaka/orazaka-ui-kit").stack, "workspace");
 });
 
 test("maven: pom.xml, Java 21; Spotless and OpenRewrite only when the pom or its parent declares them", () => {

@@ -1,5 +1,5 @@
 # Self-test of the reusable CI workflows (krizaka/.github#113): node-ci.yml, expo-ci.yml, python-ci.yml and java-ci.yml run against the tiny projects of
-# tests/fixtures/, the way a repository calls them. It proves the two outcomes that matter: a change that needs the heavy
+# tests/fixtures/, and the build pack (krizaka-ci.yml) against those of tests/buildpack/, the way a repository calls them. It proves the two outcomes that matter: a change that needs the heavy
 # jobs RUNS them, and a change that needs none SKIPS them while the gate still reports green. Runs only when the
 # workflows or the fixtures change.
 name: CI workflows self-test
@@ -11,9 +11,12 @@ on:
       - ".github/workflows/java-ci.yml"
       - ".github/workflows/expo-ci.yml"
       - ".github/workflows/python-ci.yml"
+      - ".github/workflows/krizaka-ci.yml"
+      - "actions/**"
       - ".github/workflows/changes.yml"
       - ".github/workflows/selftest-ci.yml"
       - "tests/fixtures/**"
+      - "tests/buildpack/**"
   push:
     branches: [main]
     paths:
@@ -21,8 +24,11 @@ on:
       - ".github/workflows/java-ci.yml"
       - ".github/workflows/expo-ci.yml"
       - ".github/workflows/python-ci.yml"
+      - ".github/workflows/krizaka-ci.yml"
+      - "actions/**"
       - ".github/workflows/selftest-ci.yml"
       - "tests/fixtures/**"
+      - "tests/buildpack/**"
   workflow_dispatch:
 
 permissions:
@@ -161,9 +167,49 @@ jobs:
       ignore: "."
       timeout-minutes: 10
 
+  pack-node:
+    name: krizaka-ci detects and runs node (npm, .krizaka/ci.json env + afterBuild)
+    permissions:
+      contents: read
+    uses: ./.github/workflows/krizaka-ci.yml
+    with:
+      working-directory: tests/buildpack/node
+
+  pack-maven:
+    name: krizaka-ci detects and runs maven
+    permissions:
+      contents: read
+    uses: ./.github/workflows/krizaka-ci.yml
+    with:
+      working-directory: tests/buildpack/maven
+
+  pack-python:
+    name: krizaka-ci detects and runs python
+    permissions:
+      contents: read
+    uses: ./.github/workflows/krizaka-ci.yml
+    with:
+      working-directory: tests/buildpack/python
+
+  pack-iac:
+    name: krizaka-ci detects and runs iac (OpenTofu fmt, validate, test; never apply)
+    permissions:
+      contents: read
+    uses: ./.github/workflows/krizaka-ci.yml
+    with:
+      working-directory: tests/buildpack/iac
+
+  pack-skips:
+    name: krizaka-ci skips when .krizaka/ci.json ignores everything
+    permissions:
+      contents: read
+    uses: ./.github/workflows/krizaka-ci.yml
+    with:
+      working-directory: tests/buildpack/skip
+
   verdict:
     name: The runs ran, the skips skipped, every gate reported
-    needs: [node-runs, node-container, node-parallel, node-e2e-skips, node-skips, expo-runs, python-runs, python-skips, java-runs, java-skips]
+    needs: [node-runs, node-container, node-parallel, node-e2e-skips, node-skips, expo-runs, python-runs, python-skips, java-runs, java-skips, pack-node, pack-maven, pack-python, pack-iac, pack-skips]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -187,6 +233,11 @@ jobs:
       JAVA_RUNS_GATE: ${{ needs.java-runs.outputs.result }}
       JAVA_SKIPS: ${{ needs.java-skips.outputs.verify-result }}
       JAVA_SKIPS_GATE: ${{ needs.java-skips.outputs.result }}
+      PACK_NODE: ${{ needs.pack-node.outputs.stack }}/${{ needs.pack-node.outputs.verify-result }}/${{ needs.pack-node.outputs.result }}
+      PACK_MAVEN: ${{ needs.pack-maven.outputs.stack }}/${{ needs.pack-maven.outputs.verify-result }}/${{ needs.pack-maven.outputs.result }}
+      PACK_PYTHON: ${{ needs.pack-python.outputs.stack }}/${{ needs.pack-python.outputs.verify-result }}/${{ needs.pack-python.outputs.result }}
+      PACK_IAC: ${{ needs.pack-iac.outputs.stack }}/${{ needs.pack-iac.outputs.verify-result }}/${{ needs.pack-iac.outputs.result }}
+      PACK_SKIPS: ${{ needs.pack-skips.outputs.stack }}/${{ needs.pack-skips.outputs.verify-result }}/${{ needs.pack-skips.outputs.result }}
     steps:
       - run: |
           fail=0
@@ -211,4 +262,10 @@ jobs:
           expect "node-skips gate"        "$NODE_SKIPS_GATE" success
           expect "java-skips verify"      "$JAVA_SKIPS"      "$skipped"
           expect "java-skips gate"        "$JAVA_SKIPS_GATE" success
+          # The build pack: stack/verify/gate.
+          expect "pack-node"              "$PACK_NODE"       node/success/success
+          expect "pack-maven"             "$PACK_MAVEN"      maven/success/success
+          expect "pack-python"            "$PACK_PYTHON"     python/success/success
+          expect "pack-iac"               "$PACK_IAC"        iac/success/success
+          expect "pack-skips"             "$PACK_SKIPS"      "node/$skipped/success"
           exit "$fail"

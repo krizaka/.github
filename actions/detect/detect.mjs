@@ -201,6 +201,8 @@ export function detect({ root, base = ".", repository = "", manifest = null, tim
     plan.stack = "workspace";
     plan.component = name;
     plan.rewrite = config.rewrite ?? false; // component.yml: opt-in, turned on in the pull request that applies rewrite:run
+    // The component is verified inside the workspace: `workspace.mjs ci` is the whole pipeline.
+    if (config.afterBuild) throw new Error('.krizaka/ci.json: "afterBuild" does not apply to an Orazaka workspace component (workspace.mjs ci runs everything)');
   } else if (has(dir, "pom.xml")) {
     plan.stack = "maven";
     const pom = readFileSync(join(dir, "pom.xml"), "utf8");
