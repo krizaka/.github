@@ -11,7 +11,7 @@ const REASONS = new Set(["completed", "not_planned"]);
 const isRef = (v) => typeof v === "string" && /^[A-Za-z0-9._-]+#\d+$/.test(v);
 const isText = (v) => typeof v === "string" && v.trim().length > 0;
 
-const files = readdirSync(dir).filter((f) => /^\d{4}-\d{2}-\d{2}\.json$/.test(f));
+const files = readdirSync(dir).filter((f) => /^\d{4}-\d{2}-\d{2}(-[a-z])?\.json$/.test(f));
 
 test("there is at least one triage file", () => {
   assert.ok(files.length > 0);
