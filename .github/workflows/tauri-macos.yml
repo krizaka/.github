@@ -11,11 +11,11 @@
 #       if: github.event_name == 'push'
 #       permissions: { contents: write }
 #       uses: krizaka/.github/.github/workflows/tauri-macos.yml@<sha>
-#       with: { working-directory: apps/desktop, product-name: "Yomizaka", sign: true }
+#       with: { working-directory: apps/desktop, product-name: "Yomizaka", tag-prefix: "v", sign: true }
 #       secrets: { APPLE_CERTIFICATE: "${{ secrets.APPLE_CERTIFICATE }}", ... }
 #
 # Two modes, chosen by `sign` (default false):
-#   sign: false  (pull_request) check only, unsigned. No secret is declared to a step; passing a signing secret FAILS (guard).
+#   sign: false  (pull_request) check and unsigned app build. No secret is declared to a step; passing a signing secret FAILS (guard).
 #   sign: true   (push of a tag, or to main) check, then the signed and notarised .dmg in the `release` environment, which
 #                holds the secrets (APPLE_CERTIFICATE, APPLE_CERTIFICATE_PASSWORD, APPLE_SIGNING_IDENTITY, APPLE_API_ISSUER,
 #                APPLE_API_KEY, APPLE_API_KEY_P8, APPLE_TEAM_ID). Any other event or ref fails (gate). The .dmg is attached to
@@ -45,7 +45,7 @@ on:
         type: string
         default: check
       build-script:
-        description: "package.json script that builds the signed .dmg (`tauri build --bundles dmg --target aarch64-apple-darwin`)."
+        description: "package.json script that builds the .dmg (`tauri build --bundles dmg --target aarch64-apple-darwin`)."
         type: string
         default: "build:app"
       timeout-minutes:
@@ -136,6 +136,39 @@ jobs:
           SCRIPT: ${{ inputs.check-script }}
         run: pnpm run "$SCRIPT"
 
+  build-unsigned:
+    name: desktop unsigned app build
+    if: ${{ !inputs.sign }}
+    needs: [guard, check]
+    runs-on: macos-15
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    env:
+      BUILD: ${{ inputs.build-script }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+        with:
+          toolchain: stable
+          targets: aarch64-apple-darwin
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+        with:
+          workspaces: ${{ inputs.working-directory }}/src-tauri
+      - run: pnpm install --frozen-lockfile
+      - name: Build the unsigned app
+        run: pnpm run "$BUILD"
+
   release:
     name: desktop dmg
     if: ${{ inputs.sign }}
@@ -153,6 +186,13 @@ jobs:
       PRODUCT: ${{ inputs.product-name }}
       BUILD: ${{ inputs.build-script }}
     steps:
+      - name: Validate signing and notarisation credentials
+        env:
+          SIGNING_READY: ${{ secrets.APPLE_CERTIFICATE != '' && secrets.APPLE_CERTIFICATE_PASSWORD != '' && secrets.APPLE_SIGNING_IDENTITY != '' }}
+          NOTARIZATION_READY: ${{ secrets.APPLE_API_ISSUER != '' && secrets.APPLE_API_KEY != '' && secrets.APPLE_API_KEY_P8 != '' && secrets.APPLE_TEAM_ID != '' }}
+        run: |
+          [ "$SIGNING_READY" = "true" ] || { echo "Developer ID signing credentials are required."; exit 1; }
+          [ "$NOTARIZATION_READY" = "true" ] || { echo "App Store Connect notarisation credentials are required."; exit 1; }
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
@@ -180,12 +220,10 @@ jobs:
         env:
           APPLE_API_KEY_P8: ${{ secrets.APPLE_API_KEY_P8 }}
         run: |
-          if [ -n "$APPLE_API_KEY_P8" ]; then
-            umask 077
-            printf '%s\n' "$APPLE_API_KEY_P8" > "$RUNNER_TEMP/notary-key"
-            echo "APPLE_API_KEY_PATH=$RUNNER_TEMP/notary-key" >> "$GITHUB_ENV"
-          fi
-      - name: Build the .dmg (Developer ID signed and notarised when the secrets exist, ad-hoc otherwise)
+          umask 077
+          printf '%s\n' "$APPLE_API_KEY_P8" > "$RUNNER_TEMP/notary-key"
+          echo "APPLE_API_KEY_PATH=$RUNNER_TEMP/notary-key" >> "$GITHUB_ENV"
+      - name: Build the signed and notarised .dmg
         env:
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
@@ -203,13 +241,11 @@ jobs:
         if: ${{ startsWith(github.ref, 'refs/tags/') }}
         env:
           GH_TOKEN: ${{ github.token }}
-          SIGNED: ${{ secrets.APPLE_CERTIFICATE != '' }}
         working-directory: ${{ inputs.working-directory }}/src-tauri/target/aarch64-apple-darwin/release/bundle/dmg
         run: |
           flags=""
           case "$GITHUB_REF_NAME" in *-*) flags="--prerelease";; esac
           notes="$PRODUCT for macOS (Apple Silicon)."
-          [ "$SIGNED" = "true" ] || notes="$notes Not signed yet: right-click the app, then Open."
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
             gh release upload "$GITHUB_REF_NAME" ./*.dmg ./*.sha256 --clobber
           else

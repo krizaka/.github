@@ -2,8 +2,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -96,6 +95,14 @@ test("release mode refuses unapproved events and refs and runs in the release en
 
 test("signed releases require every signing and notarisation credential", () => {
   assert.match(jobs.release, /name: Validate signing and notarisation credentials/);
+  const signingReady = jobs.release.match(/SIGNING_READY: (.+)/)[1];
+  const notarizationReady = jobs.release.match(/NOTARIZATION_READY: (.+)/)[1];
+  for (const name of ["APPLE_CERTIFICATE", "APPLE_CERTIFICATE_PASSWORD", "APPLE_SIGNING_IDENTITY"]) {
+    assert.ok(signingReady.includes(`secrets.${name} != ''`), `${name} is required for signing`);
+  }
+  for (const name of ["APPLE_API_ISSUER", "APPLE_API_KEY", "APPLE_API_KEY_P8", "APPLE_TEAM_ID"]) {
+    assert.ok(notarizationReady.includes(`secrets.${name} != ''`), `${name} is required for notarisation`);
+  }
   assert.equal(runBlock("release", "Validate signing and notarisation credentials", {
     SIGNING_READY: "true", NOTARIZATION_READY: "true",
   }), 0);
@@ -105,6 +112,7 @@ test("signed releases require every signing and notarisation credential", () => 
   assert.equal(runBlock("release", "Validate signing and notarisation credentials", {
     SIGNING_READY: "true", NOTARIZATION_READY: "false",
   }), 1);
+  assert.doesNotMatch(jobs.release, /ad-hoc otherwise|Not signed yet/);
 });
 
 test("the v-tag example sets its tag prefix", () => {
