@@ -13,7 +13,8 @@ exception: it is named after the product alone, with no role suffix.
 - **Product roles:** no suffix for the main repository; `mobile`, `desktop` or `admin` for another app; `<name>-service`
   for a deployable backend service; `services` for the umbrella repository; `worker-<name>` for a worker; and `packs`,
   `cli`, `contracts` or `build`.
-- **Shared repositories:** `krizaka-ui` (all design kits are packages there), `krizaka-ts`, `krizaka-build` (Java), or
+- **Shared repositories:** `krizaka-ui` (all design kits are packages there), `krizaka-ts`, `krizaka-build` (Java),
+  `krizaka-com` (company site), `krizaka-blog`, `krizaka-infra` (IaC) and `krizaka-motion` (motion library); or
   `krizaka-<capability>` for a shared service. The current capabilities are `accounts`, `billing`, `notifications` and
   `users`.
 - **Templates:** `template-<stack>-app`.
@@ -37,11 +38,11 @@ shape fits, but whose role needs discussion.
 | `kachizaka` | Main product repository | Complies |
 | `krizaka-accounts` | Shared capability service | Complies |
 | `krizaka-billing` | Shared capability service | Complies |
-| `krizaka-blog` | Not in the role vocabulary | Breaks — to decide |
+| `krizaka-blog` | Shared blog | Complies |
 | `krizaka-build` | Shared Java build | Complies |
-| `krizaka-com` | Not in the role vocabulary | Breaks — to decide |
-| `krizaka-infra` | Not in the role vocabulary | Breaks — to decide |
-| `krizaka-motion` | Not in the role vocabulary | Breaks — to decide |
+| `krizaka-com` | Shared company site | Complies |
+| `krizaka-infra` | Shared infrastructure as code | Complies |
+| `krizaka-motion` | Shared motion library | Complies |
 | `krizaka-notifications` | Shared capability service | Complies |
 | `krizaka-platform-kit` | Contains forbidden `kit` | Breaks — to decide |
 | `krizaka-tauri-kit` | Contains forbidden `kit` | Breaks — to decide |
