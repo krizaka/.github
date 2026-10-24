@@ -1,0 +1,6 @@
+{
+  "$comment": "Values only, never steps (docs/standards/ci-and-deploy.md).",
+  "env": { "FIXTURE_FLAG": "on" },
+  "afterBuild": "scripts/after-build.sh",
+  "timeoutMinutes": 10
+}

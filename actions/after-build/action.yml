@@ -1,0 +1,64 @@
+# The build pack's after-build step (krizaka/.github#113): a script the repository declares, run once the app (or its image)
+# is built — the SEO contract, the overflow guard, a smoke test against the image — with the Playwright browsers it needs.
+#
+#   - uses: krizaka/.github/actions/after-build@<sha> # v2
+#     with:
+#       script: scripts/ci-after-build.sh      # relative to script-directory
+#       playwright: chromium
+name: after-build
+description: Run a Krizaka repository's after-build script (with Playwright browsers, and CI_IMAGE when an image was built).
+author: Krizaka
+
+inputs:
+  working-directory:
+    description: "Directory of the project, relative to the repository root (its lockfile keys the browsers cache)."
+    default: "."
+  package-manager:
+    description: "npm or pnpm (which lockfile keys the browsers cache)."
+    default: npm
+  script-directory:
+    description: "Directory the script runs in (and its path is relative to). Empty: working-directory."
+    default: ""
+  script:
+    description: "Path of a bash script; empty: none."
+    default: ""
+  playwright:
+    description: "Playwright browsers to install and cache (e.g. chromium). Empty: none."
+    default: ""
+  playwright-cache:
+    description: "Restore and save the Playwright browsers cache even when nothing is installed here ('true' / 'false')."
+    default: "false"
+  image:
+    description: "The image built by actions/build, passed to the script as CI_IMAGE. Empty: none."
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Playwright browsers cache
+      if: ${{ inputs.playwright != '' || inputs.playwright-cache == 'true' }}
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ runner.os }}-${{ hashFiles(format('{0}/{1}', inputs.working-directory, inputs.package-manager == 'pnpm' && 'pnpm-lock.yaml' || 'package-lock.json')) }}
+
+    - name: Playwright browsers
+      if: ${{ inputs.playwright != '' }}
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        BROWSERS: ${{ inputs.playwright }}
+      run: |
+        # shellcheck disable=SC2086  # several browsers: word splitting is wanted
+        npx playwright-core install --with-deps $BROWSERS
+
+    - name: After the build
+      if: ${{ inputs.script != '' }}
+      shell: bash
+      working-directory: ${{ inputs.script-directory != '' && inputs.script-directory || inputs.working-directory }}
+      env:
+        SCRIPT: ${{ inputs.script }}
+        IMAGE: ${{ inputs.image }}
+      run: |
+        if [ -n "$IMAGE" ]; then export CI_IMAGE="$IMAGE"; fi
+        bash "$SCRIPT"

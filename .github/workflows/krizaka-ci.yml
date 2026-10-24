@@ -1,0 +1,228 @@
+# The build pack: the CI of any Krizaka repository, in one line (reusable; krizaka/.github#113).
+#
+#   jobs:
+#     ci:
+#       uses: krizaka/.github/.github/workflows/krizaka-ci.yml@v2
+#       secrets: inherit
+#
+# The stack is detected from the caller's checkout (actions/detect), in this order: membership in the Orazaka workspace
+# (orazaka.workspace.json) · pom.xml · package.json / pnpm-workspace.yaml (with an MDX content/ folder: the blog) ·
+# pyproject.toml · *.tf. A repository may keep `.krizaka/ci.json` (its Postgres image, test env values, ignored paths,
+# the after-build script); it never lists steps. See docs/standards/ci-and-deploy.md.
+#
+# Jobs:
+#   detect   checkout + actions/detect: the stack and the plan (a few seconds).
+#   changes  the changes.yml gate, with the stack's `ignore` (fail-open: a broken gate runs everything).
+#   verify   actions/setup → quality → test → build → after-build, each step only where the stack and the plan want it.
+#            workspace: component.yml's flow (the workspace checked out, every repository cloned, `workspace.mjs ci`).
+#            maven: Java 21, Spotless check, OpenRewrite dry run, `mvnw verify`. node / blog: install, lint, types, the
+#            ratchets, jscpd, tests, build. python: pip or uv, ruff, pytest. iac: OpenTofu fmt, validate and test.
+#            A Dockerfile is built (never pushed) and the after-build script gets it as CI_IMAGE.
+#   gate     ALWAYS reports; the required check is « ci / CI gate ».
+#
+# It verifies; it never publishes, deploys, applies or plans against real state. Permissions: contents: read.
+name: krizaka-ci
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        description: "The project's folder in the repository (its .krizaka/ci.json is read there). Default: the root."
+        type: string
+        default: "."
+      timeout-minutes:
+        description: "Timeout of the verify job; 0: the stack's default (.krizaka/ci.json `timeoutMinutes` wins)."
+        type: number
+        default: 0
+    outputs:
+      result:
+        description: "success or failure: the gate's verdict."
+        value: ${{ jobs.gate.outputs.result }}
+      verify-result:
+        description: "success, failure, cancelled or skipped."
+        value: ${{ jobs.gate.outputs.verify }}
+      stack:
+        description: "The detected stack."
+        value: ${{ jobs.detect.outputs.stack }}
+      code:
+        description: "'false' when the change needed no heavy job."
+        value: ${{ jobs.changes.outputs.code }}
+
+permissions:
+  contents: read
+
+jobs:
+  detect:
+    name: Detect the stack
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      stack: ${{ steps.detect.outputs.stack }}
+      plan: ${{ steps.detect.outputs.plan }}
+      ignore: ${{ steps.detect.outputs.ignore }}
+      relevant: ${{ steps.detect.outputs.relevant }}
+      timeout: ${{ steps.detect.outputs.timeout }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - id: detect
+        uses: krizaka/.github/actions/detect@147c1925368d98fb07887257549db36556644cc5 # main
+        with:
+          working-directory: ${{ inputs.working-directory }}
+          timeout-minutes: ${{ inputs.timeout-minutes }}
+
+  changes:
+    name: Changed files
+    needs: detect
+    permissions:
+      contents: read
+    uses: krizaka/.github/.github/workflows/changes.yml@ccd224612f5bb9db815335654f359a595a597fbb # main
+    with:
+      relevant: ${{ needs.detect.outputs.relevant }}
+      ignore: ${{ needs.detect.outputs.ignore }}
+
+  verify:
+    name: Verify
+    needs: [detect, changes]
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' && needs.detect.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ fromJSON(needs.detect.outputs.timeout) }}
+    permissions:
+      contents: read
+    env:
+      PLAN: ${{ needs.detect.outputs.plan }}
+    steps:
+      # ── checkout: the repository, or component.yml's layout (the workspace, and the component beside it) ─────────────
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: ${{ needs.detect.outputs.stack != 'workspace' }}
+        with:
+          persist-credentials: false
+
+      - name: Check out the Orazaka workspace
+        if: ${{ needs.detect.outputs.stack == 'workspace' }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/orazaka
+          path: workspace
+          persist-credentials: false
+
+      - name: Check out the component at the commit under test
+        if: ${{ needs.detect.outputs.stack == 'workspace' }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: incoming
+          persist-credentials: false
+
+      # ── the pack ─────────────────────────────────────────────────────────────────────────────────────────────────
+      - uses: krizaka/.github/actions/setup@147c1925368d98fb07887257549db36556644cc5 # main
+        with:
+          stack: ${{ fromJSON(env.PLAN).stack }}
+          working-directory: ${{ fromJSON(env.PLAN).workingDirectory }}
+          node-version: ${{ fromJSON(env.PLAN).nodeVersion }}
+          package-manager: ${{ fromJSON(env.PLAN).packageManager || 'npm' }}
+          env: ${{ fromJSON(env.PLAN).env }}
+          postgres-image: ${{ fromJSON(env.PLAN).postgresImage }}
+          postgres-name: ${{ fromJSON(env.PLAN).postgresName }}
+          java-version: ${{ fromJSON(env.PLAN).javaVersion }}
+          python-version: ${{ fromJSON(env.PLAN).pythonVersion }}
+          python-manager: ${{ fromJSON(env.PLAN).pythonManager || 'pip' }}
+          requirements: ${{ fromJSON(env.PLAN).requirements }}
+          extra-packages: ${{ fromJSON(env.PLAN).pythonExtras }}
+          component: ${{ fromJSON(env.PLAN).component }}
+
+      - uses: krizaka/.github/actions/quality@147c1925368d98fb07887257549db36556644cc5 # main
+        if: ${{ needs.detect.outputs.stack != 'workspace' }}
+        with:
+          stack: ${{ fromJSON(env.PLAN).stack }}
+          working-directory: ${{ fromJSON(env.PLAN).workingDirectory }}
+          package-manager: ${{ fromJSON(env.PLAN).packageManager || 'npm' }}
+          lint-script: ${{ fromJSON(env.PLAN).lint }}
+          quality-scripts: ${{ fromJSON(env.PLAN).quality }}
+          typecheck-script: ${{ fromJSON(env.PLAN).typecheck }}
+          spotless: ${{ fromJSON(env.PLAN).spotless }}
+          rewrite: ${{ fromJSON(env.PLAN).rewrite }}
+          python-lint: ${{ fromJSON(env.PLAN).pythonLint }}
+          python-manager: ${{ fromJSON(env.PLAN).pythonManager || 'pip' }}
+          duplication: ${{ fromJSON(env.PLAN).duplication }}
+
+      - uses: krizaka/.github/actions/test@147c1925368d98fb07887257549db36556644cc5 # main
+        with:
+          stack: ${{ fromJSON(env.PLAN).stack }}
+          working-directory: ${{ fromJSON(env.PLAN).workingDirectory }}
+          package-manager: ${{ fromJSON(env.PLAN).packageManager || 'npm' }}
+          test-script: ${{ fromJSON(env.PLAN).test }}
+          component: ${{ fromJSON(env.PLAN).component }}
+          python-test: ${{ fromJSON(env.PLAN).pythonTest }}
+          python-manager: ${{ fromJSON(env.PLAN).pythonManager || 'pip' }}
+          tf-dirs: ${{ fromJSON(env.PLAN).tfDirs }}
+
+      # The workspace's OpenRewrite dry run reads the upstreams that `workspace.mjs ci` installed: it comes after the tests.
+      - uses: krizaka/.github/actions/quality@147c1925368d98fb07887257549db36556644cc5 # main
+        if: ${{ needs.detect.outputs.stack == 'workspace' }}
+        with:
+          stack: workspace
+          rewrite: ${{ fromJSON(env.PLAN).rewrite }}
+          component: ${{ fromJSON(env.PLAN).component }}
+
+      - uses: krizaka/.github/actions/build@147c1925368d98fb07887257549db36556644cc5 # main
+        with:
+          working-directory: ${{ fromJSON(env.PLAN).workingDirectory }}
+          package-manager: ${{ fromJSON(env.PLAN).packageManager || 'npm' }}
+          build-script: ${{ fromJSON(env.PLAN).build }}
+          container: ${{ fromJSON(env.PLAN).container }}
+          container-context: ${{ fromJSON(env.PLAN).containerContext }}
+          container-dockerfile: ${{ fromJSON(env.PLAN).containerDockerfile }}
+          container-image: ci-image:ci
+
+      - uses: krizaka/.github/actions/after-build@147c1925368d98fb07887257549db36556644cc5 # main
+        with:
+          working-directory: ${{ fromJSON(env.PLAN).workingDirectory }}
+          package-manager: ${{ fromJSON(env.PLAN).packageManager || 'npm' }}
+          script: ${{ fromJSON(env.PLAN).afterBuild }}
+          playwright: ${{ fromJSON(env.PLAN).playwright }}
+          image: ${{ fromJSON(env.PLAN).container && 'ci-image:ci' || '' }}
+
+  gate:
+    name: CI gate
+    needs: [detect, changes, verify]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    outputs:
+      result: ${{ steps.verdict.outputs.result }}
+      verify: ${{ needs.verify.result }}
+    steps:
+      - id: verdict
+        env:
+          DETECT: ${{ needs.detect.result }}
+          STACK: ${{ needs.detect.outputs.stack }}
+          CODE: ${{ needs.changes.outputs.code }}
+          CHANGES: ${{ needs.changes.result }}
+          VERIFY: ${{ needs.verify.result }}
+        run: |
+          fail=0
+          echo "gate: stack=${STACK:-unknown} detect=$DETECT code=${CODE:-unknown} changes=$CHANGES verify=$VERIFY"
+          # No stack, no verdict: a repository the pack cannot read is red, never silently green.
+          [ "$DETECT" = success ] || { echo "::error::detect $DETECT: see the « Detect the stack » job"; fail=1; }
+          # A broken gate (changes) is never a reason to fail: the heavy job ran in full.
+          [ "$CHANGES" = success ] || echo "::warning::the changes gate did not succeed ($CHANGES): the job ran in full"
+          case "$VERIFY" in success|skipped) ;; *) echo "::error::verify $VERIFY"; fail=1 ;; esac
+          # The heavy job runs unless the gate answered exactly `false`: a skip without that answer is a bug, not a pass.
+          if [ "$CODE" != "false" ] && [ "$VERIFY" != success ]; then
+            echo "::error::verify must run when the gate did not answer false"; fail=1
+          fi
+          if [ "$fail" = 0 ]; then echo "result=success" >> "$GITHUB_OUTPUT"; else echo "result=failure" >> "$GITHUB_OUTPUT"; fi
+          {
+            echo "### CI gate"
+            echo "| job | result |"
+            echo "| --- | --- |"
+            echo "| detect | $DETECT (stack=${STACK:-unknown}) |"
+            echo "| changes | $CHANGES (code=${CODE:-unknown}) |"
+            echo "| verify | $VERIFY |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit "$fail"

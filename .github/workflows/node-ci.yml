@@ -9,6 +9,9 @@
 #         package-manager: pnpm
 #         typecheck-script: typecheck
 #
+# Its steps are the build pack's composite actions (actions/setup, quality, test, build, after-build), the ones krizaka-ci.yml
+# runs: its inputs, jobs, check names and gate do not change, so no caller changes.
+#
 # What it owns, so no repository copies it:
 #   changes    the changes.yml gate: a docs-only change skips the heavy jobs (fail-open: a broken gate runs everything).
 #   plan       a few seconds: the matrix of verify (and of the e2e shards) from the inputs.
@@ -286,141 +289,57 @@ jobs:
         task: ${{ fromJSON(needs.plan.outputs.tasks) }}
     permissions:
       contents: read
-    defaults:
-      run:
-        working-directory: ${{ inputs.working-directory }}
     env:
       PM: ${{ inputs.package-manager }}
+    # The steps are the build pack's (actions/setup, quality, test, build, after-build), in the order and under the conditions
+    # they always had: a leg runs only its task's steps (`all`: every step).
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - name: Check the inputs
-        run: |
-          case "$PM" in npm|pnpm) ;; *) echo "::error::package-manager must be npm or pnpm, got '$PM'"; exit 1 ;; esac
-
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        if: ${{ inputs.package-manager == 'pnpm' }}
+      - uses: krizaka/.github/actions/setup@147c1925368d98fb07887257549db36556644cc5 # main
         with:
-          package_json_file: ${{ inputs.working-directory }}/package.json
-
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
+          stack: node
+          working-directory: ${{ inputs.working-directory }}
           node-version: ${{ inputs.node-version }}
-          cache: ${{ inputs.package-manager }}
-          cache-dependency-path: ${{ inputs.working-directory }}/${{ inputs.package-manager == 'pnpm' && 'pnpm-lock.yaml' || 'package-lock.json' }}
+          package-manager: ${{ inputs.package-manager }}
+          install-command: ${{ inputs.install-command }}
+          env: ${{ inputs.env }}
+          github-token-env: ${{ inputs.github-token-env }}
+          postgres-image: ${{ (matrix.task == 'all' || matrix.task == 'test' || matrix.task == 'build') && inputs.postgres-image || '' }}
+          postgres-name: ${{ inputs.postgres-name }}
 
-      - name: Environment
-        env:
-          ENV_LINES: ${{ inputs.env }}
-          TOKEN_NAME: ${{ inputs.github-token-env }}
-          TOKEN: ${{ github.token }}
-        run: |
-          while IFS= read -r line; do
-            [ -z "$line" ] && continue
-            case "$line" in
-              [A-Za-z_]*=*) printf '%s\n' "$line" >> "$GITHUB_ENV" ;;
-              *) echo "::error::env: '$line' is not KEY=VALUE"; exit 1 ;;
-            esac
-          done <<< "$ENV_LINES"
-          if [ -n "$TOKEN_NAME" ]; then
-            echo "::add-mask::$TOKEN"
-            printf '%s=%s\n' "$TOKEN_NAME" "$TOKEN" >> "$GITHUB_ENV"
-          fi
-
-      - name: PostgreSQL
-        if: ${{ inputs.postgres-image != '' && (matrix.task == 'all' || matrix.task == 'test' || matrix.task == 'build') }}
-        env:
-          IMAGE: ${{ inputs.postgres-image }}
-          NAME: ${{ inputs.postgres-name }}
-        run: |
-          docker run -d --name ci-postgres -p 5432:5432 \
-            -e POSTGRES_USER="$NAME" -e POSTGRES_PASSWORD=ci-only-password -e POSTGRES_DB="$NAME" "$IMAGE"
-          for _ in $(seq 1 30); do docker exec ci-postgres pg_isready -U "$NAME" && exit 0; sleep 1; done
-          docker logs ci-postgres | tail -20
-          exit 1
-
-      - name: Install
-        env:
-          INSTALL: ${{ inputs.install-command }}
-        run: |
-          if [ -n "$INSTALL" ]; then bash -c "$INSTALL"
-          elif [ "$PM" = pnpm ]; then pnpm install --frozen-lockfile --prefer-offline
-          else npm ci --prefer-offline --no-audit --no-fund; fi
-
-      - name: Lint
-        if: ${{ inputs.lint-script != '' && (matrix.task == 'all' || matrix.task == 'lint') }}
-        env:
-          SCRIPT: ${{ inputs.lint-script }}
-        run: '"$PM" run "$SCRIPT"'
-
-      - name: Quality (depcruise, ast-grep, ratchets)
-        if: ${{ inputs.quality-scripts != '' && (matrix.task == 'all' || matrix.task == 'quality') }}
-        env:
-          SCRIPTS: ${{ inputs.quality-scripts }}
-        run: |
-          while IFS= read -r script; do
-            [ -z "$script" ] && continue
-            "$PM" run "$script"
-          done <<< "$SCRIPTS"
-
-      - name: Typecheck
-        if: ${{ inputs.typecheck-script != '' && (matrix.task == 'all' || matrix.task == 'typecheck') }}
-        env:
-          SCRIPT: ${{ inputs.typecheck-script }}
-        run: '"$PM" run "$SCRIPT"'
-
-      # Turborepo's local cache: tasks already done for the same inputs are replayed, not run.
-      - name: Turbo cache
-        if: ${{ inputs.turbo-cache && matrix.task != 'lint' }}
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      - uses: krizaka/.github/actions/quality@147c1925368d98fb07887257549db36556644cc5 # main
         with:
-          path: ${{ inputs.working-directory }}/.turbo
-          key: turbo-${{ runner.os }}-${{ matrix.task }}-${{ github.sha }}
-          restore-keys: turbo-${{ runner.os }}-${{ matrix.task }}-
+          working-directory: ${{ inputs.working-directory }}
+          package-manager: ${{ inputs.package-manager }}
+          lint-script: ${{ (matrix.task == 'all' || matrix.task == 'lint') && inputs.lint-script || '' }}
+          quality-scripts: ${{ (matrix.task == 'all' || matrix.task == 'quality') && inputs.quality-scripts || '' }}
+          typecheck-script: ${{ (matrix.task == 'all' || matrix.task == 'typecheck') && inputs.typecheck-script || '' }}
 
-      - name: Test
-        if: ${{ inputs.test-script != '' && (matrix.task == 'all' || matrix.task == 'test' || matrix.task == 'build') }}
-        env:
-          SCRIPT: ${{ inputs.test-script }}
-        run: '"$PM" run "$SCRIPT"'
-
-      # The Next.js build cache (webpack / SWC): the build reuses what the sources did not change.
-      - name: Next.js build cache
-        if: ${{ inputs.next-cache-paths != '' && (matrix.task == 'all' || matrix.task == 'build') }}
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      # Turborepo's local cache (every leg but lint), then the tests (the test and build legs).
+      - uses: krizaka/.github/actions/test@147c1925368d98fb07887257549db36556644cc5 # main
         with:
-          path: ${{ inputs.next-cache-paths }}
-          key: next-${{ runner.os }}-${{ hashFiles(format('{0}/{1}', inputs.working-directory, inputs.package-manager == 'pnpm' && 'pnpm-lock.yaml' || 'package-lock.json')) }}-${{ github.sha }}
-          restore-keys: next-${{ runner.os }}-${{ hashFiles(format('{0}/{1}', inputs.working-directory, inputs.package-manager == 'pnpm' && 'pnpm-lock.yaml' || 'package-lock.json')) }}-
+          working-directory: ${{ inputs.working-directory }}
+          package-manager: ${{ inputs.package-manager }}
+          turbo-cache: ${{ inputs.turbo-cache && matrix.task != 'lint' }}
+          cache-scope: ${{ matrix.task }}
+          test-script: ${{ (matrix.task == 'all' || matrix.task == 'test' || matrix.task == 'build') && inputs.test-script || '' }}
 
-      - name: Build
-        if: ${{ inputs.build-script != '' && (matrix.task == 'all' || matrix.task == 'build') }}
-        env:
-          SCRIPT: ${{ inputs.build-script }}
-        run: '"$PM" run "$SCRIPT"'
-
-      - name: Playwright browsers cache
-        if: ${{ inputs.playwright != '' && (matrix.task == 'all' || matrix.task == 'build') }}
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      - uses: krizaka/.github/actions/build@147c1925368d98fb07887257549db36556644cc5 # main
         with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles(format('{0}/{1}', inputs.working-directory, inputs.package-manager == 'pnpm' && 'pnpm-lock.yaml' || 'package-lock.json')) }}
+          working-directory: ${{ inputs.working-directory }}
+          package-manager: ${{ inputs.package-manager }}
+          next-cache-paths: ${{ (matrix.task == 'all' || matrix.task == 'build') && inputs.next-cache-paths || '' }}
+          build-script: ${{ (matrix.task == 'all' || matrix.task == 'build') && inputs.build-script || '' }}
 
-      - name: Playwright browsers
-        if: ${{ inputs.playwright != '' && (matrix.task == 'all' || matrix.task == 'build') }}
-        env:
-          BROWSERS: ${{ inputs.playwright }}
-        run: |
-          # shellcheck disable=SC2086  # several browsers: word splitting is wanted
-          npx playwright-core install --with-deps $BROWSERS
-
-      - name: After the build
-        if: ${{ inputs.after-build != '' && (matrix.task == 'all' || matrix.task == 'build') }}
-        env:
-          SCRIPT: ${{ inputs.after-build }}
-        run: bash "$SCRIPT"
+      - uses: krizaka/.github/actions/after-build@147c1925368d98fb07887257549db36556644cc5 # main
+        with:
+          working-directory: ${{ inputs.working-directory }}
+          package-manager: ${{ inputs.package-manager }}
+          playwright: ${{ (matrix.task == 'all' || matrix.task == 'build') && inputs.playwright || '' }}
+          script: ${{ (matrix.task == 'all' || matrix.task == 'build') && inputs.after-build || '' }}
 
   e2e:
     name: ${{ format('E2E ({0}/{1})', matrix.shard, inputs.e2e-shards) }}
@@ -434,9 +353,6 @@ jobs:
         shard: ${{ fromJSON(needs.plan.outputs.shards) }}
     permissions:
       contents: read
-    defaults:
-      run:
-        working-directory: ${{ inputs.working-directory }}
     env:
       PM: ${{ inputs.package-manager }}
     steps:
@@ -444,78 +360,36 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        if: ${{ inputs.package-manager == 'pnpm' }}
+      - uses: krizaka/.github/actions/setup@147c1925368d98fb07887257549db36556644cc5 # main
         with:
-          package_json_file: ${{ inputs.working-directory }}/package.json
-
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
+          stack: node
+          working-directory: ${{ inputs.working-directory }}
           node-version: ${{ inputs.node-version }}
-          cache: ${{ inputs.package-manager }}
-          cache-dependency-path: ${{ inputs.working-directory }}/${{ inputs.package-manager == 'pnpm' && 'pnpm-lock.yaml' || 'package-lock.json' }}
+          package-manager: ${{ inputs.package-manager }}
+          install-command: ${{ inputs.install-command }}
+          env: ${{ inputs.env }}
+          postgres-image: ${{ inputs.postgres-image }}
+          postgres-name: ${{ inputs.postgres-name }}
 
-      - name: Environment
-        env:
-          ENV_LINES: ${{ inputs.env }}
-        run: |
-          while IFS= read -r line; do
-            [ -z "$line" ] && continue
-            case "$line" in
-              [A-Za-z_]*=*) printf '%s\n' "$line" >> "$GITHUB_ENV" ;;
-              *) echo "::error::env: '$line' is not KEY=VALUE"; exit 1 ;;
-            esac
-          done <<< "$ENV_LINES"
-
-      - name: PostgreSQL
-        if: ${{ inputs.postgres-image != '' }}
-        env:
-          IMAGE: ${{ inputs.postgres-image }}
-          NAME: ${{ inputs.postgres-name }}
-        run: |
-          docker run -d --name ci-postgres -p 5432:5432 \
-            -e POSTGRES_USER="$NAME" -e POSTGRES_PASSWORD=ci-only-password -e POSTGRES_DB="$NAME" "$IMAGE"
-          for _ in $(seq 1 30); do docker exec ci-postgres pg_isready -U "$NAME" && exit 0; sleep 1; done
-          docker logs ci-postgres | tail -20
-          exit 1
-
-      - name: Install
-        env:
-          INSTALL: ${{ inputs.install-command }}
-        run: |
-          if [ -n "$INSTALL" ]; then bash -c "$INSTALL"
-          elif [ "$PM" = pnpm ]; then pnpm install --frozen-lockfile --prefer-offline
-          else npm ci --prefer-offline --no-audit --no-fund; fi
-
-      - name: Next.js build cache
-        if: ${{ inputs.next-cache-paths != '' }}
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      # The Next.js cache only (no build here: the e2e script builds if it must).
+      - uses: krizaka/.github/actions/build@147c1925368d98fb07887257549db36556644cc5 # main
         with:
-          path: ${{ inputs.next-cache-paths }}
-          key: next-${{ runner.os }}-${{ hashFiles(format('{0}/{1}', inputs.working-directory, inputs.package-manager == 'pnpm' && 'pnpm-lock.yaml' || 'package-lock.json')) }}-${{ github.sha }}
-          restore-keys: next-${{ runner.os }}-${{ hashFiles(format('{0}/{1}', inputs.working-directory, inputs.package-manager == 'pnpm' && 'pnpm-lock.yaml' || 'package-lock.json')) }}-
+          working-directory: ${{ inputs.working-directory }}
+          package-manager: ${{ inputs.package-manager }}
+          next-cache-paths: ${{ inputs.next-cache-paths }}
 
-      - name: Playwright browsers cache
-        if: ${{ inputs.e2e-browsers != '' }}
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      - uses: krizaka/.github/actions/after-build@147c1925368d98fb07887257549db36556644cc5 # main
         with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles(format('{0}/{1}', inputs.working-directory, inputs.package-manager == 'pnpm' && 'pnpm-lock.yaml' || 'package-lock.json')) }}
+          working-directory: ${{ inputs.working-directory }}
+          package-manager: ${{ inputs.package-manager }}
+          playwright: ${{ inputs.e2e-browsers }}
 
-      - name: Playwright browsers
-        if: ${{ inputs.e2e-browsers != '' }}
-        env:
-          BROWSERS: ${{ inputs.e2e-browsers }}
-        run: |
-          # shellcheck disable=SC2086  # several browsers: word splitting is wanted
-          npx playwright-core install --with-deps $BROWSERS
-
-      - name: E2E shard ${{ matrix.shard }}
-        env:
-          SCRIPT: ${{ inputs.e2e-script }}
-          SHARD: ${{ matrix.shard }}
-          SHARDS: ${{ inputs.e2e-shards }}
-        run: '"$PM" run "$SCRIPT" -- --shard="$SHARD/$SHARDS"'
+      - uses: krizaka/.github/actions/test@147c1925368d98fb07887257549db36556644cc5 # main
+        with:
+          working-directory: ${{ inputs.working-directory }}
+          package-manager: ${{ inputs.package-manager }}
+          test-script: ${{ inputs.e2e-script }}
+          test-args: ${{ format('--shard={0}/{1}', matrix.shard, inputs.e2e-shards) }}
 
   duplication:
     name: Duplicate code
@@ -550,48 +424,34 @@ jobs:
         with:
           persist-credentials: false
 
-      # buildx with the Actions cache: layers (the dependency install above all) are restored on every run and written on main only,
+      # buildx with the Actions cache (actions/build): layers are restored on every run and written on main only,
       # so a pull request never pays for the export. The image is loaded into the local daemon for the smoke script.
-      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
-
-      - name: Build the image
-        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+      - uses: krizaka/.github/actions/build@147c1925368d98fb07887257549db36556644cc5 # main
         with:
-          context: ${{ inputs.container-context }}
-          file: ${{ inputs.container-dockerfile != '' && inputs.container-dockerfile || format('{0}/Dockerfile', inputs.container-context) }}
-          tags: ${{ inputs.container-image }}
-          build-args: ${{ inputs.container-build-args }}
-          load: true
-          push: false
-          cache-from: type=gha,scope=${{ github.repository }}-container
-          cache-to: ${{ github.ref == 'refs/heads/main' && format('type=gha,mode=max,scope={0}-container', github.repository) || '' }}
+          container: "true"
+          container-context: ${{ inputs.container-context }}
+          container-dockerfile: ${{ inputs.container-dockerfile }}
+          container-image: ${{ inputs.container-image }}
+          container-build-args: ${{ inputs.container-build-args }}
 
       # Node (and pnpm) only for a smoke script that needs them; a build-only job needs neither.
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        if: ${{ inputs.container-smoke != '' && inputs.package-manager == 'pnpm' }}
-        with:
-          package_json_file: ${{ inputs.working-directory }}/package.json
-
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - uses: krizaka/.github/actions/setup@147c1925368d98fb07887257549db36556644cc5 # main
         if: ${{ inputs.container-smoke != '' }}
         with:
+          stack: node
+          install: "false"
+          working-directory: ${{ inputs.working-directory }}
           node-version: ${{ inputs.node-version }}
-          cache: ${{ inputs.package-manager }}
-          cache-dependency-path: ${{ inputs.working-directory }}/${{ inputs.package-manager == 'pnpm' && 'pnpm-lock.yaml' || 'package-lock.json' }}
+          package-manager: ${{ inputs.package-manager }}
 
-      - name: Playwright browsers cache
-        if: ${{ inputs.container-playwright-cache }}
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      - uses: krizaka/.github/actions/after-build@147c1925368d98fb07887257549db36556644cc5 # main
         with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles(format('{0}/{1}', inputs.working-directory, inputs.package-manager == 'pnpm' && 'pnpm-lock.yaml' || 'package-lock.json')) }}
-
-      - name: Smoke-test the image
-        if: ${{ inputs.container-smoke != '' }}
-        env:
-          SCRIPT: ${{ inputs.container-smoke }}
-          CI_IMAGE: ${{ inputs.container-image }}
-        run: bash "$SCRIPT"
+          working-directory: ${{ inputs.working-directory }}
+          package-manager: ${{ inputs.package-manager }}
+          playwright-cache: ${{ inputs.container-playwright-cache }}
+          script-directory: "."
+          script: ${{ inputs.container-smoke }}
+          image: ${{ inputs.container-image }}
 
   gate:
     name: CI gate

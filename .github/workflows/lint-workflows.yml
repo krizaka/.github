@@ -10,13 +10,16 @@ on:
       - "deploy/**"
       - "scripts/**"
       - "tests/**"
+      - "repos.json"
   push:
     branches: [main]
     paths:
       - ".github/workflows/**"
       - "actions/**"
       - "deploy/**"
+      - "scripts/**"
       - "tests/**"
+      - "repos.json"
   workflow_dispatch:
 
 permissions:
@@ -47,7 +50,7 @@ jobs:
         run: node scripts/pin-supply-chain.mjs . --no-docker --check
 
       - name: Unit tests of the shared CI
-        run: node --test tests/ci-workflows.test.mjs tests/weekly-digest.test.mjs actions/dup-check/dup-ratchet.test.mjs actions/release-notes/release-notes.test.mjs
+        run: node --test tests/ci-workflows.test.mjs tests/buildpack.test.mjs tests/repos-registry.test.mjs tests/rename-repo.test.mjs tests/workflows-lint.test.mjs tests/weekly-digest.test.mjs actions/dup-check/dup-ratchet.test.mjs actions/release-notes/release-notes.test.mjs
 
       - name: krizaka-deploy — unit tests (doctl and HTTP mocked)
         working-directory: deploy

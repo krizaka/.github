@@ -1,0 +1,115 @@
+# What a coding agent needs before it works in a Krizaka repository (krizaka/.github#113): the toolchains of its stack and
+# its dependencies, so it can build, format and test before it pushes (AGENTS.template.md §8.2). It generalises
+# krizaka/orazaka's `.github/actions/copilot-workspace`. A repository calls it from `.github/workflows/copilot-setup-steps.yml`:
+#
+#   jobs:
+#     copilot-setup-steps:
+#       runs-on: ubuntu-latest
+#       permissions: { contents: read }
+#       steps:
+#         - uses: actions/checkout@<sha>
+#         - uses: krizaka/.github/actions/agent-setup@<sha> # v2
+#
+# The stack is detected as in CI (actions/detect). For an Orazaka component, exactly as copilot-workspace: Java 21 and Node 22,
+# the workspace cloned at its default branch, every upstream of the component installed into ~/.m2 (tests skipped), and the
+# workspace root's manifest and packs linked beside the agent's checkout so `Workspace.root()` finds them. For Node and
+# Python, the dependencies are installed; for Maven, the JDK is ready (the build resolves the rest); for OpenTofu, `tofu`.
+name: agent-setup
+description: Prepares a coding agent's sandbox for a Krizaka repository (toolchains, dependencies, the Orazaka workspace).
+author: Krizaka
+
+inputs:
+  component:
+    description: "An Orazaka repository name (orazaka.workspace.json). Empty: detected from the repository's name."
+    default: ""
+  repository:
+    description: "owner/name of the repository."
+    default: ${{ github.repository }}
+  manifest:
+    description: "orazaka.workspace.json: a URL or a file."
+    default: https://raw.githubusercontent.com/krizaka/orazaka/main/orazaka.workspace.json
+
+outputs:
+  stack:
+    description: "The detected stack."
+    value: ${{ steps.detect.outputs.stack }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version: "22"
+
+    - id: detect
+      name: Detect the stack
+      shell: bash
+      env:
+        REPOSITORY: ${{ inputs.component != '' && format('krizaka/{0}', inputs.component) || inputs.repository }}
+        MANIFEST: ${{ inputs.manifest }}
+      run: node "$GITHUB_ACTION_PATH/../detect/detect.mjs" --dir . --repository "$REPOSITORY" --manifest "$MANIFEST" --github-output
+
+    - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+      if: ${{ steps.detect.outputs.stack == 'maven' || steps.detect.outputs.stack == 'workspace' }}
+      with:
+        distribution: temurin
+        java-version: ${{ fromJSON(steps.detect.outputs.plan).javaVersion }}
+        cache: maven
+
+    - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      if: ${{ fromJSON(steps.detect.outputs.plan).packageManager == 'pnpm' }}
+      with:
+        version: ${{ fromJSON(steps.detect.outputs.plan).pnpmVersion }}
+
+    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      if: ${{ steps.detect.outputs.stack == 'node' || steps.detect.outputs.stack == 'blog' }}
+      with:
+        node-version: ${{ fromJSON(steps.detect.outputs.plan).nodeVersion }}
+
+    - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+      if: ${{ steps.detect.outputs.stack == 'python' && fromJSON(steps.detect.outputs.plan).pythonManager == 'pip' }}
+      with:
+        python-version: ${{ fromJSON(steps.detect.outputs.plan).pythonVersion }}
+
+    - uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+      if: ${{ steps.detect.outputs.stack == 'python' && fromJSON(steps.detect.outputs.plan).pythonManager == 'uv' }}
+      with:
+        python-version: ${{ fromJSON(steps.detect.outputs.plan).pythonVersion }}
+
+    - uses: opentofu/setup-opentofu@a1320f892987e89d278cc92dc5adc984fb93aca4 # v2.0.2
+      if: ${{ steps.detect.outputs.stack == 'iac' }}
+      with:
+        tofu_wrapper: false
+
+    - name: Clone the Orazaka workspace and install the upstreams
+      if: ${{ steps.detect.outputs.stack == 'workspace' }}
+      shell: bash
+      env:
+        COMPONENT: ${{ fromJSON(steps.detect.outputs.plan).component }}
+      run: |
+        set -euo pipefail
+        ws="$RUNNER_TEMP/orazaka-workspace"
+        git clone --depth 1 https://github.com/krizaka/orazaka.git "$ws"
+        cd "$ws"
+        node scripts/workspace.mjs clone --depth 1
+        node scripts/workspace.mjs upstreams "$COMPONENT"
+        # Workspace.root() walks up from the component's directory to orazaka.workspace.json: link the root's
+        # manifest and the packs beside the agent's checkout, and the libraries where the parent's relativePath looks.
+        parent="$(dirname "$GITHUB_WORKSPACE")"
+        ln -sfn "$ws/orazaka.workspace.json" "$parent/orazaka.workspace.json"
+        ln -sfn "$ws/orazaka-packs" "$parent/orazaka-packs"
+        ln -sfn "$ws/infra" "$parent/infra"
+        echo "Workspace ready at $ws; upstreams of $COMPONENT installed."
+
+    - name: Install the dependencies
+      if: ${{ steps.detect.outputs.stack != 'workspace' }}
+      shell: bash
+      working-directory: ${{ fromJSON(steps.detect.outputs.plan).workingDirectory }}
+      env:
+        STACK: ${{ steps.detect.outputs.stack }}
+        PM: ${{ fromJSON(steps.detect.outputs.plan).packageManager }}
+        PY_PM: ${{ fromJSON(steps.detect.outputs.plan).pythonManager }}
+        REQUIREMENTS: ${{ fromJSON(steps.detect.outputs.plan).requirements }}
+        EXTRA: ${{ fromJSON(steps.detect.outputs.plan).pythonExtras }}
+        ROOT: ${{ github.workspace }}
+      run: bash "$GITHUB_ACTION_PATH/../setup/install.sh"

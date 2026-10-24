@@ -1,0 +1,56 @@
+# The build pack's stack detection (krizaka/.github#113): reads the caller's checkout and `.krizaka/ci.json`, and answers which
+# pipeline it needs (workspace, maven, blog, node, python, iac) with the values of each step. Needs only Node (on every runner).
+#
+#   - uses: actions/checkout@<sha>
+#   - id: detect
+#     uses: krizaka/.github/actions/detect@<sha> # v2
+#   - run: echo "${{ steps.detect.outputs.stack }}"
+#
+# The order and the keys of `.krizaka/ci.json` are in detect.mjs and docs/standards/ci-and-deploy.md.
+name: detect
+description: Detect a Krizaka repository's stack (Orazaka workspace, Maven, Node, Python, OpenTofu, blog) and its CI plan.
+author: Krizaka
+
+inputs:
+  working-directory:
+    description: "The project's folder in the checkout (its .krizaka/ci.json is read there). Default: the root."
+    default: "."
+  repository:
+    description: "owner/name of the repository (its name decides the Orazaka workspace membership)."
+    default: ${{ github.repository }}
+  manifest:
+    description: "orazaka.workspace.json: a URL or a file."
+    default: https://raw.githubusercontent.com/krizaka/orazaka/main/orazaka.workspace.json
+  timeout-minutes:
+    description: "Timeout of the verify job; 0: the stack's default (.krizaka/ci.json `timeoutMinutes` wins)."
+    default: "0"
+
+outputs:
+  stack:
+    description: "workspace, maven, blog, node, python or iac."
+    value: ${{ steps.detect.outputs.stack }}
+  plan:
+    description: "The plan, as one JSON line (see detect.mjs)."
+    value: ${{ steps.detect.outputs.plan }}
+  ignore:
+    description: "changes.yml `ignore` (the stack's default, or .krizaka/ci.json)."
+    value: ${{ steps.detect.outputs.ignore }}
+  relevant:
+    description: "changes.yml `relevant`."
+    value: ${{ steps.detect.outputs.relevant }}
+  timeout:
+    description: "Timeout of the verify job, in minutes."
+    value: ${{ steps.detect.outputs.timeout }}
+
+runs:
+  using: composite
+  steps:
+    - id: detect
+      name: Detect the stack
+      shell: bash
+      env:
+        REPOSITORY: ${{ inputs.repository }}
+        MANIFEST: ${{ inputs.manifest }}
+        TIMEOUT: ${{ inputs.timeout-minutes }}
+        BASE: ${{ inputs.working-directory }}
+      run: node "$GITHUB_ACTION_PATH/detect.mjs" --dir . --base "$BASE" --repository "$REPOSITORY" --manifest "$MANIFEST" --timeout "$TIMEOUT" --github-output

@@ -1,0 +1,220 @@
+# The build pack's setup (krizaka/.github#113): toolchains and their caches, the test environment, PostgreSQL, the install.
+# One action for every stack; each step runs only for the stacks that need it. node-ci.yml and krizaka-ci.yml call it.
+#
+#   - uses: actions/checkout@<sha>
+#   - uses: krizaka/.github/actions/setup@<sha> # v2
+#     with:
+#       stack: node
+#       package-manager: pnpm
+#
+# Orazaka workspace (stack `workspace`): the caller checked krizaka/orazaka out at `workspace-path` and itself at
+# `incoming-path` (component.yml's layout); the component is placed at its workspace path and every other repository is
+# cloned from its default branch, so `workspace.mjs ci` builds the upstreams from source.
+name: setup
+description: Toolchains, caches, test environment, PostgreSQL and dependencies of a Krizaka repository.
+author: Krizaka
+
+inputs:
+  stack:
+    description: "node, blog, maven, workspace, python or iac."
+    default: node
+  working-directory:
+    description: "Directory of the project, relative to the repository root."
+    default: "."
+  node-version:
+    description: "Node.js version (every stack gets Node: the workspace scripts and the pack's own scripts need it)."
+    default: "22"
+  package-manager:
+    description: "node / blog: npm or pnpm. The lockfile keys the cache."
+    default: npm
+  install:
+    description: "Install the dependencies ('false': the toolchain only)."
+    default: "true"
+  install-command:
+    description: "node / blog: replaces the default install (npm ci / pnpm install --frozen-lockfile)."
+    default: ""
+  env:
+    description: "Newline-separated KEY=VALUE written to the environment of every later step (test values only, never a secret)."
+    default: ""
+  github-token-env:
+    description: "Name of an environment variable set to the workflow's read-only token (a build that reads public GitHub data)."
+    default: ""
+  token:
+    description: "The token behind `github-token-env`."
+    default: ${{ github.token }}
+  postgres-image:
+    description: "PostgreSQL image started on localhost:5432 before the install (e.g. postgres:16). Empty: none."
+    default: ""
+  postgres-name:
+    description: "Role and database created in that PostgreSQL; the password is `ci-only-password`."
+    default: ci
+  java-version:
+    description: "maven / workspace: JDK version."
+    default: "21"
+  java-distribution:
+    description: "maven / workspace: setup-java distribution."
+    default: temurin
+  python-version:
+    description: "python / workspace: Python version."
+    default: "3.12"
+  python-manager:
+    description: "python: pip or uv (pyproject.toml + uv.lock)."
+    default: pip
+  requirements:
+    description: "python (pip): newline-separated requirements files, relative to the repository root; they key the cache."
+    default: ""
+  extra-packages:
+    description: "python (pip): packages installed after the requirements (space-separated)."
+    default: ""
+  tofu-version:
+    description: "iac: OpenTofu version."
+    default: latest
+  component:
+    description: "workspace: the repository name, as listed in orazaka.workspace.json."
+    default: ""
+  workspace-path:
+    description: "workspace: where krizaka/orazaka is checked out."
+    default: workspace
+  incoming-path:
+    description: "workspace: where the component under test is checked out."
+    default: incoming
+
+runs:
+  using: composite
+  steps:
+    - name: Check the inputs
+      shell: bash
+      env:
+        STACK: ${{ inputs.stack }}
+        PM: ${{ inputs.package-manager }}
+        PY_PM: ${{ inputs.python-manager }}
+        COMPONENT: ${{ inputs.component }}
+      run: |
+        case "$STACK" in node|blog|maven|workspace|python|iac) ;; *) echo "::error::stack must be node, blog, maven, workspace, python or iac, got '$STACK'"; exit 1 ;; esac
+        case "$STACK" in node|blog) case "$PM" in npm|pnpm) ;; *) echo "::error::package-manager must be npm or pnpm, got '$PM'"; exit 1 ;; esac ;; esac
+        case "$STACK" in python) case "$PY_PM" in pip|uv) ;; *) echo "::error::python-manager must be pip or uv, got '$PY_PM'"; exit 1 ;; esac ;; esac
+        if [ "$STACK" = workspace ] && [ -z "$COMPONENT" ]; then echo "::error::the workspace stack needs a component"; exit 1; fi
+
+    # ── the Orazaka workspace (component.yml's flow) ─────────────────────────────────────────────────────────────────
+    - name: Place ${{ inputs.component }} at its workspace path
+      if: ${{ inputs.stack == 'workspace' }}
+      shell: bash
+      working-directory: ${{ inputs.workspace-path }}
+      env:
+        COMPONENT: ${{ inputs.component }}
+        INCOMING: ${{ github.workspace }}/${{ inputs.incoming-path }}
+      run: |
+        target=$(node -e "const m=require('./orazaka.workspace.json');const r=m.repositories.find(x=>x.name===process.env.COMPONENT);if(!r){process.exit(2)}console.log(r.path)")
+        mkdir -p "$(dirname "$target")"
+        mv "$INCOMING" "$target"
+
+    - name: Clone every other repository
+      if: ${{ inputs.stack == 'workspace' }}
+      shell: bash
+      working-directory: ${{ inputs.workspace-path }}
+      run: node scripts/workspace.mjs clone --depth 1
+
+    # ── toolchains and caches ───────────────────────────────────────────────────────────────────────────────────
+    - id: pnpm-version
+      if: ${{ (inputs.stack == 'node' || inputs.stack == 'blog') && inputs.package-manager == 'pnpm' }}
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: node "$GITHUB_ACTION_PATH/../detect/detect.mjs" --pnpm-version >> "$GITHUB_OUTPUT"
+
+    - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      if: ${{ (inputs.stack == 'node' || inputs.stack == 'blog') && inputs.package-manager == 'pnpm' }}
+      with:
+        version: ${{ steps.pnpm-version.outputs.version }}
+
+    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      if: ${{ inputs.stack == 'node' || inputs.stack == 'blog' }}
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: ${{ inputs.package-manager }}
+        cache-dependency-path: ${{ inputs.working-directory }}/${{ inputs.package-manager == 'pnpm' && 'pnpm-lock.yaml' || 'package-lock.json' }}
+
+    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      if: ${{ inputs.stack != 'node' && inputs.stack != 'blog' }}
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+      if: ${{ inputs.stack == 'maven' || inputs.stack == 'workspace' }}
+      with:
+        distribution: ${{ inputs.java-distribution }}
+        java-version: ${{ inputs.java-version }}
+        cache: maven
+        # The workspace holds every repository's pom: a change upstream rebuilds the key, the restore key keeps ~/.m2.
+        cache-dependency-path: |
+          **/pom.xml
+          **/.mvn/wrapper/maven-wrapper.properties
+        server-id: github
+        server-username: GITHUB_ACTOR
+        server-password: GITHUB_TOKEN
+
+    - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+      if: ${{ inputs.stack == 'workspace' || (inputs.stack == 'python' && inputs.python-manager == 'pip') }}
+      with:
+        python-version: ${{ inputs.python-version }}
+        cache: ${{ inputs.stack == 'python' && inputs.requirements != '' && 'pip' || '' }}
+        cache-dependency-path: ${{ inputs.stack == 'python' && inputs.requirements || '' }}
+
+    - uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+      if: ${{ inputs.stack == 'python' && inputs.python-manager == 'uv' }}
+      with:
+        python-version: ${{ inputs.python-version }}
+        enable-cache: true
+        cache-dependency-glob: ${{ inputs.working-directory }}/uv.lock
+
+    - uses: opentofu/setup-opentofu@a1320f892987e89d278cc92dc5adc984fb93aca4 # v2.0.2
+      if: ${{ inputs.stack == 'iac' }}
+      with:
+        tofu_version: ${{ inputs.tofu-version }}
+        tofu_wrapper: false
+
+    # ── environment, services, dependencies ────────────────────────────────────────────────────────────────────
+    - name: Environment
+      shell: bash
+      env:
+        ENV_LINES: ${{ inputs.env }}
+        TOKEN_NAME: ${{ inputs.github-token-env }}
+        TOKEN: ${{ inputs.token }}
+      run: |
+        while IFS= read -r line; do
+          [ -z "$line" ] && continue
+          case "$line" in
+            [A-Za-z_]*=*) printf '%s\n' "$line" >> "$GITHUB_ENV" ;;
+            *) echo "::error::env: '$line' is not KEY=VALUE"; exit 1 ;;
+          esac
+        done <<< "$ENV_LINES"
+        if [ -n "$TOKEN_NAME" ]; then
+          echo "::add-mask::$TOKEN"
+          printf '%s=%s\n' "$TOKEN_NAME" "$TOKEN" >> "$GITHUB_ENV"
+        fi
+
+    - name: PostgreSQL
+      if: ${{ inputs.postgres-image != '' }}
+      shell: bash
+      env:
+        IMAGE: ${{ inputs.postgres-image }}
+        NAME: ${{ inputs.postgres-name }}
+      run: |
+        docker run -d --name ci-postgres -p 5432:5432 \
+          -e POSTGRES_USER="$NAME" -e POSTGRES_PASSWORD=ci-only-password -e POSTGRES_DB="$NAME" "$IMAGE"
+        for _ in $(seq 1 30); do docker exec ci-postgres pg_isready -U "$NAME" && exit 0; sleep 1; done
+        docker logs ci-postgres | tail -20
+        exit 1
+
+    - name: Install
+      if: ${{ inputs.install == 'true' }}
+      shell: bash
+      working-directory: ${{ inputs.stack == 'workspace' && inputs.workspace-path || inputs.working-directory }}
+      env:
+        STACK: ${{ inputs.stack }}
+        PM: ${{ inputs.package-manager }}
+        INSTALL: ${{ inputs.install-command }}
+        PY_PM: ${{ inputs.python-manager }}
+        REQUIREMENTS: ${{ inputs.requirements }}
+        EXTRA: ${{ inputs.extra-packages }}
+        ROOT: ${{ github.workspace }}
+      run: bash "$GITHUB_ACTION_PATH/install.sh"

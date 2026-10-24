@@ -1,0 +1,4 @@
+{
+  "$comment": "Every changed file is ignored: the build pack must skip verify (selftest-ci.yml).",
+  "ignore": "."
+}

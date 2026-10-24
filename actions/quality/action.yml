@@ -1,0 +1,144 @@
+# The build pack's quality step (krizaka/.github#113): lint, types, the ratchets (depcruise, ast-grep, …), duplicate code
+# (jscpd), formatting and refactoring debt. Each step runs only when it is configured; an empty input skips it.
+#
+#   node / blog  lint-script, quality-scripts (package.json scripts, one per line), typecheck-script
+#   maven        spotless (spotless:check), rewrite (rewrite:dryRun)
+#   workspace    rewrite (rewrite:dryRun in the component, after `workspace.mjs ci` installed its upstreams)
+#   python       python-lint (e.g. `ruff check .`)
+#   iac          `tofu fmt -check -recursive`
+#   any          duplication (actions/dup-check's script: jscpd + the repository's dup-ratchet.json, which may only go down)
+name: quality
+description: Lint, types, ratchets, duplicate code and formatting of a Krizaka repository.
+author: Krizaka
+
+inputs:
+  stack:
+    description: "node, blog, maven, workspace, python or iac."
+    default: node
+  working-directory:
+    description: "Directory of the project, relative to the repository root."
+    default: "."
+  package-manager:
+    description: "node / blog: npm or pnpm."
+    default: npm
+  lint-script:
+    description: "node / blog: package.json script run as the lint step; empty skips it."
+    default: ""
+  quality-scripts:
+    description: "node / blog: newline-separated package.json scripts (depcruise, ast-grep, the ratchets)."
+    default: ""
+  typecheck-script:
+    description: "node / blog: package.json script run as the typecheck step; empty skips it."
+    default: ""
+  spotless:
+    description: "maven: fail when Spotless would reformat (spotless:check)."
+    default: "false"
+  rewrite:
+    description: "maven / workspace: fail when an OpenRewrite recipe would change code (rewrite:dryRun)."
+    default: "false"
+  component:
+    description: "workspace: the repository name, as listed in orazaka.workspace.json."
+    default: ""
+  workspace-path:
+    description: "workspace: where krizaka/orazaka is checked out."
+    default: workspace
+  python-lint:
+    description: "python: lint command (e.g. `ruff check .`); empty skips it."
+    default: ""
+  python-manager:
+    description: "python: pip or uv (uv runs the command in the project's environment)."
+    default: pip
+  duplication:
+    description: "Run the duplicate-code ratchet (needs dup-ratchet.json in the working directory)."
+    default: "false"
+  duplication-paths:
+    description: "Space-separated paths the duplicate-code check scans."
+    default: "."
+
+runs:
+  using: composite
+  steps:
+    - name: Lint
+      if: ${{ inputs.lint-script != '' }}
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        PM: ${{ inputs.package-manager }}
+        SCRIPT: ${{ inputs.lint-script }}
+      run: '"$PM" run "$SCRIPT"'
+
+    - name: Quality (depcruise, ast-grep, ratchets)
+      if: ${{ inputs.quality-scripts != '' }}
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        PM: ${{ inputs.package-manager }}
+        SCRIPTS: ${{ inputs.quality-scripts }}
+      run: |
+        while IFS= read -r script; do
+          [ -z "$script" ] && continue
+          "$PM" run "$script"
+        done <<< "$SCRIPTS"
+
+    - name: Typecheck
+      if: ${{ inputs.typecheck-script != '' }}
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        PM: ${{ inputs.package-manager }}
+        SCRIPT: ${{ inputs.typecheck-script }}
+      run: '"$PM" run "$SCRIPT"'
+
+    - name: Spotless — formatted
+      if: ${{ inputs.stack == 'maven' && inputs.spotless == 'true' }}
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        mvn_cmd=mvn
+        [ -x ./mvnw ] && mvn_cmd=./mvnw
+        "$mvn_cmd" -B -ntp spotless:check
+
+    # The recipes live in krizaka-parent (every repository inherits them). A change a recipe would make is debt:
+    # `./mvnw rewrite:run` then `./mvnw spotless:apply` (twice until clean), run the tests, commit.
+    - name: OpenRewrite — no change pending
+      if: ${{ (inputs.stack == 'maven' || inputs.stack == 'workspace') && inputs.rewrite == 'true' }}
+      shell: bash
+      env:
+        STACK: ${{ inputs.stack }}
+        COMPONENT: ${{ inputs.component }}
+        WORKDIR: ${{ inputs.working-directory }}
+        WORKSPACE_PATH: ${{ inputs.workspace-path }}
+      run: |
+        if [ "$STACK" = workspace ]; then
+          cd "$WORKSPACE_PATH" || exit 1
+          target=$(node -e "const m=require('./orazaka.workspace.json');console.log(m.repositories.find(x=>x.name===process.env.COMPONENT).path)")
+          cd "$target" || exit 1
+        else
+          cd "$WORKDIR" || exit 1
+        fi
+        mvn_cmd=mvn
+        [ -x ./mvnw ] && mvn_cmd=./mvnw
+        "$mvn_cmd" -B -ntp rewrite:dryRun
+
+    - name: Python lint
+      if: ${{ inputs.stack == 'python' && inputs.python-lint != '' }}
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        PY_PM: ${{ inputs.python-manager }}
+        LINT: ${{ inputs.python-lint }}
+      run: if [ "$PY_PM" = uv ]; then uv run bash -c "$LINT"; else bash -c "$LINT"; fi
+
+    - name: OpenTofu — formatted
+      if: ${{ inputs.stack == 'iac' }}
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: tofu fmt -check -recursive -diff
+
+    - name: Duplicate code (jscpd, ratchet)
+      if: ${{ inputs.duplication == 'true' }}
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        DUP_PATHS: ${{ inputs.duplication-paths }}
+      run: node "$GITHUB_ACTION_PATH/../dup-check/dup-ratchet.mjs" --paths "$DUP_PATHS" --baseline dup-ratchet.json
