@@ -1,0 +1,222 @@
+[
+  {
+    "repo": "yomizaka",
+    "issue": 278,
+    "action": "label",
+    "add": [
+      "priority:p1"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yomizaka",
+    "issue": 275,
+    "action": "label",
+    "add": [
+      "priority:p1"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "akinaza",
+    "issue": 287,
+    "action": "label",
+    "add": [
+      "priority:p1"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "akinaza",
+    "issue": 285,
+    "action": "label",
+    "add": [
+      "priority:p1"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 588,
+    "action": "label",
+    "add": [
+      "priority:p1"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 589,
+    "action": "label",
+    "add": [
+      "priority:p1"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yomizaka",
+    "issue": 278,
+    "action": "comment",
+    "body": "Checkpoint 2026-10-23 (late afternoon): this is the navigation step of the validated UX review (Y0 to Y10). Decisions recorded: « Vérifications » in the menu, verification starts at upload when the type is safe, « Mot de passe oublié » now. Active session: Yomizaka UX. Source: https://github.com/krizaka/.github/issues/227"
+  },
+  {
+    "repo": "akinaza",
+    "issue": 287,
+    "action": "comment",
+    "body": "Checkpoint 2026-10-23 (late afternoon): part of the Akinaza UX review (K0 to K10), active session. Decisions recorded: the same 5 destinations on web and phone, the agenda for every owner, « Nouvelle facture » as the main action. Source: https://github.com/krizaka/.github/issues/227"
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 588,
+    "action": "comment",
+    "body": "Checkpoint 2026-10-23: serves the Akinaza review decision « Nouvelle facture » as the main action (akinaza#289 review) and a primary action that survives 360 px. Proposed priority:p1; start once krizaka-ui#563 and #564 (finisher session) are merged. Source: https://github.com/krizaka/.github/issues/227"
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 589,
+    "action": "comment",
+    "body": "Checkpoint 2026-10-23: the account menu with a labelled theme row follows the Yomizaka and Akinaza UX reviews (account menu everywhere). Proposed priority:p1. Source: https://github.com/krizaka/.github/issues/227"
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 561,
+    "action": "comment",
+    "body": "Checkpoint 2026-10-23 (late afternoon): this issue is being finished through the active krizaka-ui#564 PR, which explicitly fixes #561. It is not waiting for a session slot. Source: https://github.com/krizaka/krizaka-ui/pull/564; checkpoint: https://github.com/krizaka/.github/issues/227"
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 558,
+    "action": "comment",
+    "body": "Checkpoint 2026-10-23 (late afternoon): still priority:p0 for akinaza#260. At most 3 active sessions now; one heavy task at a time. Source: https://github.com/krizaka/.github/issues/227"
+  },
+  {
+    "repo": ".github",
+    "issue": 225,
+    "action": "comment",
+    "body": "Checkpoint 2026-10-23: the Apple secrets (Developer ID, App Store Connect, APNs) are added only after this issue is merged: no secret on a pull request. Proposed priority:p0; Copilot first in the next batch. Source: https://github.com/krizaka/.github/issues/227"
+  },
+  {
+    "repo": ".github",
+    "issue": 225,
+    "action": "label",
+    "add": [
+      "priority:p0"
+    ],
+    "remove": []
+  },
+  {
+    "repo": ".github",
+    "issue": 85,
+    "action": "link",
+    "to": ".github#225",
+    "relation": "blocked_by"
+  },
+  {
+    "repo": ".github",
+    "issue": 85,
+    "action": "comment",
+    "body": "Checkpoint 2026-10-23: do not add the Apple secrets before .github#225 is merged (tauri-macos.yml signs only on main/tags in a release environment). Source: https://github.com/krizaka/.github/issues/227"
+  },
+  {
+    "repo": "akinaza",
+    "issue": 280,
+    "action": "comment",
+    "body": "Checkpoint 2026-10-23: waiting for Oussama to add APP_QA_AKINAZA_LEA_EMAIL and APP_QA_AKINAZA_LEA_PASSWORD in the @qa environment. Marked blocked until then. Source: https://github.com/krizaka/.github/issues/227"
+  },
+  {
+    "repo": "akinaza",
+    "issue": 280,
+    "action": "label",
+    "add": [
+      "blocked"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orazaka",
+    "issue": 393,
+    "action": "comment",
+    "body": "Checkpoint 2026-10-23: ADR-087 points for Oussama: access to LégisQuébec and the Registraire, Brave storage rights, a lawyer's reading of the AGPL. Not verified by this run (orazaka is not readable by the agent). Source: https://github.com/krizaka/.github/issues/227"
+  },
+  {
+    "repo": "krizaka-ts",
+    "issue": 61,
+    "action": "comment",
+    "body": "Checkpoint 2026-10-23: waiting for Oussama's four choices before coupons go live. Coupon adoption in akinaza#273 and yomizaka#262 follows krizaka-ts#46. Source: https://github.com/krizaka/.github/issues/227"
+  },
+  {
+    "repo": "krizaka-ts",
+    "issue": 62,
+    "action": "comment",
+    "body": "Checkpoint 2026-10-23: waiting for the accountant's answers (record retention, tax status of free credits). Source: https://github.com/krizaka/.github/issues/227"
+  },
+  {
+    "repo": "akinaza",
+    "issue": 273,
+    "action": "link",
+    "to": "krizaka-ts#46",
+    "relation": "blocked_by"
+  },
+  {
+    "repo": "yomizaka",
+    "issue": 262,
+    "action": "link",
+    "to": "krizaka-ts#46",
+    "relation": "blocked_by"
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 576,
+    "action": "link",
+    "to": "krizaka-ts#46",
+    "relation": "part_of"
+  },
+  {
+    "repo": "krizaka-build",
+    "issue": 13,
+    "action": "comment",
+    "body": "Checkpoint 2026-10-23: waiting for Oussama (new Maven Central token). It blocks the MAVEN_* secrets (krizaka-build#14) and the quota decision (krizaka-build#86). The report names krizaka/.github#14 and #86, but those numbers are other issues (pinning repositories; Porkbun DNS): the Maven ones are in krizaka-build. Source: https://github.com/krizaka/.github/issues/227"
+  },
+  {
+    "repo": "krizaka-build",
+    "issue": 14,
+    "action": "link",
+    "to": "krizaka-build#13",
+    "relation": "blocked_by"
+  },
+  {
+    "repo": "krizaka-build",
+    "issue": 86,
+    "action": "link",
+    "to": "krizaka-build#14",
+    "relation": "blocked_by"
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 586,
+    "action": "label",
+    "add": [
+      "needs-adr"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 586,
+    "action": "link",
+    "to": "krizaka-ui#530",
+    "relation": "part_of"
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 586,
+    "action": "comment",
+    "body": "Checkpoint 2026-10-23: ADR first (title says so); the CTO validates before any implementation of krizaka-ui#530. Source: https://github.com/krizaka/.github/issues/227"
+  },
+  {
+    "repo": "akinaza",
+    "issue": 261,
+    "action": "comment",
+    "body": "Checkpoint 2026-10-23 (late afternoon): the templates session finishes its steps 4 to 6 in progress, then stops. Steps 1 to 3 were merged today (auto-merge), per the checkpoint report. Source: https://github.com/krizaka/.github/issues/227"
+  }
+]
