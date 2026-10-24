@@ -176,7 +176,7 @@ Rules inside the Krizaka packages themselves are excluded by `from.pathNot`. Sev
 - **Prerequisite:** krizaka-ui#610 (`localDay`) released. Until then the rule would name a function that does not exist, so it ships after it.
 - **Scope is the role, not the path:** every source file except tests, which removes the `apps/web/components` hole. Its baseline is the ratchet count (37 non-test occurrences in 8 repositories), fixed in each adoption PR.
 - A companion rule, **`no-intl-format-outside-intl`**, flags `new Intl.*Format` outside `@krizaka/intl`; this is the rule that would have found `week.ts`.
-- Also widen **`no-ambient-clock`** from `lib/**` to the `domain` and `ui` roles for the same reason, and reword the `no-hand-ms-*` messages.
+- Also widen **`no-ambient-clock`** from `lib/**` to the `domain` and `ui` roles for the same reason, and reword the six « use date-fns » messages to name the facade.
 
 ### 5.3 A local re-implementation of a krizaka-ts or @krizaka capability
 
@@ -192,7 +192,7 @@ Each issue is one pull request. Order matters: a rule that names a function wait
 
 | # | Repository | Issue | Acceptance |
 |---|---|---|---|
-| 0 | krizaka-ui | **Close the prerequisites:** `localDay` in `@krizaka/intl` (#610); decide date-fns's status for #609 | `localDay(instant, { timeZone })` released with tests (a Montréal evening gives the Montréal day); the status of date-fns is written in #609 and the four `no-hand-ms-*` / `no-get-time-*` messages are named for change. |
+| 0 | krizaka-ui | **Close the prerequisites:** `localDay` in `@krizaka/intl` (#610); date-fns is refused in apps (decision 2), with `@krizaka/time` created in krizaka-ts on the first real need | `localDay(instant, { timeZone })` released with tests (a Montréal evening gives the Montréal day); the refusal of date-fns is written in #609, and the six `no-hand-ms-*` / `no-get-time-*` messages are listed for change. |
 | 1 | krizaka-ui | **Covered-domains map + dependency-cruiser preset:** `krizaka-first-*` generated from the map; add `no-circular`, `not-to-unresolvable`, `not-to-dev-dep`; retire the ESLint `no-direct-tanstack-import`; a known-violations baseline that only shrinks | Per domain: an app import is refused, the facade's own import is allowed, the message names the Krizaka home. `depcruise` of a fixture app fails on a forbidden import and on a cycle. The TanStack rule exists in one tool only. Minor changeset. |
 | 2 | krizaka-ui | **The shared ast-grep rule pack in `@krizaka/config`** (ADR-007 row 1): rules by role, `krizaka-rules sync/check/ratchet`, `@ast-grep/cli` as dependency, plus the new rules `no-utc-day-slice` and `no-intl-format-outside-intl` | Each rule has a valid and an invalid test. `sync` reproduces the 9 repositories' current rule files from their roles (same violations before and after). The UTC-day fixture from yomizaka (`new Date().toISOString().slice(0, 10)` in `components/`) fails. |
 | 3 | krizaka-ui | **ESLint size and hygiene limits** (krizaka-ui#265 reused): `max-lines`, `max-lines-per-function`, `complexity`, `max-depth`, `no-magic-numbers` (warn), React Native `no-inline-styles`; make `krizakaStack()` part of `krizakaNext` | The preset lints a fixture with a 36-line function and a 400-line file. Adopting `krizakaNext` gives the stack rules without a second import. |
@@ -209,11 +209,15 @@ Each issue is one pull request. Order matters: a rule that names a function wait
 | 14 | .github | **Cross-repository duplicate report** (5.3, layer 3) and the **drift check**: a test that fails when a repository's `check-seo-family.mjs`, `sg-ratchet.mjs` or hook differs from the source, until issue 2 removes them | The weekly report lists, per product, clones against the package sources; the drift check names the 4 old `check-seo-family.mjs` copies. |
 | 15 | .github | **Charter and agent files last:** `AGENTS.template.md`, CONTRIBUTING §10 and each `AGENTS.md` « Static rules » section point to the generated table (ADR-007 point 6) | One table; no restated rule. |
 
-## 7. Decisions asked of the CTO
+## 7. Decisions (CTO, 2026-10-24, on #232)
 
-1. **dependency-cruiser carries the refused imports, not ESLint** (issue 1). This makes #609's « extend `krizakaStack()` » wrong for the import part. I recommend it because it is the single place for edges and it retires a duplicate; the cost is a known-violations baseline in place of the regex counter.
-2. **date-fns:** is it refused in apps (as #609 says) or allowed? Four of our own rule messages currently recommend it. The doc assumes « refused, `@krizaka/intl` first », since date-fns is imported in 6 repositories (77 files).
-3. **Cross-repository duplicates as a report, not a gate,** at first (5.3).
-4. **Where the map lives** once krizaka-ts#76 moves the non-UI packages: it stays in `@krizaka/config` (krizaka-ui), which ADR-007 kept there.
+1. **dependency-cruiser carries the refused imports.** ESLint keeps the framework rules. The import part of krizaka-ui#609 moves to the dependency-cruiser preset, and its map stays the single source.
+2. **date-fns is refused in apps.** It is allowed only inside a Krizaka package, which is its facade, as with TanStack.
+   - Formatting and the local day stay in `@krizaka/intl`.
+   - Date arithmetic (add days, ISO weeks, durations read from settings) gets one facade, `@krizaka/time`, created in **krizaka-ts** (krizaka-ts#76) on the first real need. It wraps date-fns and `@date-fns/tz`, and the clock is always injected.
+   - The six rule messages that say « use date-fns » are changed to name the facade (issue 2).
+   - The 77 existing files are baselined, and the counts only go down.
+3. **Cross-repository duplicates start as a weekly report, not a gate.**
+4. **The map stays in `@krizaka/config`.**
 
 *Measured by reading files and issues, 2026-10-24; no check was executed. Counts of grep hits ignore files named `*test*` or `*spec*`.*
