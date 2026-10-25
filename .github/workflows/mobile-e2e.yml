@@ -274,6 +274,9 @@ jobs:
           mkdir -p "$OUT/screenshots" "$OUT/video"
           cat > "$RUNNER_TEMP/e2e-run.sh" <<'SCRIPT'
           set -u
+          # A slow emulator makes system apps "not respond": that dialog would cover the app and fail every assertion.
+          adb shell settings put global hide_error_dialogs 1 || true
+          adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS >/dev/null || true
           apk="$(ls "$APP_DIR"/android/app/build/outputs/apk/release/*.apk | head -1)"
           adb install -r "$apk"
           for port in $REVERSE_PORTS; do adb reverse "tcp:$port" "tcp:$port"; done
@@ -325,6 +328,8 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: pixel_6
+          cores: 4
+          ram-size: 4096M
           disable-animations: true
           emulator-boot-timeout: 600
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none
