@@ -1,6 +1,8 @@
 # Coding agents
 
 How GitHub coding agents (Copilot, Claude) work in the krizaka organisation. The rules are §8 of
+
+> **Copilot is no longer used (2026-10-25).** Copilot access is disabled in the organisation after a cost spike. Never assign issues or PRs to Copilot, and never mention `@copilot`. Work goes to Claude sessions. The Copilot sections below are kept as history until the `copilot-setup-steps.yml` workflows are removed.
 [AGENTS.template.md](../../AGENTS.template.md); this page gives their reasons and the setup each repository owes them.
 
 ## Why each rule exists (2026-10-23)
