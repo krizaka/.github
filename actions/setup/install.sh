@@ -10,19 +10,23 @@
 set -euo pipefail
 case "$STACK" in
   node|blog)
-    if [ -n "${INSTALL:-}" ]; then bash -c "$INSTALL"
-    elif [ "$PM" = pnpm ]; then pnpm install --frozen-lockfile --prefer-offline
-    else npm ci --prefer-offline --no-audit --no-fund; fi
+    # From the lockfile only, and no dependency lifecycle script runs at install time. A step that must run scripts
+    # (a generator, a native build) is the project's `afterBuild` (.krizaka/ci.json), or `install-command` for the caller.
+    if [[ -n "${INSTALL:-}" ]]; then bash -c "$INSTALL"
+    elif [[ "$PM" = pnpm ]]; then pnpm install --frozen-lockfile --ignore-scripts --prefer-offline
+    else npm ci --ignore-scripts --prefer-offline --no-audit --no-fund; fi
     ;;
   python)
-    if [ "${PY_PM:-pip}" = uv ]; then
-      uv sync --frozen
+    if [[ "${PY_PM:-pip}" = uv ]]; then
+      # `--locked` fails when uv.lock is out of date. Building a source distribution runs its build backend: that is
+      # the project's own code or a pinned dependency of the lock, and the later steps run with `uv run --locked --no-sync`.
+      uv sync --locked
     else
       args=()
-      while IFS= read -r f; do [ -n "$f" ] && args+=(-r "$ROOT/$f"); done <<< "${REQUIREMENTS:-}"
-      if [ "${#args[@]}" -gt 0 ]; then pip install "${args[@]}"; fi
+      while IFS= read -r f; do [[ -n "$f" ]] && args+=(-r "$ROOT/$f"); done <<< "${REQUIREMENTS:-}"
+      if [[ "${#args[@]}" -gt 0 ]]; then pip install "${args[@]}"; fi
       # shellcheck disable=SC2086  # packages are word-split on purpose
-      if [ -n "${EXTRA:-}" ]; then pip install $EXTRA; fi
+      if [[ -n "${EXTRA:-}" ]]; then pip install $EXTRA; fi
     fi
     ;;
   maven|workspace|iac) ;; # Maven resolves while it builds; OpenTofu initialises each module in the test step.

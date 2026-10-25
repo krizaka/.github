@@ -48,9 +48,11 @@ runs:
       working-directory: ${{ inputs.working-directory }}
       env:
         BROWSERS: ${{ inputs.playwright }}
+        PM: ${{ inputs.package-manager }}
       run: |
+        # The project's own, locked Playwright (never a package fetched on demand): the browsers match its lockfile.
         # shellcheck disable=SC2086  # several browsers: word splitting is wanted
-        npx playwright-core install --with-deps $BROWSERS
+        if [[ "$PM" = pnpm ]]; then pnpm exec playwright install --with-deps $BROWSERS; else npm exec --no -- playwright install --with-deps $BROWSERS; fi
 
     - name: After the build
       if: ${{ inputs.script != '' }}

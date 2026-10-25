@@ -53,6 +53,9 @@ export function kindOf({ name, files = [], topics = [], role = "", deploy = [] }
   return "none";
 }
 
+/** The default order of a sort, written out. */
+const byCodePoint = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+
 /**
  * The registry, sorted by name. `repositories`: what the API lists ({ name, archived, private|visibility, topics });
  * `files`: name → root entries; `standard`: parseStandard(); `apps`: deploy/apps.json. A repository of the standard the
@@ -60,12 +63,12 @@ export function kindOf({ name, files = [], topics = [], role = "", deploy = [] }
  */
 export function buildRegistry({ repositories, files = {}, standard, apps }) {
   const listed = new Map(repositories.map((repository) => [repository.name, repository]));
-  const names = [...new Set([...listed.keys(), ...standard.keys()])].sort();
+  const names = [...new Set([...listed.keys(), ...standard.keys()])].sort(byCodePoint);
   return names.map((name) => {
     const api = listed.get(name);
     const std = standard.get(name);
     const owner = ownerOf(name);
-    const deploy = apps.apps.filter((app) => app.repo === `${ORG}/${name}`).map((app) => app.app).sort();
+    const deploy = apps.apps.filter((app) => app.repo === `${ORG}/${name}`).map((app) => app.app).sort(byCodePoint);
     const role = std?.role ?? (name === ".github" ? "Organization profile, shared CI and tooling" : null);
     return {
       name,

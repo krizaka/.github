@@ -61,6 +61,7 @@ const KEY = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
 /** The pnpm release declared by the project, or one compatible with its lockfile. */
 export function resolvePnpmVersion(pkg, lockfile = "") {
+  pkg ??= {}; // a project detected from pnpm-lock.yaml alone has no package.json
   const declared = String(pkg.packageManager ?? "").match(/^pnpm@([^+]+)/)?.[1];
   if (declared) return declared;
   const engine = pkg.devEngines?.packageManager;
@@ -94,6 +95,8 @@ function walk(dir, depth, base = dir, out = []) {
   return out;
 }
 
+/** The default order of a sort (UTF-16 code units), written out. */
+const byCodePoint = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 const has = (dir, name) => existsSync(join(dir, name));
 const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
 const lines = (list) => list.filter(Boolean).join("\n");
@@ -153,7 +156,7 @@ function hclTokens(text) {
       const end = text.indexOf("*/", i + 2);
       i = end < 0 ? text.length : end + 2;
     } else if (text.startsWith("<<", i)) {
-      const heredoc = text.slice(i).match(/^<<-?\s*([A-Za-z_][A-Za-z0-9_]*)[^\r\n]*\r?\n/);
+      const heredoc = text.slice(i).match(/^<<-?[ \t]*([A-Za-z_][A-Za-z0-9_]*)[^\r\n]*\r?\n/);
       if (!heredoc) {
         tokens.push({ type: "symbol", value: "<" });
         i++;
@@ -197,12 +200,13 @@ export function unsafeTofuTests(files) {
   const unsafe = [];
   for (const { path, text } of files) {
     const tokens = hclTokens(text);
-    for (let i = 0; i < tokens.length - 2; i++) {
-      if (tokens[i].type !== "identifier" || tokens[i].value !== "run" ||
-          tokens[i + 1].type !== "string" || tokens[i + 2].value !== "{") continue;
+    const isRun = (i) => tokens[i].type === "identifier" && tokens[i].value === "run" &&
+      tokens[i + 1].type === "string" && tokens[i + 2].value === "{";
+    // The end of the block that opens at `start` (the token after its closing brace) and whether it plans at its top level.
+    const scan = (start) => {
       let depth = 1;
       let safe = false;
-      let end = i + 3;
+      let end = start;
       for (; end < tokens.length && depth; end++) {
         const token = tokens[end];
         if (token.value === "{") depth++;
@@ -211,8 +215,14 @@ export function unsafeTofuTests(files) {
                  tokens[end + 1]?.value === "=" && tokens[end + 2]?.type === "identifier" &&
                  tokens[end + 2].value === "plan") safe = true;
       }
+      return { end, safe };
+    };
+    let next = 0;
+    for (let i = 0; i < tokens.length - 2; i += 1) {
+      if (i < next || !isRun(i)) continue;
+      const { end, safe } = scan(i + 3);
       if (!safe) unsafe.push(`${path}: run "${tokens[i + 1].value}"`);
-      i = end - 1;
+      next = end;
     }
   }
   return unsafe;
@@ -321,7 +331,7 @@ export function detect({ root, base = ".", repository = "", manifest = null, tim
     }
   } else if (files.some((f) => f.endsWith(".tf"))) {
     plan.stack = "iac";
-    const dirs = [...new Set(files.filter((f) => f.endsWith(".tf")).map((f) => f.split("/").slice(0, -1).join("/") || "."))].sort();
+    const dirs = [...new Set(files.filter((f) => f.endsWith(".tf")).map((f) => f.split("/").slice(0, -1).join("/") || "."))].sort(byCodePoint);
     plan.tfDirs = lines(dirs);
   } else {
     throw new Error("no stack detected: no orazaka.workspace.json membership, pom.xml, package.json, pnpm-workspace.yaml, pyproject.toml or *.tf");
@@ -361,7 +371,7 @@ function arg(argv, name, fallback) {
 async function main(argv = process.argv.slice(2)) {
   if (argv.includes("--pnpm-version")) {
     const root = arg(argv, "--dir", ".");
-    const pkg = readJson(join(root, "package.json"));
+    const pkg = has(root, "package.json") ? readJson(join(root, "package.json")) : {};
     const lockfilePath = join(root, "pnpm-lock.yaml");
     const lockfile = existsSync(lockfilePath) ? readFileSync(lockfilePath, "utf8") : "";
     console.log(`version=${resolvePnpmVersion(pkg, lockfile)}`);

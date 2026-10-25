@@ -6,7 +6,8 @@ import { cpSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "nod
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { DEFAULT_IGNORE, detect, loadManifest, readConfig, unsafeTofuTests } from "../actions/detect/detect.mjs";
+import { execFileSync } from "node:child_process";
+import { DEFAULT_IGNORE, detect, loadManifest, readConfig, resolvePnpmVersion, unsafeTofuTests } from "../actions/detect/detect.mjs";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const FIXTURES = join(ROOT, "tests", "buildpack");
@@ -181,4 +182,35 @@ test("the fixtures are plain checkouts: copied elsewhere, they detect the same",
   const dir = mkdtempSync(join(tmpdir(), "buildpack-copy-"));
   cpSync(join(FIXTURES, "node"), dir, { recursive: true });
   assert.equal(detect({ root: dir, manifest }).stack, "node");
+});
+
+test("pnpm: a project detected from pnpm-lock.yaml alone (no package.json, no packageManager) gets a version from its lockfile", () => {
+  assert.equal(resolvePnpmVersion(null, "lockfileVersion: '9.0'"), "9");
+  assert.equal(resolvePnpmVersion(undefined, ""), "10");
+  const dir = checkout({ "pnpm-lock.yaml": "lockfileVersion: '6.0'\n" });
+  const out = execFileSync("node", [join(ROOT, "actions", "detect", "detect.mjs"), "--pnpm-version", "--dir", dir], { encoding: "utf8" });
+  assert.equal(out.trim(), "version=8");
+});
+
+test("the pack's installs come from the lockfile, run no dependency script, and call no package fetched on demand", () => {
+  const install = readFileSync(join(ROOT, "actions", "setup", "install.sh"), "utf8");
+  assert.match(install, /pnpm install --frozen-lockfile --ignore-scripts/);
+  assert.match(install, /npm ci --ignore-scripts/);
+  assert.match(install, /uv sync --locked/);
+  assert.doesNotMatch(install, /--frozen\b(?!-lockfile)/);
+  for (const action of ["quality", "test"]) {
+    const text = readFileSync(join(ROOT, "actions", action, "action.yml"), "utf8");
+    assert.match(text, /uv run --locked --no-sync bash/);
+    assert.doesNotMatch(text, /uv run bash/);
+  }
+  const afterBuild = readFileSync(join(ROOT, "actions", "after-build", "action.yml"), "utf8");
+  assert.doesNotMatch(afterBuild, /^\s*npx\b/m);
+  assert.match(afterBuild, /pnpm exec playwright install/);
+  assert.match(afterBuild, /npm exec --no -- playwright install/);
+});
+
+test("every sort of the pack's scripts has an explicit comparator", () => {
+  for (const file of [join("actions", "detect", "detect.mjs"), join("scripts", "gen-repos.mjs"), join("scripts", "rename-repo.mjs")]) {
+    assert.doesNotMatch(readFileSync(join(ROOT, file), "utf8"), /\.sort\(\)/, `${file} sorts with a comparator`);
+  }
 });
