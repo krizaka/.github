@@ -156,14 +156,15 @@ function hclTokens(text) {
       const end = text.indexOf("*/", i + 2);
       i = end < 0 ? text.length : end + 2;
     } else if (text.startsWith("<<", i)) {
-      const heredoc = text.slice(i).match(/^<<-?[ \t]*([A-Za-z_][A-Za-z0-9_]*)[^\r\n]*\r?\n/);
-      if (!heredoc) {
+      const name = text.slice(i + 2).match(/^-?[ \t]*([A-Za-z_][A-Za-z0-9_]*)/);
+      const headerEnd = name ? text.indexOf("\n", i) : -1;
+      if (!name || headerEnd < 0) {
         tokens.push({ type: "symbol", value: "<" });
         i++;
         continue;
       }
-      const delimiter = heredoc[1];
-      i += heredoc[0].length;
+      const delimiter = name[1];
+      i = headerEnd + 1;
       while (i < text.length) {
         const end = text.indexOf("\n", i);
         const lineEnd = end < 0 ? text.length : end;

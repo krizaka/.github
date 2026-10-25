@@ -108,7 +108,7 @@ runs:
       env:
         PY_PM: ${{ inputs.python-manager }}
         TEST: ${{ inputs.python-test }}
-      run: if [[ "$PY_PM" = uv ]]; then uv run --locked --no-sync bash -c "$TEST"; else bash -c "$TEST"; fi
+      run: if [[ "$PY_PM" = uv ]]; then uv run --locked --no-sync --no-build bash -c "$TEST"; else bash -c "$TEST"; fi
 
     - name: OpenTofu — validate and test (never apply)
       if: ${{ inputs.stack == 'iac' }}

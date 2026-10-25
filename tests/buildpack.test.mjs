@@ -196,17 +196,17 @@ test("the pack's installs come from the lockfile, run no dependency script, and 
   const install = readFileSync(join(ROOT, "actions", "setup", "install.sh"), "utf8");
   assert.match(install, /pnpm install --frozen-lockfile --ignore-scripts/);
   assert.match(install, /npm ci --ignore-scripts/);
-  assert.match(install, /uv sync --locked/);
+  assert.match(install, /uv sync --locked --no-build/);
   assert.doesNotMatch(install, /--frozen\b(?!-lockfile)/);
   for (const action of ["quality", "test"]) {
     const text = readFileSync(join(ROOT, "actions", action, "action.yml"), "utf8");
-    assert.match(text, /uv run --locked --no-sync bash/);
+    assert.match(text, /uv run --locked --no-sync --no-build bash/);
     assert.doesNotMatch(text, /uv run bash/);
   }
   const afterBuild = readFileSync(join(ROOT, "actions", "after-build", "action.yml"), "utf8");
   assert.doesNotMatch(afterBuild, /^\s*npx\b/m);
   assert.match(afterBuild, /pnpm exec playwright install/);
-  assert.match(afterBuild, /npm exec --no -- playwright install/);
+  assert.match(afterBuild, /npm exec --no --ignore-scripts -- playwright install/);
 });
 
 test("every sort of the pack's scripts has an explicit comparator", () => {

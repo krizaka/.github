@@ -52,7 +52,7 @@ runs:
       run: |
         # The project's own, locked Playwright (never a package fetched on demand): the browsers match its lockfile.
         # shellcheck disable=SC2086  # several browsers: word splitting is wanted
-        if [[ "$PM" = pnpm ]]; then pnpm exec playwright install --with-deps $BROWSERS; else npm exec --no -- playwright install --with-deps $BROWSERS; fi
+        if [[ "$PM" = pnpm ]]; then pnpm exec playwright install --with-deps $BROWSERS; else npm exec --no --ignore-scripts -- playwright install --with-deps $BROWSERS; fi
 
     - name: After the build
       if: ${{ inputs.script != '' }}

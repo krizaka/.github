@@ -18,9 +18,9 @@ case "$STACK" in
     ;;
   python)
     if [[ "${PY_PM:-pip}" = uv ]]; then
-      # `--locked` fails when uv.lock is out of date. Building a source distribution runs its build backend: that is
-      # the project's own code or a pinned dependency of the lock, and the later steps run with `uv run --locked --no-sync`.
-      uv sync --locked
+      # `--locked` fails when uv.lock is out of date; `--no-build` refuses to run a source distribution's build backend
+      # (wheels only). A project whose lock needs a source build vendors a wheel, or builds it in its `afterBuild`.
+      uv sync --locked --no-build
     else
       args=()
       while IFS= read -r f; do [[ -n "$f" ]] && args+=(-r "$ROOT/$f"); done <<< "${REQUIREMENTS:-}"

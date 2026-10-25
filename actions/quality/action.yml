@@ -127,7 +127,7 @@ runs:
       env:
         PY_PM: ${{ inputs.python-manager }}
         LINT: ${{ inputs.python-lint }}
-      run: if [[ "$PY_PM" = uv ]]; then uv run --locked --no-sync bash -c "$LINT"; else bash -c "$LINT"; fi
+      run: if [[ "$PY_PM" = uv ]]; then uv run --locked --no-sync --no-build bash -c "$LINT"; else bash -c "$LINT"; fi
 
     - name: OpenTofu — formatted
       if: ${{ inputs.stack == 'iac' }}
