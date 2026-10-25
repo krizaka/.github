@@ -225,8 +225,8 @@ jobs:
           LOCK_DIR: ${{ inputs.lockfile-directory || inputs.app-directory }}
         run: |
           if [ -n "$INSTALL" ]; then bash -c "$INSTALL"
-          elif [ "$PM" = pnpm ]; then pnpm install --frozen-lockfile --prefer-offline
-          else (cd "$LOCK_DIR" && npm ci --prefer-offline --no-audit --no-fund); fi
+          elif [ "$PM" = pnpm ]; then pnpm install --frozen-lockfile --ignore-scripts --prefer-offline
+          else (cd "$LOCK_DIR" && npm ci --ignore-scripts --prefer-offline --no-audit --no-fund); fi
 
       - name: Prebuild (Android)
         working-directory: ${{ inputs.app-directory }}
@@ -258,7 +258,7 @@ jobs:
           # sha256 of maestro.zip of cli-2.11.0 (GitHub release digest); bump the version and this line together.
           expected=5384593cb4e7a106489e75a821d157dd43f4e438df6bc308b72e82c685e1283a
           [ "$MAESTRO_VERSION" = "2.11.0" ] || { echo "::error::no sha256 pinned for Maestro $MAESTRO_VERSION"; exit 1; }
-          curl -fsSL -o "$RUNNER_TEMP/maestro.zip" "https://github.com/mobile-dev-inc/maestro/releases/download/cli-${MAESTRO_VERSION}/maestro.zip"
+          curl --proto "=https" --tlsv1.2 -fsSL -o "$RUNNER_TEMP/maestro.zip" "https://github.com/mobile-dev-inc/maestro/releases/download/cli-${MAESTRO_VERSION}/maestro.zip"
           echo "$expected  $RUNNER_TEMP/maestro.zip" | sha256sum -c -
           unzip -q "$RUNNER_TEMP/maestro.zip" -d "$RUNNER_TEMP/maestro-cli"
           echo "$RUNNER_TEMP/maestro-cli/maestro/bin" >> "$GITHUB_PATH"
