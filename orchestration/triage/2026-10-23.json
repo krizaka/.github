@@ -1,0 +1,1785 @@
+[
+  {
+    "repo": "akinaza",
+    "issue": 260,
+    "action": "label",
+    "add": [
+      "priority:p0"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "akinaza",
+    "issue": 265,
+    "action": "label",
+    "add": [
+      "priority:p0"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 558,
+    "action": "label",
+    "add": [
+      "priority:p0"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 561,
+    "action": "label",
+    "add": [
+      "priority:p0"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-build",
+    "issue": 18,
+    "action": "label",
+    "add": [
+      "priority:p0"
+    ],
+    "remove": []
+  },
+  {
+    "repo": ".github",
+    "issue": 215,
+    "action": "label",
+    "add": [
+      "priority:p0"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 554,
+    "action": "label",
+    "add": [
+      "priority:p1"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 548,
+    "action": "label",
+    "add": [
+      "priority:p1"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 551,
+    "action": "label",
+    "add": [
+      "priority:p1"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 505,
+    "action": "label",
+    "add": [
+      "priority:p1"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 487,
+    "action": "label",
+    "add": [
+      "priority:p1"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 483,
+    "action": "label",
+    "add": [
+      "priority:p1"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 425,
+    "action": "label",
+    "add": [
+      "priority:p1"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 397,
+    "action": "label",
+    "add": [
+      "priority:p1"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-motion",
+    "issue": 45,
+    "action": "label",
+    "add": [
+      "priority:p1"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-motion",
+    "issue": 21,
+    "action": "label",
+    "add": [
+      "priority:p1"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orazaka-web-client",
+    "issue": 265,
+    "action": "label",
+    "add": [
+      "priority:p1"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orazaka-web-client",
+    "issue": 264,
+    "action": "label",
+    "add": [
+      "priority:p1"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "akinaza",
+    "issue": 261,
+    "action": "label",
+    "add": [
+      "priority:p1"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-blog",
+    "issue": 103,
+    "action": "label",
+    "add": [
+      "priority:p1"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-ts",
+    "issue": 46,
+    "action": "label",
+    "add": [
+      "priority:p1"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-ts",
+    "issue": 47,
+    "action": "label",
+    "add": [
+      "priority:p1"
+    ],
+    "remove": []
+  },
+  {
+    "repo": ".github",
+    "issue": 217,
+    "action": "label",
+    "add": [
+      "priority:p1"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-build",
+    "issue": 82,
+    "action": "label",
+    "add": [
+      "priority:p1"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-ts",
+    "issue": 44,
+    "action": "label",
+    "add": [
+      "priority:p1"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-ts",
+    "issue": 46,
+    "action": "label",
+    "add": [
+      "needs-adr"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-ts",
+    "issue": 47,
+    "action": "label",
+    "add": [
+      "needs-adr"
+    ],
+    "remove": []
+  },
+  {
+    "repo": ".github",
+    "issue": 217,
+    "action": "label",
+    "add": [
+      "needs-adr"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-build",
+    "issue": 82,
+    "action": "label",
+    "add": [
+      "needs-adr"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 554,
+    "action": "label",
+    "add": [
+      "ready-for-agent"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 548,
+    "action": "label",
+    "add": [
+      "ready-for-agent"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 397,
+    "action": "label",
+    "add": [
+      "ready-for-agent"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 483,
+    "action": "label",
+    "add": [
+      "ready-for-agent"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 487,
+    "action": "label",
+    "add": [
+      "ready-for-agent"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 425,
+    "action": "label",
+    "add": [
+      "ready-for-agent"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 505,
+    "action": "label",
+    "add": [
+      "ready-for-agent"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 551,
+    "action": "label",
+    "add": [
+      "ready-for-agent"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-motion",
+    "issue": 21,
+    "action": "label",
+    "add": [
+      "ready-for-agent"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-motion",
+    "issue": 45,
+    "action": "label",
+    "add": [
+      "ready-for-agent"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orazaka-web-client",
+    "issue": 265,
+    "action": "label",
+    "add": [
+      "ready-for-agent"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orazaka-web-client",
+    "issue": 264,
+    "action": "label",
+    "add": [
+      "ready-for-agent"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 549,
+    "action": "link",
+    "to": "krizaka-ui#548",
+    "relation": "blocked_by"
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 549,
+    "action": "comment",
+    "body": "Adopts SiteCahier, which is built by https://github.com/krizaka/krizaka-ui/issues/548 (named in this issue's title). Blocked until krizaka-ui#548 ships. Source: https://github.com/krizaka/krizaka-ui/issues/549"
+  },
+  {
+    "repo": "krizaka-ts",
+    "issue": 41,
+    "action": "link",
+    "to": "krizaka-ui#548",
+    "relation": "blocked_by"
+  },
+  {
+    "repo": "krizaka-ts",
+    "issue": 41,
+    "action": "comment",
+    "body": "Adopts SiteCahier, which is built by https://github.com/krizaka/krizaka-ui/issues/548 (named in this issue's title). Blocked until krizaka-ui#548 ships. Source: https://github.com/krizaka/krizaka-ts/issues/41"
+  },
+  {
+    "repo": "krizaka-build",
+    "issue": 81,
+    "action": "link",
+    "to": "krizaka-ui#548",
+    "relation": "blocked_by"
+  },
+  {
+    "repo": "krizaka-build",
+    "issue": 81,
+    "action": "comment",
+    "body": "Adopts SiteCahier, which is built by https://github.com/krizaka/krizaka-ui/issues/548 (named in this issue's title). Blocked until krizaka-ui#548 ships. Source: https://github.com/krizaka/krizaka-build/issues/81"
+  },
+  {
+    "repo": "krizaka-motion",
+    "issue": 53,
+    "action": "link",
+    "to": "krizaka-ui#548",
+    "relation": "blocked_by"
+  },
+  {
+    "repo": "krizaka-motion",
+    "issue": 53,
+    "action": "comment",
+    "body": "Adopts SiteCahier, which is built by https://github.com/krizaka/krizaka-ui/issues/548 (named in this issue's title). Blocked until krizaka-ui#548 ships. Source: https://github.com/krizaka/krizaka-motion/issues/53"
+  },
+  {
+    "repo": "akinaza",
+    "issue": 260,
+    "action": "link",
+    "to": "krizaka-ui#558",
+    "relation": "blocked_by"
+  },
+  {
+    "repo": "akinaza",
+    "issue": 260,
+    "action": "comment",
+    "body": "The explained-figure blocks (meaning, formula, source, freshness, next action, glossary) are built by https://github.com/krizaka/krizaka-ui/issues/558, running on Copilot per the Checkpoint report 2026-10-23 (evening), krizaka/.github#220. Blocked by krizaka-ui#558 for the shared blocks."
+  },
+  {
+    "repo": "akinaza",
+    "issue": 261,
+    "action": "link",
+    "to": "akinaza#236",
+    "relation": "part_of"
+  },
+  {
+    "repo": "akinaza",
+    "issue": 261,
+    "action": "comment",
+    "body": "Part of the epic https://github.com/krizaka/akinaza/issues/236 (named in the title). ADR first, CTO validation, then code (report decision « Les études avant le code »). Storefront text styling comes from https://github.com/krizaka/krizaka-ui/issues/561 (TextStylePicker, « Akinaza storefronts »)."
+  },
+  {
+    "repo": "orazaka-web-client",
+    "issue": 265,
+    "action": "link",
+    "to": "krizaka-ui#505",
+    "relation": "blocked_by"
+  },
+  {
+    "repo": "orazaka-web-client",
+    "issue": 265,
+    "action": "comment",
+    "body": "Same product-bar change as https://github.com/krizaka/krizaka-ui/issues/505 (« using the app is the primary action; Contact moves to the footer », ProductBarActions). Run krizaka-ui#505 first, then adopt it here. Evidence: both titles."
+  },
+  {
+    "repo": "orazaka-web-client",
+    "issue": 270,
+    "action": "link",
+    "to": "orazaka#389",
+    "relation": "blocked_by"
+  },
+  {
+    "repo": "orazaka-web-client",
+    "issue": 270,
+    "action": "comment",
+    "body": "Title says « after ADR-088 »; the report names orazaka#389 as ADR-088 (running on the Claude agent). Blocked by orazaka#389 and the CTO validation of the ADR. Checkpoint report 2026-10-23 (evening), krizaka/.github#220"
+  },
+  {
+    "repo": "orazaka",
+    "issue": 389,
+    "action": "link",
+    "to": "orazaka#388",
+    "relation": "part_of"
+  },
+  {
+    "repo": "orazaka-cli",
+    "issue": 90,
+    "action": "link",
+    "to": "orazaka#388",
+    "relation": "part_of"
+  },
+  {
+    "repo": "orazaka-web-client",
+    "issue": 270,
+    "action": "link",
+    "to": "orazaka#388",
+    "relation": "part_of"
+  },
+  {
+    "repo": "krizaka-tauri-kit",
+    "issue": 4,
+    "action": "link",
+    "to": "orazaka#388",
+    "relation": "part_of"
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 265,
+    "action": "link",
+    "to": ".github#217",
+    "relation": "part_of"
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 265,
+    "action": "comment",
+    "body": "Its ratcheted lint rules (No-Scroll, JSDoc, banned identifiers, phantom dependencies) overlap https://github.com/krizaka/.github/issues/217 (« shared rules in one place », ADR). Not a duplicate: keep open, but align with the ADR once validated. Evidence: both titles."
+  },
+  {
+    "repo": "krizaka-ts",
+    "issue": 46,
+    "action": "comment",
+    "body": "New issue from the Checkpoint report 2026-10-23 (evening), krizaka/.github#220: phase 1 only (a new Opus architecture session). discount and credit coupons: study and ADR first; the CTO validates the ADR before any implementation. Labelled needs-adr; add adr-validated when the CTO validates. Source: https://github.com/krizaka/krizaka-ts/issues/46"
+  },
+  {
+    "repo": "krizaka-ts",
+    "issue": 47,
+    "action": "comment",
+    "body": "New issue from the Checkpoint report 2026-10-23 (evening), krizaka/.github#220: phase 1 only (a new Opus architecture session). the modular architecture and business modules: study and ADR first; the CTO validates the ADR before any implementation. Labelled needs-adr; add adr-validated when the CTO validates. Source: https://github.com/krizaka/krizaka-ts/issues/47"
+  },
+  {
+    "repo": ".github",
+    "issue": 217,
+    "action": "comment",
+    "body": "New issue from the Checkpoint report 2026-10-23 (evening), krizaka/.github#220: phase 1 only (a new Opus architecture session). the shared rules: study and ADR first; the CTO validates the ADR before any implementation. Labelled needs-adr; add adr-validated when the CTO validates. Source: https://github.com/krizaka/.github/issues/217"
+  },
+  {
+    "repo": "krizaka-build",
+    "issue": 82,
+    "action": "comment",
+    "body": "New issue from the Checkpoint report 2026-10-23 (evening), krizaka/.github#220: phase 1 only (a new Opus architecture session). the building blocks missing from Central: study and ADR first; the CTO validates the ADR before any implementation. Labelled needs-adr; add adr-validated when the CTO validates. Source: https://github.com/krizaka/krizaka-build/issues/82"
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 558,
+    "action": "comment",
+    "body": "Status: running now on Copilot (model: auto) per the Checkpoint report 2026-10-23 (evening), krizaka/.github#220, « Since then ». Quota was restored after Oussama added credit. Source: https://github.com/krizaka/krizaka-ui/issues/558"
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 561,
+    "action": "comment",
+    "body": "Status: running now on Copilot (model: Sonnet) per the Checkpoint report 2026-10-23 (evening), krizaka/.github#220, « Since then ». Quota was restored after Oussama added credit. Source: https://github.com/krizaka/krizaka-ui/issues/561"
+  },
+  {
+    "repo": ".github",
+    "issue": 215,
+    "action": "comment",
+    "body": "Status: running now on Copilot (model: Opus) per the Checkpoint report 2026-10-23 (evening), krizaka/.github#220, « Since then ». Quota was restored after Oussama added credit. Source: https://github.com/krizaka/.github/issues/215"
+  },
+  {
+    "repo": "krizaka-blog",
+    "issue": 103,
+    "action": "comment",
+    "body": "Status: running now on Copilot (model: Sonnet) per the Checkpoint report 2026-10-23 (evening), krizaka/.github#220, « Since then ». Quota was restored after Oussama added credit. Source: https://github.com/krizaka/krizaka-blog/issues/103"
+  },
+  {
+    "repo": "krizaka-build",
+    "issue": 18,
+    "action": "comment",
+    "body": "Status: running now on Copilot (model: Sonnet) per the Checkpoint report 2026-10-23 (evening), krizaka/.github#220, « Since then ». Quota was restored after Oussama added credit. Source: https://github.com/krizaka/krizaka-build/issues/18"
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 554,
+    "action": "comment",
+    "body": "Status: queued for Copilot, run at most 5 at a time (Opus counts double). Labelled ready-for-agent. Order is in orchestration/triage/2026-10-23.md. Source: Checkpoint report 2026-10-23 (evening), krizaka/.github#220; https://github.com/krizaka/krizaka-ui/issues/554"
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 548,
+    "action": "comment",
+    "body": "Status: queued for Copilot, run at most 5 at a time (Opus counts double). Labelled ready-for-agent. Order is in orchestration/triage/2026-10-23.md. Source: Checkpoint report 2026-10-23 (evening), krizaka/.github#220; https://github.com/krizaka/krizaka-ui/issues/548"
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 397,
+    "action": "comment",
+    "body": "Status: queued for Copilot, run at most 5 at a time (Opus counts double). Labelled ready-for-agent. Order is in orchestration/triage/2026-10-23.md. Source: Checkpoint report 2026-10-23 (evening), krizaka/.github#220; https://github.com/krizaka/krizaka-ui/issues/397"
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 483,
+    "action": "comment",
+    "body": "Status: queued for Copilot, run at most 5 at a time (Opus counts double). Labelled ready-for-agent. Order is in orchestration/triage/2026-10-23.md. Source: Checkpoint report 2026-10-23 (evening), krizaka/.github#220; https://github.com/krizaka/krizaka-ui/issues/483"
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 487,
+    "action": "comment",
+    "body": "Status: queued for Copilot, run at most 5 at a time (Opus counts double). Labelled ready-for-agent. Order is in orchestration/triage/2026-10-23.md. Source: Checkpoint report 2026-10-23 (evening), krizaka/.github#220; https://github.com/krizaka/krizaka-ui/issues/487"
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 425,
+    "action": "comment",
+    "body": "Status: queued for Copilot, run at most 5 at a time (Opus counts double). Labelled ready-for-agent. Order is in orchestration/triage/2026-10-23.md. Source: Checkpoint report 2026-10-23 (evening), krizaka/.github#220; https://github.com/krizaka/krizaka-ui/issues/425"
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 505,
+    "action": "comment",
+    "body": "Status: queued for Copilot, run at most 5 at a time (Opus counts double). Labelled ready-for-agent. Order is in orchestration/triage/2026-10-23.md. Source: Checkpoint report 2026-10-23 (evening), krizaka/.github#220; https://github.com/krizaka/krizaka-ui/issues/505"
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 551,
+    "action": "comment",
+    "body": "Status: queued for Copilot, run at most 5 at a time (Opus counts double). Labelled ready-for-agent. Order is in orchestration/triage/2026-10-23.md. Source: Checkpoint report 2026-10-23 (evening), krizaka/.github#220; https://github.com/krizaka/krizaka-ui/issues/551"
+  },
+  {
+    "repo": "krizaka-motion",
+    "issue": 21,
+    "action": "comment",
+    "body": "Status: queued for Copilot, run at most 5 at a time (Opus counts double). Labelled ready-for-agent. Order is in orchestration/triage/2026-10-23.md. Source: Checkpoint report 2026-10-23 (evening), krizaka/.github#220; https://github.com/krizaka/krizaka-motion/issues/21"
+  },
+  {
+    "repo": "krizaka-motion",
+    "issue": 45,
+    "action": "comment",
+    "body": "Status: queued for Copilot, run at most 5 at a time (Opus counts double). Labelled ready-for-agent. Order is in orchestration/triage/2026-10-23.md. Source: Checkpoint report 2026-10-23 (evening), krizaka/.github#220; https://github.com/krizaka/krizaka-motion/issues/45"
+  },
+  {
+    "repo": "orazaka-web-client",
+    "issue": 265,
+    "action": "comment",
+    "body": "Status: queued for Copilot, run at most 5 at a time (Opus counts double). Labelled ready-for-agent. Order is in orchestration/triage/2026-10-23.md. Source: Checkpoint report 2026-10-23 (evening), krizaka/.github#220; https://github.com/krizaka/orazaka-web-client/issues/265"
+  },
+  {
+    "repo": "orazaka-web-client",
+    "issue": 264,
+    "action": "comment",
+    "body": "Status: queued for Copilot, run at most 5 at a time (Opus counts double). Labelled ready-for-agent. Order is in orchestration/triage/2026-10-23.md. Source: Checkpoint report 2026-10-23 (evening), krizaka/.github#220; https://github.com/krizaka/orazaka-web-client/issues/264"
+  },
+  {
+    "repo": "krizaka-build",
+    "issue": 18,
+    "action": "comment",
+    "body": "Critical CVEs in the Spring stack (Spring Boot 4.0.8, Tomcat 11.0.25 in krizaka-parent): labelled priority:p0 because a security alert at zero is an org epic (krizaka/.github#88). Running now per the report. Source: https://github.com/krizaka/krizaka-build/issues/18"
+  },
+  {
+    "repo": "orazaka",
+    "issue": 388,
+    "action": "comment",
+    "body": "New Orazaka epic per the Checkpoint report 2026-10-23 (evening), krizaka/.github#220: children orazaka#389 (ADR-088), orazaka-cli#90, orazaka-web-client#270, krizaka-tauri-kit#4. ADR first, CTO validation, then code. Could not be read through the public API (orazaka issues are not readable by the agent): status unverified."
+  },
+  {
+    "repo": "akinaza",
+    "issue": 265,
+    "action": "comment",
+    "body": "New issue from the Checkpoint report 2026-10-23 (evening), krizaka/.github#220: the shop editor « My shop page » in sections, with « add a shop ». Active on a Claude session with akinaza#260, #259 and #261 phase 1. Source: https://github.com/krizaka/akinaza/issues/265"
+  },
+  {
+    "repo": ".github",
+    "issue": 132,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": ".github",
+    "issue": 131,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": ".github",
+    "issue": 130,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": ".github",
+    "issue": 128,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": ".github",
+    "issue": 124,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": ".github",
+    "issue": 51,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": ".github",
+    "issue": 40,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": ".github",
+    "issue": 22,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "krizaka-ui",
+    "issue": 98,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 410,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 408,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 407,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 405,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 403,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 372,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 357,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 343,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 312,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 307,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 288,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 287,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 284,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 283,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 263,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 260,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 255,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 371,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 370,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 232,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 226,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 224,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 221,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 220,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 212,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 210,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 209,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 205,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 191,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 190,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 182,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 181,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 179,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 178,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 177,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 176,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 175,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 174,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 168,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 167,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 165,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 164,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 153,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 138,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 112,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 111,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 110,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 109,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 86,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 83,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 82,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 80,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 76,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 75,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 73,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 72,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 71,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 70,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 61,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 60,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 59,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 57,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 369,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 55,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 54,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 52,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 43,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 42,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 41,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 40,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 39,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 38,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 35,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 34,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 33,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 32,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 31,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "orochia",
+    "issue": 30,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yasakia",
+    "issue": 176,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yasakia",
+    "issue": 174,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yasakia",
+    "issue": 156,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yasakia",
+    "issue": 114,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yasakia",
+    "issue": 88,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yasakia",
+    "issue": 82,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yasakia",
+    "issue": 33,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yasakia",
+    "issue": 19,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yasakia",
+    "issue": 3,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yasakia",
+    "issue": 1,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yororis",
+    "issue": 130,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yororis",
+    "issue": 128,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yororis",
+    "issue": 117,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yororis",
+    "issue": 116,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yororis",
+    "issue": 115,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yororis",
+    "issue": 114,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yororis",
+    "issue": 113,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yororis",
+    "issue": 102,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yororis",
+    "issue": 80,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yororis",
+    "issue": 75,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yororis",
+    "issue": 74,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yororis",
+    "issue": 73,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yororis",
+    "issue": 72,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yororis",
+    "issue": 71,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yororis",
+    "issue": 53,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yororis",
+    "issue": 28,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yororis",
+    "issue": 5,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yororis",
+    "issue": 4,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yororis",
+    "issue": 3,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yororis",
+    "issue": 2,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "yororis",
+    "issue": 1,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "kachizaka",
+    "issue": 111,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "kachizaka",
+    "issue": 109,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "kachizaka",
+    "issue": 97,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "kachizaka",
+    "issue": 96,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "kachizaka",
+    "issue": 83,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "kachizaka",
+    "issue": 59,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  },
+  {
+    "repo": "kachizaka",
+    "issue": 48,
+    "action": "label",
+    "add": [
+      "paused"
+    ],
+    "remove": []
+  }
+]
