@@ -60,3 +60,11 @@ package trusts the workflow, which needs the 2FA-protected settings page. Per `@
    of the orchestrator addendum is no longer needed.
 
 The same for `krizaka/orochia-mobile` and every other repository that publishes to npm (`release.yml`).
+
+## Secrets never reach a pull request
+
+No secret on `pull_request` jobs. Signing and deploy secrets live in a protected environment (`release`), used only on `main` or tags.
+A caller of a reusable workflow lists the secrets it passes by name (never `secrets: inherit`) and only from the job that runs on `push`;
+the pull-request job passes none. Coding agents' PRs run CI before any human review, so a secret there is a secret handed to unreviewed code.
+`tauri-macos.yml` enforces it (`sign: false` by default and refuses secrets; `sign: true` refuses anything but `push` to `main` or a tag);
+`tests/tauri-macos.test.mjs` checks it.

@@ -7,7 +7,7 @@ import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const WORKFLOWS = ["node-ci", "java-ci", "expo-ci", "python-ci", "krizaka-ci"];
+const WORKFLOWS = ["node-ci", "java-ci", "expo-ci", "python-ci", "krizaka-ci", "mobile-e2e"];
 const read = (name) => readFileSync(new URL(`../.github/workflows/${name}.yml`, import.meta.url), "utf8");
 
 /** The jobs of a workflow, as { id, text } (top-level `jobs:` entries, two-space indented). */
@@ -294,4 +294,45 @@ test("setup action resolves pnpm from the shared detector before pnpm/action-set
   const src = readFileSync(new URL("../actions/setup/action.yml", import.meta.url), "utf8");
   assert.match(src, /--pnpm-version/);
   assert.match(src, /version: \$\{\{ steps\.pnpm-version\.outputs\.version \}\}/);
+});
+
+// --- mobile-e2e.yml (krizaka/.github#241): Maestro flows on an emulator, the check required on a mobile repository's main.
+const E2E = (o) => ({ CODE: "true", CHANGES: "success", E2E: "success", ...o });
+
+test("mobile-e2e: the gate is green on success and docs-only, red on a failed, cancelled or unasked-skipped run, open on a broken changes gate", () => {
+  assert.equal(runGate("mobile-e2e", E2E({})).status, 0);
+  assert.equal(runGate("mobile-e2e", E2E({ CODE: "false", E2E: "skipped" })).status, 0);
+  assert.equal(runGate("mobile-e2e", E2E({ E2E: "failure" })).status, 1);
+  assert.equal(runGate("mobile-e2e", E2E({ E2E: "cancelled" })).status, 1);
+  assert.equal(runGate("mobile-e2e", E2E({ E2E: "skipped" })).status, 1);
+  assert.equal(runGate("mobile-e2e", E2E({ CHANGES: "failure", CODE: "" })).status, 0);
+});
+
+test("mobile-e2e: the required check is `gate`, a reusable workflow, and the heavy job reports artifacts even on failure", () => {
+  const src = read("mobile-e2e");
+  assert.match(src, /\non:\n {2}workflow_call:/);
+  const e2e = jobs(src).find((j) => j.id === "e2e");
+  assert.match(e2e.text, /needs\.changes\.outputs\.code != 'false'/);
+  assert.match(e2e.text, /uses: actions\/upload-artifact@[0-9a-f]{40}[^\n]*\n\s+if: \$\{\{ always\(\) \}\}/);
+  assert.match(jobs(src).find((j) => j.id === "gate").text, /^ {4}name: gate$/m);
+});
+
+test("mobile-e2e: Maestro is pinned by version and sha256, the emulator action by SHA, KVM is enabled", () => {
+  const src = read("mobile-e2e");
+  assert.match(src, /sha256sum -c/);
+  assert.match(src, /expected=[0-9a-f]{64}/);
+  assert.match(src, /maestro-version:\n\s+description:[^\n]*\n\s+type: string\n\s+default: "\d+\.\d+\.\d+"/);
+  assert.match(src, /uses: reactivecircus\/android-emulator-runner@[0-9a-f]{40}/);
+  assert.match(src, /99-kvm4all\.rules/);
+});
+
+test("mobile-e2e: the demo account is masked, scrubbed from the reports, and only ever the caller's or a random one", () => {
+  const src = read("mobile-e2e");
+  assert.match(src, /::add-mask::\$password/);
+  assert.match(src, /::add-mask::\$email/);
+  assert.match(src, /openssl rand/);
+  assert.match(src, /Scrub the demo account from the reports/);
+  // The only secrets the workflow declares are the demo account's.
+  const secrets = src.slice(src.indexOf("    secrets:\n"), src.indexOf("    outputs:\n"));
+  assert.deepEqual([...secrets.matchAll(/^ {6}([A-Z_]+):$/gm)].map((m) => m[1]).sort(), ["DEMO_ACCOUNT_EMAIL", "DEMO_ACCOUNT_PASSWORD"]);
 });

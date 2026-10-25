@@ -1,0 +1,403 @@
+# Maestro flows on an Android emulator, on every PR (reusable; krizaka/.github#241).
+#
+# A mobile repository's workflow calls it; the job is named `mobile-e2e`, so the required check is `mobile-e2e / gate`:
+#
+#   on: { pull_request: {}, push: { branches: [main] } }
+#   jobs:
+#     mobile-e2e:
+#       permissions: { contents: read }
+#       uses: krizaka/.github/.github/workflows/mobile-e2e.yml@<sha> # v1
+#       with:
+#         app-id: com.krizaka.yomizaka
+#         app-directory: apps/mobile
+#         package-manager: pnpm
+#         lockfile-directory: .
+#         demo-email: eric@demo.yomizaka.test
+#         setup-command: bash scripts/ci-mobile-backend.sh   # a backend on the runner, seeded with the demo account
+#         env: |
+#           EXPO_PUBLIC_APP_URL=http://localhost:3000
+#       # secrets: DEMO_ACCOUNT_EMAIL / DEMO_ACCOUNT_PASSWORD, only to run against a shared backend
+#
+# What it does (one job, because the emulator, the backend and the app must share a host):
+#   changes   the changes.yml gate: a change that cannot touch the app skips the heavy job (fail-open).
+#   e2e       Expo prebuild + Gradle: a self-contained x86_64 APK signed with the debug key (JavaScript bundled, so no Metro);
+#             `setup-command` (the backend, if any); the pinned Maestro CLI (sha256-checked); an emulator with KVM
+#             (reactivecircus/android-emulator-runner, SHA-pinned); the flows of `flows-directory`; the screenshots,
+#             the screen recording and the JUnit report are uploaded as artifacts, always.
+#   gate      ALWAYS reports: `mobile-e2e / gate`. It is never skipped to get green: a failed or cancelled flow run fails it.
+#
+# The demo account: its address is `demo-email` (or the secret), its password the secret or, without one, a random value made
+# for this run. Both are masked in the logs, given to `setup-command` as DEMO_ACCOUNT_EMAIL / DEMO_ACCOUNT_PASSWORD and to the
+# flows as PERSONA_EMAIL / PERSONA_PASSWORD. They are scrubbed from the uploaded reports. Never a real account.
+#
+# Flows tagged `manual` (a paid engine run, a system picker) do not run here; tag a flow `manual` instead of deleting it.
+# iOS (macos-latest, on main and on PRs labelled `ios`) is a second, optional job, not part of this file yet.
+name: mobile-e2e
+
+on:
+  workflow_call:
+    inputs:
+      app-id:
+        description: "The Android application id (to install the APK and set its language)."
+        type: string
+        required: true
+      app-directory:
+        description: "Directory of the Expo app (monorepo sub-folder)."
+        type: string
+        default: "."
+      flows-directory:
+        description: "Maestro flows, relative to app-directory."
+        type: string
+        default: ".maestro"
+      env:
+        description: "Newline-separated KEY=VALUE lines, set for the build (EXPO_PUBLIC_*) and passed to the flows with -e. Not for secrets."
+        type: string
+        default: ""
+      setup-command:
+        description: "Bash run from the repository root after the build and before the emulator (start a backend, seed the demo account). Gets DEMO_ACCOUNT_EMAIL and DEMO_ACCOUNT_PASSWORD."
+        type: string
+        default: ""
+      demo-email:
+        description: "The demo account's address when the secret is not given."
+        type: string
+        default: ""
+      reverse-ports:
+        description: "Space-separated ports of the runner the emulator reaches as localhost (adb reverse), e.g. \"3000\"."
+        type: string
+        default: ""
+      allow-cleartext:
+        description: "Allow http:// in the app (a backend on localhost): android:usesCleartextTraffic on the generated manifest."
+        type: boolean
+        default: false
+      exclude-tags:
+        description: "Maestro tags that do not run in CI."
+        type: string
+        default: manual
+      include-tags:
+        description: "Maestro tags to run; empty: all but the excluded ones."
+        type: string
+        default: ""
+      locale:
+        description: "The app's language on the emulator (BCP 47)."
+        type: string
+        default: fr-CA
+      android-api-level:
+        description: "Emulator API level."
+        type: number
+        default: 34
+      node-version:
+        description: "Node.js version."
+        type: string
+        default: "22"
+      java-version:
+        description: "Java version for Gradle."
+        type: string
+        default: "17"
+      package-manager:
+        description: "npm or pnpm."
+        type: string
+        default: npm
+      lockfile-directory:
+        description: "Directory of the lockfile when it is not the app's own (an app inside a pnpm workspace: \".\")."
+        type: string
+        default: ""
+      install-command:
+        description: "Replaces the default install (npm ci / pnpm install --frozen-lockfile)."
+        type: string
+        default: ""
+      relevant:
+        description: "changes.yml: JavaScript RegExp, a changed file matching it needs the job."
+        type: string
+        default: "."
+      ignore:
+        description: "changes.yml: JavaScript RegExp, a changed file matching it never needs the job."
+        type: string
+        default: '^\.changeset/|^(LICENSE|SECURITY|CODE_OF_CONDUCT|SUPPORT)(\.md)?$|^\.github/(ISSUE_TEMPLATE/|pull_request_template\.md$|FUNDING\.yml$|dependabot\.yml$)'
+      maestro-version:
+        description: "Maestro CLI version (its sha256 is pinned in this file; change both together)."
+        type: string
+        default: "2.11.0"
+      timeout-minutes:
+        description: "Timeout of the heavy job."
+        type: number
+        default: 60
+    secrets:
+      DEMO_ACCOUNT_EMAIL:
+        description: "Demo account address, only to run against a shared backend."
+        required: false
+      DEMO_ACCOUNT_PASSWORD:
+        description: "Demo account password, only to run against a shared backend."
+        required: false
+    outputs:
+      result:
+        description: "success or failure: the gate's verdict."
+        value: ${{ jobs.gate.outputs.result }}
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    name: Changed files
+    permissions:
+      contents: read
+    uses: krizaka/.github/.github/workflows/changes.yml@ccd224612f5bb9db815335654f359a595a597fbb # main
+    with:
+      relevant: ${{ inputs.relevant }}
+      ignore: ${{ inputs.ignore }}
+
+  e2e:
+    name: Maestro (Android)
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    permissions:
+      contents: read
+    env:
+      PM: ${{ inputs.package-manager }}
+      APP_DIR: ${{ inputs.app-directory }}
+      OUT: ${{ github.workspace }}/e2e-out
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: The demo account (masked, never printed)
+        env:
+          SECRET_EMAIL: ${{ secrets.DEMO_ACCOUNT_EMAIL }}
+          SECRET_PASSWORD: ${{ secrets.DEMO_ACCOUNT_PASSWORD }}
+          INPUT_EMAIL: ${{ inputs.demo-email }}
+        run: |
+          case "$PM" in npm|pnpm) ;; *) echo "::error::package-manager must be npm or pnpm, got '$PM'"; exit 1 ;; esac
+          email="${SECRET_EMAIL:-$INPUT_EMAIL}"
+          password="${SECRET_PASSWORD:-}"
+          if [ -z "$password" ]; then password="$(openssl rand -hex 16)"; fi
+          if [ -z "$email" ]; then echo "::error::no demo account: set the demo-email input or the DEMO_ACCOUNT_EMAIL secret"; exit 1; fi
+          echo "::add-mask::$email"
+          echo "::add-mask::$password"
+          {
+            echo "DEMO_ACCOUNT_EMAIL=$email"
+            echo "DEMO_ACCOUNT_PASSWORD=$password"
+          } >> "$GITHUB_ENV"
+
+      - name: The build environment
+        env:
+          APP_ENV: ${{ inputs.env }}
+        run: |
+          # KEY=VALUE lines only; anything else is refused rather than guessed.
+          while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            case "$line" in \#*) continue ;; esac
+            if ! printf '%s' "$line" | grep -Eq '^[A-Za-z_][A-Za-z0-9_]*=[^[:cntrl:]]*$'; then
+              echo "::error::env: not a KEY=VALUE line"; exit 1
+            fi
+            printf '%s\n' "$line" >> "$GITHUB_ENV"
+          done <<< "$APP_ENV"
+
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        if: ${{ inputs.package-manager == 'pnpm' }}
+        with:
+          package_json_file: ${{ inputs.lockfile-directory || inputs.app-directory }}/package.json
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: ${{ inputs.package-manager }}
+          cache-dependency-path: ${{ inputs.lockfile-directory || inputs.app-directory }}/${{ inputs.package-manager == 'pnpm' && 'pnpm-lock.yaml' || 'package-lock.json' }}
+
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: ${{ inputs.java-version }}
+
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles(format('{0}/{1}', inputs.lockfile-directory || inputs.app-directory, inputs.package-manager == 'pnpm' && 'pnpm-lock.yaml' || 'package-lock.json')) }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      - name: Install
+        env:
+          INSTALL: ${{ inputs.install-command }}
+          LOCK_DIR: ${{ inputs.lockfile-directory || inputs.app-directory }}
+        run: |
+          if [ -n "$INSTALL" ]; then bash -c "$INSTALL"
+          elif [ "$PM" = pnpm ]; then pnpm install --frozen-lockfile --ignore-scripts --prefer-offline
+          else (cd "$LOCK_DIR" && npm ci --ignore-scripts --prefer-offline --no-audit --no-fund); fi
+
+      - name: Prebuild (Android)
+        working-directory: ${{ inputs.app-directory }}
+        env:
+          CLEARTEXT: ${{ inputs.allow-cleartext }}
+        run: |
+          if [ "$PM" = pnpm ]; then pnpm exec expo prebuild --platform android --no-install --clean
+          else npx expo prebuild --platform android --no-install --clean; fi
+          if [ "$CLEARTEXT" = true ]; then
+            manifest=android/app/src/main/AndroidManifest.xml
+            sed -i 's|<application |<application android:usesCleartextTraffic="true" |' "$manifest"
+            grep -q 'usesCleartextTraffic="true"' "$manifest" || { echo "::error::the manifest has no <application> to open to http"; exit 1; }
+          fi
+
+      - name: Build the APK (release variant, debug key, x86_64, JavaScript bundled)
+        working-directory: ${{ inputs.app-directory }}/android
+        run: ./gradlew assembleRelease --no-daemon --console=plain -PreactNativeArchitectures=x86_64
+
+      - name: Backend and demo data
+        if: ${{ inputs.setup-command != '' }}
+        env:
+          SETUP: ${{ inputs.setup-command }}
+        run: bash -c "$SETUP"
+
+      - name: Maestro CLI (pinned, sha256-checked)
+        env:
+          MAESTRO_VERSION: ${{ inputs.maestro-version }}
+        run: |
+          # sha256 of maestro.zip of cli-2.11.0 (GitHub release digest); bump the version and this line together.
+          expected=5384593cb4e7a106489e75a821d157dd43f4e438df6bc308b72e82c685e1283a
+          [ "$MAESTRO_VERSION" = "2.11.0" ] || { echo "::error::no sha256 pinned for Maestro $MAESTRO_VERSION"; exit 1; }
+          curl --proto "=https" --tlsv1.2 -fsSL -o "$RUNNER_TEMP/maestro.zip" "https://github.com/mobile-dev-inc/maestro/releases/download/cli-${MAESTRO_VERSION}/maestro.zip"
+          echo "$expected  $RUNNER_TEMP/maestro.zip" | sha256sum -c -
+          unzip -q "$RUNNER_TEMP/maestro.zip" -d "$RUNNER_TEMP/maestro-cli"
+          echo "$RUNNER_TEMP/maestro-cli/maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: The run script
+        run: |
+          mkdir -p "$OUT/screenshots" "$OUT/video"
+          cat > "$RUNNER_TEMP/e2e-run.sh" <<'SCRIPT'
+          set -u
+          # A slow emulator makes system apps "not respond": that dialog would cover the app and fail every assertion.
+          adb shell settings put global hide_error_dialogs 1 || true
+          adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS >/dev/null || true
+          apk="$(ls "$APP_DIR"/android/app/build/outputs/apk/release/*.apk | head -1)"
+          adb install -r "$apk"
+          for port in $REVERSE_PORTS; do adb reverse "tcp:$port" "tcp:$port"; done
+          # Per-app language (Android 13+): the flows read the product's reference language.
+          adb shell cmd locale set-app-locales "$APP_ID" --locales "$LOCALE" || echo "::warning::could not set the app language"
+
+          # The screen, in 170 s chunks (screenrecord's limit), until the flows end.
+          touch "$OUT/.recording"
+          (
+            i=0
+            while [ -f "$OUT/.recording" ]; do
+              i=$((i + 1))
+              adb shell screenrecord --time-limit 170 --size 540x960 "/sdcard/run-$i.mp4" || break
+            done
+          ) &
+          recorder=$!
+
+          args=(--format junit --output "$OUT/junit.xml" --test-output-dir "$OUT/screenshots" -e "PERSONA_EMAIL=$DEMO_ACCOUNT_EMAIL" -e "PERSONA_PASSWORD=$DEMO_ACCOUNT_PASSWORD")
+          [ -n "$EXCLUDE_TAGS" ] && args+=(--exclude-tags "$EXCLUDE_TAGS")
+          [ -n "$INCLUDE_TAGS" ] && args+=(--include-tags "$INCLUDE_TAGS")
+          while IFS= read -r line; do
+            [ -n "$line" ] && args+=(-e "$line")
+          done <<< "$APP_ENV"
+
+          (cd "$OUT/screenshots" && maestro test "${args[@]}" "$GITHUB_WORKSPACE/$APP_DIR/$FLOWS_DIR")
+          status=$?
+
+          rm -f "$OUT/.recording"
+          adb shell pkill -2 screenrecord || true
+          wait "$recorder" || true
+          sleep 2
+          for f in $(adb shell ls /sdcard/ | tr -d '\r' | grep '^run-.*\.mp4$'); do adb pull "/sdcard/$f" "$OUT/video/" || true; done
+          adb logcat -d -t 2000 > "$OUT/logcat.txt" || true
+          exit "$status"
+          SCRIPT
+
+      - name: Emulator and flows
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        env:
+          APP_ID: ${{ inputs.app-id }}
+          FLOWS_DIR: ${{ inputs.flows-directory }}
+          APP_ENV: ${{ inputs.env }}
+          REVERSE_PORTS: ${{ inputs.reverse-ports }}
+          EXCLUDE_TAGS: ${{ inputs.exclude-tags }}
+          INCLUDE_TAGS: ${{ inputs.include-tags }}
+          LOCALE: ${{ inputs.locale }}
+        with:
+          api-level: ${{ inputs.android-api-level }}
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          cores: 4
+          ram-size: 4096M
+          disable-animations: true
+          emulator-boot-timeout: 600
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none
+          script: bash "$RUNNER_TEMP/e2e-run.sh"
+
+      - name: Scrub the demo account from the reports
+        if: ${{ always() }}
+        run: |
+          [ -d "$OUT" ] || exit 0
+          # The password never leaves the runner, even in a failure message.
+          grep -rIl -F -e "$DEMO_ACCOUNT_PASSWORD" "$OUT" 2>/dev/null | while IFS= read -r f; do
+            P="$DEMO_ACCOUNT_PASSWORD" perl -0pi -e 's/\Q$ENV{P}\E/***/g' "$f"
+          done
+          rm -f "$OUT/.recording"
+
+      - name: Summary
+        if: ${{ always() }}
+        run: |
+          {
+            echo "### Maestro (Android)"
+            if [ -f "$OUT/junit.xml" ]; then
+              tests="$(grep -o 'tests="[0-9]*"' "$OUT/junit.xml" | head -1)"
+              failures="$(grep -o 'failures="[0-9]*"' "$OUT/junit.xml" | head -1)"
+              echo "JUnit: ${tests:-tests=?} ${failures:-failures=?}. Screenshots, video and report: the \`maestro-e2e\` artifact."
+            else
+              echo "No JUnit report: the build, the backend or the emulator failed before the flows."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ always() }}
+        with:
+          name: maestro-e2e
+          path: e2e-out
+          if-no-files-found: ignore
+          retention-days: 14
+
+  gate:
+    name: gate
+    needs: [changes, e2e]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    outputs:
+      result: ${{ steps.verdict.outputs.result }}
+    steps:
+      - id: verdict
+        env:
+          CODE: ${{ needs.changes.outputs.code }}
+          CHANGES: ${{ needs.changes.result }}
+          E2E: ${{ needs.e2e.result }}
+        run: |
+          fail=0
+          echo "gate: code=${CODE:-unknown} changes=$CHANGES e2e=$E2E"
+          # A broken gate (changes) is never a reason to fail: the flows ran in full.
+          [ "$CHANGES" = success ] || echo "::warning::the changes gate did not succeed ($CHANGES): the flows ran in full"
+          case "$E2E" in success|skipped) ;; *) echo "::error::e2e $E2E"; fail=1 ;; esac
+          # The flows run unless the gate answered exactly `false`: a skip without that answer is a bug, not a pass.
+          if [ "$CODE" != "false" ] && [ "$E2E" != success ]; then
+            echo "::error::the flows must run when the gate did not answer false"; fail=1
+          fi
+          if [ "$fail" = 0 ]; then echo "result=success" >> "$GITHUB_OUTPUT"; else echo "result=failure" >> "$GITHUB_OUTPUT"; fi
+          {
+            echo "### mobile-e2e gate"
+            echo "| job | result |"
+            echo "| --- | --- |"
+            echo "| changes | $CHANGES (code=${CODE:-unknown}) |"
+            echo "| e2e | $E2E |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit "$fail"

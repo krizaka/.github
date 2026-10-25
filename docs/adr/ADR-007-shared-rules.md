@@ -1,6 +1,6 @@
 # ADR-007: Shared rules in one place, by repository profile
 
-- **Status:** proposed (2026-10-23). It waits for the CTO's « validé » on krizaka/.github#217.
+- **Status:** accepted (2026-10-23, validated by the CTO on krizaka/.github#222).
 - **Issue:** krizaka/.github#217. It coordinates with #113 (the CI build pack).
 - **Deciders:** Oussama (« les règles en un seul endroit, partagées »), then the CTO.
 - **Numbering:** ADR-006 is krizaka/.github#197, still open, so this decision takes ADR-007.
