@@ -8,8 +8,9 @@ names are not changed automatically.
 Use lower-case, hyphen-separated names in the form **`<owner>-<role>`**. A product's main repository is the one
 exception: it is named after the product alone, with no role suffix.
 
-- **Owner:** `krizaka` for shared repositories, or a product name. The current products are `akinaza`, `kachizaka`,
-  `orazaka`, `orochia`, `yasakia`, `yomizaka` and `yororis`.
+- **Owner:** `krizaka` for shared repositories, or a product name. The products in focus are `akinaza`, `orazaka` and
+  `yomizaka`. `kachizaka`, `orochia`, `yasakia` and `yororis` are paused (Oussama, 2026-10-25): their repositories are
+  private and no new repository is named after them.
 - **Product roles:** no suffix for the main repository; `web` for the web app when the main repository is an umbrella (Orazaka); `engine` for an engine product's core library; `mobile`, `desktop` or `admin` for another app; `<name>-service`
   for a deployable backend service; `services` for the umbrella repository; `worker-<name>` for a worker; and `packs`,
   `cli`, `contracts` or `build`.
@@ -34,7 +35,7 @@ shape fits, but whose role needs discussion.
 | Repository | Current role | Status |
 | :--- | :--- | :--- |
 | `akinaza` | Main product repository | Complies |
-| `kachizaka` | Main product repository | Complies |
+| `kachizaka` | Main product repository | **Paused** (2026-10-25), private |
 | `krizaka-accounts` | Shared capability service | Complies |
 | `krizaka-billing` | Shared capability service | Complies |
 | `krizaka-blog` | Shared blog | Complies |
@@ -66,18 +67,18 @@ shape fits, but whose role needs discussion.
 | `orazaka-web-admin` | Former admin console, merged into `orazaka-web-client` (served on admin.orazaka.com by host routing) | **Archive** |
 | `orazaka-web-client` | Web app | **Rename → `orazaka-web`** |
 | `orazaka-worker-media` | Worker | Complies |
-| `orochia` | Main product repository | Complies |
+| `orochia` | Main product repository | **Paused** (2026-10-25), private |
 | `orochia-admin` | Former admin console, merged into `orochia` (served on admin.orochia.com, `apps/web/app/console`) | **Archive** |
-| `orochia-design-system` | Orochia's design packages | **Fold into `krizaka-ui`**, then archive |
-| `orochia-mobile` | Mobile app | Complies |
+| `orochia-design-system` | Orochia's design packages | **Paused** (2026-10-25), private |
+| `orochia-mobile` | Mobile app | **Paused** (2026-10-25), private |
 | `template-expo-app` | Template | Complies |
 | `template-next-app` | Template | Complies |
 | `template-tauri-app` | Template | Complies |
-| `yasakia` | Main product repository | Complies |
-| `yasakia-mobile` | Mobile app | Complies |
+| `yasakia` | Main product repository | **Paused** (2026-10-25), private |
+| `yasakia-mobile` | Mobile app | **Paused** (2026-10-25), private |
 | `yomizaka` | Main product repository | Complies |
-| `yororis` | Main product repository | Complies |
-| `yororis-mobile` | Mobile app | Complies |
+| `yororis` | Main product repository | **Paused** (2026-10-25), private |
+| `yororis-mobile` | Mobile app | **Paused** (2026-10-25), private |
 
 ## Check
 
@@ -109,7 +110,6 @@ name for git and the API, but everything that **names** the repository is update
 
 Archive: `orochia-admin` (merged into `orochia`, orochia#232) and `orazaka-web-admin` (the console now lives in `orazaka-web-client`, under `src/app/console`; its last open issue moved there as orazaka-web-client#264). One app serves the site and the console: there is no separate admin repository for Orazaka.
 
-Folds: `orazaka-ui-kit` and `orochia-design-system` become packages of `krizaka-ui` (the npm names stay), then the
-repositories are archived. Each fold is its own issue.
+Folds: `orazaka-ui-kit` becomes packages of `krizaka-ui` (the npm names stay), then the repository is archived. Each fold is its own issue.
 
 A **new** repository is named by this standard before it is created; the weekly check reports any drift.

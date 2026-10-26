@@ -1,6 +1,6 @@
 # Post-merge deploy check (krizaka/.github#113 P2-8). A merge to main of a DigitalOcean-deployed repository must start a
 # deployment within the grace period (DigitalOcean's push webhook is lost now and then: ~3 % of the merges of
-# 2026-10-20/21 on krizaka-blog, akinaza, yasakia, orazaka-web-client, krizaka-com, orochia). One small job looks at every
+# 2026-10-20/21 across the deployed repositories). One small job looks at every
 # app of the Krizaka team with a few doctl reads — never a job that sleeps per merge — and, for the head of a branch
 # older than the grace period with no deployment, starts a plain deployment and fails so that the miss is visible.
 # A deployment that started and ended ERROR / CANCELED is listed as failed (it is not a missing one). Apps without

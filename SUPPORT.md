@@ -1,6 +1,6 @@
 # Getting help
 
-- **Documentation** — [krizaka.com](https://www.krizaka.com): Orazaka and Orochia docs, synced from the code.
+- **Documentation** — [krizaka.com](https://www.krizaka.com): each product and open-source project documents itself on its own site, built from the code.
 - **Questions and ideas** — GitHub Discussions, one forum per ecosystem:
   - the Java building blocks (`krizaka-build`, `krizaka-platform-kit`, `krizaka-users`, `krizaka-notifications`,
     `krizaka-billing` — they ship as one BOM) → [`krizaka/krizaka-platform-kit`](https://github.com/krizaka/krizaka-platform-kit/discussions);

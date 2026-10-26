@@ -23,7 +23,7 @@ body:
     id: milestone
     attributes:
       label: Milestone and target date
-      placeholder: "M1 · Production Orochia — 2027-01-29"
+      placeholder: "Yomizaka · B2B verification"
   - type: textarea
     id: notes
     attributes:

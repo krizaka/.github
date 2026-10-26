@@ -17,12 +17,14 @@ export const END = "<!-- products:end -->";
 export const MARKS_CDN = "https://krizaka-assets.b-cdn.net/brand";
 const STATUS = { released: "Available", upcoming: "Coming soon", construction: "Under construction", development: "In development" };
 
-/** The products to show, in reading order: the sites of kind `product`, plus the `fallback` ones the package does not know yet. */
+/** The products to show, in reading order: the sites of kind `product`, plus the `fallback` ones the package does not know yet,
+ *  minus the `paused` ones (their repositories are private: never listed, never linked). */
 export function collectProducts({ sites, descriptions = {}, knowhow }) {
+  const paused = new Set(knowhow.paused ?? []);
   const byId = new Map();
-  for (const s of sites) if (s.kind === "product") byId.set(s.id, { ...s, known: true });
+  for (const s of sites) if (s.kind === "product" && !paused.has(s.id)) byId.set(s.id, { ...s, known: true });
   for (const [id, k] of Object.entries(knowhow.products)) {
-    if (!byId.has(id) && k.fallback) byId.set(id, { id, kind: "product", host: k.fallback.url.replace(/^https?:\/\//, ""), ...k.fallback, known: false });
+    if (!byId.has(id) && !paused.has(id) && k.fallback) byId.set(id, { id, kind: "product", host: k.fallback.url.replace(/^https?:\/\//, ""), ...k.fallback, known: false });
   }
   const rank = (id) => {
     const i = knowhow.order.indexOf(id);

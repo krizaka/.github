@@ -196,15 +196,15 @@ test("java gate: red on failure, cancellation, or an unasked skip; open when the
   assert.equal(runGate("java-ci", JAVA({ CHANGES: "failure", CODE: "" })).status, 0);
 });
 
-// The daily SEO check (epic #119): the products' public addresses are www.<product>.com (indexed; Orochia's noindex for now),
+// The daily SEO check (epic #119): the products' public addresses are www.<product>.com (indexed),
 // every dev.<product>.com is checked as a development host that sends its pages to www.
 test("the daily SEO check covers the www addresses and the dev hosts (--redirects-to www)", () => {
   const yml = readFileSync(new URL("../.github/workflows/seo-family.yml", import.meta.url), "utf8");
-  for (const p of ["orazaka", "orochia", "yasakia", "yororis", "yomizaka", "kachizaka", "akinaza"]) {
+  for (const p of ["orazaka", "yomizaka", "akinaza"]) {
     assert.match(yml, new RegExp(`host: www\\.${p}\\.com,`), `www.${p}.com`);
     assert.match(yml, new RegExp(`host: dev\\.${p}\\.com, args: "--index off --redirects-to https://www\\.${p}\\.com"`), `dev.${p}.com`);
   }
-  assert.match(yml, /host: www\.orochia\.com, args: "--index off"/, "Orochia's www stays noindex");
+  for (const p of ["orochia", "yasakia", "yororis", "kachizaka"]) assert.doesNotMatch(yml, new RegExp(`\\.${p}\\.com`), `${p} is paused`);
   assert.doesNotMatch(yml, /^\s+- dev\./m, "no dev host is checked as an indexed site");
 });
 

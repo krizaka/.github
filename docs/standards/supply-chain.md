@@ -59,7 +59,7 @@ package trusts the workflow, which needs the 2FA-protected settings page. Per `@
 4. Re-run the workflow (`workflow_dispatch`): the version page then shows the *Provenance* badge, and the local `pnpm changeset publish` step
    of the orchestrator addendum is no longer needed.
 
-The same for `krizaka/orochia-mobile` and every other repository that publishes to npm (`release.yml`).
+The same for every other repository that publishes to npm (`release.yml`).
 
 ## Secrets never reach a pull request
 

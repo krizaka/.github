@@ -1,7 +1,7 @@
 # The Krizaka family SEO guard, daily (krizaka-com AGENTS §2.4).
 # Runs scripts/check-seo-family.mjs of krizaka-com against every indexed site and opens (or comments on) one issue
-# per site when it fails. Since 2026-10-21 (epic #119) the products' public addresses are www.<product>.com (indexed;
-# Orochia's stays noindex for now) and dev.<product>.com is checked as a development host: robots Disallow, noindex,
+# per site when it fails. Since 2026-10-21 (epic #119) the products' public addresses are www.<product>.com (indexed)
+# and dev.<product>.com is checked as a development host: robots Disallow, noindex,
 # every page 308 to www (--redirects-to). The live DigitalOcean spec has twice drifted to APP_SEARCH_INDEXING=off (noindex +
 # Disallow: /), which hid a site from Google: this is the alarm. Fix the live spec with doctl and the repo's .do/app.yaml.
 name: SEO family
@@ -27,21 +27,13 @@ jobs:
           - { host: www.krizaka.com, args: "" }
           - { host: ui.krizaka.com, args: "" }
           - { host: java.krizaka.com, args: "" }
-          # The products' public addresses (sign-up closed). Orochia's stays noindex until its indexing is decided.
+          # The products' public addresses (sign-up closed). The paused products (Orochia, Yasakia, Yororis, Kachizaka) are not checked.
           - { host: www.orazaka.com, args: "" }
-          - { host: www.yasakia.com, args: "" }
-          - { host: www.yororis.com, args: "" }
           - { host: www.yomizaka.com, args: "" }
-          - { host: www.kachizaka.com, args: "" }
           - { host: www.akinaza.com, args: "" }
-          - { host: www.orochia.com, args: "--index off" }
           # The development hosts: not indexed, pages 308 to www, the API stays.
           - { host: dev.orazaka.com, args: "--index off --redirects-to https://www.orazaka.com" }
-          - { host: dev.orochia.com, args: "--index off --redirects-to https://www.orochia.com" }
-          - { host: dev.yasakia.com, args: "--index off --redirects-to https://www.yasakia.com" }
-          - { host: dev.yororis.com, args: "--index off --redirects-to https://www.yororis.com" }
           - { host: dev.yomizaka.com, args: "--index off --redirects-to https://www.yomizaka.com" }
-          - { host: dev.kachizaka.com, args: "--index off --redirects-to https://www.kachizaka.com" }
           - { host: dev.akinaza.com, args: "--index off --redirects-to https://www.akinaza.com" }
     steps:
       - name: Fetch the guard

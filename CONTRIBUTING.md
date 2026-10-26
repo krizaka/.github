@@ -24,7 +24,7 @@ Thank you for helping. Every Krizaka repository follows the same rules.
      `ABUSE_` (bot challenge, quotas, rate limits), `OBSERVABILITY_`, `AI_` (the Orazaka client), `OPERATOR_` (admin console).
    - The vendor is a **value**: `MEDIA_STORAGE_PROVIDER=bunny`, `MAIL_PROVIDER=mailgun`, `PUSH_PROVIDER=expo`; its settings
      sit under the context (`MEDIA_STREAM_LIBRARY_ID`, `MAIL_API_KEY`). Never `BUNNY_…`, `MAILGUN_…`, `GOOGLE_…`.
-   - **No product name** (`OROCHIA_…`, `YASAKIA_…`): the deployment already says which product it is.
+   - **No product name** (`YOMIZAKA_…`, `AKINAZA_…`): the deployment already says which product it is.
    - `NEXT_PUBLIC_` / `EXPO_PUBLIC_` only where the framework requires a client-exposed value, then the context
      (`NEXT_PUBLIC_APP_URL`, `EXPO_PUBLIC_APP_URL`).
    - **One typed env module per app** (zod): every variable declared once with its context, whether production needs

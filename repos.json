@@ -31,12 +31,10 @@
       "role": "Main product repository",
       "team": "kachizaka",
       "kind": "app",
-      "deploy": [
-        "kachizaka-dev"
-      ],
+      "deploy": [],
       "archived": false,
       "visibility": "public",
-      "status": "Complies"
+      "status": "Paused (2026-10-25), private"
     },
     {
       "name": "krizaka-accounts",
@@ -151,7 +149,7 @@
       "team": "krizaka",
       "kind": "none",
       "deploy": [],
-      "archived": null,
+      "archived": false,
       "visibility": "private",
       "status": "Complies"
     },
@@ -403,12 +401,10 @@
       "role": "Main product repository",
       "team": "orochia",
       "kind": "app",
-      "deploy": [
-        "orochia-dev"
-      ],
+      "deploy": [],
       "archived": false,
       "visibility": "public",
-      "status": "Complies"
+      "status": "Paused (2026-10-25), private"
     },
     {
       "name": "orochia-admin",
@@ -430,8 +426,7 @@
       "deploy": [],
       "archived": false,
       "visibility": "public",
-      "status": "Fold into krizaka-ui, then archive",
-      "foldInto": "krizaka-ui"
+      "status": "Paused (2026-10-25), private"
     },
     {
       "name": "orochia-mobile",
@@ -442,7 +437,7 @@
       "deploy": [],
       "archived": false,
       "visibility": "public",
-      "status": "Complies"
+      "status": "Paused (2026-10-25), private"
     },
     {
       "name": "template-expo-app",
@@ -483,12 +478,10 @@
       "role": "Main product repository",
       "team": "yasakia",
       "kind": "app",
-      "deploy": [
-        "yasakia-dev"
-      ],
+      "deploy": [],
       "archived": false,
       "visibility": "public",
-      "status": "Complies"
+      "status": "Paused (2026-10-25), private"
     },
     {
       "name": "yasakia-mobile",
@@ -499,7 +492,7 @@
       "deploy": [],
       "archived": false,
       "visibility": "public",
-      "status": "Complies"
+      "status": "Paused (2026-10-25), private"
     },
     {
       "name": "yomizaka",
@@ -520,12 +513,10 @@
       "role": "Main product repository",
       "team": "yororis",
       "kind": "app",
-      "deploy": [
-        "yororis-qa"
-      ],
+      "deploy": [],
       "archived": false,
       "visibility": "public",
-      "status": "Complies"
+      "status": "Paused (2026-10-25), private"
     },
     {
       "name": "yororis-mobile",
@@ -536,7 +527,7 @@
       "deploy": [],
       "archived": false,
       "visibility": "public",
-      "status": "Complies"
+      "status": "Paused (2026-10-25), private"
     }
   ]
 }

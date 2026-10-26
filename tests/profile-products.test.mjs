@@ -18,8 +18,18 @@ const sites = [
 
 test("products only, in the know-how order, with their status in words", () => {
   const p = collectProducts({ sites, knowhow });
-  assert.deepEqual(p.map((x) => x.id), ["orazaka", "orochia", "yasakia", "yororis", "yomizaka", "kachizaka", "akinaza"]);
-  assert.deepEqual(p.map((x) => x.status), ["Available", "Available", "Coming soon", "Under construction", "In development", "In development", "In development"]);
+  assert.deepEqual(p.map((x) => x.id), ["orazaka", "yomizaka", "akinaza"]);
+  assert.deepEqual(p.map((x) => x.status), ["Available", "In development", "In development"]);
+});
+
+test("a paused product is never listed nor linked, even while the package still lists it (2026-10-25)", () => {
+  assert.deepEqual([...knowhow.paused].sort(), ["kachizaka", "orochia", "yasakia", "yororis"]);
+  const md = renderProducts(collectProducts({ sites, knowhow }));
+  for (const id of knowhow.paused) {
+    assert.ok(!md.includes(`krizaka/${id}`), `${id} is linked`);
+    assert.ok(!md.includes(`brand/${id}/`), `${id}'s mark is shown`);
+    assert.equal(knowhow.order.includes(id) || id in knowhow.products, false, `${id} still has words`);
+  }
 });
 
 test("a product the package does not know yet comes from its fallback; once known, the package wins", () => {
@@ -49,20 +59,19 @@ test("no dead link: a missing repository or mark is left out", () => {
 
 test("a product without a site of its own links its repository once, with its own mark", () => {
   const md = renderProducts(collectProducts({ sites, knowhow }));
-  const row = md.split("<tr>").find((r) => r.includes("**Kachizaka**"));
-  assert.equal(row.split("github.com/krizaka/kachizaka)").length - 1, 1);
-  assert.match(row, /\[Repository\]\(https:\/\/github\.com\/krizaka\/kachizaka\)/);
-  assert.ok(row.includes("brand/kachizaka/mark-dark.svg"));
+  const row = md.split("<tr>").find((r) => r.includes("**Akinaza**"));
+  assert.equal(row.split("github.com/krizaka/akinaza)").length - 1, 1);
+  assert.match(row, /\[Repository\]\(https:\/\/github\.com\/krizaka\/akinaza\)/);
+  assert.ok(row.includes("brand/akinaza/mark-dark.svg"));
   assert.ok(md.includes("brand/akinaza/mark-light.svg"));
   const noMark = renderProducts(collectProducts({ sites, knowhow }), { marks: (id) => id !== "akinaza" });
   assert.ok(!noMark.includes("brand/akinaza/"));
 });
 
-test("no hard-coded version and no word the Yororis lexicon refuses", () => {
+test("no hard-coded version and no beta or waiting-list wording", () => {
   const md = renderProducts(collectProducts({ sites, knowhow }));
   assert.ok(!/\b\d+\.\d+\.\d+\b/.test(md));
-  assert.ok(!/thérap|therap|psy|coming soon.*yororis|beta|waiting list/i.test(md.split("Yororis")[1]?.split("</tr>")[0] ?? ""));
-  assert.match(md, /Under construction/);
+  assert.ok(!/beta|waiting list/i.test(md));
 });
 
 test("replaceBlock rewrites only the section and is idempotent", () => {

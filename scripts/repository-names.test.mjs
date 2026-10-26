@@ -40,7 +40,7 @@ test("legacy and unknown roles are reported, but the org profile repository is e
     "orazaka-mobile-client",
     "orazaka-web-admin",
     "orazaka-ui-kit",
-    "orochia-design-system",
+    "orazaka-design-system",
     "krizaka-platform-kit",
     "orazaka-edge",
     "orazaka-ai-engine",
@@ -54,4 +54,10 @@ test("legacy and unknown roles are reported, but the org profile repository is e
     violationsIn(["orazaka", ".github", "orazaka-web-client", "krizaka-ui"]),
     ["orazaka-web-client"],
   );
+});
+
+test("a paused product owns no new repository name (2026-10-25)", () => {
+  for (const name of ["orochia", "orochia-mobile", "yasakia-web", "yororis", "kachizaka-admin"]) {
+    assert.equal(isValidRepositoryName(name), false, name);
+  }
 });

@@ -10,7 +10,9 @@ import { pathToFileURL } from "node:url";
 const ORG = "krizaka";
 const ROOT = new URL("../", import.meta.url);
 export const KINDS = ["maven", "npm", "app", "site", "iac", "python", "rust", "none"];
-export const PRODUCTS = ["akinaza", "kachizaka", "orazaka", "orochia", "yasakia", "yomizaka", "yororis"];
+export const PRODUCTS = ["akinaza", "orazaka", "yomizaka"];
+/** Paused (2026-10-25): their repositories stay in the registry, private, under their own owner. */
+export const PAUSED_PRODUCTS = ["kachizaka", "orochia", "yasakia", "yororis"];
 
 /** The inventory table of docs/standards/repositories.md: name → { role, status, renameTo, foldInto }. */
 export function parseStandard(markdown) {
@@ -30,7 +32,7 @@ export function parseStandard(markdown) {
 
 /** The product a repository belongs to, or `krizaka` for the shared ones (templates and `.github` included). */
 export function ownerOf(name) {
-  return PRODUCTS.find((product) => name === product || name.startsWith(`${product}-`)) ?? ORG;
+  return [...PRODUCTS, ...PAUSED_PRODUCTS].find((product) => name === product || name.startsWith(`${product}-`)) ?? ORG;
 }
 
 /** What the repository builds, from its root files first, then its topics, then its role in the standard. */

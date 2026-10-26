@@ -70,11 +70,11 @@ product that is not yet one repository are reported in the same file):
 {
   "$schema": "https://raw.githubusercontent.com/krizaka/.github/main/docs/standards/dev-preview.schema.json",
   "version": 1,
-  "product": "orochia",
+  "product": "yomizaka",
   "index": "off",
   "criteria": {
-    "site.healthy": { "evidence": "https://dev.orochia.com/api/health", "checked": "2026-10-16" },
-    "journey.ai-via-orazaka": { "evidence": null, "gap": "Explorer runs on a direct vendor call", "issue": "https://github.com/krizaka/orochia/issues/1" },
+    "site.healthy": { "evidence": "https://dev.yomizaka.com/api/healthz", "checked": "2026-10-25" },
+    "journey.ai-via-orazaka": { "evidence": null, "gap": "The screening step still calls a vendor directly" },
     "mobile.build": { "na": "No mobile app is planned for the dev preview; AGENTS.md says so." }
   }
 }

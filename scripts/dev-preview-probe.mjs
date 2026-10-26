@@ -5,14 +5,10 @@
 import { execFileSync } from "node:child_process";
 import { checkLive } from "./check-app-links.mjs";
 
+// The products in focus. Kachizaka, Orochia, Yasakia and Yororis are paused (2026-10-25): their environments are deleted.
 export const PRODUCTS = {
   orazaka: { host: "dev.orazaka.com", admin: "admin.orazaka.com", health: ["/api/healthz", "/api/health"], signup: ["/api/auth/register"], mobile: true, repos: ["orazaka", "orazaka-web-client", "orazaka-ui-kit", "orazaka-mobile-client", "orazaka-packs", "orazaka-studio", "orazaka-edge", "orazaka-ai-engine", "orazaka-worker-media", "orazaka-job-service", "orazaka-conversation-service", "orazaka-knowledge-service", "orazaka-automation-service", "krizaka-users", "krizaka-billing", "krizaka-notifications"], ci: "orazaka" },
-  orochia: { host: "dev.orochia.com", admin: "admin.orochia.com", health: ["/api/healthz", "/api/health"], signup: ["/api/auth/register"], repos: ["orochia", "orochia-mobile"], ci: "orochia", appLinks: { iosBundleId: "com.krizaka.orochia", androidPackage: "com.krizaka.orochia", paths: ["/@*", "/watch/*", "/me", "/me/*", "/auctions", "/auctions/*", "/challenges", "/challenges/*", "/messages", "/messages/*"] } },
   yomizaka: { host: "dev.yomizaka.com", admin: "admin.yomizaka.com", health: ["/api/healthz"], signup: ["/api/auth/sign-up"], repos: ["yomizaka"], ci: "yomizaka" },
-  yasakia: { host: "dev.yasakia.com", admin: "admin.yasakia.com", health: ["/api/healthz"], signup: [], signupTest: "https://github.com/krizaka/yasakia/blob/main/e2e/scenarios.mjs", repos: ["yasakia"], ci: "yasakia" },
-  // Yororis: dev.yororis.com is the static « under construction » page real people see; the QA-only app (2026-10-17, yororis#23) is at qa.yororis.com.
-  yororis: { host: "qa.yororis.com", admin: null, health: ["/api/healthz"], signup: ["/api/auth/sign-up"], repos: ["yororis"], ci: "yororis" },
-  kachizaka: { host: "dev.kachizaka.com", admin: "admin.kachizaka.com", health: ["/api/healthz"], signup: ["/api/auth/sign-up"], repos: ["kachizaka"], ci: "kachizaka" },
   akinaza: { host: "dev.akinaza.com", admin: "admin.akinaza.com", health: ["/api/healthz"], signup: ["/api/auth/sign-up"], repos: ["akinaza"], ci: "akinaza" },
 };
 

@@ -15,24 +15,11 @@ test("only high and critical CodeQL and Dependabot alerts block; Scorecard findi
   assert.deepEqual(r, { codeql: 1, dependabot: 1, secrets: 1 });
 });
 
-test("the seven products are known, each with a host and at least one repository", () => {
-  assert.deepEqual(Object.keys(PRODUCTS).sort(), ["akinaza", "kachizaka", "orazaka", "orochia", "yasakia", "yomizaka", "yororis"]);
-  for (const [name, p] of Object.entries(PRODUCTS)) assert.ok((p.host.startsWith("dev.") || name === "yororis") && p.repos.length >= 1, name);
+test("the products in focus are known, each with a dev host and at least one repository; the paused ones are not probed", () => {
+  assert.deepEqual(Object.keys(PRODUCTS).sort(), ["akinaza", "orazaka", "yomizaka"]);
+  for (const [name, p] of Object.entries(PRODUCTS)) assert.ok(p.host.startsWith("dev.") && p.repos.length >= 1, name);
 });
 
-test("Yororis is probed at its QA app, not at the static page: health and the closed sign-up door", () => {
-  assert.equal(PRODUCTS.yororis.host, "qa.yororis.com");
-  assert.deepEqual(PRODUCTS.yororis.health, ["/api/healthz"]);
-  assert.deepEqual(PRODUCTS.yororis.signup, ["/api/auth/sign-up"]);
-});
-
-test("mobile.app-links: Orochia declares its app-links contract, the probe knows which products have a native app", () => {
-  assert.equal(PRODUCTS.orochia.appLinks.iosBundleId, "com.krizaka.orochia");
-  assert.ok(PRODUCTS.orochia.appLinks.paths.includes("/@*"));
+test("mobile.app-links: the probe knows which products have a native app", () => {
   assert.equal(PRODUCTS.orazaka.mobile, true);
-});
-
-test("a passwordless product proves « sign-up closed » by its end-to-end test, not by a POST (yasakia)", () => {
-  assert.deepEqual(PRODUCTS.yasakia.signup, []);
-  assert.match(PRODUCTS.yasakia.signupTest, /^https:\/\/github\.com\/krizaka\/yasakia\/blob\/main\/e2e\/scenarios\.mjs$/);
 });
