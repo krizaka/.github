@@ -42,3 +42,12 @@ test("the CLI path stays inside the working directory and is a .json file", asyn
   assert.throws(() => safeRegisterPath("/etc/passwd", "/work"));
   assert.throws(() => safeRegisterPath("notes.txt", "/work"));
 });
+
+test("the notice templates only name fields the register has", () => {
+  const schema = JSON.parse(readFileSync("docs/privacy/incident-register.schema.json", "utf8"));
+  const notices = readFileSync("docs/privacy/incident-notices.md", "utf8");
+  const table = notices.split("## 2.")[0];
+  const named = [...table.matchAll(/`([a-zA-Z]+)`/g)].map((m) => m[1]).filter((f) => f !== "other");
+  assert.ok(named.length >= 8, "the Commission table maps its elements to register fields");
+  for (const f of named) assert.ok(f in schema.properties, `incident-notices.md names unknown field ${f}`);
+});

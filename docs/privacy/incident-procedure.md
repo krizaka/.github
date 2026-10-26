@@ -41,7 +41,7 @@ A *confidentiality incident* is unauthorised access to, use of or communication 
 
 ### Notice content (regulation r. 3.1, to be checked by the lawyer)
 
-To the CAI: description of the information concerned (or why unknown), circumstances, date or period, date known, number of persons concerned (and in Québec), risk-of-serious-injury elements, measures taken and planned, the person to contact. To the persons: the same, plus what they can do to reduce the risk. Templates are kept with the product, in French first.
+To the CAI: description of the information concerned (or why unknown), circumstances, date or period, date known, number of persons concerned (and in Québec), risk-of-serious-injury elements, measures taken and planned, the person to contact. To the persons: the same, plus what they can do to reduce the risk. The templates (Commission, persons, business client), French first, are in [`incident-notices.md`](incident-notices.md); a filled notice stays with the product, never in a repository.
 
 ## The register
 
@@ -49,7 +49,7 @@ The register is **data, not a document**: an append-only store, one row per inci
 
 ## Product consoles
 
-Each product's admin console can open an incident and writes to the shared register: Yomizaka first, then Akinaza (tracked in the product repositories). Until then an incident is recorded by a row validated with the script.
+Each product's admin console can open an incident and writes to the shared register: Yomizaka first (krizaka/yomizaka#418), then Akinaza (krizaka/akinaza#392). Until then an incident is recorded by a row validated with the script.
 
 ## Drill
 
