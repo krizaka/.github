@@ -17,10 +17,10 @@
 | :--- | :--- | :--- |
 | Person in charge of personal information published (art. 3.1) | Organisation, roles | Each site's privacy page |
 | Privacy impact assessment (art. 3.3) | Risk and PIA | Product issues (yomizaka#365, akinaza#369) |
-| Confidentiality incidents and register (arts. 3.5-3.8) | Incident management | [procedure](../incident-procedure.md) |
+| Confidentiality incidents and register (arts. 3.5-3.8) | Incident management | [procedure](../incident-procedure.md), [notices](../incident-notices.md) |
 | Consent (arts. 4, 14) | Conditions for collection | Product copy and flows |
 | Retention and destruction (art. 23) | Retention, disposal | [records of processing](records-of-processing.json) |
-| Transfers outside Québec (art. 17) | Transfers | Records of processing, supplier DPAs |
+| Transfers outside Québec (art. 17) | Transfers | Records of processing, [supplier register](../../security/isms/supplier-register.json) (regions and terms to collect, .github#285) |
 | Rights: access, rectification, deletion, portability (arts. 27-30, 28.1) | Data-subject rights | [workflow](rights-requests.md) |
 | Service providers (art. 18.3) | Processor obligations | [DPA template](dpa-template.md) |
 
@@ -34,4 +34,4 @@
 
 ## Left
 
-Records filled for Akinaza and Orazaka beyond the first draft, privacy impact assessments where required (including the credit and screening option), supplier DPAs (hosting, CDN, GPU, payments, e-mail), and the lawyer's read.
+Tracked on .github#286: the records' `transfers` once the supplier terms and regions are collected (.github#285) and the product privacy impact assessments land (yomizaka#365, akinaza#369, including the credit and screening option); the purge and deletion tests linked as evidence; the lawyer's read of the roles, the mapping and the DPA template (.github#250). Readiness only: Krizaka is not certified and does not say so.

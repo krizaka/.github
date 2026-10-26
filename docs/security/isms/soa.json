@@ -1,657 +1,99 @@
 {
   "standard": "ISO/IEC 27001:2022 Annex A",
-  "note": "Control titles are the standard's text and are not reproduced. Statuses: applied, partial, excluded, to-assess. An excluded control needs a reason; an applied or partial one needs evidence.",
+  "note": "Control titles are the standard's text and are not reproduced. Statuses: applied, partial, gap, excluded. An excluded control needs a reason; an applied or partial one needs evidence; a partial or gap one needs a plan. Gap analysis of 2026-10-26: a readiness assessment, not a certification.",
   "controls": [
-    {
-      "id": "5.1",
-      "theme": "organizational",
-      "status": "partial",
-      "evidence": "Security policy: docs/security/isms/security-policy.md (draft)",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.2",
-      "theme": "organizational",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.3",
-      "theme": "organizational",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.4",
-      "theme": "organizational",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.5",
-      "theme": "organizational",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.6",
-      "theme": "organizational",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.7",
-      "theme": "organizational",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.8",
-      "theme": "organizational",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.9",
-      "theme": "organizational",
-      "status": "partial",
-      "evidence": "Asset inventory to be generated from infra and repositories (gap)",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.10",
-      "theme": "organizational",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.11",
-      "theme": "organizational",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.12",
-      "theme": "organizational",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.13",
-      "theme": "organizational",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.14",
-      "theme": "organizational",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.15",
-      "theme": "organizational",
-      "status": "applied",
-      "evidence": "Branch protection and least-privilege GitHub Apps (docs/standards/repositories.md)",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.16",
-      "theme": "organizational",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.17",
-      "theme": "organizational",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.18",
-      "theme": "organizational",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.19",
-      "theme": "organizational",
-      "status": "partial",
-      "evidence": "Supplier register in the PIMS records of processing; reviews to schedule",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.20",
-      "theme": "organizational",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.21",
-      "theme": "organizational",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.22",
-      "theme": "organizational",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.23",
-      "theme": "organizational",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.24",
-      "theme": "organizational",
-      "status": "partial",
-      "evidence": "Incident procedure: docs/privacy/incident-procedure.md",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.25",
-      "theme": "organizational",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.26",
-      "theme": "organizational",
-      "status": "partial",
-      "evidence": "Incident procedure: docs/privacy/incident-procedure.md",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.27",
-      "theme": "organizational",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.28",
-      "theme": "organizational",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.29",
-      "theme": "organizational",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.30",
-      "theme": "organizational",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.31",
-      "theme": "organizational",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.32",
-      "theme": "organizational",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.33",
-      "theme": "organizational",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.34",
-      "theme": "organizational",
-      "status": "partial",
-      "evidence": "Law 25 work: docs/privacy/",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.35",
-      "theme": "organizational",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.36",
-      "theme": "organizational",
-      "status": "partial",
-      "evidence": "Reviews and CI gates: docs/standards/ci-and-deploy.md",
-      "owner": "security lead"
-    },
-    {
-      "id": "5.37",
-      "theme": "organizational",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "6.1",
-      "theme": "people",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "6.2",
-      "theme": "people",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "6.3",
-      "theme": "people",
-      "status": "partial",
-      "evidence": "Awareness material to write",
-      "owner": "security lead"
-    },
-    {
-      "id": "6.4",
-      "theme": "people",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "6.5",
-      "theme": "people",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "6.6",
-      "theme": "people",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "6.7",
-      "theme": "people",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "6.8",
-      "theme": "people",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "7.1",
-      "theme": "physical",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "7.2",
-      "theme": "physical",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "7.3",
-      "theme": "physical",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "7.4",
-      "theme": "physical",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "7.5",
-      "theme": "physical",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "7.6",
-      "theme": "physical",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "7.7",
-      "theme": "physical",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "7.8",
-      "theme": "physical",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "7.9",
-      "theme": "physical",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "7.10",
-      "theme": "physical",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "7.11",
-      "theme": "physical",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "7.12",
-      "theme": "physical",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "7.13",
-      "theme": "physical",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "7.14",
-      "theme": "physical",
-      "status": "excluded",
-      "evidence": "No company premises with secure areas; remote work and managed cloud (reason to confirm at the audit)",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.1",
-      "theme": "technological",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.2",
-      "theme": "technological",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.3",
-      "theme": "technological",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.4",
-      "theme": "technological",
-      "status": "applied",
-      "evidence": "Repositories public by default; secrets never committed (secret guard)",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.5",
-      "theme": "technological",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.6",
-      "theme": "technological",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.7",
-      "theme": "technological",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.8",
-      "theme": "technological",
-      "status": "applied",
-      "evidence": "Dependency updates and supply-chain pinning: docs/standards/supply-chain.md",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.9",
-      "theme": "technological",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.10",
-      "theme": "technological",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.11",
-      "theme": "technological",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.12",
-      "theme": "technological",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.13",
-      "theme": "technological",
-      "status": "partial",
-      "evidence": "Backups exist; a tested restore is an acceptance item",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.14",
-      "theme": "technological",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.15",
-      "theme": "technological",
-      "status": "partial",
-      "evidence": "CI and deploy logs; deploy-watch workflow",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.16",
-      "theme": "technological",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.17",
-      "theme": "technological",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.18",
-      "theme": "technological",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.19",
-      "theme": "technological",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.20",
-      "theme": "technological",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.21",
-      "theme": "technological",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.22",
-      "theme": "technological",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.23",
-      "theme": "technological",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.24",
-      "theme": "technological",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.25",
-      "theme": "technological",
-      "status": "applied",
-      "evidence": "Secure development: clean architecture, test-first, review (docs/standards/rules.md)",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.26",
-      "theme": "technological",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.27",
-      "theme": "technological",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.28",
-      "theme": "technological",
-      "status": "applied",
-      "evidence": "Rules as lint, static analysis, required checks (docs/standards/rules.md)",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.29",
-      "theme": "technological",
-      "status": "applied",
-      "evidence": "Required CI and tests on every pull request",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.30",
-      "theme": "technological",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.31",
-      "theme": "technological",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.32",
-      "theme": "technological",
-      "status": "applied",
-      "evidence": "Pull requests, required checks, release train (docs/standards/ci-and-deploy.md)",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.33",
-      "theme": "technological",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    },
-    {
-      "id": "8.34",
-      "theme": "technological",
-      "status": "to-assess",
-      "evidence": "",
-      "owner": "security lead"
-    }
+    {"id": "5.1", "theme": "organizational", "status": "partial", "evidence": "Security policy: docs/security/isms/security-policy.md (draft)", "owner": "security lead", "plan": "Complete the evidence at the gap review"},
+    {"id": "5.2", "theme": "organizational", "status": "partial", "evidence": "Roles in security-policy.md (management, security lead, everyone)", "owner": "security lead", "plan": "Name the holder of each role per product and the privacy officer on each site"},
+    {"id": "5.3", "theme": "organizational", "status": "partial", "evidence": "Branch protection: pull request and required checks for everyone, admins included (docs/standards/repositories.md); agents push, only the founder approves and merges", "owner": "security lead", "plan": "One-person company: the compensating controls (required checks, review by a second identity) are written into the SoA reason at the audit"},
+    {"id": "5.4", "theme": "organizational", "status": "partial", "evidence": "management-review.md template", "owner": "security lead", "plan": "Written, not yet verified: first evidence at the internal audit"},
+    {"id": "5.5", "theme": "organizational", "status": "partial", "evidence": "Incident procedure names the Commission d'accès à l'information as the authority to notify (docs/privacy/incident-procedure.md)", "owner": "security lead", "plan": "List the other authorities (police for fraud, Canadian Centre for Cyber Security) and how to reach them"},
+    {"id": "5.6", "theme": "organizational", "status": "gap", "evidence": "", "owner": "security lead", "plan": "Subscribe the security lead to the Canadian Centre for Cyber Security advisories and the ecosystems' advisories (npm, Maven, GitHub)"},
+    {"id": "5.7", "theme": "organizational", "status": "partial", "evidence": "Dependabot and GitHub security advisories on every repository; OpenSSF Scorecard report (scripts/scorecard-report.mjs)", "owner": "security lead", "plan": "A short monthly threat note in the weekly digest"},
+    {"id": "5.8", "theme": "organizational", "status": "partial", "evidence": "The feature-request template asks « what personal data, why, how long » (.github/ISSUE_TEMPLATE/feature_request.yml)", "owner": "security lead", "plan": "Add a security question to the same template"},
+    {"id": "5.9", "theme": "organizational", "status": "partial", "evidence": "asset-inventory.json: classes pointing to their generated sources", "owner": "security lead", "plan": "Complete the evidence at the gap review"},
+    {"id": "5.10", "theme": "organizational", "status": "partial", "evidence": "Acceptable use in security-policy.md", "owner": "security lead", "plan": "Written, not yet verified: first evidence at the internal audit"},
+    {"id": "5.11", "theme": "organizational", "status": "partial", "evidence": "Leaving rule in security-policy.md", "owner": "security lead", "plan": "Written, not yet verified: first evidence at the internal audit"},
+    {"id": "5.12", "theme": "organizational", "status": "partial", "evidence": "Four classes in security-policy.md; tests/legal-docs.test.mjs guards docs/", "owner": "security lead", "plan": "Written, not yet verified: first evidence at the internal audit"},
+    {"id": "5.13", "theme": "organizational", "status": "gap", "evidence": "", "owner": "security lead", "plan": "Label private documents by class in their header; repositories are public by definition"},
+    {"id": "5.14", "theme": "organizational", "status": "partial", "evidence": "Processor terms template for B2B clients (docs/privacy/pims/dpa-template.md); TLS on every public endpoint", "owner": "security lead", "plan": "Rule for sending files to clients (no attachments with personal information; links that expire)"},
+    {"id": "5.15", "theme": "organizational", "status": "applied", "evidence": "Branch protection and least-privilege GitHub Apps (docs/standards/repositories.md)", "owner": "security lead"},
+    {"id": "5.16", "theme": "organizational", "status": "partial", "evidence": "GitHub organization identities; GitHub Apps for agents (krizaka-agents, orazaka) with installation tokens", "owner": "security lead", "plan": "Inventory of every account per supplier in access-control.md"},
+    {"id": "5.17", "theme": "organizational", "status": "partial", "evidence": "Secrets outside repositories, secret guard on commits (access-control.md)", "owner": "security lead", "plan": "Rotation calendar per credential class (access-control.md) and its evidence"},
+    {"id": "5.18", "theme": "organizational", "status": "partial", "evidence": "access-control.md: access by role, reviewed", "owner": "security lead", "plan": "First quarterly access review recorded"},
+    {"id": "5.19", "theme": "organizational", "status": "partial", "evidence": "supplier-register.json", "owner": "security lead", "plan": "Complete the evidence at the gap review"},
+    {"id": "5.20", "theme": "organizational", "status": "gap", "evidence": "", "owner": "security lead", "plan": "Collect each supplier's data processing terms and region (.github#285)"},
+    {"id": "5.21", "theme": "organizational", "status": "partial", "evidence": "Supply-chain pinning, provenance and Scorecard (docs/standards/supply-chain.md)", "owner": "security lead", "plan": "Extend to the infrastructure images (krizaka-infra)"},
+    {"id": "5.22", "theme": "organizational", "status": "partial", "evidence": "Supplier register as data (supplier-register.json)", "owner": "security lead", "plan": "A yearly review of each supplier's security and location, recorded in the register"},
+    {"id": "5.23", "theme": "organizational", "status": "partial", "evidence": "Cloud suppliers listed with their service and data (supplier-register.json)", "owner": "security lead", "plan": "Confirm each region and the exit path per supplier"},
+    {"id": "5.24", "theme": "organizational", "status": "partial", "evidence": "Incident procedure: docs/privacy/incident-procedure.md", "owner": "security lead", "plan": "Complete the evidence at the gap review"},
+    {"id": "5.25", "theme": "organizational", "status": "partial", "evidence": "Step 3 of the incident procedure: assessment within 24 h of knowing", "owner": "security lead", "plan": "Same assessment for security events that are not personal information"},
+    {"id": "5.26", "theme": "organizational", "status": "partial", "evidence": "Incident procedure: docs/privacy/incident-procedure.md", "owner": "security lead", "plan": "Complete the evidence at the gap review"},
+    {"id": "5.27", "theme": "organizational", "status": "partial", "evidence": "Step 6 of the incident procedure: root cause, fix, a test that guards it", "owner": "security lead", "plan": "Review the register yearly at the management review"},
+    {"id": "5.28", "theme": "organizational", "status": "partial", "evidence": "Register rows and kept logs (docs/privacy/incident-register.schema.json)", "owner": "security lead", "plan": "Rule for preserving logs of an incident (who, where, how long)"},
+    {"id": "5.29", "theme": "organizational", "status": "partial", "evidence": "continuity.md: degraded modes per product", "owner": "security lead", "plan": "Written, not yet verified: first evidence at the internal audit"},
+    {"id": "5.30", "theme": "organizational", "status": "gap", "evidence": "", "owner": "security lead", "plan": "One tested restore and recovery targets (krizaka/krizaka-infra#15)"},
+    {"id": "5.31", "theme": "organizational", "status": "partial", "evidence": "Laws identified and cited per subject, single lawyer checklist (docs/legal/, .github#250)", "owner": "security lead", "plan": "The lawyer review before each public opening"},
+    {"id": "5.32", "theme": "organizational", "status": "partial", "evidence": "Background / Foreground IP policy (docs/legal/ip-split.md); open-source licences of the repositories", "owner": "security lead", "plan": "A licence check of dependencies in CI"},
+    {"id": "5.33", "theme": "organizational", "status": "partial", "evidence": "Incident register kept at least five years (incident-register.mjs enforces retainUntil); tax records six years (records-of-processing.json)", "owner": "security lead", "plan": "A retention table for every record class"},
+    {"id": "5.34", "theme": "organizational", "status": "partial", "evidence": "Law 25 work: docs/privacy/", "owner": "security lead", "plan": "Complete the evidence at the gap review"},
+    {"id": "5.35", "theme": "organizational", "status": "partial", "evidence": "internal-audit.md template; the single lawyer review (.github#250)", "owner": "security lead", "plan": "Written, not yet verified: first evidence at the internal audit"},
+    {"id": "5.36", "theme": "organizational", "status": "partial", "evidence": "Reviews and CI gates: docs/standards/ci-and-deploy.md", "owner": "security lead", "plan": "Complete the evidence at the gap review"},
+    {"id": "5.37", "theme": "organizational", "status": "partial", "evidence": "Written procedures: docs/standards/, docs/privacy/, deploy/", "owner": "security lead", "plan": "Index of the operating procedures in docs/security/isms/README.md"},
+    {"id": "6.1", "theme": "people", "status": "excluded", "evidence": "No employees today; contractors are covered by 6.6 and the IP split. Revisit at the first hire", "owner": "security lead"},
+    {"id": "6.2", "theme": "people", "status": "partial", "evidence": "Subcontractors sign an assignment and a moral-rights waiver before working (docs/legal/ip-split.md)", "owner": "security lead", "plan": "Add confidentiality and security duties to the private subcontractor template"},
+    {"id": "6.3", "theme": "people", "status": "partial", "evidence": "Awareness material to write", "owner": "security lead", "plan": "Complete the evidence at the gap review"},
+    {"id": "6.4", "theme": "people", "status": "excluded", "evidence": "No employees today. Revisit at the first hire", "owner": "security lead"},
+    {"id": "6.5", "theme": "people", "status": "gap", "evidence": "", "owner": "security lead", "plan": "Confidentiality survives the end of a contract (private subcontractor template); offboarding checklist (5.11)"},
+    {"id": "6.6", "theme": "people", "status": "gap", "evidence": "", "owner": "security lead", "plan": "A confidentiality agreement template for subcontractors (private)"},
+    {"id": "6.7", "theme": "people", "status": "partial", "evidence": "Remote-work rules in security-policy.md", "owner": "security lead", "plan": "Written, not yet verified: first evidence at the internal audit"},
+    {"id": "6.8", "theme": "people", "status": "partial", "evidence": "Public security policy and reporting channel (SECURITY.md); the incident procedure's step 1", "owner": "security lead", "plan": "Report form inside each admin console (yomizaka#418, akinaza#392)"},
+    {"id": "7.1", "theme": "physical", "status": "excluded", "evidence": "No company premises; production runs at cloud suppliers whose physical controls apply (5.23, supplier-register.json)", "owner": "security lead"},
+    {"id": "7.2", "theme": "physical", "status": "excluded", "evidence": "No company premises (see 7.1)", "owner": "security lead"},
+    {"id": "7.3", "theme": "physical", "status": "excluded", "evidence": "No company premises (see 7.1)", "owner": "security lead"},
+    {"id": "7.4", "theme": "physical", "status": "excluded", "evidence": "No company premises (see 7.1)", "owner": "security lead"},
+    {"id": "7.5", "theme": "physical", "status": "excluded", "evidence": "No company premises; environmental threats are the suppliers' (see 7.1)", "owner": "security lead"},
+    {"id": "7.6", "theme": "physical", "status": "excluded", "evidence": "No company premises (see 7.1)", "owner": "security lead"},
+    {"id": "7.7", "theme": "physical", "status": "partial", "evidence": "Screens locked when away (security-policy.md)", "owner": "security lead", "plan": "Written, not yet verified: first evidence at the internal audit"},
+    {"id": "7.8", "theme": "physical", "status": "partial", "evidence": "Equipment rules in security-policy.md", "owner": "security lead", "plan": "Written, not yet verified: first evidence at the internal audit"},
+    {"id": "7.9", "theme": "physical", "status": "gap", "evidence": "", "owner": "security lead", "plan": "Laptops encrypted and remotely lockable; listed in the asset inventory"},
+    {"id": "7.10", "theme": "physical", "status": "partial", "evidence": "No removable media with personal information (security-policy.md)", "owner": "security lead", "plan": "Written, not yet verified: first evidence at the internal audit"},
+    {"id": "7.11", "theme": "physical", "status": "excluded", "evidence": "No company premises; the suppliers' utilities apply (see 7.1)", "owner": "security lead"},
+    {"id": "7.12", "theme": "physical", "status": "excluded", "evidence": "No company premises (see 7.1)", "owner": "security lead"},
+    {"id": "7.13", "theme": "physical", "status": "partial", "evidence": "Repairs after the disk is wiped (security-policy.md)", "owner": "security lead", "plan": "Written, not yet verified: first evidence at the internal audit"},
+    {"id": "7.14", "theme": "physical", "status": "excluded", "evidence": "No company premises with secure areas; remote work and managed cloud (reason to confirm at the audit)", "owner": "security lead"},
+    {"id": "8.1", "theme": "technological", "status": "gap", "evidence": "", "owner": "security lead", "plan": "Endpoint baseline: disk encryption, automatic updates, screen lock, password manager; checked yearly"},
+    {"id": "8.2", "theme": "technological", "status": "partial", "evidence": "Branch protection applies to admins; agents act through GitHub Apps with scoped installation tokens", "owner": "security lead", "plan": "List the privileged accounts per supplier and enforce multi-factor authentication on each (access-control.md)"},
+    {"id": "8.3", "theme": "technological", "status": "partial", "evidence": "Admin consoles are separate apps from the public sites (per product)", "owner": "security lead", "plan": "Record per product who can reach which data, in the records of processing"},
+    {"id": "8.4", "theme": "technological", "status": "applied", "evidence": "Repositories public by default; secrets never committed (secret guard)", "owner": "security lead"},
+    {"id": "8.5", "theme": "technological", "status": "gap", "evidence": "", "owner": "security lead", "plan": "Multi-factor authentication on every supplier and on GitHub, verified and recorded (access-control.md)"},
+    {"id": "8.6", "theme": "technological", "status": "gap", "evidence": "", "owner": "security lead", "plan": "Capacity alerts per service, with the public status page (krizaka-infra#13)"},
+    {"id": "8.7", "theme": "technological", "status": "gap", "evidence": "", "owner": "security lead", "plan": "Endpoint protection per the endpoint baseline (8.1); image scanning in CI already covers containers"},
+    {"id": "8.8", "theme": "technological", "status": "applied", "evidence": "Dependency updates and supply-chain pinning: docs/standards/supply-chain.md", "owner": "security lead"},
+    {"id": "8.9", "theme": "technological", "status": "partial", "evidence": "Infrastructure described as code in krizaka-infra; deploy configuration in deploy/", "owner": "security lead", "plan": "A drift check reported in the weekly digest"},
+    {"id": "8.10", "theme": "technological", "status": "partial", "evidence": "Orazaka retention.none; Yomizaka purge after the check (records-of-processing.json)", "owner": "security lead", "plan": "Link each purge test as evidence once it exists"},
+    {"id": "8.11", "theme": "technological", "status": "gap", "evidence": "", "owner": "security lead", "plan": "Mask personal information in logs and in the admin consoles where the full value is not needed"},
+    {"id": "8.12", "theme": "technological", "status": "partial", "evidence": "Secret guard on commits; tests/legal-docs.test.mjs refuses private data in docs/", "owner": "security lead", "plan": "Extend the guard to personal information patterns in the products' logs"},
+    {"id": "8.13", "theme": "technological", "status": "partial", "evidence": "Backups exist; a tested restore is an acceptance item", "owner": "security lead", "plan": "One tested restore and recovery targets (krizaka/krizaka-infra#15)"},
+    {"id": "8.14", "theme": "technological", "status": "gap", "evidence": "", "owner": "security lead", "plan": "Planned: redundancy and failover are not in place; they stay « planned » until krizaka-infra tests them"},
+    {"id": "8.15", "theme": "technological", "status": "partial", "evidence": "CI and deploy logs; deploy-watch workflow", "owner": "security lead", "plan": "Complete the evidence at the gap review"},
+    {"id": "8.16", "theme": "technological", "status": "partial", "evidence": "deploy-watch workflow and CI logs", "owner": "security lead", "plan": "Uptime monitoring and alerting (krizaka-infra#13)"},
+    {"id": "8.17", "theme": "technological", "status": "partial", "evidence": "Inherited from the hosting suppliers' time sources", "owner": "security lead", "plan": "Confirm per supplier"},
+    {"id": "8.18", "theme": "technological", "status": "gap", "evidence": "", "owner": "security lead", "plan": "No privileged utility on production hosts outside the supplier's console; recorded in access-control.md"},
+    {"id": "8.19", "theme": "technological", "status": "partial", "evidence": "Software reaches production only as images built and scanned in CI (docs/standards/ci-and-deploy.md)", "owner": "security lead", "plan": "Write the rule for one-off maintenance commands"},
+    {"id": "8.20", "theme": "technological", "status": "gap", "evidence": "", "owner": "security lead", "plan": "Network rules per service (firewalls, private networks) documented in krizaka-infra"},
+    {"id": "8.21", "theme": "technological", "status": "gap", "evidence": "", "owner": "security lead", "plan": "TLS and HSTS checked on every public endpoint by a scheduled job"},
+    {"id": "8.22", "theme": "technological", "status": "gap", "evidence": "", "owner": "security lead", "plan": "Admin consoles and databases on private networks or IP-restricted, documented in krizaka-infra"},
+    {"id": "8.23", "theme": "technological", "status": "excluded", "evidence": "No company network to filter; endpoints follow the endpoint baseline (8.1). Revisit with staff", "owner": "security lead"},
+    {"id": "8.24", "theme": "technological", "status": "partial", "evidence": "TLS in transit on every public endpoint", "owner": "security lead", "plan": "Encryption at rest per data store and key management, confirmed per supplier (access-control.md)"},
+    {"id": "8.25", "theme": "technological", "status": "applied", "evidence": "Secure development: clean architecture, test-first, review (docs/standards/rules.md)", "owner": "security lead"},
+    {"id": "8.26", "theme": "technological", "status": "partial", "evidence": "Privacy question in the feature template; clean-architecture rules (docs/standards/rules.md)", "owner": "security lead", "plan": "Security requirements per feature in the same template"},
+    {"id": "8.27", "theme": "technological", "status": "partial", "evidence": "Clean architecture and ports (docs/standards/rules.md)", "owner": "security lead", "plan": "Threat model per product before its public opening"},
+    {"id": "8.28", "theme": "technological", "status": "applied", "evidence": "Rules as lint, static analysis, required checks (docs/standards/rules.md)", "owner": "security lead"},
+    {"id": "8.29", "theme": "technological", "status": "applied", "evidence": "Required CI and tests on every pull request", "owner": "security lead"},
+    {"id": "8.30", "theme": "technological", "status": "partial", "evidence": "Coding agents work only through pull requests and required checks (docs/standards/coding-agents.md); subcontractor IP chain (docs/legal/ip-split.md)", "owner": "security lead", "plan": "The private subcontractor template"},
+    {"id": "8.31", "theme": "technological", "status": "partial", "evidence": "dev sites and production separated; production only through the release train (docs/standards/ci-and-deploy.md)", "owner": "security lead", "plan": "Confirm separate credentials and databases per environment"},
+    {"id": "8.32", "theme": "technological", "status": "applied", "evidence": "Pull requests, required checks, release train (docs/standards/ci-and-deploy.md)", "owner": "security lead"},
+    {"id": "8.33", "theme": "technological", "status": "partial", "evidence": "Demos and recordings use named fictitious personas, never real users", "owner": "security lead", "plan": "A rule that production data never reaches dev or test"},
+    {"id": "8.34", "theme": "technological", "status": "gap", "evidence": "", "owner": "security lead", "plan": "Audits and tests on production planned and approved in advance; read-only accounts"}
   ]
 }

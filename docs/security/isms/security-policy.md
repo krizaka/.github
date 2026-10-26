@@ -14,6 +14,12 @@ Protect the confidentiality, integrity and availability of the information of Kr
 6. **Backups are tested.** A restore is proven, not assumed.
 7. **Continual improvement.** Internal audit and management review at least yearly; findings become issues.
 
+## Classification
+Four classes: **public** (the repositories, the sites), **internal** (configuration, plans), **confidential** (contracts, figures, credentials), **personal information** (Law 25). Confidential and personal information never go into a repository: every repository is public.
+
+## Acceptable use and remote work
+Company accounts are used for company work; AI agents act only through their GitHub App identities and pull requests. Work is remote: disks encrypted, screens locked when away, updates automatic, a password manager, no removable media with personal information, no public network without a VPN. Equipment is repaired only after its disk is wiped or removed. When someone leaves: accounts, tokens and devices are returned or revoked the same day.
+
 ## Roles
 Management approves this policy and the risk treatment. The security lead owns the ISMS and the evidence. Everyone reports a suspected incident at once.
 

@@ -1,0 +1,13 @@
+{
+  "note": "Asset inventory (ISO/IEC 27001 A 5.9) by class. Each class points to the source that lists its members, so the inventory is generated, not typed. No address, no host, no account id here.",
+  "classes": [
+    { "id": "repositories", "what": "Code repositories of the krizaka organization", "source": "repos.json", "owner": "security lead", "classification": "public" },
+    { "id": "applications", "what": "Deployed applications and their environments", "source": "deploy/apps.json", "owner": "security lead", "classification": "internal" },
+    { "id": "infrastructure", "what": "Servers, databases, networks, DNS", "source": "krizaka/krizaka-infra", "owner": "security lead", "classification": "internal" },
+    { "id": "suppliers", "what": "Cloud and SaaS suppliers", "source": "docs/security/isms/supplier-register.json", "owner": "security lead", "classification": "internal" },
+    { "id": "personal-information", "what": "Personal information held per product", "source": "docs/privacy/pims/records-of-processing.json", "owner": "privacy officer", "classification": "personal" },
+    { "id": "packages", "what": "Published npm packages and Maven artifacts", "source": "krizaka/krizaka-com lib/package-catalogue.ts", "owner": "security lead", "classification": "public" },
+    { "id": "credentials", "what": "Secrets and tokens, by class (never their values)", "source": "docs/security/isms/access-control.md", "owner": "security lead", "classification": "confidential" },
+    { "id": "endpoints", "what": "Work laptops and phones", "source": "private inventory, outside any repository", "owner": "management", "classification": "confidential" }
+  ]
+}
