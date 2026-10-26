@@ -1,6 +1,6 @@
 # Data processing agreement — public template
 
-> Template without company data, for B2B clients where Krizaka is the service provider (P-39.1 art. 18.3). **À valider par l'avocat.** Filled copies with the parties' details are private (`~/Documents/krizaka/docs/legal/`).
+> Template without company data, for B2B clients where Krizaka is the service provider (P-39.1 art. 18.3). **à valider par l'avocat.** Filled copies with the parties' details are private (`~/Documents/krizaka/docs/legal/`).
 
 1. **Parties and roles.** The Client is the controller; Krizaka is the service provider and processes personal information only on the Client's documented instructions.
 2. **Subject, nature, duration.** <service>; <categories of data>; <categories of persons>; for the term of the service.
