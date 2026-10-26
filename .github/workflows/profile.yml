@@ -29,7 +29,8 @@ jobs:
       - run: node --test tests/*.test.mjs
       - name: The section is up to date with the published sites
         run: |
-          npm install --prefix .sites --no-save --ignore-scripts @krizaka/ui@latest
+          v=$(npm view @krizaka/ui version)
+          npm install --prefix .sites --no-save --ignore-scripts "@krizaka/ui@$v"
           node scripts/profile-products.mjs --check
 
   sync:
@@ -44,7 +45,10 @@ jobs:
         with:
           node-version: 22
       - run: node --test tests/*.test.mjs
-      - run: npm install --prefix .sites --no-save --ignore-scripts @krizaka/ui@latest
+      - name: Install the newest published @krizaka/ui (resolved, then pinned to that exact version)
+        run: |
+          v=$(npm view @krizaka/ui version)
+          npm install --prefix .sites --no-save --ignore-scripts "@krizaka/ui@$v"
       - run: node scripts/profile-products.mjs
       - name: Open a pull request when the section changed
         env:

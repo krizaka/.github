@@ -163,8 +163,8 @@ jobs:
           INSTALL: ${{ inputs.install-command }}
         run: |
           if [ -n "$INSTALL" ]; then bash -c "$INSTALL"
-          elif [ "$PM" = pnpm ]; then pnpm install --frozen-lockfile --prefer-offline
-          else npm ci --prefer-offline --no-audit --no-fund; fi
+          elif [ "$PM" = pnpm ]; then pnpm install --frozen-lockfile --prefer-offline --ignore-scripts
+          else npm ci --prefer-offline --no-audit --no-fund --ignore-scripts; fi
 
       - name: Run
         if: ${{ steps.which.outputs.script != '' }}
@@ -215,8 +215,8 @@ jobs:
           INSTALL: ${{ inputs.install-command }}
         run: |
           if [ -n "$INSTALL" ]; then bash -c "$INSTALL"
-          elif [ "$PM" = pnpm ]; then pnpm install --frozen-lockfile --prefer-offline
-          else npm ci --prefer-offline --no-audit --no-fund; fi
+          elif [ "$PM" = pnpm ]; then pnpm install --frozen-lockfile --prefer-offline --ignore-scripts
+          else npm ci --prefer-offline --no-audit --no-fund --ignore-scripts; fi
 
       - name: EAS build
         env:

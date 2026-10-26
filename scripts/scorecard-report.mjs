@@ -6,6 +6,11 @@ import { realpathSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { execFileSync } from "node:child_process";
 
+/** A GitHub login: letters, digits and single hyphens, no leading hyphen (so it can never read as an option or a path). */
+export function isOrgLogin(v) {
+  return typeof v === "string" && /^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}$/.test(v);
+}
+
 export function renderTable(results) {
   const checks = [];
   for (const r of results) for (const c of r.checks ?? []) if (!checks.includes(c.name)) checks.push(c.name);
@@ -24,6 +29,8 @@ export function renderTable(results) {
 
 async function main() {
   const org = process.argv[2] ?? "krizaka";
+  // The org lands in a `gh api` path and a URL: only a GitHub login is accepted, never a path or an option.
+  if (!isOrgLogin(org)) throw new Error(`not a GitHub organisation login: ${org}`);
   // REST, not GraphQL (`gh repo list`): the GraphQL budget is the first one a batch session exhausts.
   const names = execFileSync("gh", ["api", "--paginate", `orgs/${org}/repos?type=public&per_page=100`, "-q", ".[]|select(.archived|not)|.name"], { encoding: "utf8" }).split("\n").filter(Boolean).sort();
   const results = [];

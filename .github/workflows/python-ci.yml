@@ -40,6 +40,10 @@ on:
         description: "pip: packages installed after the requirements (space-separated)."
         type: string
         default: "pytest-xdist"
+      allow-source-builds:
+        description: "Allow building packages from source at install (runs their setup scripts). Default false: wheels only."
+        type: boolean
+        default: false
       setup-command:
         description: "Shell command run after the install (fetch pinned models, generate fixtures); empty: none."
         type: string
@@ -137,15 +141,19 @@ jobs:
           EXTRA: ${{ inputs.extra-packages }}
           REQUIREMENTS: ${{ inputs.requirements }}
           ROOT: ${{ github.workspace }}
+          SRC: ${{ inputs.allow-source-builds }}
         run: |
+          # Wheels only (no setup.py of an sdist runs at install) unless the caller opts in with allow-source-builds.
+          bin=(--only-binary :all:); uvbin=(--no-build)
+          if [ "$SRC" = true ]; then bin=(); uvbin=(); fi
           if [ "$PM" = uv ]; then
-            uv sync --frozen
+            uv sync --frozen "${uvbin[@]}"
           else
             args=()
             while IFS= read -r f; do [ -n "$f" ] && args+=(-r "$ROOT/$f"); done <<< "$REQUIREMENTS"
-            [ "${#args[@]}" -gt 0 ] && pip install "${args[@]}"
+            [ "${#args[@]}" -gt 0 ] && pip install "${bin[@]}" "${args[@]}"
             # shellcheck disable=SC2086  # packages are word-split on purpose
-            [ -n "$EXTRA" ] && pip install $EXTRA
+            [ -n "$EXTRA" ] && pip install "${bin[@]}" $EXTRA
           fi
           true
 
@@ -161,7 +169,7 @@ jobs:
         working-directory: ${{ inputs.working-directory }}
         run: |
           case "$TASK" in lint) c="$LINT" ;; test) c="$TEST" ;; esac
-          if [ "$PM" = uv ]; then uv run bash -c "$c"; else bash -c "$c"; fi
+          if [ "$PM" = uv ]; then uv run --frozen bash -c "$c"; else bash -c "$c"; fi
 
   gate:
     name: CI gate

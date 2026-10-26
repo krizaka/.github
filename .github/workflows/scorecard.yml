@@ -11,13 +11,15 @@ on:
     - cron: "23 5 * * 1"
   workflow_dispatch:
 
-permissions: read-all
+permissions:
+  contents: read
 
 jobs:
   analysis:
     name: Scorecard analysis
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       security-events: write # upload the SARIF to code scanning
       id-token: write # publish the results to scorecard.dev
     steps:

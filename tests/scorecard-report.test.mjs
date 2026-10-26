@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { renderTable } from "../scripts/scorecard-report.mjs";
+import { isOrgLogin, renderTable } from "../scripts/scorecard-report.mjs";
 
 test("renderTable lists every check, marks n/a and not-applicable, and summarises", () => {
   const md = renderTable([
@@ -12,4 +12,10 @@ test("renderTable lists every check, marks n/a and not-applicable, and summarise
   assert.match(md, /\| b \| 8 \| 6 \|  \|/);
   assert.match(md, /\| c \| n\/a \|/);
   assert.match(md, /Average 7\.00 over 2 scored repositories; lowest a \(6\)/);
+});
+
+test("isOrgLogin accepts a GitHub login and refuses options, paths and queries", () => {
+  assert.equal(isOrgLogin("krizaka"), true);
+  assert.equal(isOrgLogin("my-org"), true);
+  for (const bad of ["--jq", "-x", "a/b", "../x", "a?b=1", "a b", "", "a--", "-a"]) assert.equal(isOrgLogin(bad), false, bad);
 });
