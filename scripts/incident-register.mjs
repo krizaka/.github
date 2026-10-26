@@ -1,36 +1,46 @@
 // Validates rows of the confidentiality-incident register (P-39.1 art. 3.8; r. 3.1).
 // Dependency-free. Usage: node scripts/incident-register.mjs <register.json>
 import { readFileSync } from "node:fs";
+import { relative, resolve, isAbsolute } from "node:path";
 
-const DATE = /^\d{4}-\d{2}-\d{2}$/;
-const isDate = (s) => typeof s === "string" && DATE.test(s) && !Number.isNaN(Date.parse(s));
+const isDate = (s) => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(Date.parse(s));
+const nonEmptyList = (v) => Array.isArray(v) && v.length > 0;
+const DAY_MS = 86_400_000;
 const FIVE_YEARS_DAYS = 5 * 365;
 
+// Each check returns an error message, or "" when the row is fine.
+const CHECKS = [
+  (r) => (/^INC-\d{4}-\d{3}$/.test(r.id ?? "") ? "" : "id must look like INC-2026-001"),
+  (r) => (isDate(r.knownOn) ? "" : "knownOn must be a date"),
+  (r) => (r.occurredOn === undefined || isDate(r.occurredOn) ? "" : "occurredOn must be a date"),
+  (r) => (typeof r.description === "string" && r.description.length >= 10 ? "" : "description is required"),
+  (r) => (nonEmptyList(r.informationConcerned) ? "" : "informationConcerned is required"),
+  (r) => (Number.isInteger(r.personsConcerned?.count) && r.personsConcerned.count >= 0 ? "" : "personsConcerned.count is required"),
+  (r) => ["sensitivity", "consequences", "likelihood"].filter((k) => !r.riskAssessment?.[k]).map((k) => `riskAssessment.${k} is required (art. 3.6)`).join("; "),
+  (r) => (typeof r.seriousInjuryRisk === "boolean" ? "" : "seriousInjuryRisk must be a boolean"),
+  (r) => (Array.isArray(r.noticesSent) ? "" : "noticesSent must be a list"),
+  noticesForSeriousRisk,
+  (r) => (nonEmptyList(r.measures) ? "" : "measures is required"),
+  (r) => (typeof r.drill === "boolean" ? "" : "drill must be a boolean"),
+  retention,
+];
+
+function noticesForSeriousRisk(r) {
+  if (r.seriousInjuryRisk !== true || !Array.isArray(r.noticesSent)) return "";
+  return ["cai", "persons"]
+    .filter((to) => !r.noticesSent.some((n) => n.to === to && isDate(n.on)))
+    .map((to) => `serious risk: a dated notice to "${to}" is required (art. 3.5)`)
+    .join("; ");
+}
+
+function retention(r) {
+  if (!isDate(r.knownOn) || !isDate(r.retainUntil)) return "retainUntil must be a date";
+  const days = (Date.parse(r.retainUntil) - Date.parse(r.knownOn)) / DAY_MS;
+  return days >= FIVE_YEARS_DAYS ? "" : "retainUntil must be at least five years after knownOn (r. 3.1)";
+}
+
 export function validateRow(row) {
-  const e = [];
-  if (!/^INC-\d{4}-\d{3}$/.test(row?.id ?? "")) e.push("id must look like INC-2026-001");
-  if (!isDate(row.knownOn)) e.push("knownOn must be a date");
-  if (row.occurredOn !== undefined && !isDate(row.occurredOn)) e.push("occurredOn must be a date");
-  if (typeof row.description !== "string" || row.description.length < 10) e.push("description is required");
-  if (!Array.isArray(row.informationConcerned) || !row.informationConcerned.length) e.push("informationConcerned is required");
-  if (!Number.isInteger(row.personsConcerned?.count) || row.personsConcerned.count < 0) e.push("personsConcerned.count is required");
-  for (const k of ["sensitivity", "consequences", "likelihood"]) {
-    if (!row.riskAssessment?.[k]) e.push(`riskAssessment.${k} is required (art. 3.6)`);
-  }
-  if (typeof row.seriousInjuryRisk !== "boolean") e.push("seriousInjuryRisk must be a boolean");
-  if (!Array.isArray(row.noticesSent)) e.push("noticesSent must be a list");
-  else if (row.seriousInjuryRisk === true) {
-    for (const to of ["cai", "persons"]) {
-      if (!row.noticesSent.some((n) => n.to === to && isDate(n.on))) e.push(`serious risk: a dated notice to "${to}" is required (art. 3.5)`);
-    }
-  }
-  if (!Array.isArray(row.measures) || !row.measures.length) e.push("measures is required");
-  if (typeof row.drill !== "boolean") e.push("drill must be a boolean");
-  if (isDate(row.knownOn) && isDate(row.retainUntil)) {
-    const days = (Date.parse(row.retainUntil) - Date.parse(row.knownOn)) / 86_400_000;
-    if (days < FIVE_YEARS_DAYS) e.push("retainUntil must be at least five years after knownOn (r. 3.1)");
-  } else e.push("retainUntil must be a date");
-  return e;
+  return CHECKS.map((check) => check(row ?? {})).filter(Boolean).flatMap((m) => m.split("; "));
 }
 
 export function validateRegister(rows) {
@@ -46,8 +56,16 @@ export function validateRegister(rows) {
   return out;
 }
 
+// The CLI only reads a .json file inside the current directory.
+export function safeRegisterPath(arg, cwd = process.cwd()) {
+  const full = resolve(cwd, String(arg ?? ""));
+  const rel = relative(cwd, full);
+  if (!full.endsWith(".json") || rel.startsWith("..") || isAbsolute(rel)) throw new Error("register must be a .json file inside the working directory");
+  return full;
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const bad = validateRegister(JSON.parse(readFileSync(process.argv[2], "utf8")));
+  const bad = validateRegister(JSON.parse(readFileSync(safeRegisterPath(process.argv[2]), "utf8")));
   for (const [id, errs] of Object.entries(bad)) console.error(id, errs.join("; "));
   process.exit(Object.keys(bad).length ? 1 : 0);
 }

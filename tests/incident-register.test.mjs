@@ -34,3 +34,11 @@ test("the register is kept at least five years", () => {
 test("ids are unique", () => {
   assert.ok(validateRegister([drill[0], drill[0]])["INC-2026-001"].includes("duplicate id"));
 });
+
+test("the CLI path stays inside the working directory and is a .json file", async () => {
+  const { safeRegisterPath } = await import("../scripts/incident-register.mjs");
+  assert.match(safeRegisterPath("docs/privacy/incident-register.drill.json", "/work"), /drill\.json$/);
+  assert.throws(() => safeRegisterPath("../etc/passwd.json", "/work"));
+  assert.throws(() => safeRegisterPath("/etc/passwd", "/work"));
+  assert.throws(() => safeRegisterPath("notes.txt", "/work"));
+});
