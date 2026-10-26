@@ -389,6 +389,14 @@ jobs:
             echo "::warning::no coverage report found ($PATHS): the analysis runs without coverage and the new-code coverage condition will fail"
             tar -cf "$OUT" --files-from /dev/null
           else
+            # A monorepo package writes its lcov with paths relative to the package (SF:src/a.ts); the scanner resolves them from the
+            # project root. Rebase them in place (SF:packages/core/src/a.ts); absolute paths and a root-level report are left alone.
+            for f in "${files[@]}"; do
+              case "$f" in *.info) ;; *) continue ;; esac
+              pkg=$(dirname "$f"); [ "$(basename "$pkg")" = coverage ] && pkg=$(dirname "$pkg")
+              [ "$pkg" = "." ] && continue
+              awk -v p="$pkg" '/^SF:/ && substr($0,4,1) != "/" { $0 = "SF:" p "/" substr($0,4) } { print }' "$f" > "$f.rebased" && mv "$f.rebased" "$f"
+            done
             tar -cf "$OUT" "${files[@]}"
             echo "coverage: ${files[*]}"
           fi

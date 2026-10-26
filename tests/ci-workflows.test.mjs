@@ -398,3 +398,9 @@ test("node-ci: the image waits for verify, is scanned (fixable HIGH and CRITICAL
   assert.doesNotMatch(src, /push: true|docker push/);
   assert.match(readFileSync(new URL("../actions/build/action.yml", import.meta.url), "utf8"), /push: false/);
 });
+
+test("node-ci: a monorepo package's lcov is rebased to the project root before the analysis", () => {
+  const verify = jobs(read("node-ci")).find((j) => j.id === "verify");
+  assert.match(verify.text, /awk -v p="\$pkg" '\/\^SF:\/ && substr\(\$0,4,1\) != "\/"/);
+  assert.match(verify.text, /\[ "\$pkg" = "\." \] && continue/);
+});
