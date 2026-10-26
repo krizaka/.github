@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Confidentiality-incident register row (P-39.1 art. 3.8, r. 3.1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "knownOn", "description", "informationConcerned", "personsConcerned", "riskAssessment", "seriousInjuryRisk", "noticesSent", "measures", "drill", "retainUntil"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^INC-\\d{4}-\\d{3}$" },
+    "occurredOn": { "type": "string", "format": "date" },
+    "knownOn": { "type": "string", "format": "date" },
+    "product": { "type": "string" },
+    "description": { "type": "string", "minLength": 10 },
+    "informationConcerned": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "personsConcerned": { "type": "object", "required": ["count"], "properties": { "count": { "type": "integer", "minimum": 0 }, "inQuebec": { "type": "integer", "minimum": 0 } } },
+    "riskAssessment": { "type": "object", "required": ["sensitivity", "consequences", "likelihood"], "properties": { "sensitivity": { "type": "string" }, "consequences": { "type": "string" }, "likelihood": { "type": "string" } } },
+    "seriousInjuryRisk": { "type": "boolean" },
+    "noticesSent": { "type": "array", "items": { "type": "object", "required": ["to", "on"], "properties": { "to": { "enum": ["cai", "persons", "other"] }, "on": { "type": "string", "format": "date" } } } },
+    "measures": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "drill": { "type": "boolean" },
+    "retainUntil": { "type": "string", "format": "date" }
+  }
+}

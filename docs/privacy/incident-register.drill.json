@@ -1,0 +1,21 @@
+[
+  {
+    "id": "INC-2026-001",
+    "occurredOn": "2026-10-26",
+    "knownOn": "2026-10-26",
+    "product": "drill",
+    "description": "Fictitious drill: a test export was sent to the wrong internal address on dev.",
+    "informationConcerned": ["fictitious names", "fictitious e-mail addresses"],
+    "personsConcerned": { "count": 3, "inQuebec": 3 },
+    "riskAssessment": {
+      "sensitivity": "low: fictitious data",
+      "consequences": "none: no real person",
+      "likelihood": "none: internal recipient"
+    },
+    "seriousInjuryRisk": false,
+    "noticesSent": [],
+    "measures": ["export recalled", "recipient deleted the message", "address list check added"],
+    "drill": true,
+    "retainUntil": "2031-10-26"
+  }
+]
