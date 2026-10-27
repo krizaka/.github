@@ -1,0 +1,27 @@
+# The repository layout guard as a step (docs/standards/repo-layout.md): fails on an unexpected root entry, a root file that
+# belongs in a folder, a tracked generated or local path, a duplicated licence file or a stale `.repo-layout.json` entry.
+# The shared node, java and python CI call it first; any other workflow can too:
+#
+#   - uses: actions/checkout@<sha>
+#   - uses: krizaka/.github/actions/repo-layout@<sha>
+#
+# The script is scripts/check-repo-layout.mjs of this repository (the action runs the copy next to it, so no repository
+# copies it). Node is the runner's own.
+name: repo-layout
+description: Fails when the repository's tracked files break the Krizaka layout standard.
+author: Krizaka
+
+inputs:
+  working-directory:
+    description: "The repository root, relative to the workspace."
+    default: "."
+
+runs:
+  using: composite
+  steps:
+    - name: Repository layout
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        SCRIPT: ${{ github.action_path }}/../../scripts/check-repo-layout.mjs
+      run: node "$SCRIPT" --root .
