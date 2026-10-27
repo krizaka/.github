@@ -1,0 +1,62 @@
+name: app-videos
+description: >
+  The recordings of the e2e tests become the videos of a product's download page (krizaka/.github#315): collects
+  `<platform>-<flow>.(mp4|mov|webm)` files, transcodes them (webm + mp4 + poster, at most 30 s, no audio), uploads them to Bunny
+  under site/products/<product>/download/ (hashed, immutable), merges the product's manifest, and PREVIEWS the old objects
+  (never deletes). Use the reusable workflow app-videos.yml to also open the pull request.
+inputs:
+  product:
+    description: The product id (yomizaka, akinaza, orazaka).
+    required: true
+  inputs:
+    description: Directories holding the recordings, one per line.
+    required: true
+  manifest:
+    description: The product's manifest file (JSON), updated in place.
+    required: true
+  dry-run:
+    description: "true: transcode and print the paths, upload nothing."
+    required: false
+    default: "false"
+  storage-api-key:
+    description: The Bunny storage key (org secret MEDIA_STORAGE_API_KEY). Never printed.
+    required: false
+    default: ""
+  storage-zone:
+    description: The storage zone (org secret MEDIA_STORAGE_ZONE).
+    required: false
+    default: ""
+  storage-endpoint:
+    description: The storage endpoint (org secret MEDIA_STORAGE_ENDPOINT); empty for the default.
+    required: false
+    default: ""
+  cdn-hostname:
+    description: The pull zone (org secret MEDIA_CDN_HOSTNAME); empty for the default.
+    required: false
+    default: ""
+runs:
+  using: composite
+  steps:
+    - name: ffmpeg
+      shell: bash
+      run: |
+        if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+        fi
+    - name: Transcode, upload, manifest
+      shell: bash
+      env:
+        MEDIA_STORAGE_API_KEY: ${{ inputs.storage-api-key }}
+        MEDIA_STORAGE_ZONE: ${{ inputs.storage-zone }}
+        MEDIA_STORAGE_ENDPOINT: ${{ inputs.storage-endpoint }}
+        MEDIA_CDN_HOSTNAME: ${{ inputs.cdn-hostname }}
+        PRODUCT: ${{ inputs.product }}
+        INPUT_DIRS: ${{ inputs.inputs }}
+        MANIFEST: ${{ inputs.manifest }}
+        DRY: ${{ inputs.dry-run }}
+        ACTION_PATH: ${{ github.action_path }}
+      run: |
+        args=(publish --product "$PRODUCT" --manifest "$MANIFEST")
+        while IFS= read -r dir; do [ -n "$dir" ] && args+=(--input "$dir"); done <<< "$INPUT_DIRS"
+        [ "$DRY" = "true" ] && args+=(--dry-run)
+        node "$ACTION_PATH/app-videos.mjs" "${args[@]}"
