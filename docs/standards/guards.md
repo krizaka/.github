@@ -32,6 +32,7 @@ This page lists the guards that catch each lesson, and the repos where each guar
 | OS command resolved by PATH | Sonar S4036; local `sonarjs/no-os-command-from-path` once enabled | all TS | krizaka-com#408 → krizaka-ts#164 |
 | Orphan ratchet counter (`pageTemplate`: no rule measures it) | **missing**: the ratchet keeps unknown counters | akinaza, orazaka-web-client, yomizaka | krizaka-ts#172 |
 | A fix with no guard | **missing** CI check | all | .github#323 |
+| import collapse (OpenRewrite autodetected the import layout and folded untouched files) | explicit layout in krizaka-parent and orazaka-parent (`krizaka-rewrite-style`, no star import, static imports first) | every JVM repo | krizaka-build#101, orazaka-build#39, orazaka-ai-engine#133 #143 |
 
 ## 2. The matrix (2026-10-27, read from the GitHub API)
 
