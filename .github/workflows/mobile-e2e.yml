@@ -443,7 +443,7 @@ jobs:
               tests="$(grep -o 'tests="[0-9]*"' "$OUT/junit.xml" | head -1)"
               failures="$(grep -o 'failures="[0-9]*"' "$OUT/junit.xml" | head -1)"
               echo "JUnit (last attempt): ${tests:-tests=?} ${failures:-failures=?}. Screenshots, video and report: the \`maestro-e2e\` artifact."
-              [ -f "$OUT/retries.txt" ] && { echo; echo "Flows run again after a failure:"; sed 's/^/- /' "$OUT/retries.txt"; }
+              if [ -f "$OUT/retries.txt" ]; then echo; echo "Flows run again after a failure:"; sed 's/^/- /' "$OUT/retries.txt"; fi
             else
               echo "No JUnit report: the build, the backend or the emulator failed before the flows."
             fi
