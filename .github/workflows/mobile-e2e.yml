@@ -117,6 +117,10 @@ on:
         description: "Maestro CLI version (its sha256 is pinned in this file; change both together)."
         type: string
         default: "2.11.0"
+      flow-attempts:
+        description: "How many times a flow that failed is run (1 = no retry). Only the failed flows are run again, each must pass: an emulator on a shared runner drops a flow now and then (a cold start, a dialog), a real regression fails every attempt."
+        type: number
+        default: 3
       timeout-minutes:
         description: "Timeout of the heavy job."
         type: number
@@ -269,6 +273,54 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
+      - name: Emulator system image (downloaded again when the archive is corrupt)
+        env:
+          API_LEVEL: ${{ inputs.android-api-level }}
+        run: |
+          # sdkmanager sometimes ends with « Error on ZipFile unknown archive » (a truncated download): the emulator action then
+          # finds no image and fails before any flow. Install it here, retrying from a clean folder; the action reuses it.
+          yes | sdkmanager --licenses > /dev/null || true
+          image="system-images;android-${API_LEVEL};google_apis;x86_64"
+          for attempt in 1 2 3; do
+            if sdkmanager --install "$image" --channel=0 2>&1 | tee "$RUNNER_TEMP/sdkmanager.log" | grep -q 'Error on ZipFile'; then
+              echo "::warning::system image download corrupt (attempt $attempt), again"
+              rm -rf "${ANDROID_HOME:-/usr/local/lib/android/sdk}/system-images/android-${API_LEVEL}/google_apis" "${ANDROID_HOME:-/usr/local/lib/android/sdk}/.temp"
+              continue
+            fi
+            [ -f "${ANDROID_HOME:-/usr/local/lib/android/sdk}/system-images/android-${API_LEVEL}/google_apis/x86_64/system.img" ] && exit 0
+            echo "::warning::system image not found after install (attempt $attempt)"
+          done
+          echo "::error::the system image could not be installed"; exit 1
+
+      - name: The flow retry helper
+        run: |
+          mkdir -p "$OUT"
+          cat > "$RUNNER_TEMP/failed-flows.py" <<'PY'
+          """The flow files whose result in a Maestro JUnit report is a failure (one path per line)."""
+          import os, re, sys
+          import xml.etree.ElementTree as ET
+
+          junit, flows = sys.argv[1], sys.argv[2]
+          failed = set()
+          for case in ET.parse(junit).getroot().iter("testcase"):
+              bad = case.find("failure") is not None or case.find("error") is not None or (case.get("status") or "").upper() in ("ERROR", "FAILURE", "FAILED")
+              if bad:
+                  failed.add(case.get("name") or case.get("id") or "")
+
+          def flow_name(path):
+              with open(path, encoding="utf-8") as handle:
+                  head = handle.read().split("\n---", 1)[0]
+              match = re.search(r"^name:\s*['\"]?(.+?)['\"]?\s*$", head, re.M)
+              return match.group(1) if match else os.path.splitext(os.path.basename(path))[0]
+
+          for root, _, names in os.walk(flows):
+              for name in sorted(names):
+                  if name.endswith((".yaml", ".yml")) and name != "config.yaml":
+                      path = os.path.join(root, name)
+                      if flow_name(path) in failed or os.path.splitext(name)[0] in failed:
+                          print(path)
+          PY
+
       - name: The run script
         run: |
           mkdir -p "$OUT/screenshots" "$OUT/video"
@@ -301,8 +353,27 @@ jobs:
             [ -n "$line" ] && args+=(-e "$line")
           done <<< "$APP_ENV"
 
-          (cd "$OUT/screenshots" && maestro test "${args[@]}" "$GITHUB_WORKSPACE/$APP_DIR/$FLOWS_DIR")
+          flows="$GITHUB_WORKSPACE/$APP_DIR/$FLOWS_DIR"
+          (cd "$OUT/screenshots" && maestro test "${args[@]}" "$flows")
           status=$?
+
+          # A flow that failed is run again, alone (it clears its own state): it must pass. A real regression fails every attempt.
+          attempt=1
+          while [ "$status" -ne 0 ] && [ "$attempt" -lt "$FLOW_ATTEMPTS" ]; do
+            failed="$(python3 "$RUNNER_TEMP/failed-flows.py" "$OUT/junit.xml" "$flows")"
+            [ -n "$failed" ] || break
+            cp "$OUT/junit.xml" "$OUT/junit-attempt-$attempt.xml"
+            attempt=$((attempt + 1))
+            echo "::warning::attempt $attempt of $FLOW_ATTEMPTS, only the flows that failed: $(echo "$failed" | xargs -n1 basename | tr '\n' ' ')"
+            echo "attempt $attempt: $(echo "$failed" | xargs -n1 basename | tr '\n' ' ')" >> "$OUT/retries.txt"
+            retry=(--format junit --output "$OUT/junit.xml" --test-output-dir "$OUT/screenshots" -e "PERSONA_EMAIL=$DEMO_ACCOUNT_EMAIL" -e "PERSONA_PASSWORD=$DEMO_ACCOUNT_PASSWORD")
+            while IFS= read -r line; do
+              [ -n "$line" ] && retry+=(-e "$line")
+            done <<< "$APP_ENV"
+            mapfile -t files <<< "$failed"
+            (cd "$OUT/screenshots" && maestro test "${retry[@]}" "${files[@]}")
+            status=$?
+          done
 
           rm -f "$OUT/.recording"
           adb shell pkill -2 screenrecord || true
@@ -323,6 +394,7 @@ jobs:
           EXCLUDE_TAGS: ${{ inputs.exclude-tags }}
           INCLUDE_TAGS: ${{ inputs.include-tags }}
           LOCALE: ${{ inputs.locale }}
+          FLOW_ATTEMPTS: ${{ inputs.flow-attempts }}
         with:
           api-level: ${{ inputs.android-api-level }}
           target: google_apis
@@ -353,7 +425,8 @@ jobs:
             if [ -f "$OUT/junit.xml" ]; then
               tests="$(grep -o 'tests="[0-9]*"' "$OUT/junit.xml" | head -1)"
               failures="$(grep -o 'failures="[0-9]*"' "$OUT/junit.xml" | head -1)"
-              echo "JUnit: ${tests:-tests=?} ${failures:-failures=?}. Screenshots, video and report: the \`maestro-e2e\` artifact."
+              echo "JUnit (last attempt): ${tests:-tests=?} ${failures:-failures=?}. Screenshots, video and report: the \`maestro-e2e\` artifact."
+              [ -f "$OUT/retries.txt" ] && { echo; echo "Flows run again after a failure:"; sed 's/^/- /' "$OUT/retries.txt"; }
             else
               echo "No JUnit report: the build, the backend or the emulator failed before the flows."
             fi
