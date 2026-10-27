@@ -45,3 +45,27 @@ the product's address, mark and message keys. The org already learned that « ke
 - A fix to the session, the 426 handling or a gate lands once and reaches every app with a version bump.
 - Apps stay independent: no link from one product to another; the package knows no product.
 - Cost: a package to version and publish (npm, OIDC); mitigated by the existing krizaka-ui release flow.
+
+## Update 2026-10-26 (B66, krizaka/.github#178): what shipped, what is left
+
+Names: the package is `@krizaka/app-client` (the `app-shell` name stayed the web layout component of `@krizaka/ui`); the Rust side
+is `krizaka-tauri-kit` v0.2.0 with `tauri-plugin-krizaka`, the bindings `@krizaka/app-desktop` (ADR-005).
+
+| Acceptance criterion of #178 | State |
+|---|---|
+| ADR-004 and ADR-005 merged | Done |
+| `@krizaka/app-client` published | Done (`/react` 0.2.0: `createAuth`, `useSessionStatus`) |
+| A first app migrated with its tests unchanged | **Not as written**: orochia-mobile and yasakia-mobile are paused. Yomizaka's and Akinaza's apps were built on the package instead, with regression tests on the real query client. Proposal: accept those two as the proof and strike the paused apps from the criterion. Oussama to confirm. |
+| `krizaka-tauri-kit` tested (traversal, symlink, never-grantable paths) | Done (33 tests) |
+| `template-expo-app`, `template-tauri-app` | Expo done (trial app green, `expo-doctor` 20/20); Tauri template waits for `@krizaka/app-desktop` 0.1.0 on npm |
+| Update `.github#139` | To do |
+
+The issue names no Kotlin or Swift counterpart, and this ADR rejects Flutter and Kotlin Multiplatform: nothing is planned in those languages.
+
+**Left, as tasks** (krizaka-ui#741): `sessionTokenOf` (bearer before cookie) into `@krizaka/config` or the Next template; the `@krizaka/ui/native` sign-in,
+settings and tabs templates in the Yomizaka and Akinaza apps; the unsigned Mac build's Keychain prompt, to verify with the Developer ID signature.
+
+**The web has the same problem.** The 2026-10 navigation audit (`docs/audits/2026-10-ux-navigation.md`) found three signed-in frames
+composed three ways (Yomizaka: `RailNav` + `AppHeader`; Akinaza: `AppShell`; Orazaka: `RailNav` + `AppHeader`) and the account menu filled
+differently in each. The same rule applies: one `AppFrame` in `@krizaka/ui` that takes the sections, the account links and the primary
+action as data (krizaka-ui#739); the products keep only their section list.
