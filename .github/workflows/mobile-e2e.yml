@@ -329,12 +329,26 @@ jobs:
           mkdir -p "$OUT/screenshots" "$OUT/video"
           cat > "$RUNNER_TEMP/e2e-run.sh" <<'SCRIPT'
           set -u
+          # sys.boot_completed is not enough: the package manager and the activity manager answer a little later, and an install or a
+          # launch before that is dropped (« failed to attach »). Wait for both.
+          for i in $(seq 1 60); do
+            adb shell pm path android 2>/dev/null | grep -q '^package:' && adb shell cmd activity get-config >/dev/null 2>&1 && break
+            sleep 2
+          done
+          # Animations off (the emulator action does it too; made certain here, the flows must not depend on it).
+          for scale in window_animation_scale transition_animation_scale animator_duration_scale; do adb shell settings put global "$scale" 0 || true; done
           # A slow emulator makes system apps "not respond": that dialog would cover the app and fail every assertion.
           adb shell settings put global hide_error_dialogs 1 || true
           adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS >/dev/null || true
           apk="$(ls "$APP_DIR"/android/app/build/outputs/apk/release/*.apk | head -1)"
           adb install -r "$apk"
           for port in $REVERSE_PORTS; do adb reverse "tcp:$port" "tcp:$port"; done
+          # Warm the app once, then stop it: the first launch of a fresh install (dex, ART, first frame) is the slowest and used to
+          # land on the first flow's clearState + launch, where the old task's removal killed the new process.
+          adb shell monkey -p "$APP_ID" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1 || true
+          sleep 10
+          adb shell am force-stop "$APP_ID" || true
+          sleep 2
           # Per-app language (Android 13+): the flows read the product's reference language.
           adb shell cmd locale set-app-locales "$APP_ID" --locales "$LOCALE" || echo "::warning::could not set the app language"
 
