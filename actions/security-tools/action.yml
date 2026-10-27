@@ -15,4 +15,5 @@ runs:
         sudo install /tmp/gitleaks /usr/local/bin/gitleaks
     - name: Install zizmor
       shell: bash
-      run: python3 -m pip install --quiet --only-binary :all: "zizmor==1.31.1"
+      run: |
+        python3 -m pip install --quiet --only-binary :all: "zizmor==1.31.1"
