@@ -1,6 +1,6 @@
 # Guard audit (docs/standards/bug-means-missing-guard.md): every focus repository's main requires `CI gate` and Sonar,
 # and every release workflow opens its PR with a GitHub App token. Reading branch protection needs a token with
-# repository administration read: the organisation secret AUDIT_TOKEN (read-only). Without it the audit fails loudly.
+# repository administration read: a token of the Krizaka Agents app (Administration: read). Without it the audit fails loudly.
 name: Audit guards
 
 on:
@@ -43,6 +43,13 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
+      # The Krizaka Agents app reads branch protection (Administration: read, granted 2026-10-26); no personal token.
+      - id: app
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: krizaka
       - run: node scripts/audit-guards.mjs
         env:
-          GH_TOKEN: ${{ secrets.AUDIT_TOKEN }}
+          GH_TOKEN: ${{ steps.app.outputs.token }}

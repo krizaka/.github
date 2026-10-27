@@ -36,4 +36,4 @@ Standard: [a bug means a missing guard](../standards/bug-means-missing-guard.md)
 ## 3. What is not covered yet
 
 - Rows marked « To file » are small and tied to a repository that is under active work; they become issues at the next block of that repository.
-- The org secret `AUDIT_TOKEN` must exist for the daily audit to read branch protection. Until it does, the audit's job fails and says why.
+- The daily audit reads branch protection with a Krizaka Agents app token (Administration: read, granted 2026-10-26). Until it does, the audit's job fails and says why.
