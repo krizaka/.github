@@ -279,6 +279,9 @@ jobs:
         run: |
           # sdkmanager sometimes ends with « Error on ZipFile unknown archive » (a truncated download): the emulator action then
           # finds no image and fails before any flow. Install it here, retrying from a clean folder; the action reuses it.
+          # `sdkmanager` is not on the runner's PATH (« command not found » ended every run since #300): call it by its place in the SDK.
+          sdk="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          sdkmanager() { "$sdk/cmdline-tools/latest/bin/sdkmanager" "$@"; }
           yes | sdkmanager --licenses > /dev/null || true
           image="system-images;android-${API_LEVEL};google_apis;x86_64"
           for attempt in 1 2 3; do
