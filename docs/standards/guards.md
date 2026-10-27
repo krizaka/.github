@@ -9,13 +9,13 @@ This page lists the guards that catch each lesson, and the repos where each guar
 | Bug or lesson | Guard that catches it now | Repos covered | Evidence / issue |
 |---|---|---|---|
 | ffmpeg operands read as options, path escape | unit test: the encoder confines its output; operands never read as flags | orazaka-worker-media, orazaka-cli | orazaka-worker-media#84, orazaka-cli#94 |
-| Prompt carried in a GET query | test in the service; **missing** generic ArchUnit rule | orazaka-conversation-service | #66 → krizaka-build#103 |
+| Prompt carried in a GET query | `CodeRules.assertNoContentOnGet` (krizaka-test-support, frozen) | orazaka-conversation-service | #66 → krizaka-build#103 (krizaka-build#106) |
 | Payment webhooks applied twice | one-transaction test; **missing** shared replay-twice contract | akinaza | akinaza#453 → krizaka-ts#169 |
 | Stale pack consent on runs | governance test: consent re-checked at run start | orazaka-studio | orazaka-studio#92 |
 | Tokens inside git remote URLs | **missing** | tools, every clone | .github#324 |
 | Secrets in an example config | Sonar S6718 only (late); push protection misses non-provider patterns | krizaka-platform-kit | #71 → .github#324 |
 | Connection string logged | **missing** lint rule | yomizaka | #400 → krizaka-ts#167 |
-| Static mutable crypto state, `getenv` in code | Sonar only; **missing** ArchUnit rule | krizaka-users | #57 → krizaka-build#102 |
+| Static mutable crypto state, `getenv` in code | `CodeRules.assertNoStaticMutableState`, `assertNoGetenvOutsideConfig` (krizaka-test-support, frozen) | krizaka-users | #57 → krizaka-build#102 (krizaka-build#106) |
 | `Math.random` in an auth testkit | Sonar S2245; local `sonarjs/pseudo-random` once enabled | krizaka-ts | #158 → krizaka-ts#164 |
 | View Transitions broke the page audit | the audit waits for a running transition | yomizaka (copy) | yomizaka#378 → krizaka-ui#747 |
 | Binder and button overflow | page audit (containment, overlap) | yomizaka; others pending | krizaka-ui#729, krizaka-ui#747, akinaza#405, orazaka-web-client#295 |
