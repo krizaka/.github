@@ -162,7 +162,7 @@ jobs:
         env:
           INSTALL: ${{ inputs.install-command }}
         run: |
-          if [ -n "$INSTALL" ]; then bash -c "$INSTALL"
+          if [ -n "$INSTALL" ]; then bash -eo pipefail -c "$INSTALL"
           elif [ "$PM" = pnpm ]; then pnpm install --frozen-lockfile --prefer-offline --ignore-scripts
           else npm ci --prefer-offline --no-audit --no-fund --ignore-scripts; fi
 
@@ -214,7 +214,7 @@ jobs:
         env:
           INSTALL: ${{ inputs.install-command }}
         run: |
-          if [ -n "$INSTALL" ]; then bash -c "$INSTALL"
+          if [ -n "$INSTALL" ]; then bash -eo pipefail -c "$INSTALL"
           elif [ "$PM" = pnpm ]; then pnpm install --frozen-lockfile --prefer-offline --ignore-scripts
           else npm ci --prefer-offline --no-audit --no-fund --ignore-scripts; fi
 

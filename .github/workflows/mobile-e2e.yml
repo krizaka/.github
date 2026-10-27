@@ -224,7 +224,7 @@ jobs:
           INSTALL: ${{ inputs.install-command }}
           LOCK_DIR: ${{ inputs.lockfile-directory || inputs.app-directory }}
         run: |
-          if [ -n "$INSTALL" ]; then bash -c "$INSTALL"
+          if [ -n "$INSTALL" ]; then bash -eo pipefail -c "$INSTALL"
           elif [ "$PM" = pnpm ]; then pnpm install --frozen-lockfile --ignore-scripts --prefer-offline
           else (cd "$LOCK_DIR" && npm ci --ignore-scripts --prefer-offline --no-audit --no-fund); fi
 
@@ -249,7 +249,7 @@ jobs:
         if: ${{ inputs.setup-command != '' }}
         env:
           SETUP: ${{ inputs.setup-command }}
-        run: bash -c "$SETUP"
+        run: bash -eo pipefail -c "$SETUP"
 
       - name: Maestro CLI (pinned, sha256-checked)
         env:

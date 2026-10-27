@@ -178,14 +178,14 @@ jobs:
         working-directory: ${{ inputs.working-directory }}
         env:
           SETUP: ${{ inputs.setup-command }}
-        run: bash -c "$SETUP"
+        run: bash -eo pipefail -c "$SETUP"
 
       - name: Run
         if: ${{ steps.which.outputs.run == 'true' }}
         working-directory: ${{ inputs.working-directory }}
         run: |
           case "$TASK" in lint) c="$LINT" ;; test) c="$TEST" ;; esac
-          if [ "$PM" = uv ]; then uv run --frozen bash -c "$c"; else bash -c "$c"; fi
+          if [ "$PM" = uv ]; then uv run --frozen bash -eo pipefail -c "$c"; else bash -eo pipefail -c "$c"; fi
 
       - name: Collect the coverage for SonarCloud
         if: ${{ inputs.sonar && matrix.task == 'test' && steps.which.outputs.run == 'true' }}
