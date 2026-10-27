@@ -40,7 +40,7 @@ jobs:
           persist-credentials: false
       - uses: ./.krizaka-guards/actions/security-tools
       - name: Scan (values are redacted; the repository's own .gitleaks.toml is never read)
-        run: gitleaks git --redact --no-banner -v --config .krizaka-guards/.gitleaks.toml .
+        run: gitleaks git --redact --no-banner -v --config .krizaka-guards/actions/security-tools/gitleaks.toml .
 
   zizmor:
     name: zizmor (workflows)
@@ -60,6 +60,7 @@ jobs:
       - name: zizmor (pinned; the guards checkout is removed first, it is not part of the repository)
         env:
           GH_TOKEN: ${{ github.token }}
+          ZIZMOR_GITHUB_TOKEN: ${{ github.token }}
         run: |
           rm -rf .krizaka-guards
           zizmor --min-severity medium --no-progress .

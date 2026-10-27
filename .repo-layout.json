@@ -1,0 +1,5 @@
+{
+  "allow": [
+    { "path": ".pre-commit-hooks.yaml", "why": "the hooks of the org, read by the pre-commit framework from the repository root (krizaka/.github#324)" }
+  ]
+}

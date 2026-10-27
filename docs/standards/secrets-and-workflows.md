@@ -15,7 +15,7 @@ CI runs everything again, because hooks can be bypassed.
 
 1. `.github/workflows/security.yml`: a thin caller of `krizaka/.github/.github/workflows/security-scan.yml@<sha>` (`permissions: contents: read`).
 2. `.pre-commit-config.yaml`: `repo: https://github.com/krizaka/.github`, `rev: <sha>`, hooks `krizaka-gitleaks` and `krizaka-zizmor`; then once `brew install pre-commit gitleaks && pre-commit install`.
-3. An exception goes in **`.gitleaks.toml` of krizaka/.github** (path-scoped, with its reason), never in the repository. A workflow finding is fixed, or ignored on its line with `# zizmor: ignore[audit] reason`.
+3. An exception goes in **`actions/security-tools/gitleaks.toml` of krizaka/.github** (path-scoped, with its reason), never in the repository. A workflow finding is fixed, or ignored on its line with `# zizmor: ignore[audit] reason`.
 
 ## zizmor audits and the Sonar keys they replace
 

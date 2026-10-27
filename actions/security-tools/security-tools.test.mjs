@@ -10,7 +10,7 @@ import { join, resolve } from "node:path";
 import { randomBytes } from "node:crypto";
 import { spawnSync } from "node:child_process";
 
-const root = resolve(import.meta.dirname, "..");
+const root = resolve(import.meta.dirname, "../..");
 const run = (cmd, args, cwd) => spawnSync(cmd, args, { cwd, encoding: "utf8" });
 
 test("gitleaks: the hook refuses a fixture config holding a webhook-style secret, and passes a clean one", () => {
