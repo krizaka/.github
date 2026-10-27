@@ -556,7 +556,7 @@ jobs:
       # accepted exception in .licence-exceptions.json with a reason and an expiry. Report in the job summary.
       - name: Licence gate
         if: ${{ inputs.container-licence-gate }}
-        uses: krizaka/.github/actions/licence-check@484c16556539e9f583b85837f263e9f8916fe783 # main
+        uses: krizaka/.github/actions/licence-check@cb27526a85c0ed7401d02df9491ed726aca3620e # main
         with:
           sbom: ${{ runner.temp }}/sbom.cdx.json
 
