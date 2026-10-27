@@ -1,0 +1,48 @@
+# Guard audit (docs/standards/bug-means-missing-guard.md): every focus repository's main requires `CI gate` and Sonar,
+# and every release workflow opens its PR with a GitHub App token. Reading branch protection needs a token with
+# repository administration read: the organisation secret AUDIT_TOKEN (read-only). Without it the audit fails loudly.
+name: Audit guards
+
+on:
+  schedule:
+    - cron: "43 6 * * *"
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - scripts/audit-guards.mjs
+      - tests/audit-guards.test.mjs
+      - .github/workflows/audit-guards.yml
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    name: Audit rules
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - run: node --test tests/audit-guards.test.mjs
+
+  audit:
+    name: Org audit
+    if: ${{ github.event_name != 'pull_request' }}
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - run: node scripts/audit-guards.mjs
+        env:
+          GH_TOKEN: ${{ secrets.AUDIT_TOKEN }}
