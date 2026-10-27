@@ -18,8 +18,9 @@
 # What it does: downloads the artifacts, transcodes (webm + mp4 + poster, <= 30 s, no audio), uploads to Bunny under
 # site/products/<product>/download/<platform>-<flow>.<hash>.<ext> (hashed, immutable), merges the manifest and opens (or
 # updates) ONE pull request `chore/app-videos-<product>` with the manifest. Old objects are only LISTED (a preview), never deleted.
-# The pull request is opened with `PR_TOKEN` (a GitHub App token) when given, so its checks run; with the default token GitHub
-# does not start workflows on it, and the required checks must be triggered by a push of a human or the app.
+# The pull request is opened with a token minted here (actions/create-github-app-token, the org variable RELEASE_APP_ID and the
+# org secret RELEASE_APP_PRIVATE_KEY: the Krizaka Agents app, as release-please and the CLA workflow do), so its checks run;
+# with the default token GitHub does not start workflows on it. No secret to create in the caller.
 name: app-videos
 
 on:
@@ -50,8 +51,8 @@ on:
         required: false
       MEDIA_CDN_HOSTNAME:
         required: false
-      PR_TOKEN:
-        description: "A token that may push a branch and open a pull request whose checks run (the agents App). Default: GITHUB_TOKEN."
+      RELEASE_APP_PRIVATE_KEY:
+        description: "The Krizaka Agents app's private key (org secret), to mint the token of the manifest pull request. Default: GITHUB_TOKEN."
         required: false
 
 permissions:
@@ -111,9 +112,19 @@ jobs:
           storage-zone: ${{ secrets.MEDIA_STORAGE_ZONE }}
           storage-endpoint: ${{ secrets.MEDIA_STORAGE_ENDPOINT }}
           cdn-hostname: ${{ secrets.MEDIA_CDN_HOSTNAME }}
+      - id: app
+        if: ${{ vars.RELEASE_APP_ID != '' }}
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+          permission-pull-requests: write
       - name: Pull request with the manifest
         env:
-          GH_TOKEN: ${{ secrets.PR_TOKEN || github.token }}
+          GH_TOKEN: ${{ steps.app.outputs.token || github.token }}
           PRODUCT: ${{ inputs.product }}
           MANIFEST: ${{ inputs.manifest }}
           REPO: ${{ github.repository }}
