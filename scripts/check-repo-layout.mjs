@@ -27,12 +27,14 @@ export const CONFIG_FILE = ".repo-layout.json";
 
 /** Glob (`*`, `**`) to an anchored RegExp. */
 export function globToRegExp(glob) {
+  const DEEP = "@@deep@@"; // `**/`: any folders, or none
+  const ANY = "@@any@@"; // `**`: anything
   const body = glob
-    .replace(/[.+^${}()|[\]\\]/g, "\\$&")
-    .replace(/\*\*\/?/g, (m) => (m.endsWith("/") ? "\u0000" : "\u0001"))
-    .replace(/\*/g, "[^/]*")
-    .replace(/\u0000/g, "(?:.*/)?")
-    .replace(/\u0001/g, ".*");
+    .replaceAll(/[.+^${}()|[\]\\]/g, String.raw`\$&`)
+    .replaceAll(/\*\*\/?/g, (m) => (m.endsWith("/") ? DEEP : ANY))
+    .replaceAll("*", "[^/]*")
+    .replaceAll(DEEP, "(?:.*/)?")
+    .replaceAll(ANY, ".*");
   return new RegExp(`^${body}$`);
 }
 const matchesAny = (name, globs) => globs.some((g) => globToRegExp(g).test(name));
@@ -137,6 +139,55 @@ export function misplacedReason(name) {
 
 // ---- the check ---------------------------------------------------------------------------------------------------
 
+/** Config entries need a `path` and a « why » of a real sentence. */
+function configProblems(config, add) {
+  for (const [list, entries] of [["allow", config.allow ?? []], ["allowTracked", config.allowTracked ?? []]]) {
+    for (const e of entries) {
+      if (!e || typeof e.path !== "string" || typeof e.why !== "string" || e.why.trim().length < 8) {
+        add("config", CONFIG_FILE, `\`${list}\` entry ${JSON.stringify(e)} needs a \`path\` and a « why » of a real sentence`);
+      }
+    }
+  }
+}
+
+/** The root, as entries: a folder when a tracked path goes below it. @returns {Map<string, {dir: boolean, markers: Set<string>}>} */
+function rootEntries(files) {
+  const entries = new Map();
+  for (const f of files) {
+    const i = f.indexOf("/");
+    const name = i < 0 ? f : f.slice(0, i);
+    const e = entries.get(name) ?? { dir: false, markers: new Set() };
+    if (i >= 0) {
+      e.dir = true;
+      const rest = f.slice(i + 1);
+      if (!rest.includes("/")) e.markers.add(rest);
+    }
+    entries.set(name, e);
+  }
+  return entries;
+}
+
+/** One root entry against the kind: nothing when it is allowed. */
+function rootEntryProblem(name, e, kind, spec) {
+  if (e.dir) {
+    const known = new Set([...COMMON_DIRS, ...spec.dirs]);
+    if (known.has(name) || (spec.moduleMarkers ?? []).some((m) => e.markers.has(m))) return null;
+    return ["root-entry", `${name}/`, `folder \`${name}/\` is not declared for a \`${kind}\` repository: move it under \`docs/\`, \`scripts/\` or \`src/\`, or declare it in ${CONFIG_FILE} with a « why »`];
+  }
+  if (matchesAny(name, [...COMMON_FILES, ...spec.files])) return null;
+  const misplaced = misplacedReason(name);
+  if (misplaced) return ["root-file", name, `\`${name}\`: ${misplaced}`];
+  return ["root-entry", name, `file \`${name}\` is not declared for a \`${kind}\` repository: move it into a folder, or declare it in ${CONFIG_FILE} with a « why »`];
+}
+
+/** One licence file per licence: LICENSE and LICENSE.md together say the same thing twice. */
+function licenceProblem(entries, allow) {
+  const rootFiles = new Set([...entries].filter(([, e]) => !e.dir).map(([n]) => n));
+  if (!rootFiles.has("LICENSE") || !rootFiles.has("LICENSE.md")) return null;
+  if (allow.some((a) => a.path === "LICENSE.md" || a.path === "LICENSE")) return null;
+  return "both `LICENSE` and `LICENSE.md` are tracked: keep one (FSL in `LICENSE.md` with the Apache text in `LICENSE-APACHE`, or a single `LICENSE`)";
+}
+
 /**
  * @param {string[]} files  tracked paths (`git ls-files`)
  * @param {{kind?: string, allow?: {path: string, why: string}[], allowTracked?: {path: string, why: string}[]}} [config]
@@ -154,60 +205,29 @@ export function checkLayout(files, config = {}) {
     add("config", CONFIG_FILE, `unknown kind \`${kind}\` (one of ${Object.keys(KINDS).join(", ")})`);
     return { kind, violations };
   }
-  for (const [list, entries] of [["allow", allow], ["allowTracked", allowTracked]]) {
-    for (const e of entries) {
-      if (!e || typeof e.path !== "string" || typeof e.why !== "string" || e.why.trim().length < 8) {
-        add("config", CONFIG_FILE, `\`${list}\` entry ${JSON.stringify(e)} needs a \`path\` and a « why » of a real sentence`);
-      }
-    }
-  }
+  configProblems(config, add);
 
-  // The root, as entries: a folder when a tracked path goes below it.
-  const entries = new Map(); // name -> { dir, markers:Set }
-  for (const f of files) {
-    const i = f.indexOf("/");
-    const name = i < 0 ? f : f.slice(0, i);
-    const e = entries.get(name) ?? { dir: false, markers: new Set() };
-    if (i >= 0) {
-      e.dir = true;
-      const rest = f.slice(i + 1);
-      if (!rest.includes("/")) e.markers.add(rest);
-    }
-    entries.set(name, e);
-  }
-
-  const dirs = new Set([...COMMON_DIRS, ...spec.dirs]);
-  const filePatterns = [...COMMON_FILES, ...spec.files];
+  const entries = rootEntries(files);
   const used = new Set();
   for (const [name, e] of entries) {
     const allowed = allow.find((a) => typeof a.path === "string" && matchesAny(name, [a.path]));
-    if (allowed) { used.add(allowed); continue; }
-    if (e.dir) {
-      if (dirs.has(name)) continue;
-      if ((spec.moduleMarkers ?? []).some((m) => e.markers.has(m))) continue;
-      add("root-entry", `${name}/`, `folder \`${name}/\` is not declared for a \`${kind}\` repository: move it under \`docs/\`, \`scripts/\` or \`src/\`, or declare it in ${CONFIG_FILE} with a « why »`);
-    } else {
-      if (matchesAny(name, filePatterns)) continue;
-      const misplaced = misplacedReason(name);
-      if (misplaced) add("root-file", name, `\`${name}\`: ${misplaced}`);
-      else add("root-entry", name, `file \`${name}\` is not declared for a \`${kind}\` repository: move it into a folder, or declare it in ${CONFIG_FILE} with a « why »`);
+    if (allowed) {
+      used.add(allowed);
+      continue;
     }
+    const problem = rootEntryProblem(name, e, kind, spec);
+    if (problem) add(...problem);
   }
   // Tracked generated or local paths.
   for (const f of files) {
     const reason = generatedReason(f);
     if (!reason) continue;
     const ok = allowTracked.find((a) => typeof a.path === "string" && globToRegExp(a.path).test(f));
-    if (ok) { used.add(ok); continue; }
-    add("generated", f, `tracked, but ${reason}: \`git rm\` it and fix .gitignore`);
+    if (ok) used.add(ok);
+    else add("generated", f, `tracked, but ${reason}: \`git rm\` it and fix .gitignore`);
   }
-
-  // One licence file per licence: LICENSE and LICENSE.md together say the same thing twice.
-  const rootNames = new Set([...entries].filter(([, e]) => !e.dir).map(([n]) => n));
-  if (rootNames.has("LICENSE") && rootNames.has("LICENSE.md")) {
-    const ok = allow.find((a) => a.path === "LICENSE.md" || a.path === "LICENSE");
-    if (!ok) add("licence", "LICENSE.md", "both `LICENSE` and `LICENSE.md` are tracked: keep one (FSL in `LICENSE.md` with the Apache text in `LICENSE-APACHE`, or a single `LICENSE`)");
-  }
+  const licence = licenceProblem(entries, allow);
+  if (licence) add("licence", "LICENSE.md", licence);
 
   // A stale justification is clutter too.
   for (const e of [...allow, ...allowTracked]) {
@@ -221,7 +241,7 @@ export function checkLayout(files, config = {}) {
 // ---- command line -------------------------------------------------------------------------------------------------
 
 export function trackedFiles(root) {
-  return execFileSync("git", ["-C", root, "ls-files", "-z"], { encoding: "utf8", maxBuffer: 1 << 28 })
+  return execFileSync("/usr/bin/git", ["-C", root, "ls-files", "-z"], { encoding: "utf8", maxBuffer: 1 << 28 })
     .split("\0").filter(Boolean);
 }
 
