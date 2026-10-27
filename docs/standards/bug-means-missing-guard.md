@@ -11,7 +11,7 @@ Decision of Oussama, 2026-10-26: when a bug is found, we do not only fix it. We 
    3. fix the bug; the guard turns green.
 3. **The PR template** has the checkbox « a guard that fails without this fix is added ». A bug fixed with no guard says why in one line (a pure typo, a one-off data mistake).
 4. A guard too large for the fix PR becomes an issue in its repository, on the board as **Next**, linked from the bug.
-5. The retro-audit of recent bugs is kept in [docs/audits/2026-10-bug-guards.md](../audits/2026-10-bug-guards.md).
+5. The registry of lessons → guards is [guards.md](guards.md). The retro-audit of recent bugs is kept in [docs/audits/2026-10-bug-guards.md](../audits/2026-10-bug-guards.md).
 
 ## 2. The guards available
 
