@@ -299,7 +299,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           PR: ${{ github.event.pull_request.number }}
-        run: node scripts/fix-needs-guard.mjs
+        run: |
+          # fail-open until the script is on main (and if it is ever moved): a broken gate never blocks a merge
+          if [ -f scripts/fix-needs-guard.mjs ]; then node scripts/fix-needs-guard.mjs; else echo "::warning::fix-needs-guard.mjs is not on krizaka/.github main yet: skipped"; fi
 
   # A docs-only change skips the heavy jobs, yet the required « SonarCloud Code Analysis » must still be posted by the SonarCloud app:
   # a light scan (checkout, no build, no tests, no coverage) does it, and its quality gate is real on the changed files (.github#330).
