@@ -55,6 +55,36 @@ Issue: [krizaka/akinaza#440](https://github.com/krizaka/akinaza/issues/440)
 | 404 page | Clear and in the site language. | OK | None. |
 | Copy | « Taxes prepared, return filed by you » is correct and consistent with `/docs/books` (« You file, Akinaza never does »); keep it. | OK | None. |
 
+### Akinaza owner pages (follow-up, 2026-10-27)
+
+The gap above is closed: the owner persona exists (« Salon Cèdre & Ciseaux », QA owner account), reviewed on www.akinaza.com.
+Pages: Today, Clients, Invoices, Books, Shop (identity, composer, look, publish, languages, team, invoice e-mails, shops) and the
+account (profile, data, preferences, security). 123 captures (phone 390 and desktop 1440, dark and light, EN and FR):
+`https://krizaka-assets.b-cdn.net/pr-assets/krizaka-com/pages-review-2026-10-27-akinaza-owner/<page>-<phone|desktop>-<dark|light>-<en|fr>.png` (`today`, `clients`, `invoices`, `books`, `boutique-page`,
+`boutique-composer`, `boutique-look`, `boutique-publish`, `boutique-languages`, `boutique-team`, `boutique-invoices`,
+`boutique-shops`, `settings`, `settings-data`). The pages of the Boutique that were not captured on desktop (the look tab timed out) and the empty and error states are open
+in the issue. Issue: [krizaka/akinaza#445](https://github.com/krizaka/akinaza/issues/445); the small fixes are in the PR « fix(owner): pages review »
+and the frame scroll in [#444](https://github.com/krizaka/akinaza/pull/444).
+
+| Page | Issue | Severity | Fix |
+| :--- | :--- | :---: | :--- |
+| Every app page | The frame adds a slight vertical scroll: its shell and its sticky rail ask a whole screen (`min-h-dvh`, `md:h-dvh`) under what stands above the page (45 px on Today, a white strip under the rail). With the development notice of #444 it is the notice's height on every page, empty ones included. | Medium | Fixed in #444: `FrameSlot` measures the notice and the frame takes it off its screen; `check-overflow` now fails a frame that forces a scroll. |
+| Today, Activity | The sparkline's text version read the series in cents (« from 25,295 to 0 » for $252.95): a figure that explains itself wrongly. The third label was cut (« Appointments do… ») on a phone. | High | Fixed: money format on the two money series; the label wraps. Test added. The period is still not in each label (issue). |
+| Books | « 1 documents behind this figure » (EN and FR). | Medium | Fixed: singular message, test added. |
+| Books | Honest and complete: GST and QST by line (FPZ-500), « To remit », a line-by-line table with the documents behind each figure, and « You file the return with Revenu Québec yourself ». The line is at the bottom; the two headline figures do not carry it. | Medium | Put the one line under the figures (issue). |
+| Shop > Identity | Page address hint run into the next sentence (« e.g. my-studio You can change it »), in both languages and both messages. | Low | Fixed. |
+| Shop > Identity | « Identity » three times (menu, heading, card). « Your first name » has no hint of where it is shown. | Low | Issue. |
+| Shop > Layout | The accent choices are token names (« akinaza · accent-2 », « krizaka », « yomizaka »), not colours. | Medium | Issue (krizaka-ui: name and swatch). |
+| Shop > Languages | The sentence « You wrote this text in your language: change it from the shop page » repeats under every field; the page is about 5 600 px on a phone. | Medium | Say it once, at the top (issue). |
+| Shop > Team | « Members » twice; the time-off « Who » list shows « Camille » twice. | Low | Issue. |
+| Shop > Invoice e-mails | Empty message and sender fields, no example of what is sent when empty. | Low | Placeholder with the default text (issue). |
+| Today | The Monday brief, the binder (« binder » is jargon, four counts with no link) and the activity are three blocks of equal weight above the agenda; with an empty day the agenda card stretches into a void on desktop. One primary action (« New invoice ») is right. | Medium | Issue. |
+| Clients | Every phone card shows an empty « Tags » row; the tag tabs show « 0 » on each. « Coming back 0 » and « 1 of 6 up to date » do not say what they count. | Medium | Issue. |
+| Invoices, Clients | Lists in the shared `DataTable`, cards on a phone, filters and CSV export: consistent with the frame. The tag names are demo data in French on the English page. | OK | None. |
+| Account > Data | Export and delete are clear, and say that the books are kept because the law requires it. | OK | None. |
+| a11y scan | No horizontal overflow of the document on any page. The only unnamed controls are the hidden mirrors of the picture and switch inputs (`aria-hidden`, `tabindex=-1`) and the Shop menu links on a phone (to verify). Contrast and focus order were not measured from captures. | Gap | Issue. |
+| Taxes | Akinaza prepares and never files: said on Books (EN and FR), in the footer note and in the docs. | OK | None. |
+
 ## Orazaka (top of P2)
 
 Issue: [krizaka/orazaka#443](https://github.com/krizaka/orazaka/issues/443)
