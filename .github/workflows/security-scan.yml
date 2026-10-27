@@ -12,6 +12,11 @@ name: Security scan
 
 on:
   workflow_call:
+    inputs:
+      guards-ref:
+        description: Revision of krizaka/.github whose config and tool pins are used (main, except for this repository's own pull requests).
+        type: string
+        default: main
 
 permissions:
   contents: read
@@ -30,7 +35,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: krizaka/.github
-          ref: main # the org's own guards, always current
+          ref: ${{ inputs.guards-ref }}
           path: .krizaka-guards
           persist-credentials: false
       - uses: ./.krizaka-guards/actions/security-tools
@@ -48,7 +53,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: krizaka/.github
-          ref: main # the org's own guards, always current
+          ref: ${{ inputs.guards-ref }}
           path: .krizaka-guards
           persist-credentials: false
       - uses: ./.krizaka-guards/actions/security-tools

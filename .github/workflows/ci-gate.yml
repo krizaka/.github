@@ -108,6 +108,8 @@ jobs:
     permissions:
       contents: read
     uses: ./.github/workflows/security-scan.yml
+    with:
+      guards-ref: ${{ github.sha }}
 
   gate:
     name: CI gate

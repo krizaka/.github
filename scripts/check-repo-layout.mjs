@@ -47,7 +47,7 @@ const COMMON_FILES = [
   ".gitignore", ".gitattributes", ".gitmodules", ".editorconfig", ".dockerignore", ".agentignore", ".env.example",
   ".nvmrc", ".node-version", ".tool-versions", ".python-version", ".npmrc", ".npmignore", ".prettierignore", ".mailmap",
   ".release-please-manifest.json", "release-please-config.json", ".krizaka-deploy.json", "dev-preview.json",
-  ".repo-layout.json", "sonar-project.properties", ".sonarcloud.properties", "*-ratchet.json", "app-links.json", "app-links.routes.json", "sgconfig.yml", ".dependency-cruiser.cjs", "renovate.json", "Makefile",
+  ".repo-layout.json", ".gitleaks.toml", ".pre-commit-config.yaml", "sonar-project.properties", ".sonarcloud.properties", "*-ratchet.json", "app-links.json", "app-links.routes.json", "sgconfig.yml", ".dependency-cruiser.cjs", "renovate.json", "Makefile",
   "Dockerfile", "Dockerfile.*", "docker-compose.yml", "docker-compose.*.yml", "compose.yml",
   ".prettierrc", ".prettierrc.*", ".lintstagedrc", ".lintstagedrc.*", ".commitlintrc.*", ".checkov.yml",
 ];
@@ -71,7 +71,7 @@ const KINDS = {
   python: { files: ["pyproject.toml", "requirements*.txt", "setup.cfg", "setup.py", "uv.lock", "poetry.lock", "pytest.ini", "tox.ini", "ruff.toml", "conftest.py"], dirs: ["app", "src", "models"] },
   iac: { files: ["*.tf", "*.tfvars", ".terraform.lock.hcl", ".tflint.hcl"], dirs: ["modules", "providers", "stacks"] },
   packs: { files: NODE_FILES.concat(["pack.schema.json"]), dirs: [], moduleMarkers: ["pack.yaml"] },
-  org: { files: ["AGENTS.template.md", "LABELS.md", "ROADMAP.md", "repos.json", "release-repos.json"], dirs: ["actions", "orchestration", "profile", "workflow-templates"] },
+  org: { files: [".pre-commit-hooks.yaml", "AGENTS.template.md", "LABELS.md", "ROADMAP.md", "repos.json", "release-repos.json"], dirs: ["actions", "orchestration", "profile", "workflow-templates"] },
 };
 
 /** The kind, from what the root holds (a `.repo-layout.json` `kind` wins). */
