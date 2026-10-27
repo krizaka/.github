@@ -73,6 +73,7 @@ The order is IDE → pre-commit → pre-push → PR CI → Sonar. CI always runs
 | Tool | Verdict | → because | ! cost |
 |---|---|---|---|
 | `krizaka-ratchet` | **replace** with ESLint bulk suppressions (`eslint-suppressions.json`, ESLint ≥ 9.24) | built-in, counts per file and rule, prune to lock gains | one generated file per repo (krizaka-ts#170) |
+| `krizaka-ratchet` (meanwhile) | **fix**: fail on a counter no rule measures (the orphan `pageTemplate`) | a ratchet must guard something | krizaka-ts#172 |
 | `sg-ratchet` | **keep**, as a `@krizaka/config` bin | ast-grep has no baseline | the copies to delete (krizaka-ts#166) |
 | `check-seo-family.mjs` | **keep**, as a bin | the family contract is ours | the same move |
 | `check-repo-layout.mjs` | **keep** | the allowlist of a clean root is ours; ls-lint only checks names | – |
@@ -91,4 +92,4 @@ The order is IDE → pre-commit → pre-push → PR CI → Sonar. CI always runs
 
 - Most findings now surface at lint or `verify` time, and Sonar becomes the last net (taint, coverage, duplication on new code) instead of the first.
 - The registry in [guards.md](../standards/guards.md) is updated by each fix PR.
-- 24 issues are filed. The 5 in **Next** are krizaka-ts#164, krizaka-build#102, .github#323, .github#324 and .github#330.
+- 25 issues are filed. The 5 in **Next** are krizaka-ts#164, krizaka-build#102, .github#323, .github#324 and .github#330.

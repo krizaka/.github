@@ -29,6 +29,7 @@ This page lists the guards that catch each lesson, and the repos where each guar
 | Packs step ids versus refs | blueprint step-id guard on every pack | orazaka-packs | orazaka-packs#160, #161 |
 | GitHub Actions injection, permissions, unpinned steps | Sonar only (actionlint does not check them) | all | .github#268 → .github#325 |
 | OS command resolved by PATH | Sonar S4036; local `sonarjs/no-os-command-from-path` once enabled | all TS | krizaka-com#408 → krizaka-ts#164 |
+| Orphan ratchet counter (`pageTemplate`: no rule measures it) | **missing**: the ratchet keeps unknown counters | akinaza, orazaka-web-client, yomizaka | krizaka-ts#172 |
 | A fix with no guard | **missing** CI check | all | .github#323 |
 
 ## 2. The matrix (2026-10-27, read from the GitHub API)
