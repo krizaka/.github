@@ -188,6 +188,39 @@ function licenceProblem(entries, allow) {
   return "both `LICENSE` and `LICENSE.md` are tracked: keep one (FSL in `LICENSE.md` with the Apache text in `LICENSE-APACHE`, or a single `LICENSE`)";
 }
 
+/** Every root entry against the kind; an entry the config allows is marked used. */
+function rootProblems(entries, allow, kind, spec, used, add) {
+  for (const [name, e] of entries) {
+    const allowed = allow.find((a) => typeof a.path === "string" && matchesAny(name, [a.path]));
+    if (allowed) {
+      used.add(allowed);
+      continue;
+    }
+    const problem = rootEntryProblem(name, e, kind, spec);
+    if (problem) add(...problem);
+  }
+}
+
+/** Tracked generated or local paths. */
+function generatedProblems(files, allowTracked, used, add) {
+  for (const f of files) {
+    const reason = generatedReason(f);
+    if (!reason) continue;
+    const ok = allowTracked.find((a) => typeof a.path === "string" && globToRegExp(a.path).test(f));
+    if (ok) used.add(ok);
+    else add("generated", f, `tracked, but ${reason}: \`git rm\` it and fix .gitignore`);
+  }
+}
+
+/** A stale justification is clutter too. */
+function staleProblems(entries, used, add) {
+  for (const e of entries) {
+    if (e && typeof e.path === "string" && !used.has(e)) {
+      add("config", CONFIG_FILE, `\`${e.path}\` matches nothing any more: remove the entry`);
+    }
+  }
+}
+
 /**
  * @param {string[]} files  tracked paths (`git ls-files`)
  * @param {{kind?: string, allow?: {path: string, why: string}[], allowTracked?: {path: string, why: string}[]}} [config]
@@ -209,32 +242,11 @@ export function checkLayout(files, config = {}) {
 
   const entries = rootEntries(files);
   const used = new Set();
-  for (const [name, e] of entries) {
-    const allowed = allow.find((a) => typeof a.path === "string" && matchesAny(name, [a.path]));
-    if (allowed) {
-      used.add(allowed);
-      continue;
-    }
-    const problem = rootEntryProblem(name, e, kind, spec);
-    if (problem) add(...problem);
-  }
-  // Tracked generated or local paths.
-  for (const f of files) {
-    const reason = generatedReason(f);
-    if (!reason) continue;
-    const ok = allowTracked.find((a) => typeof a.path === "string" && globToRegExp(a.path).test(f));
-    if (ok) used.add(ok);
-    else add("generated", f, `tracked, but ${reason}: \`git rm\` it and fix .gitignore`);
-  }
+  rootProblems(entries, allow, kind, spec, used, add);
+  generatedProblems(files, allowTracked, used, add);
   const licence = licenceProblem(entries, allow);
   if (licence) add("licence", "LICENSE.md", licence);
-
-  // A stale justification is clutter too.
-  for (const e of [...allow, ...allowTracked]) {
-    if (e && typeof e.path === "string" && !used.has(e)) {
-      add("config", CONFIG_FILE, `\`${e.path}\` matches nothing any more: remove the entry`);
-    }
-  }
+  staleProblems([...allow, ...allowTracked], used, add);
   return { kind, violations };
 }
 
