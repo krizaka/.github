@@ -48,3 +48,4 @@ A page audit, a screenshot flow or a demo seed is only as good as its data. The 
 - PR template: `.github/pull_request_template.md`.
 - Each focus repository's `AGENTS.md` carries one line pointing here.
 - The org audit [`scripts/audit-guards.mjs`](../../scripts/audit-guards.mjs), run daily by `audit-guards.yml`, fails when a focus repository's `main` lacks the `CI gate` or Sonar required check, or when a release workflow does not use a GitHub App token.
+- The `guard` job of the shared CI (`fix-needs-guard`, [`guard-paths.json`](guard-paths.json)): a pull request titled `fix...` must add or change a test, a rule or an audit file, or carry the `guard-exempt` label and a `Guard exemption: <reason>` line in its body.

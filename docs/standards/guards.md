@@ -25,7 +25,7 @@ This page lists the guards that catch each lesson, and the repos where each guar
 | Server code calling client code (dossiers crash) | `krizaka-server-client-boundary` (`@krizaka/config` 0.10) | yomizaka, akinaza, orazaka-web-client, krizaka-com, krizaka-blog; **not** krizaka-ui | yomizaka#458 → krizaka-ui#785, krizaka-ts#165 |
 | Dev migrations not applied; numbering collision | **missing** | yomizaka, akinaza | krizaka-ts#168 |
 | A committed `.vitest` output | repo-layout check (clean root) should refuse it | krizaka-ui | krizaka-ui#783 |
-| Docs-only PRs blocked: required checks never report | workaround: docs-only PRs run the full CI so Sonar posts (heavy) | all | akinaza#456 → .github#330 |
+| Docs-only PRs blocked: required checks never report | `sonar-light` job of `node-ci` / `java-ci`: a docs-only PR gets a real Sonar scan (no build), the `CI gate` requires it (tested) | every repo on the shared CI | .github#330 (replaces akinaza#456) |
 | Packs step ids versus refs | blueprint step-id guard on every pack | orazaka-packs | orazaka-packs#160, #161 |
 | GitHub Actions injection, permissions, unpinned steps | Sonar only (actionlint does not check them) | all | .github#268 → .github#325 |
 | OS command resolved by PATH | Sonar S4036; local `sonarjs/no-os-command-from-path` once enabled | all TS | krizaka-com#408 → krizaka-ts#164 |
@@ -51,6 +51,7 @@ This page lists the guards that catch each lesson, and the repos where each guar
 | krizaka-users | – | – | – | – | – | Y (frozen store) | Y (krizaka-parent) | – | – | – | Y |
 | krizaka-platform-kit | – | – | – | – | – | Y | Y (krizaka-parent) | – | – | – | Y (added 2026-10-27) |
 | krizaka-build | – | – | – | – | – | Y (source: test-support) | Y (source) | – | – | – | Y |
+| A fix that ships without a guard (the lessons loop itself) | `guard` job of `node-ci` / `java-ci`, in the `CI gate`: a `fix` PR adds a test, a rule or an audit (patterns: [`guard-paths.json`](guard-paths.json)), or carries `guard-exempt` and a `Guard exemption:` line (`scripts/fix-needs-guard.mjs`, tested) | every repo on the shared CI | .github#323 |
 
 No repo runs SpotBugs, PMD, Error Prone, gitleaks or zizmor yet.
 

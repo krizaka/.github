@@ -53,6 +53,10 @@ on:
         description: "Fail when an OpenRewrite recipe of krizaka-parent would change code (rewrite:dryRun)."
         type: boolean
         default: false
+      guard:
+        description: "Run fix-needs-guard (job `guard`): a pull request titled `fix...` adds a test, a rule or an audit, or is exempted by the `guard-exempt` label and a `Guard exemption:` line in its body."
+        type: boolean
+        default: true
       sonar:
         description: "Run the SonarCloud CI analysis after the checks (job `sonar`). Turn off the project's automatic analysis once it is green."
         type: boolean
@@ -271,6 +275,64 @@ jobs:
           retention-days: 1
           if-no-files-found: error
 
+  # fix-needs-guard (.github#323): a `fix` PR adds a test, a rule or an audit, or carries the `guard-exempt` label and a
+  # `Guard exemption: <reason>` line. The patterns are docs/standards/guard-paths.json of krizaka/.github (read from main: one source).
+  guard:
+    name: Fix needs a guard
+    if: ${{ inputs.guard && github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/.github
+          ref: main
+          sparse-checkout: |
+            scripts/fix-needs-guard.mjs
+            scripts/ci-scope.mjs
+            docs/standards/guard-paths.json
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          # fail-open until the script is on main (and if it is ever moved): a broken gate never blocks a merge
+          if [ -f scripts/fix-needs-guard.mjs ]; then node scripts/fix-needs-guard.mjs; else echo "::warning::fix-needs-guard.mjs is not on krizaka/.github main yet: skipped"; fi
+
+  # A docs-only change skips the heavy jobs, yet the required « SonarCloud Code Analysis » must still be posted by the SonarCloud app:
+  # a light scan (checkout, no build, no tests, no coverage) does it, and its quality gate is real on the changed files (.github#330).
+  # Never a synthetic status: that would forge a check which belongs to another app.
+  sonar-light:
+    name: SonarCloud (docs only)
+    needs: changes
+    if: ${{ inputs.sonar && !cancelled() && needs.changes.outputs.code == 'false' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    steps:
+      - name: The token is there
+        run: |
+          if [ -z "$SONAR_TOKEN" ]; then echo "::error::SONAR_TOKEN is empty: pass the org secret to the workflow (secrets: SONAR_TOKEN) and, for Dependabot, add it as a Dependabot secret"; exit 1; fi
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0  # blame and new-code detection need the history
+          persist-credentials: false
+
+      - uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
+        env:
+          SONAR_HOST_URL: https://sonarcloud.io
+        with:
+          projectBaseDir: ${{ inputs.working-directory }}
+          args: -Dsonar.qualitygate.wait=true -Dsonar.java.binaries=. ${{ inputs.sonar-args }}
+
   sonar:
     name: SonarCloud
     needs: [changes, verify]
@@ -313,7 +375,7 @@ jobs:
 
   gate:
     name: CI gate
-    needs: [changes, verify, sonar]
+    needs: [changes, verify, sonar, sonar-light, guard]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -330,6 +392,8 @@ jobs:
           VERIFY: ${{ needs.verify.result }}
           SONAR: ${{ needs.sonar.result }}
           SONAR_WANTED: ${{ inputs.sonar }}
+          SONAR_LIGHT: ${{ needs.sonar-light.result }}
+          GUARD: ${{ needs.guard.result }}
         run: |
           fail=0
           echo "gate: code=${CODE:-unknown} changes=$CHANGES verify=$VERIFY"
@@ -345,6 +409,12 @@ jobs:
           if [ "$CODE" != "false" ] && [ "${SONAR_WANTED:-false}" = "true" ] && [ "$VERIFY" = success ] && [ "${SONAR:-skipped}" != success ]; then
             echo "::error::sonar must run and succeed when the gate did not answer false"; fail=1
           fi
+          # A docs-only change still gets its Sonar analysis, by the light scan.
+          if [ "$CODE" = "false" ] && [ "${SONAR_WANTED:-false}" = "true" ] && [ "${SONAR_LIGHT:-skipped}" != success ]; then
+            echo "::error::sonar-light must run and succeed on a docs-only change"; fail=1
+          fi
+          case "${SONAR_LIGHT:-skipped}" in success|skipped) ;; *) echo "::error::sonar-light $SONAR_LIGHT"; fail=1 ;; esac
+          case "${GUARD:-skipped}" in success|skipped) ;; *) echo "::error::fix-needs-guard $GUARD"; fail=1 ;; esac
           if [ "$fail" = 0 ]; then echo "result=success" >> "$GITHUB_OUTPUT"; else echo "result=failure" >> "$GITHUB_OUTPUT"; fi
           {
             echo "### CI gate"
@@ -353,5 +423,7 @@ jobs:
             echo "| changes | $CHANGES (code=${CODE:-unknown}) |"
             echo "| verify | $VERIFY |"
             echo "| sonar | ${SONAR:-skipped} |"
+            echo "| sonar-light | ${SONAR_LIGHT:-skipped} |"
+            echo "| guard | ${GUARD:-skipped} |"
           } >> "$GITHUB_STEP_SUMMARY"
           exit "$fail"

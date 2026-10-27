@@ -343,7 +343,7 @@ test("node gate: SonarCloud wanted must succeed after a green verify; a skip or 
   assert.equal(runGate("node-ci", NODE({ ...wanted, SONAR: "success" })).status, 0);
   assert.equal(runGate("node-ci", NODE({ ...wanted, SONAR: "failure" })).status, 1);
   assert.equal(runGate("node-ci", NODE({ ...wanted, SONAR: "skipped" })).status, 1);
-  assert.equal(runGate("node-ci", NODE({ ...wanted, CODE: "false", VERIFY: "skipped", SONAR: "skipped" })).status, 0);
+  assert.equal(runGate("node-ci", NODE({ ...wanted, CODE: "false", VERIFY: "skipped", SONAR: "skipped", SONAR_LIGHT: "success" })).status, 0);
   // verify failed: sonar is rightly skipped, the gate is red once (by verify)
   assert.equal(runGate("node-ci", NODE({ ...wanted, VERIFY: "failure", SONAR: "skipped" })).status, 1);
   // not wanted: no effect
@@ -404,3 +404,36 @@ test("node-ci: a monorepo package's lcov is rebased to the project root before t
   assert.match(verify.text, /awk -v p="\$pkg" '\/\^SF:\/ && substr\(\$0,4,1\) != "\/"/);
   assert.match(verify.text, /\[ "\$pkg" = "\." \] && continue/);
 });
+
+// --- Light Sonar scan on docs-only changes (.github#330) and fix-needs-guard (.github#323).
+test("gates: docs-only with Sonar wanted needs the light scan to succeed; a failed light scan or guard is red", () => {
+  for (const [name, base] of [["node-ci", NODE], ["java-ci", JAVA]]) {
+    const docs = { SONAR_WANTED: "true", CODE: "false", VERIFY: "skipped", SONAR: "skipped" };
+    assert.equal(runGate(name, base({ ...docs, SONAR_LIGHT: "success" })).status, 0, name);
+    assert.equal(runGate(name, base({ ...docs, SONAR_LIGHT: "skipped" })).status, 1, name);
+    assert.equal(runGate(name, base({ ...docs, SONAR_LIGHT: "failure" })).status, 1, name);
+    assert.equal(runGate(name, base({ GUARD: "failure" })).status, 1, name);
+    assert.equal(runGate(name, base({ GUARD: "success" })).status, 0, name);
+    assert.equal(runGate(name, base({ GUARD: "skipped" })).status, 0, name);
+  }
+});
+
+for (const name of ["node-ci", "java-ci"]) {
+  test(`${name}: sonar-light has no build or coverage step, uses the org secret and awaits the quality gate; guard reads the central config`, () => {
+    const src = read(name);
+    const light = jobs(src).find((j) => j.id === "sonar-light");
+    assert.ok(light, "a sonar-light job exists");
+    assert.match(light.text, /^ {4}needs: changes$/m);
+    assert.match(light.text, /needs\.changes\.outputs\.code == 'false'/);
+    assert.match(light.text, /SONAR_TOKEN: \$\{\{ secrets\.SONAR_TOKEN \}\}/);
+    assert.match(light.text, /-Dsonar\.qualitygate\.wait=true/);
+    assert.doesNotMatch(light.text, /download-artifact|setup-node|setup-java|npm |pnpm |mvnw/);
+    const guard = jobs(src).find((j) => j.id === "guard");
+    assert.ok(guard, "a guard job exists");
+    assert.match(guard.text, /scripts\/fix-needs-guard\.mjs/);
+    assert.match(guard.text, /docs\/standards\/guard-paths\.json/);
+    assert.match(guard.text, /PR: \$\{\{ github\.event\.pull_request\.number \}\}/);
+    const gate = jobs(src).find((j) => j.id === "gate").text;
+    assert.match(gate, /needs: \[[^\]]*\bsonar-light\b[^\]]*\bguard\b/);
+  });
+}

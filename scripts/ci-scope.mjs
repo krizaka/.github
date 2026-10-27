@@ -11,9 +11,14 @@ import { pathToFileURL } from "node:url";
 /** Glob (`*`, `**`) to an anchored RegExp. */
 export function globToRegExp(glob) {
   const body = glob
-    .replace(/[.+^${}()|[\]\\]/g, "\\$&")
-    .replace(/\*\*\/?/g, (m) => (m.endsWith("/") ? "(?:.*/)?" : ".*"))
-    .replace(/(?<![.)])\*/g, "[^/]*");
+    .split("**/")
+    .map((part) =>
+      part
+        .split("**")
+        .map((seg) => seg.split("*").map((lit) => lit.replace(/[.+^${}()|[\]\\?]/g, "\\$&")).join("[^/]*"))
+        .join(".*"),
+    )
+    .join("(?:.*/)?");
   return new RegExp(`^${body}$`);
 }
 
