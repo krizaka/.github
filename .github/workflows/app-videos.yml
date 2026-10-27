@@ -103,7 +103,7 @@ jobs:
           name: ${{ steps.names.outputs.n3 }}
           path: recordings/3
       - name: Transcode, upload, manifest
-        uses: krizaka/.github/actions/app-videos@main
+        uses: krizaka/.github/actions/app-videos@d96437b6681524d470ca5050f91c1961a45c5906 # main (this PR's commit with the action)
         with:
           product: ${{ inputs.product }}
           inputs: recordings
