@@ -1,0 +1,13 @@
+# The one gitleaks configuration of Krizaka (krizaka/.github#324, ADR-013). Every repository consumes THIS file: the
+# reusable workflow `security-scan.yml` and the pre-commit hook `krizaka-gitleaks` both read it from here, never a copy.
+# The default ruleset stays whole; an exception goes below with its reason, scoped as narrowly as possible.
+title = "Krizaka gitleaks"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Synthetic Stripe-shaped key built to prove the legal-docs test refuses a secret-looking token (not a credential)"
+condition = "AND"
+paths = ['''tests/legal-docs\.test\.mjs''']
+regexes = ['''sk_live_[A-Za-z0-9]+''']

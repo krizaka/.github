@@ -6,6 +6,8 @@ version: 2
 updates:
   - package-ecosystem: github-actions
     directories: ["/", "/actions/deploy"]
+    cooldown:
+      default-days: 7
     schedule:
       interval: monthly
       time: "06:00"
@@ -21,6 +23,8 @@ updates:
   # krizaka-deploy's one runtime dependency (the YAML parser), locked in deploy/package-lock.json.
   - package-ecosystem: npm
     directory: /deploy
+    cooldown:
+      default-days: 7
     schedule:
       interval: monthly
       time: "06:00"

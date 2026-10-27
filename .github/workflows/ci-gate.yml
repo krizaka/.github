@@ -102,9 +102,16 @@ jobs:
       contents: read
     uses: ./.github/workflows/roadmap-sync.yml
 
+  security:
+    name: Security scan
+    if: ${{ !cancelled() }}
+    permissions:
+      contents: read
+    uses: ./.github/workflows/security-scan.yml
+
   gate:
     name: CI gate
-    needs: [scope, lint, selftest, profile, registry, names, roadmap]
+    needs: [scope, security, lint, selftest, profile, registry, names, roadmap]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5

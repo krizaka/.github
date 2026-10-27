@@ -49,7 +49,10 @@ jobs:
         with:
           app-id: ${{ vars.RELEASE_APP_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
-          owner: krizaka
-      - run: node scripts/audit-guards.mjs
+          owner: krizaka # zizmor: ignore[github-app] the audit reads every repository of the org, by design
+          permission-administration: read
+          permission-contents: read
+          permission-metadata: read
+      - run: node scripts/audit-guards.mjs # zizmor: ignore[github-app] the token is read-only (administration, contents, metadata)
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
