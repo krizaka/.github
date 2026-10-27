@@ -39,6 +39,9 @@ jobs:
       - name: Every action pinned by SHA
         run: node scripts/pin-supply-chain.mjs . --no-docker --check
 
+      - name: Repository layout of this repository
+        run: node scripts/check-repo-layout.mjs
+
       - name: Unit tests of the shared CI
         run: node --test tests/ci-workflows.test.mjs tests/buildpack.test.mjs tests/repos-registry.test.mjs tests/rename-repo.test.mjs tests/workflows-lint.test.mjs tests/ci-scope.test.mjs tests/check-repo-layout.test.mjs tests/tauri-macos.test.mjs tests/weekly-digest.test.mjs actions/dup-check/dup-ratchet.test.mjs actions/release-notes/release-notes.test.mjs actions/licence-check/licence-gate.test.mjs actions/cdn-purge/cdn-purge.test.mjs
 

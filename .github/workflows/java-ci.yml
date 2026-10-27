@@ -137,6 +137,13 @@ jobs:
           path: incoming
           persist-credentials: false
 
+      # The repository's folders stay clean (docs/standards/repo-layout.md): the component as checked out, before it moves.
+      - name: Repository layout (component)
+        if: ${{ inputs.workspace-component != '' }}
+        uses: krizaka/.github/actions/repo-layout@e2e8942c0d1dd0c594bd46c32c64ebe11596c0f5 # main
+        with:
+          working-directory: incoming
+
       - name: Place the component at its workspace path
         if: ${{ inputs.workspace-component != '' }}
         working-directory: workspace
@@ -155,6 +162,10 @@ jobs:
         if: ${{ inputs.workspace-component == '' }}
         with:
           persist-credentials: false
+
+      - name: Repository layout
+        if: ${{ inputs.workspace-component == '' }}
+        uses: krizaka/.github/actions/repo-layout@e2e8942c0d1dd0c594bd46c32c64ebe11596c0f5 # main
 
       - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
         with:

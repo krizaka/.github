@@ -102,6 +102,11 @@ jobs:
         with:
           persist-credentials: false
 
+      # The repository's folders stay clean (docs/standards/repo-layout.md).
+      - name: Repository layout
+        if: ${{ needs.detect.outputs.stack != 'workspace' }}
+        uses: krizaka/.github/actions/repo-layout@e2e8942c0d1dd0c594bd46c32c64ebe11596c0f5 # main
+
       - name: Check out the Orazaka workspace
         if: ${{ needs.detect.outputs.stack == 'workspace' }}
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -116,6 +121,12 @@ jobs:
         with:
           path: incoming
           persist-credentials: false
+
+      - name: Repository layout (component)
+        if: ${{ needs.detect.outputs.stack == 'workspace' }}
+        uses: krizaka/.github/actions/repo-layout@e2e8942c0d1dd0c594bd46c32c64ebe11596c0f5 # main
+        with:
+          working-directory: incoming
 
       # ── the pack ─────────────────────────────────────────────────────────────────────────────────────────────────
       - uses: krizaka/.github/actions/setup@147c1925368d98fb07887257549db36556644cc5 # main
