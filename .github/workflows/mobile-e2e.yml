@@ -30,6 +30,10 @@
 # for this run. Both are masked in the logs, given to `setup-command` as DEMO_ACCOUNT_EMAIL / DEMO_ACCOUNT_PASSWORD and to the
 # flows as PERSONA_EMAIL / PERSONA_PASSWORD. They are scrubbed from the uploaded reports. Never a real account.
 #
+# A showcase (the download page's phone video, krizaka/.github#315) is a SECOND call, not required, on main after this one is green:
+# its own `flows-directory` (flows with `startRecording`/`stopRecording`), `artifact-name: maestro-showcase`, `screen-recording: false`;
+# then `app-videos.yml` collects the artifact. It can never block `mobile-e2e / gate`.
+#
 # Flows tagged `manual` (a paid engine run, a system picker) do not run here; tag a flow `manual` instead of deleting it.
 # iOS (macos-latest, on main and on PRs labelled `ios`) is a second, optional job, not part of this file yet.
 name: mobile-e2e
@@ -121,6 +125,14 @@ on:
         description: "How many times a flow that failed is run (1 = no retry). Only the failed flows are run again, each must pass: an emulator on a shared runner drops a flow now and then (a cold start, a dialog), a real regression fails every attempt."
         type: number
         default: 3
+      artifact-name:
+        description: "Name of the uploaded artifact. Give a second call of the workflow in the same run its own name (a showcase recorded by Maestro's startRecording, krizaka/.github#315)."
+        type: string
+        default: maestro-e2e
+      screen-recording:
+        description: "Record the whole run with screenrecord. false for a showcase flow that records itself (startRecording): two recorders on one emulator fight."
+        type: boolean
+        default: true
       timeout-minutes:
         description: "Timeout of the heavy job."
         type: number
@@ -354,14 +366,18 @@ jobs:
 
           # The screen, in 170 s chunks (screenrecord's limit), until the flows end.
           touch "$OUT/.recording"
-          (
-            i=0
-            while [ -f "$OUT/.recording" ]; do
-              i=$((i + 1))
-              adb shell screenrecord --time-limit 170 --size 540x960 "/sdcard/run-$i.mp4" || break
-            done
-          ) &
-          recorder=$!
+          if [ "$SCREEN_RECORDING" = "true" ]; then
+            (
+              i=0
+              while [ -f "$OUT/.recording" ]; do
+                i=$((i + 1))
+                adb shell screenrecord --time-limit 170 --size 540x960 "/sdcard/run-$i.mp4" || break
+              done
+            ) &
+            recorder=$!
+          else
+            recorder=""
+          fi
 
           args=(--format junit --output "$OUT/junit.xml" --test-output-dir "$OUT/screenshots" -e "PERSONA_EMAIL=$DEMO_ACCOUNT_EMAIL" -e "PERSONA_PASSWORD=$DEMO_ACCOUNT_PASSWORD")
           [ -n "$EXCLUDE_TAGS" ] && args+=(--exclude-tags "$EXCLUDE_TAGS")
@@ -394,7 +410,7 @@ jobs:
 
           rm -f "$OUT/.recording"
           adb shell pkill -2 screenrecord || true
-          wait "$recorder" || true
+          [ -n "$recorder" ] && { wait "$recorder" || true; }
           sleep 2
           for f in $(adb shell ls /sdcard/ | tr -d '\r' | grep '^run-.*\.mp4$'); do adb pull "/sdcard/$f" "$OUT/video/" || true; done
           adb logcat -d -t 2000 > "$OUT/logcat.txt" || true
@@ -412,6 +428,7 @@ jobs:
           INCLUDE_TAGS: ${{ inputs.include-tags }}
           LOCALE: ${{ inputs.locale }}
           FLOW_ATTEMPTS: ${{ inputs.flow-attempts }}
+          SCREEN_RECORDING: ${{ inputs.screen-recording }}
         with:
           api-level: ${{ inputs.android-api-level }}
           target: google_apis
@@ -452,7 +469,7 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ always() }}
         with:
-          name: maestro-e2e
+          name: ${{ inputs.artifact-name }}
           path: e2e-out
           if-no-files-found: ignore
           retention-days: 14
