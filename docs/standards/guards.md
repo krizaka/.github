@@ -31,7 +31,7 @@ This page lists the guards that catch each lesson, and the repos where each guar
 | GitHub Actions injection, permissions, unpinned steps | Sonar only (actionlint does not check them) | all | .github#268 → .github#325 |
 | OS command resolved by PATH | Sonar S4036; local `sonarjs/no-os-command-from-path` once enabled | all TS | krizaka-com#408 → krizaka-ts#164 |
 | Orphan ratchet counter (`pageTemplate`: no rule measures it) | **missing**: the ratchet keeps unknown counters | akinaza, orazaka-web-client, yomizaka | krizaka-ts#172 |
-| A fix with no guard | **missing** CI check | all | .github#323 |
+| A fix with no guard | `fix-needs-guard` (see below) | all | .github#323 |
 | import collapse (OpenRewrite autodetected the import layout and folded untouched files) | explicit layout in krizaka-parent and orazaka-parent (`krizaka-rewrite-style`, no star import, static imports first) | every JVM repo | krizaka-build#101, orazaka-build#39, orazaka-ai-engine#133 #143 |
 
 ## 2. The matrix (2026-10-27, read from the GitHub API)
@@ -56,6 +56,20 @@ This page lists the guards that catch each lesson, and the repos where each guar
 | A fix that ships without a guard (the lessons loop itself) | `guard` job of `node-ci` / `java-ci`, in the `CI gate`: a `fix` PR adds a test, a rule or an audit (patterns: [`guard-paths.json`](guard-paths.json)), or carries `guard-exempt` and a `Guard exemption:` line (`scripts/fix-needs-guard.mjs`, tested) | every repo on the shared CI | .github#323 |
 
 No repo runs SpotBugs, PMD, Error Prone, gitleaks or zizmor yet.
+
+## 2.1 Stale-base merges (.github#319)
+
+Two PRs green on an old base can turn `main` red once both merge (yomizaka: lint warnings over the frozen cap). Decision, 2026-10-27:
+
+- **Merge queue is available** (the org is on Team; a `merge_queue` ruleset is accepted and enforced on public repos). It is **not enabled yet**: the required `SonarCloud Code Analysis` status is reported by the SonarCloud app on pull requests only, so a queue would wait for it forever. The shared workflows are already `merge_group`-safe (`changes.yml` runs in full on any other event, the `guard` jobs are `pull_request` only and skipped). To switch to the queue: make Sonar run in CI on `merge_group` (or drop it from the required list with Oussama's approval), add `merge_group:` to every caller's `on:`, then add the `merge_queue` ruleset and drop `strict`.
+- **Meanwhile: `strict` is on** (`required_status_checks.strict`, the required checks unchanged) on main of yomizaka, akinaza, krizaka-ui, krizaka-ts, krizaka-com, orazaka-web-client, orazaka-ai-engine, krizaka-build, krizaka-platform-kit, krizaka-users, orazaka-conversation-service and .github.
+- **Sweep:** `scripts/update-behind-prs.sh <owner/repo>...` runs `gh pr update-branch` on every auto-merge-armed PR that is behind, so strict never stalls them. Add it to the existing sweep.
+
+## 2.2 « A fix needs a guard » recognises a lowered ratchet
+
+`docs/standards/guard-paths.json` counts as guards: tests, rules, audits, and the **ratchet and baseline files** (`lint-ratchet.json`, `sg-ratchet.json`, `perf-budgets.json`, the a11y baselines, `pmd-baseline.properties`), plus a `package.json` whose patch **lowers a `--max-warnings N` cap** (`lowersCap`, tested; raising a cap or leaving it does not count).
+
+**Renaming a `fix` PR to dodge the check is not allowed.** A fix that truly has no guard to add uses the `guard-exempt` label and a `Guard exemption: <reason>` line.
 
 ## 3. One source per rule set
 

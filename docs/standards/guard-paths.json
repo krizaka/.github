@@ -1,12 +1,54 @@
 {
   "$comment": "Central config of the fix-needs-guard check (.github#323, ADR-013). Globs: ** any depth, * inside a segment. Edit here, never per repo.",
   "titlePattern": "^fix(\\(|:|!)",
-  "skipBranches": ["release-please--*", "changeset-release/*"],
+  "skipBranches": [
+    "release-please--*",
+    "changeset-release/*"
+  ],
   "exemptLabel": "guard-exempt",
   "exemptionLine": "^Guard exemption:\\s*\\S{3,}",
   "guards": {
-    "tests": ["**/*.test.*", "**/*.spec.*", "**/src/test/**", "**/test_*.py", "**/e2e/**", "**/.maestro/**", "**/tests/**", "**/__tests__/**"],
-    "rules": ["rules/**", "rule-tests/**", "eslint.config.*", ".dependency-cruiser*", "*ratchet*.json", "archunit_store/**", "**/architecture/**"],
-    "audits": ["**/page-audit*", "**/a11y*"]
+    "tests": [
+      "**/*.test.*",
+      "**/*.spec.*",
+      "**/src/test/**",
+      "**/test_*.py",
+      "**/e2e/**",
+      "**/.maestro/**",
+      "**/tests/**",
+      "**/__tests__/**"
+    ],
+    "rules": [
+      "rules/**",
+      "rule-tests/**",
+      "eslint.config.*",
+      ".dependency-cruiser*",
+      "*ratchet*.json",
+      "archunit_store/**",
+      "**/architecture/**"
+    ],
+    "audits": [
+      "**/page-audit*",
+      "**/a11y*"
+    ],
+    "ratchets": [
+      "lint-ratchet.json",
+      "sg-ratchet.json",
+      "perf-budgets.json",
+      "**/lint-ratchet.json",
+      "**/sg-ratchet.json",
+      "**/perf-budgets.json",
+      "**/*a11y*baseline*",
+      "**/a11y-baseline*",
+      "**/pmd-baseline.properties",
+      "pmd-baseline.properties"
+    ]
+  },
+  "lintCaps": {
+    "files": [
+      "package.json",
+      "**/package.json"
+    ],
+    "pattern": "--max-warnings[ =](\\d+)"
   }
 }
