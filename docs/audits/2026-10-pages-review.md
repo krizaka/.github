@@ -18,6 +18,8 @@ Severity: **High** = broken, or a claim the code does not prove; **Medium** = br
 
 ## Yomizaka (P0)
 
+Issue: [krizaka/yomizaka#457](https://github.com/krizaka/yomizaka/issues/457)
+
 | Page | Issue | Severity | Fix |
 | :--- | :--- | :---: | :--- |
 | `/app/dossiers` (« Applicant files », in the sidebar) | Page never renders: « This page could not be shown », React error #441 in the console, no h1. A main nav entry is dead. | High | Fix the error; until then hide the entry. Add a test that every sidebar route renders its h1. |
@@ -37,6 +39,8 @@ Severity: **High** = broken, or a claim the code does not prove; **Medium** = br
 
 ## Akinaza (P1)
 
+Issue: [krizaka/akinaza#440](https://github.com/krizaka/akinaza/issues/440)
+
 | Page | Issue | Severity | Fix |
 | :--- | :--- | :---: | :--- |
 | All pages | No « Development version » banner on the public site or in the app (Yomizaka has it). Only a footer line and a small DEV chip in the app bar. | High | Same banner as Yomizaka, from the shared component. |
@@ -52,6 +56,8 @@ Severity: **High** = broken, or a claim the code does not prove; **Medium** = br
 | Copy | « Taxes prepared, return filed by you » is correct and consistent with `/docs/books` (« You file, Akinaza never does »); keep it. | OK | None. |
 
 ## Orazaka (top of P2)
+
+Issue: [krizaka/orazaka#443](https://github.com/krizaka/orazaka/issues/443)
 
 | Page | Issue | Severity | Fix |
 | :--- | :--- | :---: | :--- |
