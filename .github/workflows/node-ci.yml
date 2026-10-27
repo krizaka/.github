@@ -21,7 +21,7 @@
 #   e2e        optional: Playwright, `e2e-shards` legs in parallel, only when a changed file matches `e2e-relevant`.
 #   container  optional, AFTER verify (no image is built when lint or tests fail): build the Dockerfile, scan the image with Trivy
 #              (fails on a fixable HIGH or CRITICAL finding, minus the repository's written allowlist), keep an SBOM
-#              artifact, run a repository smoke script against the image. PR images are never published: the image is
+#              artifact, check its third-party licences (actions/licence-check), run a repository smoke script against the image. PR images are never published: the image is
 #              loaded into the runner's daemon only; the deploy builds from main after the merge.
 #   sonar      optional, AFTER verify: the SonarCloud CI analysis with the coverage the test leg uploaded, and the quality gate
 #              awaited. (CodeQL is not here: it scans the source, needs neither build nor tests, and stays its own required check.)
@@ -140,6 +140,10 @@ on:
         description: "Restore and save the Playwright browsers cache for the smoke script."
         type: boolean
         default: false
+      container-licence-gate:
+        description: "Fail the container job when the image SBOM holds a dependency under a forbidden licence (actions/licence-check, ADR-012)."
+        type: boolean
+        default: true
       container-scan-allowlist:
         description: "Trivy allowlist (.trivyignore.yaml: id, statement, expired_at per accepted finding), relative to the repository root. Used when the file exists."
         type: string
@@ -547,6 +551,14 @@ jobs:
           path: ${{ runner.temp }}/sbom.cdx.json
           retention-days: 30
           if-no-files-found: error
+
+      # Third-party licences of the image (ADR-012): GPL, AGPL, SSPL, non-commercial fail, unless the repository lists an
+      # accepted exception in .licence-exceptions.json with a reason and an expiry. Report in the job summary.
+      - name: Licence gate
+        if: ${{ inputs.container-licence-gate }}
+        uses: krizaka/.github/actions/licence-check@484c16556539e9f583b85837f263e9f8916fe783 # main
+        with:
+          sbom: ${{ runner.temp }}/sbom.cdx.json
 
       # Fixable HIGH and CRITICAL findings fail the job. What has no fix yet does not block; an accepted exception is written
       # in the allowlist with its reason and an expiry, never silenced here.
