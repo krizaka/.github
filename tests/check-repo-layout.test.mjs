@@ -121,3 +121,7 @@ test("the command line: exit 0 on a clean repository, 1 with the problems listed
   assert.equal(bad.code, 1);
   assert.equal(JSON.parse(bad.out).violations[0].path, "NOTES.md");
 });
+
+test("the accessibility baseline and the pre-commit config are allowed at the root", () => {
+  assert.deepEqual(rules([...NEXT, "a11y-baseline.json", ".pre-commit-config.yaml"]), []);
+});
