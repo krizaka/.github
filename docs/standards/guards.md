@@ -53,6 +53,7 @@ This page lists the guards that catch each lesson, and the repos where each guar
 | krizaka-users | – | – | – | – | – | Y (frozen store) | Y (krizaka-parent) | – | – | – | Y |
 | krizaka-platform-kit | – | – | – | – | – | Y | Y (krizaka-parent) | – | – | – | Y (added 2026-10-27) |
 | krizaka-build | – | – | – | – | – | Y (source: test-support) | Y (source) | – | – | – | Y |
+| The bar flashed « Sign in » to a signed-in person, or flipped back to it after a failed `/api/me` refetch (pending drawn as signed out; an error read as a sign-out). The caching case was ruled out: pages hold no personal HTML, `/api/me` is `private, no-store` + `Vary: Cookie` | `useNavSession` / `NavBar.Session` in `@krizaka/ui/nav-bar` (pending is its own state, only an answer changes the state, `initial` for a server-read session) with its tests; `GET /api/me` route tests assert `Cache-Control: private, no-store` and `Vary: Cookie` for signed in and signed out; each app's bar test asserts the first render is neither state while pending, then the session's | krizaka-ui, yomizaka, akinaza, orazaka-web-client | krizaka-ui#800 |
 | A fix that ships without a guard (the lessons loop itself) | `guard` job of `node-ci` / `java-ci`, in the `CI gate`: a `fix` PR adds a test, a rule or an audit (patterns: [`guard-paths.json`](guard-paths.json)), or carries `guard-exempt` and a `Guard exemption:` line (`scripts/fix-needs-guard.mjs`, tested) | every repo on the shared CI | .github#323 |
 
 No repo runs SpotBugs, PMD, Error Prone, gitleaks or zizmor yet.
