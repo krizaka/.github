@@ -1,4 +1,4 @@
-# Security scan, org-wide (reusable; krizaka/.github#324 and #325, ADR-013): gitleaks (secrets in the whole history of the
+# Security scan, org-wide (reusable; krizaka/.github#324, #325 and #372, ADR-013): osv-scanner (known vulnerabilities) and a workflow-trigger guard, plus gitleaks (secrets in the whole history of the
 # pull request's checkout, central config .gitleaks.toml) and zizmor (GitHub Actions vulnerabilities: script injection,
 # unpinned or over-privileged steps). A repository calls it from a thin workflow:
 #
@@ -64,3 +64,49 @@ jobs:
         run: |
           rm -rf .krizaka-guards
           zizmor --offline --min-severity medium --no-progress .
+
+  # Scorecard Dangerous-Workflow (krizaka/.github#372): no workflow_run / pull_request_target that checks out the event's head.
+  workflow-triggers:
+    name: workflow triggers (no privileged trigger on untrusted code)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/.github
+          ref: ${{ inputs.guards-ref }}
+          path: .krizaka-guards
+          persist-credentials: false
+      - run: node .krizaka-guards/scripts/check-workflow-triggers.mjs .github/workflows
+
+  # Scorecard Vulnerabilities (krizaka/.github#372): osv-scanner on the lockfiles, failing on high / critical (CVSS >= 7). What has
+  # no fix is accepted only in the repository's osv-scanner.toml, with a reason and an `ignoreUntil` date.
+  osv:
+    name: osv-scanner (known vulnerabilities)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/.github
+          ref: ${{ inputs.guards-ref }}
+          path: .krizaka-guards
+          persist-credentials: false
+      - name: Install osv-scanner (pinned, checksum verified)
+        env:
+          OSV_VERSION: "2.7.0"
+          OSV_SHA256: 160c6253e2922e9e0a6a9771c5c4c40a4b3c6090b34a3cdd5e80c96cc2e4218b
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSfL -o /tmp/osv-scanner "https://github.com/google/osv-scanner/releases/download/v${OSV_VERSION}/osv-scanner_linux_amd64"
+          echo "${OSV_SHA256}  /tmp/osv-scanner" | sha256sum -c -
+          sudo install /tmp/osv-scanner /usr/local/bin/osv-scanner
+      - name: Scan the lockfiles (the guards checkout is moved out first, it is not part of the repository)
+        run: |
+          mv .krizaka-guards /tmp/krizaka-guards
+          node /tmp/krizaka-guards/scripts/osv-gate.mjs .
