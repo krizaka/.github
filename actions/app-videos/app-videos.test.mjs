@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-import { collect, folder, hashOf, loadConfig, merge, named, objectPath, parseArgs, parseName, prunePreview, publish, send } from "./app-videos.mjs";
+import { collect, folder, hashOf, loadConfig, merge, named, objectPath, toV2, readManifest, parseArgs, parseName, prunePreview, publish, send } from "./app-videos.mjs";
 
 const cfg = { apiKey: "test-key-value", zone: "zone", endpoint: "storage.example", pullZone: "cdn.example" };
 
@@ -14,9 +14,10 @@ test("names follow <platform>-<flow>", () => {
   assert.equal(parseName("tv-home.mp4"), null);
 });
 
-test("the path is site/products/<product>/download/<platform>-<flow>.<hash>.<ext>", () => {
-  assert.equal(objectPath("yomizaka", "web", "binder", "0123456789", "webm"), "site/products/yomizaka/download/web-binder.0123456789.webm");
+test("the path is sites/<product>/download/<platform>-<flow>.<hash>.<ext> (layout v2, ADR-014), never the legacy site/ prefix", () => {
+  assert.equal(objectPath("yomizaka", "web", "binder", "0123456789", "webm"), "sites/yomizaka/download/web-binder.0123456789.webm");
   assert.throws(() => folder("../x"));
+  assert.doesNotMatch(objectPath("yomizaka", "web", "binder", "0123456789", "mp4"), /^site\//);
 });
 
 test("collect keeps one recording per flow and lists the files it ignores", () => {
@@ -39,18 +40,18 @@ test("merge replaces the same flow and keeps the others, sorted", () => {
   assert.equal(m.videos[1].seconds, 9);
 });
 
-test("send puts the file under its hash and returns the path relative to site/", async () => {
+test("send puts the file under its hash and returns the path from the zone root", async () => {
   const f = join(mkdtempSync(join(tmpdir(), "av-")), "x.webm");
   writeFileSync(f, "video");
   let call;
   const path = await send({ cfg, product: "yomizaka", platform: "web", flow: "binder", ext: "webm", file: f, fetchImpl: async (url, init) => ((call = { url, init }), { ok: true }) });
-  assert.equal(path, `products/yomizaka/download/web-binder.${hashOf(Buffer.from("video"))}.webm`);
+  assert.equal(path, `sites/yomizaka/download/web-binder.${hashOf(Buffer.from("video"))}.webm`);
   assert.equal(call.init.method, "PUT");
-  assert.match(call.url, /^https:\/\/storage\.example\/zone\/site\/products\/yomizaka\/download\//);
+  assert.match(call.url, /^https:\/\/storage\.example\/zone\/sites\/yomizaka\/download\//);
 });
 
 test("prune is a preview: it lists the unnamed objects and never calls DELETE", async () => {
-  const manifest = { product: "yomizaka", videos: [{ platform: "web", flow: "binder", files: { mp4: "products/yomizaka/download/web-binder.aaaaaaaaaa.mp4" } }] };
+  const manifest = { product: "yomizaka", videos: [{ platform: "web", flow: "binder", files: { mp4: "sites/yomizaka/download/web-binder.aaaaaaaaaa.mp4" } }] };
   const methods = [];
   const lines = [];
   const stale = await prunePreview({
@@ -60,10 +61,10 @@ test("prune is a preview: it lists the unnamed objects and never calls DELETE", 
     log: (l) => lines.push(l),
     fetchImpl: async (_u, init = {}) => (methods.push(init.method ?? "GET"), { ok: true, status: 200, json: async () => [{ ObjectName: "web-binder.aaaaaaaaaa.mp4" }, { ObjectName: "web-binder.bbbbbbbbbb.mp4" }] }),
   });
-  assert.deepEqual(stale, ["products/yomizaka/download/web-binder.bbbbbbbbbb.mp4"]);
+  assert.deepEqual(stale, ["sites/yomizaka/download/web-binder.bbbbbbbbbb.mp4"]);
   assert.ok(!methods.includes("DELETE"));
   assert.ok(lines.some((l) => l.startsWith("would delete")));
-  assert.deepEqual([...named(manifest)], ["products/yomizaka/download/web-binder.aaaaaaaaaa.mp4"]);
+  assert.deepEqual([...named(manifest)], ["sites/yomizaka/download/web-binder.aaaaaaaaaa.mp4"]);
 });
 
 test("publish transcodes, uploads, writes the manifest and never prints the key", async () => {
@@ -99,4 +100,12 @@ test("credentials are required and named", () => {
 test("arguments", () => {
   const a = parseArgs(["publish", "--product", "p", "--input", "a", "--input", "b", "--manifest", "m", "--dry-run"]);
   assert.deepEqual([a.command, a.product, a.inputs, a.manifest, a.dryRun], ["publish", "p", ["a", "b"], "m", true]);
+});
+
+test("a manifest written before layout v2 is read with its paths moved to sites/<product>/download/", () => {
+  assert.equal(toV2("products/yomizaka/download/web-binder.aaaaaaaaaa.mp4"), "sites/yomizaka/download/web-binder.aaaaaaaaaa.mp4");
+  assert.equal(toV2("sites/yomizaka/download/x.mp4"), "sites/yomizaka/download/x.mp4");
+  const f = join(mkdtempSync(join(tmpdir(), "av-")), "m.json");
+  writeFileSync(f, JSON.stringify({ product: "yomizaka", cdn: "https://x/site", videos: [{ platform: "web", flow: "b", files: { mp4: "products/yomizaka/download/web-b.aaaaaaaaaa.mp4" } }] }));
+  assert.equal(readManifest(f, "yomizaka").videos[0].files.mp4, "sites/yomizaka/download/web-b.aaaaaaaaaa.mp4");
 });

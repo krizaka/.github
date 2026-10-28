@@ -3,7 +3,7 @@
      node app-videos.mjs publish --product <id> --input <dir> [--input <dir>…] --manifest <file> [--dry-run]
    Collect   every file `<platform>-<flow>.(mp4|mov|webm)` in the input directories (Maestro `startRecording`, Playwright `video`).
    Transcode ffmpeg → webm (VP9) + mp4 (H.264) + a jpg poster: at most 30 s, no audio, at most 720 px wide.
-   Upload    Bunny, `site/products/<product>/download/<platform>-<flow>.<hash>.<ext>` (hash = first 10 hex of the SHA-256: a URL never
+   Upload    Bunny, `sites/<product>/download/<platform>-<flow>.<hash>.<ext>` (hash = first 10 hex of the SHA-256: a URL never
              changes content). Same layout and rules as krizaka-com scripts/cdn-assets.mjs, packaged here so every repository can call it.
    Manifest  merged into <file> (a flow not recorded this run keeps its entry; the page guard fails when an entry is too old).
    Prune     PREVIEW ONLY: lists the objects of the product's download folder that the manifest no longer names; it never deletes.
@@ -35,7 +35,7 @@ export function parseName(file) {
 /** The directory of a product's videos on the zone, relative to the zone root. */
 export function folder(product) {
   if (!/^[a-z][a-z0-9-]*$/.test(product)) throw new Error(`product "${product}" is not an id like yomizaka`);
-  return `site/products/${product}/download`;
+  return `sites/${product}/download`;
 }
 
 export const objectPath = (product, platform, flow, hash, ext) => `${folder(product)}/${platform}-${flow}.${hash}.${ext}`;
@@ -84,7 +84,7 @@ export function loadConfig(env) {
 
 const storageUrl = (cfg, p) => `https://${cfg.endpoint}/${encodeURIComponent(cfg.zone)}/${enc(p)}`;
 
-/** Sends one file under its hashed name; returns the path relative to site/ (what the manifest records). */
+/** Sends one file under its hashed name; returns the path from the zone root (what the manifest records). */
 export async function send({ cfg, product, platform, flow, ext, file, fetchImpl = fetch }) {
   const body = readFileSync(file);
   const path = objectPath(product, platform, flow, hashOf(body), ext);
@@ -94,13 +94,17 @@ export async function send({ cfg, product, platform, flow, ext, file, fetchImpl 
     body,
   });
   if (!res.ok) throw new Error(`upload of ${platform}-${flow}.${ext} failed: HTTP ${res.status}`);
-  return path.slice("site/".length);
+  return path;
 }
+
+/** A path recorded before layout v2 (`products/<p>/download/…`, relative to site/) → `sites/<p>/download/…` (the objects are copied there). */
+export const toV2 = (p) => p.replace(/^(?:site\/)?products\/([a-z][a-z0-9-]*)\/download\//, "sites/$1/download/");
 
 export function readManifest(file, product) {
   try {
     const m = JSON.parse(readFileSync(file, "utf8"));
-    return { product, videos: Array.isArray(m.videos) ? m.videos : [] };
+    const videos = (Array.isArray(m.videos) ? m.videos : []).map((v) => ({ ...v, files: Object.fromEntries(Object.entries(v.files ?? {}).map(([k, p]) => [k, toV2(p)])) }));
+    return { product, videos };
   } catch (err) {
     if (err.code === "ENOENT") return { product, videos: [] };
     throw err;
@@ -117,10 +121,10 @@ export function merge(manifest, entry) {
 
 export function writeManifest(file, manifest) {
   mkdirSync(dirname(resolve(file)), { recursive: true });
-  writeFileSync(file, `${JSON.stringify({ product: manifest.product, cdn: `https://${DEFAULT_CDN}/site`, videos: manifest.videos }, null, 2)}\n`);
+  writeFileSync(file, `${JSON.stringify({ product: manifest.product, cdn: `https://${DEFAULT_CDN}`, videos: manifest.videos }, null, 2)}\n`);
 }
 
-/** The paths (relative to site/) the manifest names. */
+/** The paths (from the zone root) the manifest names. */
 export const named = (manifest) => new Set(manifest.videos.flatMap((v) => Object.values(v.files)));
 
 /** PREVIEW ONLY: the objects of the product's download folder that the manifest does not name. Nothing is ever deleted here. */
@@ -132,9 +136,9 @@ export async function prunePreview({ cfg, product, manifest, fetchImpl = fetch, 
   const keep = named(manifest);
   const stale = (await res.json())
     .filter((o) => !o.IsDirectory)
-    .map((o) => `${dir}/${o.ObjectName}`.slice("site/".length))
+    .map((o) => `${dir}/${o.ObjectName}`)
     .filter((p) => !keep.has(p));
-  for (const p of stale) log(`would delete  site/${p}`);
+  for (const p of stale) log(`would delete  ${p}`);
   log(`${stale.length} old object(s) would be deleted (preview only: remove them by hand with cdn-assets prune after review)`);
   return stale;
 }
@@ -155,11 +159,11 @@ export async function publish({ product, inputs, manifestFile, dryRun = false, e
     for (const [ext, key] of [["webm", "webm"], ["mp4", "mp4"], ["jpg", "poster"]]) {
       const kb = (statSync(t[ext]).size / 1024).toFixed(0).padStart(6);
       if (dryRun) {
-        files[key] = objectPath(product, rec.platform, rec.flow, hashOf(readFileSync(t[ext])), ext).slice("site/".length);
+        files[key] = objectPath(product, rec.platform, rec.flow, hashOf(readFileSync(t[ext])), ext);
         log(`would send  ${kb} kB  ${files[key]}`);
       } else {
         files[key] = await send({ cfg, product, platform: rec.platform, flow: rec.flow, ext, file: t[ext], fetchImpl });
-        log(`sent        ${kb} kB  https://${cfg.pullZone}/site/${files[key]}`);
+        log(`sent        ${kb} kB  https://${cfg.pullZone}/${files[key]}`);
       }
     }
     manifest = merge(manifest, { platform: rec.platform, flow: rec.flow, seconds: t.seconds, capturedAt: now().toISOString(), files });
