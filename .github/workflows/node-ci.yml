@@ -243,7 +243,7 @@ jobs:
     name: Changed files
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/changes.yml@ccd224612f5bb9db815335654f359a595a597fbb # main
+    uses: krizaka/.github/.github/workflows/changes.yml@719c761b8658dd4da07ea10b3914b9e8d0d021af # main
     with:
       relevant: ${{ inputs.relevant }}
       ignore: ${{ inputs.ignore }}
@@ -253,7 +253,7 @@ jobs:
     if: ${{ inputs.container }}
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/changes.yml@ccd224612f5bb9db815335654f359a595a597fbb # main
+    uses: krizaka/.github/.github/workflows/changes.yml@719c761b8658dd4da07ea10b3914b9e8d0d021af # main
     with:
       # What can break an image build whatever the caller's `ignore` says: the Dockerfile and .dockerignore, the manifests and
       # lockfiles the install COPYs, the workspace definition. Any other path a COPY names is covered by `relevant: .` of the main gate
@@ -266,7 +266,7 @@ jobs:
     if: ${{ inputs.e2e-script != '' }}
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/changes.yml@ccd224612f5bb9db815335654f359a595a597fbb # main
+    uses: krizaka/.github/.github/workflows/changes.yml@719c761b8658dd4da07ea10b3914b9e8d0d021af # main
     with:
       relevant: ${{ inputs.e2e-relevant }}
       ignore: ${{ inputs.ignore }}
@@ -331,7 +331,7 @@ jobs:
           persist-credentials: false
 
       # The repository's folders stay clean (docs/standards/repo-layout.md): once per run, on the lint leg.
-      - uses: krizaka/.github/actions/repo-layout@e2e8942c0d1dd0c594bd46c32c64ebe11596c0f5 # main
+      - uses: krizaka/.github/actions/repo-layout@719c761b8658dd4da07ea10b3914b9e8d0d021af # main
         if: ${{ matrix.task == 'all' || matrix.task == 'lint' }}
 
       - uses: krizaka/.github/actions/setup@147c1925368d98fb07887257549db36556644cc5 # main

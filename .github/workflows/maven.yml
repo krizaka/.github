@@ -73,7 +73,7 @@ jobs:
   changes:
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/changes.yml@ccd224612f5bb9db815335654f359a595a597fbb # main
+    uses: krizaka/.github/.github/workflows/changes.yml@719c761b8658dd4da07ea10b3914b9e8d0d021af # main
     with:
       ignore: ${{ inputs.ignore }}
 
@@ -89,7 +89,7 @@ jobs:
           persist-credentials: false
 
       # The repository's folders stay clean (docs/standards/repo-layout.md).
-      - uses: krizaka/.github/actions/repo-layout@e2e8942c0d1dd0c594bd46c32c64ebe11596c0f5 # main
+      - uses: krizaka/.github/actions/repo-layout@719c761b8658dd4da07ea10b3914b9e8d0d021af # main
 
       - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
         with:

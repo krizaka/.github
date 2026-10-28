@@ -100,7 +100,7 @@ jobs:
     name: Changed files
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/changes.yml@ccd224612f5bb9db815335654f359a595a597fbb # main
+    uses: krizaka/.github/.github/workflows/changes.yml@719c761b8658dd4da07ea10b3914b9e8d0d021af # main
     with:
       relevant: ${{ inputs.relevant }}
       ignore: ${{ inputs.ignore }}
@@ -139,7 +139,7 @@ jobs:
       # The repository's folders stay clean (docs/standards/repo-layout.md): once per run, on the lint leg.
       - name: Repository layout
         if: ${{ steps.which.outputs.run == 'true' && matrix.task == 'lint' }}
-        uses: krizaka/.github/actions/repo-layout@e2e8942c0d1dd0c594bd46c32c64ebe11596c0f5 # main
+        uses: krizaka/.github/actions/repo-layout@719c761b8658dd4da07ea10b3914b9e8d0d021af # main
 
       - uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
         if: ${{ steps.which.outputs.run == 'true' && inputs.package-manager == 'uv' }}
