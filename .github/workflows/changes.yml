@@ -58,6 +58,7 @@ jobs:
           REF_TYPE: ${{ github.ref_type }}
           PR: ${{ github.event.pull_request.number }}
           BEFORE: ${{ github.event.before }}
+          MQ_BASE: ${{ github.event.merge_group.base_sha }}
           RELEVANT: ${{ inputs.relevant }}
           IGNORE: ${{ inputs.ignore }}
         run: |
@@ -96,6 +97,11 @@ jobs:
                 if (batch.length < 100) break;
                 if (page === 30) done("true", "more than 3000 files");
               }
+            } else if (env.EVENT === "merge_group" && env.MQ_BASE) {
+              // The merge queue's branch: what this entry adds on top of the base it was built on.
+              const cmp = await get(`/repos/${repo}/compare/${env.MQ_BASE}...${env.GITHUB_SHA}?per_page=100`);
+              if (cmp.total_commits > 250 || (cmp.files || []).length >= 100) done("true", "a large merge group: run everything");
+              files = (cmp.files || []).flatMap((f) => [f.filename, ...(f.previous_filename ? [f.previous_filename] : [])]);
             } else if (env.EVENT === "push" && env.REF_TYPE === "branch" && env.BEFORE && !/^0+$/.test(env.BEFORE)) {
               const cmp = await get(`/repos/${repo}/compare/${env.BEFORE}...${env.GITHUB_SHA}?per_page=100`);
               if (cmp.total_commits > 250 || (cmp.files || []).length >= 100) done("true", "a large push: run everything");
