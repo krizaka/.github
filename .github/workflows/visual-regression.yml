@@ -23,7 +23,7 @@
 #           DATABASE_URL=postgresql://ci:ci-only-password@postgres:5432/ci
 #
 # The tests use `defineJourneyTests` of `@krizaka/page-audit/visual` (frozen clock, reduced motion, masks for live values).
-# The Playwright version of the repository must equal the tag of the image: this workflow fails with a clear message if not.
+# The Playwright version of the repository must equal the tag of the image (v1.64.0, pinned by digest here): this workflow fails with a clear message if not.
 # PostgreSQL runs as a service of the container, reachable at host `postgres` (user, database `ci`; password `ci-only-password`).
 # Not a required check until it has been green for a week on main (krizaka/.github#375); the strengthening is the CTO's.
 name: visual-regression
@@ -39,10 +39,6 @@ on:
         description: "Update mode: the branch to commit to (never main or production). Compare mode: ignored."
         type: string
         default: ""
-      playwright-image:
-        description: "The official Playwright image. Keep its tag equal to the repository's @playwright/test version."
-        type: string
-        default: "mcr.microsoft.com/playwright:v1.64.0-noble"
       node-version:
         description: "Node.js version."
         type: string
@@ -55,10 +51,6 @@ on:
         description: "Directory of the package (monorepo root by default)."
         type: string
         default: "."
-      postgres-image:
-        description: "PostgreSQL image, started as the service `postgres` (user and database `ci`; password `ci-only-password`)."
-        type: string
-        default: "postgres:16"
       env:
         description: "Newline-separated KEY=VALUE for every later step (test values only, never a credential)."
         type: string
@@ -107,14 +99,15 @@ jobs:
     name: ${{ inputs.update && 'Update the visual baselines' || 'Visual regression' }}
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.timeout-minutes }}
-    container: ${{ inputs.playwright-image }}
+    # Pinned by digest: the image of the Playwright version the repositories pin (bump both together, with the baselines).
+    container: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
     # Some native addons refuse to cache under /github/home: a private cache root.
     env:
       XDG_CACHE_HOME: /root/.cache
       CI: "true"
     services:
       postgres:
-        image: ${{ inputs.postgres-image }}
+        image: postgres:16@sha256:1beaa3084eee2676f20a9cd9928f0bf2c5bf674f8e49f81017912183d377c61c
         env:
           POSTGRES_USER: ci
           POSTGRES_DB: ci
@@ -175,7 +168,7 @@ jobs:
           if [ "$PM" = "pnpm" ]; then pnpm install --frozen-lockfile; else npm ci; fi
       - name: The Playwright version equals the image's
         env:
-          IMAGE: ${{ inputs.playwright-image }}
+          IMAGE: mcr.microsoft.com/playwright:v1.64.0-noble
           PM: ${{ inputs.package-manager }}
         run: |
           want="${IMAGE##*:v}"; want="${want%%-*}"
