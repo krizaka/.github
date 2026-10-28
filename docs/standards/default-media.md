@@ -8,7 +8,7 @@
 
 ## What it means
 
-- The default pictures of the family live in **one place**: Bunny `defaults/v1/<kind>/<id>-<size>.<ext>` (kinds `person`, `folder`,
+- The default pictures of the family live in **one place**: Bunny `org/v1/defaults/<kind>/<id>-<size>.<ext>` ([ADR-014](../adr/ADR-014-bunny-org-cdn-and-apps.md); `defaults/v1/` until the move lands) (kinds `person`, `folder`,
   `organisation`, `shop`, `banner`), written by one script, krizaka-ui `tools/export-defaults.mjs` (layout: krizaka-com `scripts/bunny-layout.mjs`).
 - Their **catalogue is the `defaults` section of `https://krizaka-assets.b-cdn.net/org/v1/org.json`** (`@krizaka/org`): per kind, the items with
   an id, an alt text in English and French, and the URLs per size and format, plus the deterministic rule.
