@@ -2,7 +2,7 @@ name: app-videos
 description: >
   The recordings of the e2e tests become the videos of a product's download page (krizaka/.github#315): collects
   `<platform>-<flow>.(mp4|mov|webm)` files, transcodes them (webm + mp4 + poster, at most 30 s, no audio), uploads them to Bunny
-  under site/products/<product>/download/ (hashed, immutable), merges the product's manifest, and PREVIEWS the old objects
+  under sites/<product>/download/ (hashed, immutable), merges the product's manifest, and PREVIEWS the old objects
   (never deletes). Use the reusable workflow app-videos.yml to also open the pull request.
 inputs:
   product:

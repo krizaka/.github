@@ -11,7 +11,7 @@ so they follow the product (krizaka/.github#315).
    Names are `<platform>-<flow>` (`web`, `android`, `ios`, `mac`...).
 2. **Publish** on `main` only, after the e2e jobs are green: call `.github/workflows/app-videos.yml` (see its header). It transcodes
    (webm + mp4 + jpg poster, at most 30 s, no audio, at most 720 px wide), uploads to Bunny under
-   `site/products/<product>/download/<platform>-<flow>.<hash>.<ext>` (hashed, immutable), merges the product's manifest and opens one PR.
+   `sites/<product>/download/<platform>-<flow>.<hash>.<ext>` (hashed, immutable), merges the product's manifest and opens one PR.
 3. **Prune** is a preview: old objects are listed in the log (`would delete ...`), never deleted by the workflow.
 4. **Page**: reads the manifest; one video per platform, poster first, the player loaded on demand (fixed box, no CLS), EN/FR text.
    **Guard**: a unit test fails when the page names a video missing from the manifest, or one older than 14 days.
