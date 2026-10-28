@@ -16,7 +16,7 @@
 #     secrets: inherit       # the org secrets MEDIA_STORAGE_API_KEY, MEDIA_STORAGE_ZONE, MEDIA_STORAGE_ENDPOINT, MEDIA_CDN_HOSTNAME
 #
 # What it does: downloads the artifacts, transcodes (webm + mp4 + poster, <= 30 s, no audio), uploads to Bunny under
-# site/products/<product>/download/<platform>-<flow>.<hash>.<ext> (hashed, immutable), merges the manifest and opens (or
+# sites/<product>/download/<platform>-<flow>.<hash>.<ext> (hashed, immutable), merges the manifest and opens (or
 # updates) ONE pull request `chore/app-videos-<product>` with the manifest. Old objects are only LISTED (a preview), never deleted.
 # The pull request is opened with a token minted here (actions/create-github-app-token, the org variable RELEASE_APP_ID and the
 # org secret RELEASE_APP_PRIVATE_KEY: the Krizaka Agents app, as release-please and the CLA workflow do), so its checks run;
