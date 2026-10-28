@@ -1,6 +1,7 @@
-# ADR-014 — The Bunny media library: `org/v<n>/` is the org's CDN, `apps/<app>/` holds each app's media
+# ADR-014 — The Bunny media library: `org/v<n>/`, then `sites/<site>/`, then `apps/<app>/` (layout v2)
 
-- **Status**: Accepted (layout and audit) · migration in progress
+- **Status**: Accepted (layout v2, 2026-10-28) · migration in progress
+- **Revision**: v2 replaces the first draft's `apps/<app>/` for site media and `ui/` as a root (Oussama, 2026-10-28: « on peut faire mieux dans l'organisation : defaults et people, ui, et l'intérieur de site, pas très clair » · « clean le reste, pas besoin de garder des trucs qu'on n'utilise plus »)
 - **Date**: 2026-10-28
 - **Deciders**: Oussama (direction), the CTO (layout)
 - **Amends**: [ADR-011](ADR-011-default-media-in-the-org-json.md) §1 (the defaults move under `org/v<n>/defaults/`; the catalogue rule is unchanged)
@@ -27,63 +28,93 @@ Oussama, 2026-10-28: « structure par app, et l'org a les defaults, avatar, bann
 
 ## Decision
 
-### 1. Four roots, at most five folder levels
+### 1. Org, then sites, then apps — four roots, at most five folder levels
+
+The order is the reading order: what Krizaka owns as an organisation (« notre maison mère », the values every site and
+app takes by default), then what each public site shows, then what an application reads or stores at runtime.
 
 ```
 README.txt                                          the layout, generated (cdn-assets readme)
-org/v<n>/                                           THE ORG'S CDN: what the whole family reads
+org/v<n>/                                           THE ORG: Krizaka's own data, the defaults of the whole family
   org.json · org.<hash>.json · org.schema[.<hash>].json · app.schema[.<hash>].json      @krizaka/org publish (krizaka-ts)
   apps/<app>[.<hash>].json                          each app's public runtime config                 @krizaka/org publish
   defaults/<person|banner|shop|folder|organisation>/<id>-<size>.<ext> · defaults/manifest.json   export-defaults (krizaka-ui)
+  defaults/tones/<brand>/<file> · defaults/tones/manifest.json   the generated avatar tones of Avatar   export-brand (krizaka-ui)
   brand/<brand>/<file> · brand/manifest.json · brand/index.json                         export-brand (krizaka-ui)
   maps/tiles/<region>-<YYYYMMDD>.pmtiles · maps/fonts/<stack>/<a>-<b>.pbf                map-assets (krizaka-ui)
-  films/<series>/<name>.<hash>.<ext>                the films of the flock (krizaka-ui tools/brand-films, uploaded by cdn-assets)
+  films/<series>/<name>.<hash>.<ext>                the films of the flock (krizaka-ui tools/brand-films)
   discovery/services.json                           the signed services manifest (ADR-003)             sign-services (krizaka-com)
-apps/<app>/<kind>/[<sub>/[<sub>/]]<name>.<hash>.<ext>   one folder per app, hashed and immutable
-ui/<area>/<name>.<hash>.<ext>                       ui.krizaka.com (krizaka-ui)
+sites/<site>/<kind>/[<sub>/[<sub>/]]<name>.<hash>.<ext>   THE SITES: what one public site shows, hashed, immutable
+apps/<app>/<defaults|uploads|generated>/[<sub>/…]<name>.<hash>.<ext>   THE APPS: runtime data of one application
 pr-assets/<repo>/<pr-or-topic>/[<sub>/]<file>       review evidence (scripts/pr-assets.mjs)
 ```
 
-- `<app>`: `www` (krizaka.com), `blog`, and one per product (`orazaka`, `orochia`, `yasakia`, `yororis`, `yomizaka`,
-  `kachizaka`, `akinaza`). `<kind>` names what the media are for: `home`, `tour`, `gallery`, `gallery-video`, `video`,
-  `mobile`, `docs`, `personas`, `download`, `demo`, `defaults` (an app's own default art, e.g. Akinaza's trades), …;
-  the blog's kind is the post (`apps/blog/<post>/…`).
-- **Depth**: no object of `org/`, `apps/` or `ui/` sits under more than five folders; the audit refuses deeper paths.
-  `pr-assets/` keeps what PR bodies already link (a few audits nest deeper); new captures follow the same cap.
-- **One writer per prefix** stays (each writer refuses the others). `org/` is written only by the generators listed
-  above; nothing is uploaded there by hand.
-- **The version folder is the contract.** `org/v1/` changes only compatibly: a new file, a new id, a new dated extract.
-  A changed picture gets a new id (the old one keeps serving); a breaking change of the JSON or of a path is `org/v2/`,
-  published beside `v1/`.
-- **The human-name mirror (`products/`, `people/personas/`) is retired**: it doubled the files; browsing is the
-  cockpit's tree (`scripts/bunny-tree.mjs`), and hashed names stay readable (`<name>.<hash>.<ext>`).
-- Orochia keeps its own zone (`orochia-dev`) and its Stream library; `apps/orochia/` holds only what is still in this
-  zone until krizaka/orochia#153 moves it.
+- `<site>`: `www` (krizaka.com), `blog`, `ui` (ui.krizaka.com), `java` (java.krizaka.com) and each product's dev site
+  (`orazaka`, `orochia`, `yasakia`, `yororis`, `yomizaka`, `kachizaka`, `akinaza`). `<kind>` says what the media are
+  for: `home`, `tour`, `gallery`, `gallery-video`, `video`, `cinema`, `compare`, `showcase`, `web`, `mobile`, `docs`,
+  `personas`, `download`, `demo`, `demo-stories`, `films`, `landing`, `maps`, `shop`; the blog has `posts/<post>/` and
+  `shared/`. The list is code (`SITE_KINDS`); a new kind is added there with its test.
+- `<app>`: one per product, only when the application itself reads or stores media of its own: `defaults` (its own
+  default art, read at runtime — Akinaza's trades), `uploads` (what its users send), `generated` (what it produces).
+  An app with nothing of its own has no folder. Orochia keeps its own zone (`orochia-dev`, krizaka/orochia#153).
+- **Depth**: no object of `org/`, `sites/` or `apps/` sits under more than five folders; the audit refuses deeper.
+- **One writer per prefix**; `org/` only by the generators above, never a hand upload.
+- **A new write outside v2 fails**: every writer calls `assertWritable` (krizaka-com `scripts/bunny-layout.mjs`) before
+  a PUT. The one exception is a refresh — never a creation — of a legacy file a published reader still names
+  (`discovery/services.json` while `@krizaka/discovery` reads it).
+- **The version folder is the contract.** `org/v1/` changes only compatibly; a breaking change is `org/v2/` beside it.
 
-### 2. One set of default avatars — the org JSON's `defaults` section
+### 2. Where each folder of the old layout goes
 
-`org/v1/defaults/person/` (today `defaults/v1/person/`, the set ADR-011 catalogues) is the only default-avatar set.
-The org JSON's legacy `avatars` field and `@krizaka/ui`'s `DEFAULT_AVATAR_BASE` URL form (both on
-`people/defaults/v1/<brand>/`) are deprecated and removed at their next major; `defaultAvatarSvg` as an inline
-`data:` URL stays (code, not a URL). `people/defaults/v1/` is **frozen**: never re-exported, still served while a
-published version names it (0.8 MB).
+| Old folder | Goes to | Switch (sub-issue of .github#368) |
+| :-- | :-- | :-- |
+| `brand/` | `org/v1/brand/` | krizaka-ui#817 (export-brand, @krizaka/email), krizaka-ts#200 |
+| `defaults/v1/` | `org/v1/defaults/` | krizaka-ts#200 (@krizaka/org), krizaka-ui#817 |
+| `people/defaults/v1/<brand>/` | `org/v1/defaults/tones/<brand>/` — the org offers them too, beside the illustrated `person/` set | krizaka-ts#200, krizaka-ui#817 |
+| `people/personas/` | deleted — the human-name mirror; `people/personas/ui/` kept until Yororis reads `sites/ui/personas/` | yororis#136 |
+| `products/` | deleted — the human-name mirror of `site/` | — |
+| `maps/v1/` | `org/v1/maps/` | krizaka-ui#817, akinaza#493 (its `/maps/v1` proxy) |
+| `discovery/` | `org/v1/discovery/` | krizaka-com#450, then @krizaka/discovery |
+| `ui/<area>/` | `sites/ui/<area>/` | krizaka-ui#817 |
+| `site/home/` | `sites/www/home/` | krizaka-com#450 |
+| `site/blog/<post>/` · `site/blog/shared/` | `sites/blog/posts/<post>/` · `sites/blog/shared/` | krizaka-blog#176 |
+| `site/products/<p>/<kind>/` | `sites/<p>/<kind>/` | each product's issue (akinaza#493, yomizaka#494, yasakia#182, kachizaka#121, yororis#136, orochia#425, orazaka-web-client#320) |
+| `site/products/akinaza/defaults/` | `apps/akinaza/defaults/` — trade art the app shows at runtime | akinaza#493 |
+| `site/docs/<p>/` | `sites/<p>/docs/` | krizaka-com#450 (manifest), the product's issue |
+| `site/people/ui/` · `site/people/<p>/` | `sites/ui/personas/` · `sites/<p>/personas/` | krizaka-ui#817 · the product's issue |
+| `site/brand-films/<series>/` | `org/v1/films/<series>/` | krizaka-ui#817, krizaka-com#450 |
+| `site/brand-films/orochia/` | `sites/orochia/films/` | orochia#425 |
+| `site/products/yazakia/` | deleted (renamed product) | — |
+
+The map is code (`targetOf`, `SWITCH_ISSUES`); the cockpit's tree shows each legacy folder with its switch issue.
+
+### 2b. Nothing kept that nothing uses
+
+A legacy object is **used** while any of these names it — its URL, a folder URL above it, or its content hash: the code
+on main of every krizaka repository, the latest published tarball of every `@krizaka/*` package, the live pages of the
+sites (sitemaps), every unmerged branch's manifest, or a folder the code builds (`brand/`, `defaults/v1/`…). Used: kept
+until its switch PR is released. **Unused: deleted now** (`cdn-assets purge-unused --refs <dir> --backup <vault> --yes`),
+after the list is written to the inbox and each non-empty object is saved to the private vault. Nothing uploaded in the
+last 24 h is touched; `pr-assets/` is evidence, outside this rule.
 
 ### 3. Migration without a broken URL
 
 Published npm versions, store binaries and live sites name the old URLs, and hashed URLs are immutable. So:
 
-1. **Layout and audit first** (krizaka-com): the target layout and the legacy map (`targetOf`) in `bunny-layout.mjs`;
+1. **Layout and audit first** (krizaka-com): the target layout, the legacy map (`targetOf`) and the switch issues in `bunny-layout.mjs`;
    `cdn-assets tree` reports each object `ok`, `legacy` (old layout, with its target) or `misplaced`, and fails on
    `misplaced` (on `legacy` too with `--strict`). A daily workflow runs it.
 2. **Copy** (`cdn-assets migrate`, a preview without `--yes`): every legacy object is copied to its target; already
    there with the same size, skipped. Old paths keep serving.
 3. **Switch the writers and readers**, one PR per repository with tests and a changeset: `@krizaka/org` (krizaka-ts:
-   URLs of brand, defaults), `@krizaka/ui` (krizaka-ui: `map/assets.ts`, export-defaults, export-brand, map-assets,
-   brand-films), krizaka-com (`lib/cdn.ts` root `apps/`, `proxy.ts` maps rewrite, sign-services), akinaza (the
-   `/maps/v1` proxy, its `lib/tour.ts`), each product site and the blog (their media maps).
+   URLs of brand, defaults, tones), `@krizaka/ui` (krizaka-ui: `map/assets.ts`, export-defaults, export-brand,
+   map-assets, brand-films, its `ui/` media → `sites/ui/`), krizaka-com (`lib/cdn.ts` on `sites/`, `proxy.ts` maps
+   rewrite, sign-services), akinaza (the `/maps/v1` proxy, `lib/tour.ts`, its defaults under `apps/akinaza/`), each
+   product site and the blog (their media maps on `sites/<site>/`).
 4. **Freeze the legacy roots**: no writer writes them once its PR is released.
-5. **Prune** a legacy root only when no maintained published version (npm, store build) and no live site names it —
-   checked by a scan, not by memory. `site/` keeps its rule « named by no manifest of any unmerged branch ».
+5. **Prune** a legacy folder as soon as nothing names it (§2b) — checked by the scan, not by memory. `site/` keeps its
+   rule « named by no manifest of any unmerged branch ». Goal: the root holds only `org/`, `sites/`, `apps/`,
+   `pr-assets/` and `README.txt`.
 
 ### 4. Dormant Bunny resources
 
@@ -94,7 +125,7 @@ the one video library. The inventory of 2026-10-28 found nothing to delete (ever
 
 ## Consequences
 
-- One place to look for anything the family shares (`org/v1/`), one folder per app, and an audit that fails CI.
+- One place for what the family shares (`org/v1/`), one folder per site, one per app only when it has data of its own, and an audit that fails CI.
 - A transition period where old and new paths both serve (storage roughly +3 GB until the legacy roots are pruned;
   cents a month).
 - Each repository's writer and reader changes once; the sub-issues of the Feature track it.
