@@ -1,5 +1,20 @@
 # CI and deploy — one pipeline, one tool (epic [#113](https://github.com/krizaka/.github/issues/113))
 
+<!-- intro:start -->
+Krizaka runs **one pipeline, not forty**. A repository's CI is a few lines that call a shared, versioned workflow (`node-ci`, `java-ci`, `python-ci`, `expo-ci`, or the one-line build pack `krizaka-ci`) pinned by commit SHA. Every run ends in one always-reporting check, `ci / CI gate`; a docs-only change skips the heavy jobs and still turns green. Deploys go through one tool, `krizaka-deploy`, which refuses a wrong DigitalOcean team, a wrong indexing setting or a spec that would silently delete live variables, and prints the rollback target before it changes anything.
+
+What we ask of a change before it reaches `main`: the quality gate of SonarCloud (a CI analysis, with test coverage), CodeQL, a secret scan (gitleaks) and a workflow audit (zizmor) that also run in a pre-commit hook, and strict up-to-date branches, with a merge queue rolling out repository by repository. A fix ships with the guard that would have caught it. Images are built and published only after the merge, from the production branch.
+
+Releases are trains, not hand work: changesets for the npm packages, release-please for the sites, npm publishing through OIDC trusted publishing with provenance (the long-lived token fallback is being retired), Maven Central signed by the parent POM.
+
+- One reusable pipeline per stack, pinned by SHA, one required check
+- SonarCloud CI analysis with coverage; CodeQL, gitleaks and zizmor alongside
+- Merge queue and strict branches, so `main` never goes red from a stale base
+- Shared guards: ratchets, ArchUnit, PMD and SpotBugs, the page audit
+- Trusted publishing and provenance; release-please and changesets trains
+- One deploy tool with live checks and a rollback note
+<!-- intro:end -->
+
 Thirty-nine repositories used to carry a near-identical CI, and each deploy lesson lived in one repository or in a rule. Two shared pieces
 now hold them, released from this repository with one tag (`v1`, then `v1.x.y`). Repositories pin the **commit SHA** of a release
 (`uses: krizaka/.github/.github/workflows/node-ci.yml@<sha> # v1.0.0`), as the supply-chain standard asks; Dependabot moves the pin.
@@ -25,6 +40,18 @@ jobs:
 | `container` | (node, optional) **After `verify`**: no image is built when lint or tests fail. `docker build` (loaded into the runner, never pushed), a Trivy scan that **fails on a fixable HIGH or CRITICAL finding** (accepted exceptions live in the repository's `.trivyignore.yaml`: id, statement, `expired_at`), a CycloneDX SBOM artifact, then a repository smoke script against the image. |
 | `sonar` | (optional, `sonar: true`) **After `verify`**: the SonarCloud **CI analysis**, with the coverage the test leg uploaded (lcov, JaCoCo, `coverage.xml`), and the quality gate awaited (`sonar.qualitygate.wait`). `SONAR_TOKEN` is the org secret, passed as `secrets: SONAR_TOKEN`, never printed. The project's automatic analysis is switched off only once this job is green, so a repository is never left unanalysed. |
 | `gate` | **Always reports.** Aggregates verify, duplication, e2e, container and sonar. Red on a failure, a cancellation, or a heavy job skipped without the gate's `false`; green otherwise. One required check, `ci / CI gate`, covers the pipeline. |
+
+## Gates before the merge (2026-10-27)
+
+- **Merge queue.** Verified on krizaka-ts: a CI analysis of SonarCloud also reports on `gh-readonly-queue/main/...` branches, and the `changes` gate reads a queue entry against its base. It is rolling out repository by repository ([guards.md §2.1](guards.md)). Until a repository joins, **strict up-to-date branches** are on (`required_status_checks.strict`) and a sweep (`scripts/update-behind-prs.sh`) keeps armed PRs current.
+- **Coverage goes to Sonar.** The test leg uploads lcov, JaCoCo or `coverage.xml`; the `sonar` job imports it and waits for the gate.
+- **A fix needs a guard.** The `guard` job of `node-ci` / `java-ci` refuses a `fix` PR with no test, rule, audit or lowered ratchet (`guard-paths.json`; label `guard-exempt` plus a `Guard exemption:` line). Its sibling, **a feat needs its e2e** (Playwright, Maestro), is specified in [#344](https://github.com/krizaka/.github/issues/344) and not yet enforced.
+- **Secrets and workflows.** `security-scan.yml` runs gitleaks and zizmor on every PR, and the same two run as pre-commit hooks ([secrets-and-workflows.md](secrets-and-workflows.md)). Both are required checks on repositories that adopted them.
+- **Shared rule sets** ([guards.md §3](guards.md)): `@krizaka/config` (ESLint with sonarjs and cognitive-complexity, ast-grep, dependency-cruiser, the ratchets), `@krizaka/page-audit` (overflow, overlap, contrast, both themes), ArchUnit rules in `krizaka-test-support`, and PMD and SpotBugs in `krizaka-parent`. A repository consumes them; nothing is copied.
+
+## Release trains
+
+Packages release from changesets (`krizaka-ui`, `krizaka-ts`): a release PR, then a tagged publish. Sites and apps release through release-please: a release PR, a tag, the production branch, then the deploy. Merges to `main` alone do not deploy. npm publishes from Actions by OIDC with provenance; per package, the *Trusted Publisher* setting names the workflow ([supply-chain.md](supply-chain.md)), after which the token fallback is removed. Maven Central artifacts are signed by the parent POM's workflow.
 
 **CodeQL stays outside the workflow**, a separate, parallel, required check (default setup + the ruleset): it scans the source and needs neither the build nor the tests, so in parallel it gives the fastest feedback. SonarCloud moved in because coverage only comes from a CI analysis (automatic analysis cannot import it). **Images are published only after the merge**: PR images are never pushed; the deploy builds from the production branch (`krizaka-deploy`, force-rebuild), so only code that passed every required check ships.
 
