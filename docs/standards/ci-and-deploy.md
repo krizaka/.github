@@ -5,7 +5,7 @@ Krizaka runs **one pipeline, not forty**. A repository's CI is a few lines that 
 
 What we ask of a change before it reaches `main`: the quality gate of SonarCloud (a CI analysis, with test coverage), CodeQL, a secret scan (gitleaks) and a workflow audit (zizmor) that also run in a pre-commit hook, and strict up-to-date branches, with a merge queue rolling out repository by repository. A fix ships with the guard that would have caught it. Images are built and published only after the merge, from the production branch.
 
-Releases are trains, not hand work: changesets for the npm packages, release-please for the sites, npm publishing through OIDC trusted publishing with provenance (the long-lived token fallback is being retired), Maven Central signed by the parent POM.
+Releases are trains, not hand work: changesets for the npm packages, release-please for the sites, npm publishing through OIDC trusted publishing with provenance (the long-lived token fallback is being retired), Maven Central artifacts signed with OpenPGP.
 
 - One reusable pipeline per stack, pinned by SHA, one required check
 - SonarCloud CI analysis with coverage; CodeQL, gitleaks and zizmor alongside
@@ -51,7 +51,7 @@ jobs:
 
 ## Release trains
 
-Packages release from changesets (`krizaka-ui`, `krizaka-ts`): a release PR, then a tagged publish. Sites and apps release through release-please: a release PR, a tag, the production branch, then the deploy. Merges to `main` alone do not deploy. npm publishes from Actions by OIDC with provenance; per package, the *Trusted Publisher* setting names the workflow ([supply-chain.md](supply-chain.md)), after which the token fallback is removed. Maven Central artifacts are signed by the parent POM's workflow.
+Packages release from changesets (`krizaka-ui`, `krizaka-ts`): a release PR, then a tagged publish. Sites and apps release through release-please: a release PR, a tag, the production branch, then the deploy. Merges to `main` alone do not deploy. npm publishes from Actions by OIDC with provenance; per package, the *Trusted Publisher* setting names the workflow ([supply-chain.md](supply-chain.md)), after which the token fallback is removed. Maven Central artifacts are signed with OpenPGP by `maven.yml`.
 
 **CodeQL stays outside the workflow**, a separate, parallel, required check (default setup + the ruleset): it scans the source and needs neither the build nor the tests, so in parallel it gives the fastest feedback. SonarCloud moved in because coverage only comes from a CI analysis (automatic analysis cannot import it). **Images are published only after the merge**: PR images are never pushed; the deploy builds from the production branch (`krizaka-deploy`, force-rebuild), so only code that passed every required check ships.
 
