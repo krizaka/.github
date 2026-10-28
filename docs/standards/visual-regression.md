@@ -1,5 +1,7 @@
 # Visual regression of the journeys (krizaka/.github#375)
 
+The layers of UI tests, updating a baseline and reading a diff are in [ui-testing.md](ui-testing.md); this page is the workflow's reference.
+
 Layers of UI tests, from the smallest: **component baselines** (Storybook, krizaka-ui), **axe** (ratcheted), **page-audit**
 (layout facts: overflow, covered sections, empty maps), and **page journeys** (this document: pixels of whole pages).
 
