@@ -623,7 +623,7 @@ jobs:
           SONAR_HOST_URL: https://sonarcloud.io
         with:
           projectBaseDir: ${{ inputs.working-directory }}
-          args: -Dsonar.qualitygate.wait=true ${{ inputs.sonar-args }}
+          args: -Dsonar.projectVersion=ci-${{ github.run_number }} -Dsonar.qualitygate.wait=true ${{ inputs.sonar-args }}
 
   sonar:
     name: SonarCloud
@@ -663,7 +663,7 @@ jobs:
           SONAR_HOST_URL: https://sonarcloud.io
         with:
           projectBaseDir: ${{ inputs.working-directory }}
-          args: -Dsonar.qualitygate.wait=true ${{ inputs.sonar-args }}
+          args: -Dsonar.projectVersion=ci-${{ github.run_number }} -Dsonar.qualitygate.wait=true ${{ inputs.sonar-args }}
 
   gate:
     name: CI gate

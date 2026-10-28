@@ -232,7 +232,7 @@ jobs:
           SONAR_HOST_URL: https://sonarcloud.io
         with:
           projectBaseDir: .
-          args: -Dsonar.qualitygate.wait=true -Dsonar.java.binaries=. ${{ inputs.sonar-args }}
+          args: -Dsonar.projectVersion=ci-${{ github.run_number }} -Dsonar.qualitygate.wait=true -Dsonar.java.binaries=. ${{ inputs.sonar-args }}
 
   sonar:
     name: SonarCloud
@@ -271,7 +271,7 @@ jobs:
           SONAR_HOST_URL: https://sonarcloud.io
         with:
           projectBaseDir: .
-          args: -Dsonar.qualitygate.wait=true ${{ inputs.sonar-args }}
+          args: -Dsonar.projectVersion=ci-${{ github.run_number }} -Dsonar.qualitygate.wait=true ${{ inputs.sonar-args }}
 
   # ALWAYS reports (see java-ci.yml): green when verify succeeded or the changes gate legitimately skipped it; the merge queue
   # and branch protection can require this one name whatever the change.
