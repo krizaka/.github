@@ -1,5 +1,7 @@
 # Guards: the registry
 
+<!-- summary: The registry of guards that catch each lesson, and the repositories where each one runs. -->
+
 This page lists the guards that catch each lesson, and the repos where each guard runs. It applies [a bug means a missing guard](bug-means-missing-guard.md). The decisions behind it are in [ADR-013](../adr/ADR-013-guards-and-local-sonar.md), and the earlier retro-audit is in [docs/audits/2026-10-bug-guards.md](../audits/2026-10-bug-guards.md).
 
 **Rule:** a fix lands with its guard. A row whose guard is « missing » points to its issue. When a guard ships, update the row in the same PR.

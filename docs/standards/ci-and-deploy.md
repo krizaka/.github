@@ -1,5 +1,7 @@
 # CI and deploy — one pipeline, one tool (epic [#113](https://github.com/krizaka/.github/issues/113))
 
+<!-- summary: One shared, versioned pipeline for every repository, one required check, and one deploy tool with live checks and a rollback note. -->
+
 <!-- intro:start -->
 Krizaka runs **one pipeline, not forty**. A repository's CI is a few lines that call a shared, versioned workflow (`node-ci`, `java-ci`, `python-ci`, `expo-ci`, or the one-line build pack `krizaka-ci`) pinned by commit SHA. Every run ends in one always-reporting check, `ci / CI gate`; a docs-only change skips the heavy jobs and still turns green. Deploys go through one tool, `krizaka-deploy`, which refuses a wrong DigitalOcean team, a wrong indexing setting or a spec that would silently delete live variables, and prints the rollback target before it changes anything.
 

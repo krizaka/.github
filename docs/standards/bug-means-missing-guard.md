@@ -1,5 +1,7 @@
 # A bug means a missing guard
 
+<!-- summary: When a bug is found, we also add the guard that would have caught it, at the earliest layer that can express the rule. -->
+
 Decision of Oussama, 2026-10-26: when a bug is found, we do not only fix it. We ask **why the guards that run while an agent develops did not catch it**, and we add the guard. Every Krizaka repository already has first layers of protection; a bug that reached a user is a hole in one of them.
 
 ## 1. The loop

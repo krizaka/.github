@@ -1,5 +1,7 @@
 # Shared rules, by repository profile
 
+<!-- summary: Shared lint and architecture rules written once in the package of their runtime, with each repository declaring its profile. -->
+
 This is the standard behind [ADR-007](../adr/ADR-007-shared-rules.md) (krizaka/.github#217).
 
 - **The idea:** a rule is written once, with its tests, in the package of its runtime. A repository declares its **profile**, keeps its **local rules** and its **ratchet counts**, and its `AGENTS.md` points here.

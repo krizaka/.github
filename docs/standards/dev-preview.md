@@ -1,5 +1,7 @@
 # Dev preview — the bar every Krizaka product reaches
 
+<!-- summary: What a product must prove, with evidence, before it wears the Dev preview status. -->
+
 > North star (Oussama, 2026-10-16): **every product, Orazaka included, reaches Dev preview.** Orochia is the reference.
 > Decision record: [ADR-002](../adr/ADR-002-dev-preview-status-is-data.md). Schema: [dev-preview.schema.json](dev-preview.schema.json).
 

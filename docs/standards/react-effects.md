@@ -1,5 +1,7 @@
 # React effects — `useEffect` is for the outside world only
 
+<!-- summary: useEffect is for the outside world only: data is a query, derived state is computed, and a lint ratchet counts what is left. -->
+
 > Oussama, 2026-10-27: « bug à adresser partout ». One rule for every Krizaka React app (Next.js, Vite/Tauri desktop,
 > Expo). Enforced by `@krizaka/config` (`krizakaStack()`): `krizaka/no-async-in-effect` and
 > `krizaka/no-derived-state-in-effect`, counted per repository by `krizaka-ratchet` (`asyncInEffect`,

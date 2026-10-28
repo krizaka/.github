@@ -1,5 +1,7 @@
 # Default media — read from the Krizaka org JSON, never hard-coded
 
+<!-- summary: Default avatars and banners are read from the Krizaka org JSON, versioned, and never hard-coded in an app. -->
+
 > Rule (Oussama, 2026-10-26): **Default media URLs (avatars, banners, logos) come from the Krizaka org JSON — never hard-coded or bundled in an app.**
 > Issues: [krizaka-ts#134](https://github.com/krizaka/krizaka-ts/issues/134), [yomizaka#433](https://github.com/krizaka/yomizaka/issues/433).
 > Storage is the admin's choice ([ADR-010](../adr/ADR-010-krizaka-storage.md)); the deployed environments use Bunny.

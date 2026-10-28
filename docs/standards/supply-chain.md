@@ -1,5 +1,7 @@
 # Supply chain — the Krizaka standard (OpenSSF Scorecard)
 
+<!-- summary: OpenSSF Scorecard on every public repository, pinned actions, and npm publishing with provenance. -->
+
 Every public repository of the org runs the [OpenSSF Scorecard](https://scorecard.dev) (`.github/workflows/scorecard.yml`, weekly and on
 push to `main`, `publish_results: true`), and shows its badge. The public viewer
 (`https://scorecard.dev/viewer/?uri=github.com/krizaka/<repo>`) is what search engines show for our projects, so it is kept honest and as high

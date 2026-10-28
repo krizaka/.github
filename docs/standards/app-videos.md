@@ -1,5 +1,7 @@
 # App videos on the download pages
 
+<!-- summary: The download pages show app videos recorded by the end-to-end tests, so they always follow the product. -->
+
 The download page of a product (Yomizaka, Akinaza, Orazaka) shows short videos of its apps, **recorded by the e2e tests**,
 so they follow the product (krizaka/.github#315).
 
