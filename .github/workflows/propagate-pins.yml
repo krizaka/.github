@@ -10,6 +10,13 @@ on:
       - ".github/workflows/*.yml"
       - "actions/**"
   workflow_dispatch:
+    inputs:
+      source:
+        description: "The repository whose pins move (.github, or orazaka for the component.yml pins of the orazaka-* repositories)"
+        default: ".github"
+      sha:
+        description: "The commit the pins move to (default: this ref's head; for orazaka, its main sha)"
+        default: ""
 
 permissions:
   contents: read
@@ -40,6 +47,8 @@ jobs:
         with:
           node-version: 22
       - name: Open one pull request per repository
-        run: node scripts/propagate-pins.mjs "$GITHUB_SHA"
+        run: node scripts/propagate-pins.mjs "${INPUT_SHA:-$GITHUB_SHA}" --source "${INPUT_SOURCE:-.github}"
         env:
+          INPUT_SHA: ${{ inputs.sha }}
+          INPUT_SOURCE: ${{ inputs.source }}
           GH_TOKEN: ${{ steps.app.outputs.token }}
