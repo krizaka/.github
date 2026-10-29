@@ -265,7 +265,7 @@ export async function liveSnapshot({ name, kind }, org = "krizaka") {
         continue;
       }
       if (!pkg.name || pkg.private) continue;
-      const meta = await fetch(`https://registry.npmjs.org/${pkg.name.replace("/", "%2F")}/latest`, { signal: AbortSignal.timeout(30000) });
+      const meta = await fetch(`https://registry.npmjs.org/${pkg.name.replaceAll("/", "%2F")}/latest`, { signal: AbortSignal.timeout(30000) });
       if (!meta.ok) continue;
       const { version, dist } = await meta.json();
       const tgz = await fetch(dist.tarball, { signal: AbortSignal.timeout(120000) });
