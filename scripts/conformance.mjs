@@ -145,7 +145,7 @@ const CHECKS = {
     // `allow`: path prefixes whose text is history (a released chapter, a changelog). `scan` is absent offline: nothing to prove.
     if (!snap.scan) return { ok: true, why: "" };
     const allowed = [...(check.allow ?? []), ...(check.allowIn?.[snap.name] ?? [])];
-    const hits = (await snap.scan(new RegExp(check.pattern, "i"))).filter((p) => !allowed.some((a) => p === a || p.startsWith(a)));
+    const hits = (await snap.scan(new RegExp(check.pattern, "i"))).filter((p) => !allowed.some((a) => p === a || p.startsWith(a) || p.endsWith(`/${a}`)));
     return verdict(hits.length === 0, `${hits.length} file(s) name a departed product, e.g. ${hits.slice(0, 3).join(", ")}`);
   },
 };

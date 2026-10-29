@@ -123,6 +123,7 @@ test("no-mention: a departed product named outside the allow list is red, histor
   const check = { type: "no-mention", pattern: "orochia|yasakia", allow: ["CHANGELOG.md"], allowIn: { r: ["notes/"] } };
   const withScan = (name, hits) => ({ ...snap(name, "app", { a: "" }), scan: async () => hits });
   assert.deepEqual(await runCheck(check, withScan("x", ["CHANGELOG.md"])), { ok: true, why: "" });
+  assert.deepEqual(await runCheck(check, withScan("x", ["packages/ui/CHANGELOG.md"])), { ok: true, why: "" }, "a package changelog is history too");
   assert.deepEqual(await runCheck(check, withScan("r", ["notes/a.md"])), { ok: true, why: "" });
   const red = await runCheck(check, withScan("x", ["notes/a.md", "CHANGELOG.md"]));
   assert.equal(red.ok, false);
