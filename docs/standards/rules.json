@@ -1,6 +1,6 @@
 {
   "_": "The rule registry of the org (krizaka/.github#393): every org rule that must hold in every active repository, with the check that proves it. scripts/conformance.mjs runs it against repos.json (repo x rule). A rule without a check does not pass tests/conformance.test.mjs. Rolling a rule out to every active repo is part of the same work (AGENT-RULES, « A rule reaches every repo »); `node scripts/conformance-fanout.mjs` opens the conforming pull request in each red repo.",
-  "checks": "workflow-calls {workflows | byKind} | workflow-matches {pattern} | workflow-forbids {pattern} | file-exists {paths} | file-matches {path, pattern}. `applies`: kinds, notRepos, when [{pathEndsWith}|{fileExists}|{fileMatches}|{inList}]. `fix`: copy {from, to} | append-section {file, from, heading} | manual {note}.",
+  "checks": "workflow-calls {workflows | byKind} | workflow-matches {pattern} | workflow-forbids {pattern} | file-exists {paths} | file-matches {path, pattern}. `applies`: kinds, notRepos, onlyRepos, when [{pathEndsWith}|{fileExists}|{fileMatches}|{inList}]. `fix`: copy {from, to} | append-section {file, from, heading} | manual {note}.",
   "rules": [
     {
       "id": "security-scan",
@@ -98,8 +98,8 @@
       "title": "pnpm workspaces: no workspace: range leaves the repository",
       "issue": "krizaka/.github#388",
       "applies": { "when": [{ "fileMatches": { "path": "pnpm-workspace.yaml", "pattern": "^packages:" } }] },
-      "check": { "type": "file-exists", "paths": ["scripts/workspace-ranges.test.mjs", "scripts/workspace-ranges.mjs"] },
-      "fix": { "type": "manual", "note": "krizaka-ts scripts/workspace-ranges.test.mjs; to be extracted as a krizaka-workspace-guard bin of @krizaka/config" }
+      "check": { "type": "file-matches", "path": "package.json", "pattern": "krizaka-workspace-guard|workspace-ranges" },
+      "fix": { "type": "manual", "note": "add `npx --yes -p @krizaka/config krizaka-workspace-guard` to the lint script (bin of @krizaka/config, krizaka-ts#252)" }
     },
     {
       "id": "expo-sdk-guard",
@@ -108,6 +108,14 @@
       "applies": { "when": [{ "pathEndsWith": "eas.json" }] },
       "check": { "type": "workflow-matches", "pattern": "actions/expo-sdk|check-expo-sdk" },
       "fix": { "type": "manual", "note": "run scripts/check-expo-sdk.mjs of krizaka/.github (docs/standards/expo-sdk.json) in CI" }
+    },
+    {
+      "id": "turnstile-server-side",
+      "title": "Every public form with a Turnstile widget verifies the token server-side (fail closed)",
+      "issue": "krizaka/krizaka-com#464",
+      "applies": { "onlyRepos": ["krizaka-com", "krizaka-blog"] },
+      "check": { "type": "file-matches", "path": "package.json", "pattern": "@krizaka/rate-limit" },
+      "fix": { "type": "manual", "note": "verify with createTurnstileVerifier of @krizaka/rate-limit/turnstile in the form's API or function; a missing secret refuses; a repository that adds a widget is added to onlyRepos" }
     }
   ]
 }

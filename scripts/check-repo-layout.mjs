@@ -51,7 +51,7 @@ const COMMON_FILES = [
   "Dockerfile", "Dockerfile.*", "docker-compose.yml", "docker-compose.*.yml", "compose.yml",
   ".prettierrc", ".prettierrc.*", ".lintstagedrc", ".lintstagedrc.*", ".commitlintrc.*", ".checkov.yml",
 ];
-const COMMON_DIRS = ["docs", "scripts", "tests", "test", ".github", ".githooks", ".husky", ".do", "deploy", "infra"];
+const COMMON_DIRS = ["docs", "scripts", "tests", "test", ".github", ".claude", ".githooks", ".husky", ".do", "deploy", "infra"];
 
 const NODE_FILES = [
   "package.json", "package-lock.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", "yarn.lock", "turbo.json",
