@@ -160,6 +160,10 @@ The charter (`AGENTS.template.md`) gets one line under §7: « Static rules: you
 
 Founder review of a nested, synchronous script: readable shapes are lint rules, ratcheted at today's counts. In `@krizaka/config`: `krizakaCodeRules` (`curly: all`, `max-depth: 2`, `max-nested-callbacks: 3`, `no-console` in runtime code) with `code/<rule>` counters in `krizaka-ratchet`; ast-grep `core`: `no-sync-fs-in-runtime` (sync is fine in scripts, tools, configs, tests) and `no-hand-written-validation-regex` (use `isIsoDate` of `@krizaka/time`, or `isEmail`, `isHttpUrl`, `isSlug`, `isE164Phone`, `isCanadianPostalCode` of `@krizaka/validate`). Constants out of the logic stays with `no-unjustified-numeric-export`. Registry: `code-rules-ratchet`, `code-rules-sg` (docs/standards/rules.json).
 
+## Formatter (2026-10-29, #427)
+
+One tool per language: **Prettier** with `@krizaka/config/prettier` in every TS/JS repository (`prettier.config.js` = `export { default } from "@krizaka/config/prettier";`, scripts `format` and `format:check` over `**/*.{ts,tsx,js,jsx,mjs,cjs,json,css}`, a `.prettierignore` for generated files, lockfiles and vendored code, the only per-repo difference); **google-java-format** through Spotless for Java, unchanged. Formatting is never a review topic. CI: `format-script: format:check` of `node-ci.yml` (opt-in, default once every repository passes). Agents: `krizaka-edit-check` formats the edited file. Rollout per repository: one `chore(format): prettier` commit with nothing else, its SHA in `.git-blame-ignore-revs`; open PRs are rebased with `prettier --write`, never left conflicting on formatting. Registry: `formatter` (docs/standards/rules.json).
+
 ## 5. The migration plan: one small PR per repository, pilots first
 
 **Acceptance for every PR:**

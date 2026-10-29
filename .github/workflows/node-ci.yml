@@ -176,6 +176,10 @@ on:
         description: "Space-separated paths the duplicate-code check scans (default: the whole checkout; tests and generated code are ignored by the shared config)."
         type: string
         default: "."
+      format-script:
+        description: "package.json script that fails when a file is not formatted (`format:check` = `prettier --check`, the `formatter` rule, krizaka/.github#427); run with the lint step. Empty skips it: opt-in until every repository passes, then the default."
+        type: string
+        default: ""
       quality-scripts:
         description: "Newline-separated package.json scripts run in a `quality` leg (depcruise, ast-grep, the ratchets: clean imports, debt counters that only go down). Part of the serial job when parallel is false."
         type: string
@@ -284,6 +288,7 @@ jobs:
         env:
           PARALLEL: ${{ inputs.parallel }}
           LINT: ${{ inputs.lint-script }}
+          FORMAT: ${{ inputs.format-script }}
           QUALITY: ${{ inputs.quality-scripts }}
           TYPECHECK: ${{ inputs.typecheck-script }}
           TEST: ${{ inputs.test-script }}
@@ -293,7 +298,7 @@ jobs:
         run: |
           if [ "$PARALLEL" = true ]; then
             tasks=()
-            [ -n "$LINT" ] && tasks+=(lint)
+            { [ -n "$LINT" ] || [ -n "$FORMAT" ]; } && tasks+=(lint)
             [ -n "$QUALITY" ] && tasks+=(quality)
             [ -n "$TYPECHECK" ] && tasks+=(typecheck)
             [ -n "$TEST" ] && tasks+=(test)
@@ -353,6 +358,15 @@ jobs:
           lint-script: ${{ (matrix.task == 'all' || matrix.task == 'lint') && inputs.lint-script || '' }}
           quality-scripts: ${{ (matrix.task == 'all' || matrix.task == 'quality') && inputs.quality-scripts || '' }}
           typecheck-script: ${{ (matrix.task == 'all' || matrix.task == 'typecheck') && inputs.typecheck-script || '' }}
+
+      # The `formatter` rule (krizaka/.github#427): `prettier --check` through the repository's own script, with the lint step.
+      - name: Format (prettier --check)
+        if: ${{ inputs.format-script != '' && (matrix.task == 'all' || matrix.task == 'lint') }}
+        working-directory: ${{ inputs.working-directory }}
+        env:
+          PM: ${{ inputs.package-manager }}
+          SCRIPT: ${{ inputs.format-script }}
+        run: '"$PM" run "$SCRIPT"'
 
       # Turborepo's local cache (every leg but lint), then the tests (the test and build legs).
       - uses: krizaka/.github/actions/test@b9ceb6bea30155a19f51893ef8bc4df312cf0a88 # main
