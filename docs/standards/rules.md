@@ -156,6 +156,10 @@ ratchet (`sg-ratchet.json`: the debt only goes down; `npx krizaka-rules ratchet 
 
 The charter (`AGENTS.template.md`) gets one line under §7: « Static rules: your profile, declared in `krizaka.rules.json`; see docs/standards/rules.md ». CONTRIBUTING §10 keeps its principle and links here instead of listing the rules.
 
+## Code rules (2026-10-29, #422)
+
+Founder review of a nested, synchronous script: readable shapes are lint rules, ratcheted at today's counts. In `@krizaka/config`: `krizakaCodeRules` (`curly: all`, `max-depth: 2`, `max-nested-callbacks: 3`, `no-console` in runtime code) with `code/<rule>` counters in `krizaka-ratchet`; ast-grep `core`: `no-sync-fs-in-runtime` (sync is fine in scripts, tools, configs, tests) and `no-hand-written-validation-regex` (use `isIsoDate` of `@krizaka/time`, or `isEmail`, `isHttpUrl`, `isSlug`, `isE164Phone`, `isCanadianPostalCode` of `@krizaka/validate`). Constants out of the logic stays with `no-unjustified-numeric-export`. Registry: `code-rules-ratchet`, `code-rules-sg` (docs/standards/rules.json).
+
 ## 5. The migration plan: one small PR per repository, pilots first
 
 **Acceptance for every PR:**
