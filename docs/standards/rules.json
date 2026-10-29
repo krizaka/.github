@@ -1,30 +1,75 @@
 {
   "_": "The rule registry of the org (krizaka/.github#393): every org rule that must hold in every active repository, with the check that proves it. scripts/conformance.mjs runs it against repos.json (repo x rule). A rule without a check does not pass tests/conformance.test.mjs. Rolling a rule out to every active repo is part of the same work (AGENT-RULES, « A rule reaches every repo »); `node scripts/conformance-fanout.mjs` opens the conforming pull request in each red repo.",
-  "checks": "workflow-calls {workflows | byKind} | workflow-matches {pattern} | workflow-forbids {pattern} | file-exists {paths} | file-matches {path, pattern}. `applies`: kinds, notRepos, onlyRepos, when [{pathEndsWith}|{fileExists}|{fileMatches}|{inList}]. `fix`: copy {from, to} | append-section {file, from, heading} | manual {note}.",
+  "checks": "workflow-calls {workflows | byKind} | workflow-matches {pattern} | workflow-forbids {pattern} | file-exists {paths} | file-matches {path, pattern} | manifests-forbid {pattern} | no-mention {pattern, allow, allowIn}: no tracked text file matches the pattern (path prefixes in `allow`, or in `allowIn[repo]`, are history). `applies`: kinds, notRepos, onlyRepos, when [{pathEndsWith}|{fileExists}|{fileMatches}|{inList}]. `fix`: copy {from, to} | append-section {file, from, heading} | manual {note}.",
   "rules": [
     {
       "id": "security-scan",
       "title": "Security scan: gitleaks and zizmor through the shared workflow",
       "issue": "krizaka/.github#324",
       "applies": {},
-      "check": { "type": "workflow-calls", "workflows": ["security-scan.yml"] },
-      "fix": { "type": "copy", "from": "workflow-templates/security-scan.yml", "to": ".github/workflows/security.yml" }
+      "check": {
+        "type": "workflow-calls",
+        "workflows": [
+          "security-scan.yml"
+        ]
+      },
+      "fix": {
+        "type": "copy",
+        "from": "workflow-templates/security-scan.yml",
+        "to": ".github/workflows/security.yml"
+      }
     },
     {
       "id": "shared-ci",
       "title": "CI and Sonar through the shared workflow of the repository's stack",
       "issue": "krizaka/.github#393",
-      "applies": { "kinds": ["npm", "site", "app", "maven", "python", "rust", "iac"] },
+      "applies": {
+        "kinds": [
+          "npm",
+          "site",
+          "app",
+          "maven",
+          "python",
+          "rust",
+          "iac"
+        ]
+      },
       "check": {
         "type": "workflow-calls",
         "byKind": {
-          "npm": ["node-ci.yml", "krizaka-ci.yml", "component.yml"],
-          "site": ["node-ci.yml", "krizaka-ci.yml"],
-          "app": ["node-ci.yml", "expo-ci.yml", "krizaka-ci.yml", "component.yml"],
-          "maven": ["maven.yml", "java-ci.yml", "krizaka-ci.yml", "component.yml"],
-          "python": ["python-ci.yml", "krizaka-ci.yml", "component.yml"],
-          "rust": ["krizaka-ci.yml", "tauri-macos.yml"],
-          "iac": ["krizaka-ci.yml"]
+          "npm": [
+            "node-ci.yml",
+            "krizaka-ci.yml",
+            "component.yml"
+          ],
+          "site": [
+            "node-ci.yml",
+            "krizaka-ci.yml"
+          ],
+          "app": [
+            "node-ci.yml",
+            "expo-ci.yml",
+            "krizaka-ci.yml",
+            "component.yml"
+          ],
+          "maven": [
+            "maven.yml",
+            "java-ci.yml",
+            "krizaka-ci.yml",
+            "component.yml"
+          ],
+          "python": [
+            "python-ci.yml",
+            "krizaka-ci.yml",
+            "component.yml"
+          ],
+          "rust": [
+            "krizaka-ci.yml",
+            "tauri-macos.yml"
+          ],
+          "iac": [
+            "krizaka-ci.yml"
+          ]
         }
       },
       "exempt": {
@@ -33,103 +78,286 @@
         "krizaka-ui": "The component library's 20 KB CI (registries, size budgets, realtime adapters, docs-site crawl and layout shards) is specialised beyond node-ci's inputs; it already uses the shared changes.yml, sonar-scan and dup-check pieces and ends in `CI gate`.",
         "orazaka": "The Orazaka workspace root: its ci.yml IS the workspace flow (clone every repository, workspace.mjs ci) that component.yml and krizaka-ci's workspace mode derive from, so it cannot call itself."
       },
-      "fix": { "type": "manual", "note": "call node-ci / maven / python-ci / krizaka-ci (or component.yml for an Orazaka component); site-specific checks stay a small local job" }
+      "fix": {
+        "type": "manual",
+        "note": "call node-ci / maven / python-ci / krizaka-ci (or component.yml for an Orazaka component); site-specific checks stay a small local job"
+      }
     },
     {
       "id": "no-inline-sonar",
       "title": "No Sonar scanner step outside krizaka/.github (the shared jobs own it)",
       "issue": "krizaka/.github#393",
-      "applies": { "notRepos": [".github"] },
-      "check": { "type": "workflow-forbids", "pattern": "SonarSource/sonar|sonarcloud-github-action|sonarqube-scan-action|sonar-scanner" },
-      "fix": { "type": "manual", "note": "move the Sonar step into the shared CI job of the stack" }
+      "applies": {
+        "notRepos": [
+          ".github"
+        ]
+      },
+      "check": {
+        "type": "workflow-forbids",
+        "pattern": "SonarSource/sonar|sonarcloud-github-action|sonarqube-scan-action|sonar-scanner"
+      },
+      "fix": {
+        "type": "manual",
+        "note": "move the Sonar step into the shared CI job of the stack"
+      }
     },
     {
       "id": "scorecard",
       "title": "OpenSSF Scorecard workflow",
       "issue": "krizaka/.github#28",
       "applies": {},
-      "check": { "type": "workflow-matches", "pattern": "ossf/scorecard-action" },
-      "fix": { "type": "copy", "from": "workflow-templates/scorecard.yml", "to": ".github/workflows/scorecard.yml" }
+      "check": {
+        "type": "workflow-matches",
+        "pattern": "ossf/scorecard-action"
+      },
+      "fix": {
+        "type": "copy",
+        "from": "workflow-templates/scorecard.yml",
+        "to": ".github/workflows/scorecard.yml"
+      }
     },
     {
       "id": "dependabot-config",
       "title": "Dependabot configuration",
       "issue": "krizaka/.github#393",
       "applies": {},
-      "check": { "type": "file-exists", "paths": [".github/dependabot.yml", ".github/dependabot.yaml"] },
-      "fix": { "type": "manual", "note": "one .github/dependabot.yml with the ecosystems of the repository (github-actions always)" }
+      "check": {
+        "type": "file-exists",
+        "paths": [
+          ".github/dependabot.yml",
+          ".github/dependabot.yaml"
+        ]
+      },
+      "fix": {
+        "type": "manual",
+        "note": "one .github/dependabot.yml with the ecosystems of the repository (github-actions always)"
+      }
     },
     {
       "id": "dependabot-automerge",
       "title": "Dependabot auto-merge through the shared workflow",
       "issue": "krizaka/.github#393",
       "applies": {},
-      "check": { "type": "workflow-calls", "workflows": ["dependabot-automerge.yml"] },
-      "fix": { "type": "copy", "from": "workflow-templates/dependabot-automerge.yml", "to": ".github/workflows/dependabot-automerge.yml" }
+      "check": {
+        "type": "workflow-calls",
+        "workflows": [
+          "dependabot-automerge.yml"
+        ]
+      },
+      "fix": {
+        "type": "copy",
+        "from": "workflow-templates/dependabot-automerge.yml",
+        "to": ".github/workflows/dependabot-automerge.yml"
+      }
     },
     {
       "id": "visual-regression",
       "title": "Visual regression of the app's journeys (shared workflow)",
       "issue": "krizaka/.github#375",
-      "applies": { "kinds": ["app"] },
-      "check": { "type": "workflow-calls", "workflows": ["visual-regression.yml"] },
-      "fix": { "type": "manual", "note": "journeys are written per app (docs/standards/visual-regression.md); not a template" }
+      "applies": {
+        "kinds": [
+          "app"
+        ]
+      },
+      "check": {
+        "type": "workflow-calls",
+        "workflows": [
+          "visual-regression.yml"
+        ]
+      },
+      "fix": {
+        "type": "manual",
+        "note": "journeys are written per app (docs/standards/visual-regression.md); not a template"
+      }
     },
     {
       "id": "agents-anti-slop",
       "title": "AGENTS.md carries the anti-slop section (template section 9)",
       "issue": "krizaka/.github#385",
       "applies": {},
-      "check": { "type": "file-matches", "path": "AGENTS.md", "pattern": "Anti-slop" },
-      "fix": { "type": "append-section", "file": "AGENTS.md", "from": "AGENTS.template.md", "heading": "## 9. Anti-slop (ADR-015)" }
+      "check": {
+        "type": "file-matches",
+        "path": "AGENTS.md",
+        "pattern": "Anti-slop"
+      },
+      "fix": {
+        "type": "append-section",
+        "file": "AGENTS.md",
+        "from": "AGENTS.template.md",
+        "heading": "## 9. Anti-slop (ADR-015)"
+      }
     },
     {
       "id": "edit-hook",
       "title": "The agents' edit hook (krizaka-edit-check) in .claude/settings.json",
       "issue": "krizaka/.github#385",
       "applies": {},
-      "check": { "type": "file-matches", "path": ".claude/settings.json", "pattern": "krizaka-edit-check" },
-      "fix": { "type": "settings-hook", "file": ".claude/settings.json" }
+      "check": {
+        "type": "file-matches",
+        "path": ".claude/settings.json",
+        "pattern": "krizaka-edit-check"
+      },
+      "fix": {
+        "type": "settings-hook",
+        "file": ".claude/settings.json"
+      }
     },
     {
       "id": "release-propagation",
       "title": "A @krizaka release reaches the consumer in minutes (bump workflow)",
       "issue": "krizaka/.github#388",
-      "applies": { "when": [{ "inList": "orchestration/release-consumers.json" }] },
-      "check": { "type": "workflow-calls", "workflows": ["bump-krizaka.yml"] },
-      "fix": { "type": "copy", "from": "workflow-templates/bump-krizaka.yml", "to": ".github/workflows/bump-krizaka.yml" }
+      "applies": {
+        "when": [
+          {
+            "inList": "orchestration/release-consumers.json"
+          }
+        ]
+      },
+      "check": {
+        "type": "workflow-calls",
+        "workflows": [
+          "bump-krizaka.yml"
+        ]
+      },
+      "fix": {
+        "type": "copy",
+        "from": "workflow-templates/bump-krizaka.yml",
+        "to": ".github/workflows/bump-krizaka.yml"
+      }
     },
     {
       "id": "workspace-guard",
       "title": "pnpm workspaces: no workspace: range leaves the repository",
       "issue": "krizaka/.github#388",
-      "applies": { "when": [{ "fileMatches": { "path": "pnpm-workspace.yaml", "pattern": "^packages:" } }] },
-      "check": { "type": "file-matches", "path": "package.json", "pattern": "krizaka-workspace-guard|workspace-ranges" },
-      "fix": { "type": "manual", "note": "add `npx --yes -p @krizaka/config krizaka-workspace-guard` to the lint script (bin of @krizaka/config, krizaka-ts#252)" }
+      "applies": {
+        "when": [
+          {
+            "fileMatches": {
+              "path": "pnpm-workspace.yaml",
+              "pattern": "^packages:"
+            }
+          }
+        ]
+      },
+      "check": {
+        "type": "file-matches",
+        "path": "package.json",
+        "pattern": "krizaka-workspace-guard|workspace-ranges"
+      },
+      "fix": {
+        "type": "manual",
+        "note": "add `npx --yes -p @krizaka/config krizaka-workspace-guard` to the lint script (bin of @krizaka/config, krizaka-ts#252)"
+      }
     },
     {
       "id": "expo-sdk-guard",
       "title": "Expo apps: the SDK builds with the App Store's Xcode (check-expo-sdk)",
       "issue": "krizaka/.github#393",
-      "applies": { "when": [{ "pathEndsWith": "eas.json" }] },
-      "check": { "type": "workflow-matches", "pattern": "actions/expo-sdk|check-expo-sdk" },
-      "fix": { "type": "manual", "note": "run scripts/check-expo-sdk.mjs of krizaka/.github (docs/standards/expo-sdk.json) in CI" }
+      "applies": {
+        "when": [
+          {
+            "pathEndsWith": "eas.json"
+          }
+        ]
+      },
+      "check": {
+        "type": "workflow-matches",
+        "pattern": "actions/expo-sdk|check-expo-sdk"
+      },
+      "fix": {
+        "type": "manual",
+        "note": "run scripts/check-expo-sdk.mjs of krizaka/.github (docs/standards/expo-sdk.json) in CI"
+      }
     },
     {
       "id": "turnstile-server-side",
       "title": "Every public form with a Turnstile widget verifies the token server-side (fail closed)",
       "issue": "krizaka/krizaka-com#464",
-      "applies": { "onlyRepos": ["krizaka-com", "krizaka-blog"] },
-      "check": { "type": "file-matches", "path": "package.json", "pattern": "@krizaka/rate-limit" },
-      "fix": { "type": "manual", "note": "verify with createTurnstileVerifier of @krizaka/rate-limit/turnstile in the form's API or function; a missing secret refuses; a repository that adds a widget is added to onlyRepos" }
+      "applies": {
+        "onlyRepos": [
+          "krizaka-com",
+          "krizaka-blog"
+        ]
+      },
+      "check": {
+        "type": "file-matches",
+        "path": "package.json",
+        "pattern": "@krizaka/rate-limit"
+      },
+      "fix": {
+        "type": "manual",
+        "note": "verify with createTurnstileVerifier of @krizaka/rate-limit/turnstile in the form's API or function; a missing secret refuses; a repository that adds a widget is added to onlyRepos"
+      }
     },
     {
       "id": "email-verification",
       "title": "Public e-mail forms verify the address before anything is delivered (a mailed code or a confirmation link)",
       "issue": "krizaka/krizaka-com#464",
-      "applies": { "onlyRepos": ["krizaka-com", "krizaka-blog"] },
-      "check": { "type": "file-exists", "paths": ["lib/contact-verification.ts", "functions/packages/newsletter/confirm/index.js"] },
-      "fix": { "type": "manual", "note": "a code form uses @krizaka/email-verification (6 digits, 15 minutes, single use, 5 tries, hashed; the message is held and released after the code); a subscription uses the signed confirmation link; a repository that adds an e-mail form is added to onlyRepos" }
+      "applies": {
+        "onlyRepos": [
+          "krizaka-com",
+          "krizaka-blog"
+        ]
+      },
+      "check": {
+        "type": "file-exists",
+        "paths": [
+          "lib/contact-verification.ts",
+          "functions/packages/newsletter/confirm/index.js"
+        ]
+      },
+      "fix": {
+        "type": "manual",
+        "note": "a code form uses @krizaka/email-verification (6 digits, 15 minutes, single use, 5 tries, hashed; the message is held and released after the code); a subscription uses the signed confirmation link; a repository that adds an e-mail form is added to onlyRepos"
+      }
+    },
+    {
+      "id": "no-departed-product",
+      "title": "No departed product is mentioned (Orochia, Yasakia/Yazakia, Yororis, Kachizaka left the org on 2026-10-29: the org holds Yomizaka, Akinaza, Orazaka and the platforms)",
+      "issue": "krizaka/.github#413",
+      "check": {
+        "type": "no-mention",
+        "pattern": "orochia|yasakia|yazakia|yororis|kachizaka",
+        "allow": [
+          "CHANGELOG.md",
+          "docs/adr/",
+          "orchestration/triage/",
+          "docs/standards/rules.json",
+          "tests/conformance.test.mjs",
+          "scripts/conformance.mjs",
+          "docs/quality-controls.md",
+          "docs/standards/rules.md"
+        ],
+        "allowIn": {
+          "krizaka-com": [
+            "scripts/bunny-layout.mjs",
+            "tests/bunny-layout.test.mjs"
+          ],
+          "krizaka-blog": [
+            "content/",
+            "posts/",
+            "public/audits/"
+          ],
+          "krizaka-ts": [
+            "docs/design/"
+          ],
+          "krizaka-lab": [
+            "experiments/ui/parked-marks/"
+          ]
+        }
+      },
+      "fix": {
+        "type": "manual",
+        "note": "remove the name (code, messages, docs, configs, workflows, manifests); an old address redirects to the home, never to a dead site. History stays only where the check's allow list says so (released chapters, changelogs, ADRs); the founder keeps the repositories in his own account"
+      }
+    },
+    {
+      "id": "lab-isolation",
+      "title": "Nothing outside the lab depends on the lab (krizaka-lab publishes nothing; a proven piece is promoted by an ADR, never imported)",
+      "issue": "krizaka/krizaka-motion#69",
+      "applies": { "notRepos": ["krizaka-lab", "krizaka-motion"] },
+      "check": { "type": "manifests-forbid", "pattern": "krizaka-lab|krizaka-motion|@krizaka/(lab|motion)\\b" },
+      "fix": { "type": "manual", "note": "promote the piece into @krizaka/ui, krizaka-ts or Krizaka Java by an ADR (rebuilt with its tests) and depend on that package; the lab is private and has no published name to import" }
     }
   ]
 }

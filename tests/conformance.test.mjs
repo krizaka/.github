@@ -118,3 +118,45 @@ test("the email-verification rule: the two public e-mail forms, each with the fi
   assert.equal((await runCheck(rule.check, { paths: ["functions/packages/newsletter/confirm/index.js"] })).ok, true);
   assert.equal((await runCheck(rule.check, { paths: ["lib/contact.ts"] })).ok, false);
 });
+
+test("no-mention: a departed product named outside the allow list is red, history is allowed", async () => {
+  const check = { type: "no-mention", pattern: "orochia|yasakia", allow: ["CHANGELOG.md"], allowIn: { r: ["notes/"] } };
+  const withScan = (name, hits) => ({ ...snap(name, "app", { a: "" }), scan: async () => hits });
+  assert.deepEqual(await runCheck(check, withScan("x", ["CHANGELOG.md"])), { ok: true, why: "" });
+  assert.deepEqual(await runCheck(check, withScan("x", ["packages/ui/CHANGELOG.md"])), { ok: true, why: "" }, "a package changelog is history too");
+  assert.deepEqual(await runCheck(check, withScan("r", ["notes/a.md"])), { ok: true, why: "" });
+  const red = await runCheck(check, withScan("x", ["notes/a.md", "CHANGELOG.md"]));
+  assert.equal(red.ok, false);
+  assert.match(red.why, /notes\/a\.md/);
+  assert.equal((await runCheck(check, snap("x", "app", { a: "" }))).ok, true, "offline: no scan, nothing to prove");
+});
+
+test("tarballMatches reads the text files of a GitHub tarball and skips the binaries", async () => {
+  const { gzipSync } = await import("node:zlib");
+  const { tarballMatches } = await import("../scripts/conformance.mjs");
+  const entry = (name, body) => {
+    const head = Buffer.alloc(512);
+    head.write(name);
+    head.write(body.length.toString(8).padStart(11, "0"), 124);
+    head[156] = 48;
+    return Buffer.concat([head, body, Buffer.alloc((512 - (body.length % 512)) % 512)]);
+  };
+  const tar = Buffer.concat([entry("top/a.md", Buffer.from("see Orochia")), entry("top/b.md", Buffer.from("clean")), entry("top/c.bin", Buffer.from([0, 1, 2])), Buffer.alloc(1024)]);
+  assert.deepEqual(tarballMatches(gzipSync(tar), /orochia/i), ["a.md"]);
+});
+
+test("the lab-isolation rule: nothing outside the lab depends on the lab", async () => {
+  const rule = loadRules().find((r) => r.id === "lab-isolation");
+  assert.ok(rule, "the rule is in the registry");
+  assert.equal(await appliesTo(rule, snap("krizaka-lab", "npm", {})), false);
+  assert.equal(await appliesTo(rule, snap("krizaka-ui", "npm", {})), true);
+  const clean = snap("krizaka-ui", "npm", { "package.json": '{"dependencies":{"@krizaka/tokens":"1"}}' });
+  assert.equal((await runCheck(rule.check, clean)).ok, true);
+  for (const body of ['{"dependencies":{"krizaka-lab":"github:krizaka/krizaka-lab"}}', '{"dependencies":{"@krizaka/motion":"1"}}']) {
+    assert.equal((await runCheck(rule.check, snap("x", "npm", { "package.json": body }))).ok, false, body);
+  }
+  const sub = snap("x", "npm", { ".gitmodules": "[submodule]\n url = https://github.com/krizaka/krizaka-lab" });
+  assert.equal((await runCheck(rule.check, sub)).ok, false);
+  const doc = snap("x", "npm", { "README.md": "see krizaka-lab", "package.json": "{}" });
+  assert.equal((await runCheck(rule.check, doc)).ok, true, "prose is not a dependency");
+});

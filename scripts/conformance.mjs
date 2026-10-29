@@ -12,9 +12,10 @@
 // Reads GitHub with GH_TOKEN / GITHUB_TOKEN (the app token for the private ones).
 import { readFileSync, writeFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
+import { gunzipSync } from "node:zlib";
 
 const HERE = new URL("../", import.meta.url);
-export const CHECK_TYPES = ["workflow-calls", "workflow-matches", "workflow-forbids", "file-exists", "file-matches"];
+export const CHECK_TYPES = ["workflow-calls", "workflow-matches", "workflow-forbids", "file-exists", "file-matches", "manifests-forbid", "no-mention"];
 export const FIX_TYPES = ["copy", "append-section", "settings-hook", "manual"];
 const WORKFLOW_PATH = /^\.github\/workflows\/[^/]+\.ya?ml$/;
 const CALL = /uses:\s*krizaka\/(?:\.github|orazaka)\/\.github\/workflows\/([\w.-]+\.ya?ml)@/g;
@@ -55,6 +56,8 @@ function checkShape({ id, check = {} }) {
     "workflow-forbids": () => Boolean(check.pattern),
     "file-exists": () => Boolean(check.paths?.length),
     "file-matches": () => Boolean(check.path && check.pattern),
+    "manifests-forbid": () => Boolean(check.pattern),
+    "no-mention": () => Boolean(check.pattern),
   };
   return needs[check.type]?.() === false ? [`${id}: the ${check.type} check is incomplete`] : [];
 }
@@ -69,7 +72,7 @@ export function scopeOf(repositories) {
 }
 
 /** A repository as the checks see it: its tracked paths and a reader of one file (null when absent). */
-export function snapshotOf(name, kind, paths, readFile) {
+export function snapshotOf(name, kind, paths, readFile, scan = null) {
   const cache = new Map();
   const read = async (path) => {
     if (!paths.includes(path)) return null;
@@ -80,7 +83,7 @@ export function snapshotOf(name, kind, paths, readFile) {
     const texts = await Promise.all(paths.filter((p) => WORKFLOW_PATH.test(p)).map(read));
     return texts.filter(Boolean).join("\n");
   };
-  return { name, kind, paths, read, workflows };
+  return { name, kind, paths, read, workflows, scan };
 }
 
 /** Does the rule concern this repository? */
@@ -103,39 +106,54 @@ async function holds(w, snap, lists) {
   return false;
 }
 
+const MANIFEST = /(^|\/)(package\.json|pnpm-workspace\.yaml|\.gitmodules|pom\.xml|build\.gradle(\.kts)?)$/;
+
 const callsOf = (text) => new Set([...text.matchAll(CALL)].map((m) => m[1]));
+
+const verdict = (ok, why) => ({ ok, why: ok ? "" : why });
+
+/** One handler per check type: each returns { ok, why }. */
+const CHECKS = {
+  "workflow-calls": async (check, snap) => {
+    const wanted = check.byKind ? (check.byKind[snap.kind] ?? []) : check.workflows;
+    const calls = callsOf(await snap.workflows());
+    return verdict(wanted.some((w) => calls.has(w)), `calls none of ${wanted.join(", ")}`);
+  },
+  "workflow-matches": async (check, snap) =>
+    verdict(new RegExp(check.pattern).test(await snap.workflows()), `no workflow matches ${check.pattern}`),
+  "workflow-forbids": async (check, snap) => {
+    const found = new RegExp(check.pattern).exec(await snap.workflows());
+    return { ok: !found, why: found ? `a workflow has « ${found[0]} »` : "" };
+  },
+  "file-exists": async (check, snap) =>
+    verdict(check.paths.some((p) => snap.paths.includes(p)), `no ${check.paths[0]}`),
+  "file-matches": async (check, snap) => {
+    const body = await snap.read(check.path);
+    if (body === null) return { ok: false, why: `no ${check.path}` };
+    return verdict(new RegExp(check.pattern).test(body), `${check.path} lacks ${check.pattern}`);
+  },
+  // The manifests that can name a dependency: npm, pnpm workspaces, git submodules, Maven, Gradle.
+  "manifests-forbid": async (check, snap) => {
+    const re = new RegExp(check.pattern);
+    for (const p of snap.paths.filter((x) => MANIFEST.test(x))) {
+      const found = re.exec((await snap.read(p)) ?? "");
+      if (found) return { ok: false, why: `${p} names « ${found[0]} »` };
+    }
+    return { ok: true, why: "" };
+  },
+  "no-mention": async (check, snap) => {
+    // `allow`: path prefixes whose text is history (a released chapter, a changelog). `scan` is absent offline: nothing to prove.
+    if (!snap.scan) return { ok: true, why: "" };
+    const allowed = [...(check.allow ?? []), ...(check.allowIn?.[snap.name] ?? [])];
+    const hits = (await snap.scan(new RegExp(check.pattern, "i"))).filter((p) => !allowed.some((a) => p === a || p.startsWith(a) || p.endsWith(`/${a}`)));
+    return verdict(hits.length === 0, `${hits.length} file(s) name a departed product, e.g. ${hits.slice(0, 3).join(", ")}`);
+  },
+};
 
 /** @returns {Promise<{ ok: boolean, why: string }>} */
 export async function runCheck(check, snap) {
-  const text = async () => snap.workflows();
-  switch (check.type) {
-    case "workflow-calls": {
-      const wanted = check.byKind ? (check.byKind[snap.kind] ?? []) : check.workflows;
-      const calls = callsOf(await text());
-      const ok = wanted.some((w) => calls.has(w));
-      return { ok, why: ok ? "" : `calls none of ${wanted.join(", ")}` };
-    }
-    case "workflow-matches": {
-      const ok = new RegExp(check.pattern).test(await text());
-      return { ok, why: ok ? "" : `no workflow matches ${check.pattern}` };
-    }
-    case "workflow-forbids": {
-      const found = new RegExp(check.pattern).exec(await text());
-      return { ok: !found, why: found ? `a workflow has « ${found[0]} »` : "" };
-    }
-    case "file-exists": {
-      const ok = check.paths.some((p) => snap.paths.includes(p));
-      return { ok, why: ok ? "" : `no ${check.paths[0]}` };
-    }
-    case "file-matches": {
-      const body = await snap.read(check.path);
-      if (body === null) return { ok: false, why: `no ${check.path}` };
-      const ok = new RegExp(check.pattern).test(body);
-      return { ok, why: ok ? "" : `${check.path} lacks ${check.pattern}` };
-    }
-    default:
-      return { ok: false, why: `unknown check ${check.type}` };
-  }
+  const handler = CHECKS[check.type];
+  return handler ? handler(check, snap) : { ok: false, why: `unknown check ${check.type}` };
 }
 
 /** The matrix: `cells[repo][rule]` = { status: "green" | "red" | "n/a", why }. */
@@ -193,12 +211,42 @@ async function api(path, accept = "application/vnd.github+json") {
   return accept.includes("raw") ? res.text() : res.json();
 }
 
+/** Paths of the text files of a gzipped tarball whose content matches `re` (GitHub's tarball: one top folder, ustar headers). */
+export function tarballMatches(gz, re) {
+  const tar = gunzipSync(gz);
+  const hits = [];
+  let off = 0;
+  while (off + 512 <= tar.length) {
+    const head = tar.subarray(off, off + 512);
+    if (head[0] === 0) break;
+    const name = head.subarray(0, 100).toString("utf8").replace(/\0.*$/, "");
+    const prefix = head.subarray(345, 500).toString("utf8").replace(/\0.*$/, "");
+    const size = parseInt(head.subarray(124, 136).toString("utf8").replace(/\0.*$/, "").trim() || "0", 8);
+    const type = String.fromCharCode(head[156] || 48);
+    const body = tar.subarray(off + 512, off + 512 + size);
+    if (type === "0" && size < 2_000_000 && !body.includes(0)) {
+      const full = (prefix ? `${prefix}/${name}` : name).split("/").slice(1).join("/");
+      if (full && re.test(body.toString("utf8"))) hits.push(full);
+    }
+    off += 512 + Math.ceil(size / 512) * 512;
+  }
+  return hits;
+}
+
 /** The live snapshot of one repository (default branch). */
 export async function liveSnapshot({ name, kind }, org = "krizaka") {
   const tree = await api(`/repos/${org}/${name}/git/trees/HEAD?recursive=1`);
   const paths = (tree?.tree ?? []).filter((e) => e.type === "blob").map((e) => e.path);
   const raw = (path) => api(`/repos/${org}/${name}/contents/${path.split("/").map(encodeURIComponent).join("/")}`, "application/vnd.github.raw+json");
-  return snapshotOf(name, kind, paths, raw);
+  const scan = async (re) => {
+    const res = await fetch(`https://api.github.com/repos/${org}/${name}/tarball`, {
+      headers: { accept: "application/vnd.github+json", ...(process.env.GH_TOKEN || process.env.GITHUB_TOKEN ? { authorization: `Bearer ${process.env.GH_TOKEN || process.env.GITHUB_TOKEN}` } : {}) },
+      signal: AbortSignal.timeout(120000),
+    });
+    if (!res.ok) throw new Error(`${name} tarball: ${res.status}`);
+    return tarballMatches(Buffer.from(await res.arrayBuffer()), re);
+  };
+  return snapshotOf(name, kind, paths, raw, scan);
 }
 
 const flag = (argv, name) => (argv.includes(name) ? argv[argv.indexOf(name) + 1] : undefined);

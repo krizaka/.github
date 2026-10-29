@@ -204,7 +204,7 @@ test("the daily SEO check covers the www addresses and the dev hosts (--redirect
     assert.match(yml, new RegExp(`host: www\\.${p}\\.com,`), `www.${p}.com`);
     assert.match(yml, new RegExp(`host: dev\\.${p}\\.com, args: "--index off --redirects-to https://www\\.${p}\\.com"`), `dev.${p}.com`);
   }
-  for (const p of ["orochia", "yasakia", "yororis", "kachizaka"]) assert.doesNotMatch(yml, new RegExp(`\\.${p}\\.com`), `${p} is paused`);
+  assert.deepEqual([...yml.matchAll(/host: dev\.([a-z]+)\.com/g)].map((m) => m[1]).sort(), ["akinaza", "orazaka", "yomizaka"], "only the three products are checked");
   assert.doesNotMatch(yml, /^\s+- dev\./m, "no dev host is checked as an indexed site");
 });
 
