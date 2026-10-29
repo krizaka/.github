@@ -1,0 +1,93 @@
+# A @krizaka release reaches this repository in minutes (krizaka/.github#388). A consumer calls this file from a thin
+# workflow on `repository_dispatch: krizaka-release` (workflow-templates/bump-krizaka.yml). The publisher (krizaka-ts,
+# krizaka-ui) sends the event after `changeset publish`, with the packages and versions in the payload.
+#
+# It waits until npm serves the versions, bumps the plain ranges of the `@krizaka/*` packages that repository depends on
+# (scripts/krizaka-release.mjs: the style of the range is kept, workspace packages are never touched), updates the lockfile,
+# opens ONE pull request « deps: @krizaka/ui 3.74.0, … » and arms auto-merge: CI decides. A major version opens the same pull
+# request without auto-merge. Dependabot stays as the weekly safety net. `dry-run` prints the plan and writes nothing.
+name: Bump @krizaka packages
+
+on:
+  workflow_call:
+    inputs:
+      packages:
+        description: 'The published packages, {"@krizaka/ui":"3.74.0"} (the client_payload.packages of the event)'
+        type: string
+        required: true
+      dry-run:
+        description: "Print the plan, change nothing, open nothing"
+        type: boolean
+        default: false
+      app-id:
+        description: "The GitHub App (krizaka-agents) id: the pull request must start CI, which GITHUB_TOKEN's does not"
+        type: string
+        required: true
+    secrets:
+      app-private-key:
+        required: true
+
+permissions: {}
+
+jobs:
+  bump:
+    name: Bump
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - id: app
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ inputs.app-id }}
+          private-key: ${{ secrets.app-private-key }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          token: ${{ steps.app.outputs.token }}
+          persist-credentials: true # the app token pushes the branch below; it expires with the job
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/.github
+          path: .krizaka-org
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+
+      - name: Bump the ranges
+        id: bump
+        run: node .krizaka-org/scripts/krizaka-release.mjs bump "$PACKAGES" ${DRY_RUN:+--dry-run}
+        env:
+          PACKAGES: ${{ inputs.packages }}
+          DRY_RUN: ${{ inputs.dry-run && 'true' || '' }}
+
+      - name: Update the lockfile
+        if: steps.bump.outputs.changed == 'true' && !inputs.dry-run
+        run: pnpm install --lockfile-only --no-frozen-lockfile
+
+      - name: Open the pull request
+        if: steps.bump.outputs.changed == 'true' && !inputs.dry-run
+        run: |
+          branch="deps/krizaka-$(printf '%s' "$PACKAGES" | sha256sum | cut -c1-8)"
+          git config user.name "krizaka-agents[bot]"
+          git config user.email "krizaka-agents[bot]@users.noreply.github.com"
+          git switch -C "$branch"
+          git add -A -- ':!.krizaka-org'
+          git commit -m "$TITLE"
+          git push --force origin "$branch"
+          if [ -z "$(gh pr list --head "$branch" --json number --jq '.[0].number')" ]; then
+            gh pr create --base "$BASE" --head "$branch" --title "$TITLE" \
+              --body "A @krizaka release, sent by its publisher (krizaka/.github#388). CI decides; a major version is not auto-merged."
+          fi
+          if [ "$MAJOR" != "true" ]; then gh pr merge "$branch" --auto --squash; fi
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          PACKAGES: ${{ inputs.packages }}
+          TITLE: ${{ steps.bump.outputs.title }}
+          MAJOR: ${{ steps.bump.outputs.major }}
+          BASE: ${{ github.event.repository.default_branch }}
