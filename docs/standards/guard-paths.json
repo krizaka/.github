@@ -20,9 +20,13 @@
     ],
     "rules": [
       "rules/**",
+      "**/rules/**",
       "rule-tests/**",
+      "**/rule-tests/**",
       "eslint.config.*",
+      "**/eslint.config.*",
       ".dependency-cruiser*",
+      "**/.dependency-cruiser*",
       "*ratchet*.json",
       "archunit_store/**",
       "**/architecture/**"
