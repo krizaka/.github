@@ -116,6 +116,14 @@
       "applies": { "onlyRepos": ["krizaka-com", "krizaka-blog"] },
       "check": { "type": "file-matches", "path": "package.json", "pattern": "@krizaka/rate-limit" },
       "fix": { "type": "manual", "note": "verify with createTurnstileVerifier of @krizaka/rate-limit/turnstile in the form's API or function; a missing secret refuses; a repository that adds a widget is added to onlyRepos" }
+    },
+    {
+      "id": "email-verification",
+      "title": "Public e-mail forms verify the address before anything is delivered (a mailed code or a confirmation link)",
+      "issue": "krizaka/krizaka-com#464",
+      "applies": { "onlyRepos": ["krizaka-com", "krizaka-blog"] },
+      "check": { "type": "file-exists", "paths": ["lib/contact-verification.ts", "functions/packages/newsletter/confirm/index.js"] },
+      "fix": { "type": "manual", "note": "a code form uses @krizaka/email-verification (6 digits, 15 minutes, single use, 5 tries, hashed; the message is held and released after the code); a subscription uses the signed confirmation link; a repository that adds an e-mail form is added to onlyRepos" }
     }
   ]
 }
