@@ -131,6 +131,18 @@ test("no-mention: a departed product named outside the allow list is red, histor
   assert.equal((await runCheck(check, snap("x", "app", { a: "" }))).ok, true, "offline: no scan, nothing to prove");
 });
 
+test("published-no-mention: a package whose built files name a departed product is red, its changelog is history", async () => {
+  const check = { type: "published-no-mention", pattern: "orochia|kachizaka", allow: ["CHANGELOG.md"] };
+  const withPub = (hits) => ({ ...snap("x", "app", { a: "" }), published: async () => hits });
+  assert.deepEqual(await runCheck(check, withPub(["@krizaka/ui@1.0.0:CHANGELOG.md"])), { ok: true, why: "" });
+  const red = await runCheck(check, withPub(["@krizaka/charts@0.6.0:dist/index.js", "@krizaka/ui@1.0.0:CHANGELOG.md"]));
+  assert.equal(red.ok, false);
+  assert.match(red.why, /charts@0\.6\.0:dist\/index\.js/);
+  assert.equal((await runCheck(check, snap("x", "app", { a: "" }))).ok, true, "offline: nothing published is read");
+  const rule = loadRules().find((r) => r.id === "no-departed-published");
+  assert.ok(rule, "the rule is in the registry");
+});
+
 test("tarballMatches reads the text files of a GitHub tarball and skips the binaries", async () => {
   const { gzipSync } = await import("node:zlib");
   const { tarballMatches } = await import("../scripts/conformance.mjs");
