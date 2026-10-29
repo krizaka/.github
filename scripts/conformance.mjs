@@ -5,6 +5,7 @@
 //   node scripts/conformance.mjs --json out.json      also the cells as JSON
 //   node scripts/conformance.mjs --repos a,b --rules x,y   a slice
 //   node scripts/conformance.mjs --validate           only the registry (every rule has its check); no network
+//   node scripts/conformance.mjs --repo-list           the active repositories, comma separated (scopes the workflow's token)
 //   node scripts/conformance.mjs --fail               exit 1 while a cell is red
 //
 // Active = repos.json minus archived, `Archive` and `Paused` repositories, which are listed out of scope (never « exceptions »).
@@ -208,6 +209,10 @@ export async function main(argv) {
     return 0;
   }
   const { active, paused } = scopeOf(readJson("repos.json").repositories);
+  if (argv.includes("--repo-list")) {
+    console.log(active.map((r) => r.name).join(","));
+    return 0;
+  }
   const only = flag(argv, "--repos")?.split(",");
   const onlyRules = flag(argv, "--rules")?.split(",");
   const picked = onlyRules ? rules.filter((r) => onlyRules.includes(r.id)) : rules;

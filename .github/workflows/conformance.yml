@@ -36,21 +36,26 @@ jobs:
         run: |
           node scripts/conformance.mjs --validate
           node --test tests/conformance.test.mjs tests/conformance-fanout.test.mjs
+      - id: repos
+        run: echo "list=$(node scripts/conformance.mjs --repo-list)" >> "$GITHUB_OUTPUT"
       - id: app
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
           app-id: ${{ vars.RELEASE_APP_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
           owner: krizaka
+          repositories: ${{ steps.repos.outputs.list }}
           permission-contents: read
           permission-metadata: read
       - name: The matrix
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
-          FAIL: ${{ github.event_name == 'schedule' && '--fail' || '' }}
+          EVENT: ${{ github.event_name }}
         run: |
+          fail=()
+          if [ "$EVENT" = schedule ]; then fail=(--fail); fi
           set +e
-          node scripts/conformance.mjs --json matrix.json $FAIL | tee matrix.md
+          node scripts/conformance.mjs --json matrix.json "${fail[@]}" | tee matrix.md
           status=${PIPESTATUS[0]}
           { echo '### Conformance matrix'; cat matrix.md; } >> "$GITHUB_STEP_SUMMARY"
           exit "$status"
