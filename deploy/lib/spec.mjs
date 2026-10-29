@@ -97,74 +97,98 @@ export function isSecretPlaceholder(value) {
  *    `allowChange` — the live app is often ahead of the file (a limit lowered by hand), and an apply must not silently revert it.
  * Returns { spec, carried, resolved, problems } — keys only, and the values of plain variables when they differ.
  */
-export async function mergeWithLive(fileSpec, liveSpec, { secret = async () => undefined, allowDrop = [], allowChange = [], setSecret = [] } = {}) {
+export async function mergeWithLive(fileSpec, liveSpec, options = {}) {
+  const { secret = async () => undefined } = options;
   const missing = new Set();
   const draft = structuredClone(fileSpec);
   // `KEY: __KEY__` is a value-less variable written the Orazaka way: the live value wins, the vault is the fallback.
   for (const { env } of envEntries(draft)) if (env.value === `__${env.key}__`) delete env.value;
   const spec = await render(draft, secret, missing);
-  const carried = [];
-  const resolved = [];
-  const problems = [];
-  for (const name of missing) problems.push(`placeholder __${name}__ has no value (KRIZAKA_SECRET_${name} or the vault)`);
+  const state = { carried: [], resolved: [], problems: [] };
+  for (const name of missing) state.problems.push(`placeholder __${name}__ has no value (KRIZAKA_SECRET_${name} or the vault)`);
 
-  const liveByWhere = new Map();
-  for (const { where, env } of envEntries(liveSpec)) {
-    if (!liveByWhere.has(where)) liveByWhere.set(where, new Map());
-    liveByWhere.get(where).set(env.key, env);
+  const liveByWhere = liveVariables(liveSpec);
+  for (const { where, envs } of containersOf(spec)) {
+    const live = liveByWhere.get(where) ?? new Map();
+    for (const env of envs ?? []) await resolveVariable(state, options, where, env, live.get(env.key));
+    reportDropped(state, options, where, live, new Set((envs ?? []).map((env) => env.key)));
   }
+  return { spec, ...state };
+}
+
+/** The live variables of each container: where -> key -> variable. */
+function liveVariables(liveSpec) {
+  const byWhere = new Map();
+  for (const { where, env } of envEntries(liveSpec)) {
+    if (!byWhere.has(where)) byWhere.set(where, new Map());
+    byWhere.get(where).set(env.key, env);
+  }
+  return byWhere;
+}
+
+/** The app and every component of a spec, with their variables. */
+function containersOf(spec) {
   const containers = [{ where: "app", envs: spec.envs }];
   for (const section of SECTIONS) for (const c of spec[section] ?? []) containers.push({ where: `${section}/${c.name}`, envs: c.envs });
+  return containers;
+}
 
-  for (const { where, envs } of containers) {
-    const live = liveByWhere.get(where) ?? new Map();
-    const seen = new Set();
-    for (const env of envs ?? []) {
-      seen.add(env.key);
-      const fromLive = live.get(env.key);
-      const liveIsSecret = fromLive?.type === "SECRET" || String(fromLive?.value).startsWith("EV[");
-      if (setSecret.includes(env.key) || setSecret.includes(`${where}:${env.key}`)) {
-        const fromVault = await secret(env.key);
-        if (!fromVault) problems.push(`${where}: ${env.key} --set-secret was given but the vault has no value for it (KRIZAKA_SECRET_${env.key} or secret.sh)`);
-        else {
-          env.value = fromVault;
-          resolved.push(`${where}:${env.key}`);
-        }
-        continue;
-      }
-      // « unset » for a secret means managed live: never overwrite the live encrypted value with a placeholder.
-      if ((env.type === "SECRET" || liveIsSecret) && fromLive?.value !== undefined && fromLive.value !== "" && isSecretPlaceholder(env.value)) {
-        env.value = fromLive.value;
-        carried.push(`${where}:${env.key}`);
-        continue;
-      }
-      if (env.value !== undefined && env.value !== null && env.value !== "") {
-        const plain = env.type !== "SECRET" && fromLive?.type !== "SECRET" && !String(fromLive?.value).startsWith("EV[");
-        if (plain && fromLive?.value !== undefined && String(fromLive.value) !== String(env.value) && !allowChange.includes(env.key) && !allowChange.includes(`${where}:${env.key}`)) {
-          problems.push(`${where}: ${env.key} is '${fromLive.value}' in the live app and '${env.value}' in the file — applying would change it (fix the file, or --allow-change ${env.key})`);
-        }
-        continue;
-      }
-      if (fromLive?.value !== undefined && fromLive.value !== "") {
-        env.value = fromLive.value;
-        carried.push(`${where}:${env.key}`);
-        continue;
-      }
-      const fromVault = await secret(env.key);
-      if (fromVault) {
-        env.value = fromVault;
-        resolved.push(`${where}:${env.key}`);
-        continue;
-      }
-      problems.push(`${where}: ${env.key} has no value in the file, none in the live app, none in the vault — applying would blank it`);
-    }
-    for (const key of live.keys()) {
-      if (!seen.has(key) && !allowDrop.includes(key) && !allowDrop.includes(`${where}:${key}`)) {
-        problems.push(`${where}: ${key} is set in the live app but not in the file — applying would delete it (add it to the file, or --allow-drop ${key})`);
-      }
+const isListed = (list = [], where, key) => list.includes(key) || list.includes(`${where}:${key}`);
+const isLiveSecret = (live) => live?.type === "SECRET" || String(live?.value).startsWith("EV[");
+const hasLiveValue = (live) => live?.value !== undefined && live.value !== "";
+const hasValue = (value) => value !== undefined && value !== null && value !== "";
+
+/** A variable the file gives a value for: a plain one that differs from the live one would be CHANGED by the apply. */
+function checkPlainChange(state, { allowChange }, where, env, fromLive) {
+  const plain = env.type !== "SECRET" && !isLiveSecret(fromLive);
+  if (plain && fromLive?.value !== undefined && String(fromLive.value) !== String(env.value) && !isListed(allowChange, where, env.key)) {
+    state.problems.push(`${where}: ${env.key} is '${fromLive.value}' in the live app and '${env.value}' in the file — applying would change it (fix the file, or --allow-change ${env.key})`);
+  }
+}
+
+/** Takes the vault's value for a variable, or says there is none. */
+async function takeFromVault(state, secret, where, env, noValueProblem) {
+  const fromVault = await secret(env.key);
+  if (!fromVault) {
+    state.problems.push(noValueProblem);
+    return;
+  }
+  env.value = fromVault;
+  state.resolved.push(`${where}:${env.key}`);
+}
+
+/** One variable of a container: its value from the file, the live app or the vault — or a problem. */
+async function resolveVariable(state, options, where, env, fromLive) {
+  const { secret = async () => undefined, setSecret = [] } = options;
+  if (isListed(setSecret, where, env.key)) {
+    await takeFromVault(state, secret, where, env, `${where}: ${env.key} --set-secret was given but the vault has no value for it (KRIZAKA_SECRET_${env.key} or secret.sh)`);
+    return;
+  }
+  // « unset » for a secret means managed live: never overwrite the live encrypted value with a placeholder.
+  if ((env.type === "SECRET" || isLiveSecret(fromLive)) && hasLiveValue(fromLive) && isSecretPlaceholder(env.value)) {
+    env.value = fromLive.value;
+    state.carried.push(`${where}:${env.key}`);
+    return;
+  }
+  if (hasValue(env.value)) {
+    checkPlainChange(state, options, where, env, fromLive);
+    return;
+  }
+  if (hasLiveValue(fromLive)) {
+    env.value = fromLive.value;
+    state.carried.push(`${where}:${env.key}`);
+    return;
+  }
+  await takeFromVault(state, secret, where, env, `${where}: ${env.key} has no value in the file, none in the live app, none in the vault — applying would blank it`);
+}
+
+/** A live variable the file does not mention would be DELETED by the apply. */
+function reportDropped(state, { allowDrop }, where, live, seen) {
+  for (const key of live.keys()) {
+    if (!seen.has(key) && !isListed(allowDrop, where, key)) {
+      state.problems.push(`${where}: ${key} is set in the live app but not in the file — applying would delete it (add it to the file, or --allow-drop ${key})`);
     }
   }
-  return { spec, carried, resolved, problems };
 }
 
 /**
