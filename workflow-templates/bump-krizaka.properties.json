@@ -1,0 +1,6 @@
+{
+  "name": "Bump @krizaka packages",
+  "description": "A @krizaka release opens one auto-merged pull request that bumps the ranges (repository_dispatch from the publisher).",
+  "iconName": "octicon package",
+  "categories": ["Automation"]
+}
