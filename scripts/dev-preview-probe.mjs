@@ -40,6 +40,21 @@ async function status(url, init) {
   }
 }
 
+/** Sign-up is closed: every sign-up endpoint answers 403, or the passwordless product's end-to-end test is green. */
+async function signupClosed(p, base) {
+  if (p.signup.length) {
+    const body = JSON.stringify({ email: "probe@example.invalid", password: "Aa1!probeprobe", username: "probe" });
+    const codes = await Promise.all(p.signup.map((s) => status(base + s, { method: "POST", headers: { "content-type": "application/json" }, body })));
+    return { ok: codes.every((c) => c === 403), note: `POST ${p.signup.join(",")} -> ${codes.join(",")}` };
+  }
+  if (p.signupTest) {
+    // A passwordless product has no sign-up endpoint to POST to (the code flow answers the same 200 for anyone): the proof is its end-to-end test.
+    const seen = await status(p.signupTest);
+    return { ok: seen === 200, note: `proved by a test: ${p.signupTest} -> ${seen}` };
+  }
+  return { ok: false, note: "no sign-up endpoint known: prove it by a test" };
+}
+
 export async function probe(id, { seo } = {}) {
   const p = PRODUCTS[id];
   const r = {};
@@ -49,14 +64,7 @@ export async function probe(id, { seo } = {}) {
   const health = (await Promise.all(p.health.map((h) => status(base + h)))).some((s) => s === 200);
   r["site.healthy"] = { ok: Boolean(home?.ok) && health && /v\d+\.\d+\.\d+/.test(html), note: `home ${home?.status}, health ${health}, version ${/v\d+\.\d+\.\d+[^<"\s]*/.exec(html)?.[0] ?? "none"}` };
   r["ui.krizaka-ui (one footer)"] = { ok: (html.match(/<footer/g) ?? []).length === 1, note: `${(html.match(/<footer/g) ?? []).length} <footer>` };
-  if (p.signup.length) {
-    const codes = await Promise.all(p.signup.map((s) => status(base + s, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: "probe@example.invalid", password: "Aa1!probeprobe", username: "probe" }) })));
-    r["site.signup-closed"] = { ok: codes.every((c) => c === 403), note: `POST ${p.signup.join(",")} -> ${codes.join(",")}` };
-  } else if (p.signupTest) {
-    // A passwordless product has no sign-up endpoint to POST to (the code flow answers the same 200 for anyone): the proof is its end-to-end test.
-    const seen = await status(p.signupTest);
-    r["site.signup-closed"] = { ok: seen === 200, note: `proved by a test: ${p.signupTest} -> ${seen}` };
-  } else r["site.signup-closed"] = { ok: false, note: "no sign-up endpoint known: prove it by a test" };
+  r["site.signup-closed"] = await signupClosed(p, base);
   if (p.admin) {
     const robots = await (await fetch(`https://${p.admin}/robots.txt`, { signal: AbortSignal.timeout(20000) }).catch(() => null))?.text();
     const head = await fetch(`https://${p.admin}/`, { redirect: "manual", signal: AbortSignal.timeout(20000) }).catch(() => null);

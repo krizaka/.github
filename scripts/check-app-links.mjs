@@ -153,66 +153,80 @@ export function checkNativeScreens({ screens, paths, nativeIntent }) {
   return gaps;
 }
 
+/** One `.well-known` file: its JSON, or null with the reason added to `gaps`. */
+async function wellKnown(get, base, name, gaps) {
+  const url = `${base}/.well-known/${name}`;
+  let res;
+  try {
+    res = await get(url);
+  } catch (e) {
+    gaps.push(`${url} unreachable (${e.message})`);
+    return null;
+  }
+  if (res.status !== 200) {
+    gaps.push(`${url} answers ${res.status}${res.status >= 300 && res.status < 400 ? " (a redirect: Apple and Google refuse it)" : ""}, expected 200`);
+    return null;
+  }
+  if (!/^application\/json/i.test(res.headers.get("content-type") ?? "")) gaps.push(`${url} content-type is "${res.headers.get("content-type")}", expected application/json`);
+  try {
+    return await res.json();
+  } catch {
+    gaps.push(`${url} is not valid JSON`);
+    return null;
+  }
+}
+
+/** The AASA names the app and claims every path. */
+function checkAasa(aasa, config, gaps) {
+  const details = aasa.applinks?.details ?? [];
+  const ids = details.flatMap((d) => asArray(d.appIDs ?? d.appID));
+  if (!ids.some((id) => /^[A-Z0-9]{10}\./.test(id) && id.endsWith(`.${config.iosBundleId}`))) gaps.push(`AASA has no appID <TeamID>.${config.iosBundleId}`);
+  const claimed = details.flatMap((d) => [...asArray(d.paths), ...asArray(d.components).map((c) => c["/"])]).filter(Boolean);
+  for (const p of config.paths) if (!claimed.includes(p)) gaps.push(`AASA does not claim ${p}`);
+}
+
+/** assetlinks.json targets the package with well-formed fingerprints; returns them. */
+function checkAssetlinks(links, config, gaps) {
+  const entry = (Array.isArray(links) ? links : []).find((e) => e.target?.package_name === config.androidPackage);
+  const fingerprints = entry?.target?.sha256_cert_fingerprints ?? [];
+  if (!entry) gaps.push(`assetlinks.json has no target for ${config.androidPackage}`);
+  else if (!fingerprints.length || !fingerprints.every((f) => /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/.test(f))) gaps.push("assetlinks.json: sha256_cert_fingerprints missing or malformed");
+  return fingerprints;
+}
+
+/** Apple's CDN serves a file for the host. */
+async function checkAppleCdn(fetchImpl, host, gaps) {
+  try {
+    const res = await fetchImpl(`https://app-site-association.cdn-apple.com/a/v1/${host}`, { signal: AbortSignal.timeout(20000) });
+    if (res.status !== 200) gaps.push(`Apple's CDN has no file for ${host} (status ${res.status}); redeploy, then retry in a few minutes`);
+  } catch (e) {
+    gaps.push(`Apple's CDN unreachable (${e.message})`);
+  }
+}
+
+/** Google's Digital Asset Links API reports the site linked to the app. */
+async function checkGoogleLinks(fetchImpl, host, config, fingerprint, gaps) {
+  const q = new URLSearchParams({ "source.web.site": `https://${host}`, relation: "delegate_permission/common.handle_all_urls", "target.androidApp.packageName": config.androidPackage, "target.androidApp.certificate.sha256Fingerprint": fingerprint });
+  try {
+    const res = await fetchImpl(`https://digitalassetlinks.googleapis.com/v1/assetlinks:check?${q}`, { signal: AbortSignal.timeout(20000) });
+    const body = res.ok ? await res.json() : {};
+    if (body.linked !== true) gaps.push("Google's Digital Asset Links API does not report the site linked to the app");
+  } catch (e) {
+    gaps.push(`Google's Digital Asset Links API unreachable (${e.message})`);
+  }
+}
+
 /** Rule 5 — the live files. `fetchImpl` is injectable for the tests. */
 export async function checkLive(base, config, { fetchImpl = fetch, cdn = true } = {}) {
   const gaps = [];
   const host = new URL(base).host;
   const get = (url) => fetchImpl(url, { redirect: "manual", signal: AbortSignal.timeout(20000) });
-  const file = async (name) => {
-    const url = `${base}/.well-known/${name}`;
-    let res;
-    try {
-      res = await get(url);
-    } catch (e) {
-      gaps.push(`${url} unreachable (${e.message})`);
-      return null;
-    }
-    if (res.status !== 200) {
-      gaps.push(`${url} answers ${res.status}${res.status >= 300 && res.status < 400 ? " (a redirect: Apple and Google refuse it)" : ""}, expected 200`);
-      return null;
-    }
-    if (!/^application\/json/i.test(res.headers.get("content-type") ?? "")) gaps.push(`${url} content-type is "${res.headers.get("content-type")}", expected application/json`);
-    try {
-      return await res.json();
-    } catch {
-      gaps.push(`${url} is not valid JSON`);
-      return null;
-    }
-  };
-  const aasa = await file("apple-app-site-association");
-  if (aasa) {
-    const details = aasa.applinks?.details ?? [];
-    const ids = details.flatMap((d) => asArray(d.appIDs ?? d.appID));
-    if (!ids.some((id) => /^[A-Z0-9]{10}\./.test(id) && id.endsWith(`.${config.iosBundleId}`))) gaps.push(`AASA has no appID <TeamID>.${config.iosBundleId}`);
-    const claimed = details.flatMap((d) => [...asArray(d.paths), ...asArray(d.components).map((c) => c["/"])]).filter(Boolean);
-    for (const p of config.paths) if (!claimed.includes(p)) gaps.push(`AASA does not claim ${p}`);
-  }
-  const links = await file("assetlinks.json");
-  let fingerprints = [];
-  if (links) {
-    const entry = (Array.isArray(links) ? links : []).find((e) => e.target?.package_name === config.androidPackage);
-    fingerprints = entry?.target?.sha256_cert_fingerprints ?? [];
-    if (!entry) gaps.push(`assetlinks.json has no target for ${config.androidPackage}`);
-    else if (!fingerprints.length || !fingerprints.every((f) => /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/.test(f))) gaps.push("assetlinks.json: sha256_cert_fingerprints missing or malformed");
-  }
-  if (cdn && aasa) {
-    try {
-      const res = await fetchImpl(`https://app-site-association.cdn-apple.com/a/v1/${host}`, { signal: AbortSignal.timeout(20000) });
-      if (res.status !== 200) gaps.push(`Apple's CDN has no file for ${host} (status ${res.status}); redeploy, then retry in a few minutes`);
-    } catch (e) {
-      gaps.push(`Apple's CDN unreachable (${e.message})`);
-    }
-  }
-  if (cdn && fingerprints.length) {
-    const q = new URLSearchParams({ "source.web.site": `https://${host}`, relation: "delegate_permission/common.handle_all_urls", "target.androidApp.packageName": config.androidPackage, "target.androidApp.certificate.sha256Fingerprint": fingerprints[0] });
-    try {
-      const res = await fetchImpl(`https://digitalassetlinks.googleapis.com/v1/assetlinks:check?${q}`, { signal: AbortSignal.timeout(20000) });
-      const body = res.ok ? await res.json() : {};
-      if (body.linked !== true) gaps.push("Google's Digital Asset Links API does not report the site linked to the app");
-    } catch (e) {
-      gaps.push(`Google's Digital Asset Links API unreachable (${e.message})`);
-    }
-  }
+  const aasa = await wellKnown(get, base, "apple-app-site-association", gaps);
+  if (aasa) checkAasa(aasa, config, gaps);
+  const links = await wellKnown(get, base, "assetlinks.json", gaps);
+  const fingerprints = links ? checkAssetlinks(links, config, gaps) : [];
+  if (cdn && aasa) await checkAppleCdn(fetchImpl, host, gaps);
+  if (cdn && fingerprints.length) await checkGoogleLinks(fetchImpl, host, config, fingerprints[0], gaps);
   return gaps;
 }
 
@@ -228,6 +242,33 @@ async function loadRoutes(src) {
   return readJson(src);
 }
 
+/** The web half: the routes against the claimed paths, the served files, and routes.json up to date. */
+function checkWebConfig(root, config, arg, argv) {
+  const gaps = [];
+  const routes = nextRoutes(resolve(root, config.web.appDir));
+  const { gaps: g, shareable } = checkWebRoutes({ routes, paths: config.paths, excluded: config.web.excluded, extra: config.web.extra });
+  gaps.push(...g);
+  for (const r of ["aasaRoute", "assetlinksRoute"]) if (!existsSync(resolve(root, config.web[r]))) gaps.push(`${config.web[r]} does not exist: the file is not served`);
+  const manifest = { host: config.host, iosBundleId: config.iosBundleId, androidPackage: config.androidPackage, paths: config.paths, shareable };
+  const out = resolve(root, arg("--write-routes") ?? config.web.routesFile ?? "routes.json");
+  const shown = out.replace(root + "/", "");
+  if (argv.includes("--write-routes")) writeFileSync(out, JSON.stringify(manifest, null, 2) + "\n");
+  else if (!existsSync(out) || JSON.stringify(readJson(out)) !== JSON.stringify(manifest)) gaps.push(`${shown} is missing or out of date: run with --write-routes ${shown} and commit it`);
+  return gaps;
+}
+
+/** The native half: app.json and the Expo Router screens against the web's claimed paths. */
+async function checkNativeConfig(root, config, arg) {
+  const web = await loadRoutes(arg("--routes") ?? config.native.routes);
+  const paths = web.paths;
+  const appDir = resolve(root, config.native.appDir);
+  const nativeIntent = ["ts", "tsx", "js"].some((e) => existsSync(join(appDir, `+native-intent.${e}`)));
+  return [
+    ...checkAppJson(readJson(resolve(root, config.native.appJson)), { host: web.host, iosBundleId: web.iosBundleId, androidPackage: web.androidPackage, paths }),
+    ...checkNativeScreens({ screens: expoRoutes(appDir), paths, nativeIntent }),
+  ];
+}
+
 export async function main(argv) {
   const arg = (n) => (argv.includes(n) ? argv[argv.indexOf(n) + 1] : undefined);
   const root = resolve(arg("--root") ?? ".");
@@ -236,24 +277,8 @@ export async function main(argv) {
   if (arg("--live")) {
     gaps.push(...(await checkLive(arg("--live").replace(/\/$/, ""), config, { cdn: !argv.includes("--no-cdn") })));
   } else {
-    if (config.web) {
-      const routes = nextRoutes(resolve(root, config.web.appDir));
-      const { gaps: g, shareable } = checkWebRoutes({ routes, paths: config.paths, excluded: config.web.excluded, extra: config.web.extra });
-      gaps.push(...g);
-      for (const r of ["aasaRoute", "assetlinksRoute"]) if (!existsSync(resolve(root, config.web[r]))) gaps.push(`${config.web[r]} does not exist: the file is not served`);
-      const manifest = { host: config.host, iosBundleId: config.iosBundleId, androidPackage: config.androidPackage, paths: config.paths, shareable };
-      const out = resolve(root, arg("--write-routes") ?? config.web.routesFile ?? "routes.json");
-      if (argv.includes("--write-routes")) writeFileSync(out, JSON.stringify(manifest, null, 2) + "\n");
-      else if (!existsSync(out) || JSON.stringify(readJson(out)) !== JSON.stringify(manifest)) gaps.push(`${out.replace(root + "/", "")} is missing or out of date: run with --write-routes ${out.replace(root + "/", "")} and commit it`);
-    }
-    if (config.native) {
-      const web = await loadRoutes(arg("--routes") ?? config.native.routes);
-      const paths = web.paths;
-      const appDir = resolve(root, config.native.appDir);
-      gaps.push(...checkAppJson(readJson(resolve(root, config.native.appJson)), { host: web.host, iosBundleId: web.iosBundleId, androidPackage: web.androidPackage, paths }));
-      const nativeIntent = ["ts", "tsx", "js"].some((e) => existsSync(join(appDir, `+native-intent.${e}`)));
-      gaps.push(...checkNativeScreens({ screens: expoRoutes(appDir), paths, nativeIntent }));
-    }
+    if (config.web) gaps.push(...checkWebConfig(root, config, arg, argv));
+    if (config.native) gaps.push(...(await checkNativeConfig(root, config, arg)));
   }
   if (gaps.length) {
     for (const g of gaps) console.error(`GAP ${g}`);
