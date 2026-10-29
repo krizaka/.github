@@ -172,3 +172,22 @@ test("the lab-isolation rule: nothing outside the lab depends on the lab", async
   const doc = snap("x", "npm", { "README.md": "see krizaka-lab", "package.json": "{}" });
   assert.equal((await runCheck(rule.check, doc)).ok, true, "prose is not a dependency");
 });
+
+test("formatter: a config, the format:check script and its CI step are all required (krizaka/.github#427)", async () => {
+  const rule = loadRules().find((r) => r.id === "formatter");
+  assert.ok(rule);
+  const pkg = JSON.stringify({ scripts: { "format:check": 'prettier --check "**/*.{ts,tsx}"' } });
+  const full = { "package.json": pkg, "prettier.config.js": "x", ".github/workflows/ci.yml": `${call("node-ci.yml")}    with:\n      format-script: format:check\n` };
+  assert.equal(await appliesTo(rule, snap("r", "site", { "pom.xml": "" })), false);
+  assert.equal((await runCheck(rule.check, snap("r", "site", full))).ok, true);
+  const { "prettier.config.js": _config, ...noConfig } = full;
+  assert.equal((await runCheck(rule.check, snap("r", "site", noConfig))).ok, false);
+  assert.match((await runCheck(rule.check, snap("r", "site", { ...full, "package.json": "{}" }))).why, /format:check/);
+  assert.equal((await runCheck(rule.check, snap("r", "site", { ...full, ".github/workflows/ci.yml": call("node-ci.yml") }))).ok, false);
+});
+
+test("all-of must list real, non-nested checks", () => {
+  const base = { id: "x", title: "t", issue: "krizaka/.github#1", fix: { type: "manual" } };
+  assert.match(validateRules([{ ...base, check: { type: "all-of", checks: [] } }]).join(), /incomplete/);
+  assert.match(validateRules([{ ...base, check: { type: "all-of", checks: [{ type: "all-of" }] } }]).join(), /incomplete/);
+});

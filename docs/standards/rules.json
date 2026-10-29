@@ -402,6 +402,21 @@
       "applies": { "when": [{ "fileExists": "sg-ratchet.json" }] },
       "check": { "type": "file-matches", "path": "sg-ratchet.json", "pattern": "no-sync-fs-in-runtime" },
       "fix": { "type": "manual", "note": "bump @krizaka/config, then `npx krizaka-sg-ratchet --update` (a repository with its own copy of the rules adopts the pack's core set instead)" }
+    },
+    {
+      "id": "formatter",
+      "title": "Prettier with @krizaka/config/prettier in every TS/JS repository: config, format and format:check scripts, checked in the shared Node CI (google-java-format stays for Java)",
+      "issue": "krizaka/.github#427",
+      "applies": { "when": [{ "fileExists": "package.json" }] },
+      "check": {
+        "type": "all-of",
+        "checks": [
+          { "type": "file-exists", "paths": ["prettier.config.js", "prettier.config.mjs", "prettier.config.cjs"] },
+          { "type": "file-matches", "path": "package.json", "pattern": "\"format:check\"\\s*:\\s*\"prettier --check" },
+          { "type": "workflow-matches", "pattern": "format-script:\\s*format:check|format:check" }
+        ]
+      },
+      "fix": { "type": "manual", "note": "add prettier + `prettier.config.js` (`export { default } from \"@krizaka/config/prettier\";`) + `.prettierignore` (generated files, lockfiles, vendored), the `format` / `format:check` scripts, commit one `chore(format): prettier` change alone with its SHA in `.git-blame-ignore-revs`, and pass `format-script: format:check` to node-ci (or list it in quality-scripts). Open PRs are rebased with `prettier --write`, never left conflicting on formatting" }
     }
   ]
 }
