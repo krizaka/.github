@@ -108,47 +108,43 @@ const MANIFEST = /(^|\/)(package\.json|pnpm-workspace\.yaml|\.gitmodules|pom\.xm
 
 const callsOf = (text) => new Set([...text.matchAll(CALL)].map((m) => m[1]));
 
+const verdict = (ok, why) => ({ ok, why: ok ? "" : why });
+
+/** One handler per check type: each returns { ok, why }. */
+const CHECKS = {
+  "workflow-calls": async (check, snap) => {
+    const wanted = check.byKind ? (check.byKind[snap.kind] ?? []) : check.workflows;
+    const calls = callsOf(await snap.workflows());
+    return verdict(wanted.some((w) => calls.has(w)), `calls none of ${wanted.join(", ")}`);
+  },
+  "workflow-matches": async (check, snap) =>
+    verdict(new RegExp(check.pattern).test(await snap.workflows()), `no workflow matches ${check.pattern}`),
+  "workflow-forbids": async (check, snap) => {
+    const found = new RegExp(check.pattern).exec(await snap.workflows());
+    return { ok: !found, why: found ? `a workflow has « ${found[0]} »` : "" };
+  },
+  "file-exists": async (check, snap) =>
+    verdict(check.paths.some((p) => snap.paths.includes(p)), `no ${check.paths[0]}`),
+  "file-matches": async (check, snap) => {
+    const body = await snap.read(check.path);
+    if (body === null) return { ok: false, why: `no ${check.path}` };
+    return verdict(new RegExp(check.pattern).test(body), `${check.path} lacks ${check.pattern}`);
+  },
+  // The manifests that can name a dependency: npm, pnpm workspaces, git submodules, Maven, Gradle.
+  "manifests-forbid": async (check, snap) => {
+    const re = new RegExp(check.pattern);
+    for (const p of snap.paths.filter((x) => MANIFEST.test(x))) {
+      const found = re.exec((await snap.read(p)) ?? "");
+      if (found) return { ok: false, why: `${p} names « ${found[0]} »` };
+    }
+    return { ok: true, why: "" };
+  },
+};
+
 /** @returns {Promise<{ ok: boolean, why: string }>} */
 export async function runCheck(check, snap) {
-  const text = async () => snap.workflows();
-  switch (check.type) {
-    case "workflow-calls": {
-      const wanted = check.byKind ? (check.byKind[snap.kind] ?? []) : check.workflows;
-      const calls = callsOf(await text());
-      const ok = wanted.some((w) => calls.has(w));
-      return { ok, why: ok ? "" : `calls none of ${wanted.join(", ")}` };
-    }
-    case "workflow-matches": {
-      const ok = new RegExp(check.pattern).test(await text());
-      return { ok, why: ok ? "" : `no workflow matches ${check.pattern}` };
-    }
-    case "workflow-forbids": {
-      const found = new RegExp(check.pattern).exec(await text());
-      return { ok: !found, why: found ? `a workflow has « ${found[0]} »` : "" };
-    }
-    case "file-exists": {
-      const ok = check.paths.some((p) => snap.paths.includes(p));
-      return { ok, why: ok ? "" : `no ${check.paths[0]}` };
-    }
-    case "file-matches": {
-      const body = await snap.read(check.path);
-      if (body === null) return { ok: false, why: `no ${check.path}` };
-      const ok = new RegExp(check.pattern).test(body);
-      return { ok, why: ok ? "" : `${check.path} lacks ${check.pattern}` };
-    }
-    case "manifests-forbid": {
-      // The manifests that can name a dependency: npm, pnpm workspaces, git submodules, Maven, Gradle.
-      const manifests = snap.paths.filter((p) => MANIFEST.test(p));
-      const re = new RegExp(check.pattern);
-      for (const p of manifests) {
-        const found = re.exec((await snap.read(p)) ?? "");
-        if (found) return { ok: false, why: `${p} names « ${found[0]} »` };
-      }
-      return { ok: true, why: "" };
-    }
-    default:
-      return { ok: false, why: `unknown check ${check.type}` };
-  }
+  const handler = CHECKS[check.type];
+  return handler ? handler(check, snap) : { ok: false, why: `unknown check ${check.type}` };
 }
 
 /** The matrix: `cells[repo][rule]` = { status: "green" | "red" | "n/a", why }. */
