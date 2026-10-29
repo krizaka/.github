@@ -27,6 +27,12 @@
           "iac": ["krizaka-ci.yml"]
         }
       },
+      "exempt": {
+        "krizaka-infra": "OpenTofu stack pinned by .tool-versions that also runs tflint and checkov; krizaka-ci's iac flow (fmt, validate, test) runs neither, so moving would drop two checks.",
+        "krizaka-tauri-kit": "A Rust-only library workspace on macOS (fmt, clippy, test, generated-permissions diff); no shared Rust workflow exists (tauri-macos.yml builds apps), and its own rust.yml already ends in the standard `CI gate`.",
+        "krizaka-ui": "The component library's 20 KB CI (registries, size budgets, realtime adapters, docs-site crawl and layout shards) is specialised beyond node-ci's inputs; it already uses the shared changes.yml, sonar-scan and dup-check pieces and ends in `CI gate`.",
+        "orazaka": "The Orazaka workspace root: its ci.yml IS the workspace flow (clone every repository, workspace.mjs ci) that component.yml and krizaka-ci's workspace mode derive from, so it cannot call itself."
+      },
       "fix": { "type": "manual", "note": "call node-ci / maven / python-ci / krizaka-ci (or component.yml for an Orazaka component); site-specific checks stay a small local job" }
     },
     {
