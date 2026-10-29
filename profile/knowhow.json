@@ -1,15 +1,9 @@
 {
-  "$comment": "The know-how each Krizaka product proves — the provable sentences of krizaka.com (messages site.products.knowhow.*). Structure of the products (name, url, status, repo) comes from @krizaka/ui/sites; this file only holds words. A product listed here but not yet in the published @krizaka/ui/sites carries a `fallback` until the package knows it. Products in `paused` are left out of the profile even while the package still lists them (decision 2026-10-25: their repositories turn private).",
+  "$comment": "The know-how each Krizaka product proves — the provable sentences of krizaka.com (messages site.products.knowhow.*). Structure of the products (name, url, status, repo) comes from @krizaka/ui/sites; this file only holds words. A product listed here but not yet in the published @krizaka/ui/sites carries a `fallback` until the package knows it. Only the products in `order` are shown, even while the package still lists others (krizaka/.github#413).",
   "order": [
     "orazaka",
     "yomizaka",
     "akinaza"
-  ],
-  "paused": [
-    "orochia",
-    "yasakia",
-    "yororis",
-    "kachizaka"
   ],
   "products": {
     "orazaka": {

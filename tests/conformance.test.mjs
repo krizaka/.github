@@ -118,3 +118,28 @@ test("the email-verification rule: the two public e-mail forms, each with the fi
   assert.equal((await runCheck(rule.check, { paths: ["functions/packages/newsletter/confirm/index.js"] })).ok, true);
   assert.equal((await runCheck(rule.check, { paths: ["lib/contact.ts"] })).ok, false);
 });
+
+test("no-mention: a departed product named outside the allow list is red, history is allowed", async () => {
+  const check = { type: "no-mention", pattern: "orochia|yasakia", allow: ["CHANGELOG.md"], allowIn: { r: ["notes/"] } };
+  const withScan = (name, hits) => ({ ...snap(name, "app", { a: "" }), scan: async () => hits });
+  assert.deepEqual(await runCheck(check, withScan("x", ["CHANGELOG.md"])), { ok: true, why: "" });
+  assert.deepEqual(await runCheck(check, withScan("r", ["notes/a.md"])), { ok: true, why: "" });
+  const red = await runCheck(check, withScan("x", ["notes/a.md", "CHANGELOG.md"]));
+  assert.equal(red.ok, false);
+  assert.match(red.why, /notes\/a\.md/);
+  assert.equal((await runCheck(check, snap("x", "app", { a: "" }))).ok, true, "offline: no scan, nothing to prove");
+});
+
+test("tarballMatches reads the text files of a GitHub tarball and skips the binaries", async () => {
+  const { gzipSync } = await import("node:zlib");
+  const { tarballMatches } = await import("../scripts/conformance.mjs");
+  const entry = (name, body) => {
+    const head = Buffer.alloc(512);
+    head.write(name);
+    head.write(body.length.toString(8).padStart(11, "0"), 124);
+    head[156] = 48;
+    return Buffer.concat([head, body, Buffer.alloc((512 - (body.length % 512)) % 512)]);
+  };
+  const tar = Buffer.concat([entry("top/a.md", Buffer.from("see Orochia")), entry("top/b.md", Buffer.from("clean")), entry("top/c.bin", Buffer.from([0, 1, 2])), Buffer.alloc(1024)]);
+  assert.deepEqual(tarballMatches(gzipSync(tar), /orochia/i), ["a.md"]);
+});

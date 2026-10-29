@@ -8,10 +8,6 @@ const site = (id, status, extra = {}) => ({ id, name: id[0].toUpperCase() + id.s
 const sites = [
   { id: "krizaka", name: "Krizaka", url: "https://www.krizaka.com", kind: "company", status: "released" },
   site("orazaka", "released"),
-  site("orochia", "released"),
-  site("yasakia", "upcoming"),
-  site("yororis", "construction"),
-  site("kachizaka", "development", { url: "https://github.com/krizaka/kachizaka" }),
   site("akinaza", "development", { url: "https://github.com/krizaka/akinaza" }),
   { id: "ui", name: "Krizaka UI", url: "https://ui.krizaka.com", kind: "open-source", status: "released" },
 ];
@@ -20,16 +16,6 @@ test("products only, in the know-how order, with their status in words", () => {
   const p = collectProducts({ sites, knowhow });
   assert.deepEqual(p.map((x) => x.id), ["orazaka", "yomizaka", "akinaza"]);
   assert.deepEqual(p.map((x) => x.status), ["Available", "In development", "In development"]);
-});
-
-test("a paused product is never listed nor linked, even while the package still lists it (2026-10-25)", () => {
-  assert.deepEqual([...knowhow.paused].sort(), ["kachizaka", "orochia", "yasakia", "yororis"]);
-  const md = renderProducts(collectProducts({ sites, knowhow }));
-  for (const id of knowhow.paused) {
-    assert.ok(!md.includes(`krizaka/${id}`), `${id} is linked`);
-    assert.ok(!md.includes(`brand/${id}/`), `${id}'s mark is shown`);
-    assert.equal(knowhow.order.includes(id) || id in knowhow.products, false, `${id} still has words`);
-  }
 });
 
 test("a product the package does not know yet comes from its fallback; once known, the package wins", () => {

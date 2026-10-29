@@ -2,7 +2,7 @@
 
 <!-- summary: What a product must prove, with evidence, before it wears the Dev preview status. -->
 
-> North star (Oussama, 2026-10-16): **every product, Orazaka included, reaches Dev preview.** Orochia is the reference.
+> North star (Oussama, 2026-10-16): **every product, Orazaka included, reaches Dev preview.**
 > Decision record: [ADR-002](../adr/ADR-002-dev-preview-status-is-data.md). Schema: [dev-preview.schema.json](dev-preview.schema.json).
 
 **Dev preview** means: the product runs for real on its dev site, only the QA accounts can use it, one real journey
@@ -60,7 +60,7 @@ outside and prints what it could not.
 | `admin.ux-review` | `ux.ia-review` for the console: the operator's jobs → at most about 5 sections, no mixed concepts | as `ux.ia-review` | no |
 | `admin.ci` | The console's code is covered by CI with tests (own repository today, or the product repository once merged by host routing) | CI link | no |
 
-Merging the consoles into the product apps by host routing (orochia#232; orazaka-web-admin#31 before its retirement) is the way to deliver
+Merging the consoles into the product apps by host routing (orazaka-web-admin#31 before its retirement) is the way to deliver
 `admin.*` for every product without a new App Platform app each; the criteria do not change, only where the code lives.
 
 ## The checklist file

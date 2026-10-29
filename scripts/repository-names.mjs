@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { pathToFileURL } from "node:url";
 
-// The products in focus. Kachizaka, Orochia, Yasakia and Yororis are paused (2026-10-25): private, no new repository.
+// The products in focus.
 const PRODUCT_OWNERS = ["akinaza", "orazaka", "yomizaka"];
 const SHARED_REPOSITORIES = new Set([
   "krizaka-ui",

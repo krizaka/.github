@@ -4,7 +4,7 @@
    (krizaka/.github scripts/check-app-links.mjs is the source; keep the copies identical).
 
    Config (JSON, `app-links.json` at the repository root):
-     { "host": "dev.orochia.com", "iosBundleId": "com.krizaka.orochia", "androidPackage": "com.krizaka.orochia",
+     { "host": "dev.yomizaka.com", "iosBundleId": "com.krizaka.yomizaka", "androidPackage": "com.krizaka.yomizaka",
        "paths": ["/@*", "/watch/*", "/me", "/me/*"],            // what the AASA and the Android intent filters claim
        "web": { "appDir": "apps/web/app", "extra": ["/@[username]"], "excluded": ["/auth/*", "/api/*", "/[locale]/[...rest]"],
                 "aasaRoute": "apps/web/app/.well-known/apple-app-site-association/route.ts",
@@ -18,7 +18,7 @@
      native (repo has "native") node scripts/check-app-links.mjs --routes <routes.json|url>
             3 app.json: iOS associatedDomains applinks:<host>; an Android intent filter with autoVerify and the host,
               covering every claimed path; 4 every claimed path has a screen in the Expo Router tree.
-     live   node scripts/check-app-links.mjs --live https://dev.orochia.com [--no-cdn]
+     live   node scripts/check-app-links.mjs --live https://dev.yomizaka.com [--no-cdn]
             5 both files: 200, application/json, no redirect, valid, bundle id and package right, Apple's CDN
               and Google's Digital Asset Links API agree.
    Exit 1 with one line per gap. Needs Node 20+. Prints no secret. */
