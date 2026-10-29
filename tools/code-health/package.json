@@ -1,0 +1,17 @@
+{
+  "name": "@krizaka-internal/code-health",
+  "private": true,
+  "type": "module",
+  "description": "Measures the external audit's « AI code » signals on the repositories' checkouts (krizaka/.github#384, ADR-015).",
+  "scripts": {
+    "measure": "node code-health.mjs",
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "eslint": "9.39.1",
+    "eslint-plugin-sonarjs": "4.2.2",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.71.1"
+  },
+  "engines": { "node": ">=22" }
+}
