@@ -1,0 +1,6 @@
+{
+  "name": "OpenSSF Scorecard",
+  "description": "Weekly supply-chain checks, published to scorecard.dev.",
+  "iconName": "octicon shield-check",
+  "categories": ["Code Scanning"]
+}
