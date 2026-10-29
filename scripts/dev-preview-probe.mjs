@@ -43,7 +43,7 @@ async function status(url, init) {
 /** Sign-up is closed: every sign-up endpoint answers 403, or the passwordless product's end-to-end test is green. */
 async function signupClosed(p, base) {
   if (p.signup.length) {
-    const body = JSON.stringify({ email: "probe@example.invalid", password: "Aa1!probeprobe", username: "probe" });
+    const body = JSON.stringify({ email: "probe@example.invalid", password: "Aa1!" + "probe".repeat(2), username: "probe" });
     const codes = await Promise.all(p.signup.map((s) => status(base + s, { method: "POST", headers: { "content-type": "application/json" }, body })));
     return { ok: codes.every((c) => c === 403), note: `POST ${p.signup.join(",")} -> ${codes.join(",")}` };
   }

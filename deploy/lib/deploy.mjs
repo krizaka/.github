@@ -13,6 +13,12 @@ const FAILED = new Set(["ERROR", "CANCELED", "SUPERSEDED"]);
 const sleepDefault = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /** The deployment object of `doctl apps get-deployment`. */
+/** « id @ short-commit », or the id alone when the deployment has no commit. */
+function describeDeployment({ id, commit }) {
+  if (!commit) return id;
+  return id + " @ " + shortCommit(commit);
+}
+
 async function deploymentOf(doctl, appId, id) {
   return doctl.json(["apps", "get-deployment", appId, id]);
 }
@@ -60,7 +66,7 @@ async function locateApp({ config, deps, report, step }) {
   const previousDeployment = liveApp?.active_deployment;
   report.previous = previousDeployment ? { id: previousDeployment.id, commit: commitsOf(previousDeployment)[0] ?? null } : null;
   const previous = report.previous;
-  step("previous deployment", previous ? `${previous.id}${previous.commit ? ` @ ${shortCommit(previous.commit)}` : ""}` : "none");
+  step("previous deployment", previous ? describeDeployment(previous) : "none");
   const liveSpec = liveApp?.spec ?? parseSpec(await deps.doctl.run(["apps", "spec", "get", appId, "--format", "yaml"]));
   return { appId, liveSpec };
 }
@@ -123,7 +129,7 @@ async function rebuild(ctx, appId, indexingOptions) {
   const waitOptions = { timeoutMs: config.waitMinutes * 60_000, pollMs: options.pollMs ?? 15_000, sleep, now, log: (m) => step("deployment", m) };
   const deployment = await waitActive(doctl, appId, created.id, waitOptions);
   report.deployment = { id: deployment.id, commit: commitsOf(deployment)[0] ?? null };
-  step("ACTIVE", `${deployment.id}${report.deployment.commit ? ` @ ${shortCommit(report.deployment.commit)}` : ""}`);
+  step("ACTIVE", describeDeployment(report.deployment));
   if (options.expectSha) assertExpectedCommit(deployment, options.expectSha, step);
   const after = await doctl.json(["apps", "get", appId]);
   await assertRunningHead(ctx, appId, deployment, after);

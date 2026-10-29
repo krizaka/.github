@@ -27,7 +27,7 @@ import { join, resolve } from "node:path";
 
 const PAGE = /^page\.(tsx|ts|jsx|js|mdx)$/;
 /** Code-unit order, the order `.sort()` gave, spelled out. */
-const byCodeUnit = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+const byCodeUnit = (a, b) => Number(a > b) - Number(a < b);
 
 /** A pattern (`/watch/*`, `/@*`) as a regular expression. `*` matches any characters, also across segments. */
 export function globToRegExp(glob) {
