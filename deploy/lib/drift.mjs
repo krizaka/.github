@@ -7,7 +7,9 @@ import { assertContext } from "./doctl.mjs";
 import { envEntries, isSecretPlaceholder, mergeWithLive, parseSpec } from "./spec.mjs";
 
 const SECTIONS = ["services", "workers", "jobs", "static_sites", "functions"];
-const sortKeys = (v) => (Array.isArray(v) ? v.map(sortKeys) : v && typeof v === "object" ? Object.fromEntries(Object.keys(v).sort().map((k) => [k, sortKeys(v[k])])) : v);
+/** Code-unit order, the order `.sort()` gave, spelled out. */
+const byCodeUnit = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+const sortKeys = (v) => (Array.isArray(v) ? v.map(sortKeys) : v && typeof v === "object" ? Object.fromEntries(Object.keys(v).sort(byCodeUnit).map((k) => [k, sortKeys(v[k])])) : v);
 const same = (a, b) => JSON.stringify(sortKeys(a ?? null)) === JSON.stringify(sortKeys(b ?? null));
 
 /** App Platform stores every ingress match with a path (an authority-only rule gets `path: { prefix: "/" }`): compare like with like. */

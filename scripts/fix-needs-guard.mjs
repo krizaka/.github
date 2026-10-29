@@ -21,10 +21,10 @@ export function lowersCap(patch = "", config = CONFIG) {
 export function check({ title, head = "", labels = [], body = "", files = [], patches = {} }, config = CONFIG) {
   if (config.skipBranches.some((g) => globToRegExp(g).test(head))) return { ok: true, why: "release branch: skipped" };
   if (!new RegExp(config.titlePattern).test(title)) return { ok: true, why: "not a fix: nothing to check" };
-  const globs = Object.values(config.guards).flat().map(globToRegExp);
+  const globs = Object.values(config.guards).flat().map((g) => globToRegExp(g));
   const guard = files.find((f) => globs.some((re) => re.test(f)));
   if (guard) return { ok: true, why: `guard: ${guard}` };
-  const capGlobs = config.lintCaps.files.map(globToRegExp);
+  const capGlobs = config.lintCaps.files.map((g) => globToRegExp(g));
   const lowered = files.find((f) => capGlobs.some((re) => re.test(f)) && lowersCap(patches[f], config));
   if (lowered) return { ok: true, why: `guard: lowered lint cap in ${lowered}` };
   const labelled = labels.includes(config.exemptLabel);

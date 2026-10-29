@@ -26,6 +26,8 @@ import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "
 import { join, resolve } from "node:path";
 
 const PAGE = /^page\.(tsx|ts|jsx|js|mdx)$/;
+/** Code-unit order, the order `.sort()` gave, spelled out. */
+const byCodeUnit = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 
 /** A pattern (`/watch/*`, `/@*`) as a regular expression. `*` matches any characters, also across segments. */
 export function globToRegExp(glob) {
@@ -63,7 +65,7 @@ export function nextRoutes(appDir) {
     }
   };
   if (existsSync(appDir)) walk(appDir, []);
-  return [...new Set(out)].sort();
+  return [...new Set(out)].sort(byCodeUnit);
 }
 
 /** Expo Router tree → route patterns (`index` and `_layout` folded, groups removed, `+native-intent`/`+not-found` ignored). */
@@ -81,7 +83,7 @@ export function expoRoutes(appDir) {
     }
   };
   if (existsSync(appDir)) walk(appDir, []);
-  return [...new Set(out.map((r) => r.replace(/\/$/, "") || "/"))].sort();
+  return [...new Set(out.map((r) => r.replace(/\/$/, "") || "/"))].sort(byCodeUnit);
 }
 
 /** Does an Expo route (`/watch/[id]`, `/me/[...rest]`) open for this concrete path? */
