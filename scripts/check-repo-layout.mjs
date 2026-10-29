@@ -47,11 +47,11 @@ const COMMON_FILES = [
   ".gitignore", ".gitattributes", ".gitmodules", ".editorconfig", ".dockerignore", ".agentignore", ".env.example",
   ".nvmrc", ".node-version", ".tool-versions", ".python-version", ".npmrc", ".npmignore", ".prettierignore", ".mailmap",
   ".release-please-manifest.json", "release-please-config.json", ".krizaka-deploy.json", "dev-preview.json",
-  ".repo-layout.json", ".gitleaks.toml", ".pre-commit-config.yaml", "sonar-project.properties", ".sonarcloud.properties", "*-ratchet.json", "a11y-baseline.json", "app-links.json", "app-links.routes.json", "sgconfig.yml", ".dependency-cruiser.cjs", "renovate.json", "Makefile",
+  ".repo-layout.json", ".gitleaks.toml", ".gitleaksignore", ".pre-commit-config.yaml", "sonar-project.properties", ".sonarcloud.properties", "*-ratchet.json", "a11y-baseline.json", "app-links.json", "app-links.routes.json", "sgconfig.yml", ".dependency-cruiser.cjs", "renovate.json", "Makefile",
   "Dockerfile", "Dockerfile.*", "docker-compose.yml", "docker-compose.*.yml", "compose.yml",
   ".prettierrc", ".prettierrc.*", ".lintstagedrc", ".lintstagedrc.*", ".commitlintrc.*", ".checkov.yml",
 ];
-const COMMON_DIRS = ["docs", "scripts", "tests", "test", ".github", ".githooks", ".husky", ".do", "deploy", "infra"];
+const COMMON_DIRS = ["docs", "scripts", "tests", "test", ".github", ".claude", ".githooks", ".husky", ".do", "deploy", "infra"];
 
 const NODE_FILES = [
   "package.json", "package-lock.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", "yarn.lock", "turbo.json",

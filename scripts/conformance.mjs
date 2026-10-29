@@ -35,8 +35,17 @@ export function validateRules(rules) {
     if (!CHECK_TYPES.includes(rule.check?.type)) problems.push(`${at}: no check (a rule without its check is refused)`);
     if (!FIX_TYPES.includes(rule.fix?.type)) problems.push(`${at}: no fix (use manual with a note)`);
     problems.push(...checkShape(rule));
+    problems.push(...exemptionProblems(rule));
   }
   return problems;
+}
+
+/** A repository that truly cannot follow a rule is declared in `exempt` with its reason (at least 30 characters: a sentence a reviewer can judge). */
+export const MIN_REASON = 30;
+export function exemptionProblems({ id, exempt = {} }) {
+  return Object.entries(exempt)
+    .filter(([, reason]) => typeof reason !== "string" || reason.trim().length < MIN_REASON)
+    .map(([repo]) => `${id}: the exemption of ${repo} needs a reason of at least ${MIN_REASON} characters`);
 }
 
 function checkShape({ id, check = {} }) {
@@ -76,8 +85,9 @@ export function snapshotOf(name, kind, paths, readFile) {
 
 /** Does the rule concern this repository? */
 export async function appliesTo(rule, snap, lists = {}) {
-  const { kinds, notRepos = [], when = [] } = rule.applies ?? {};
+  const { kinds, notRepos = [], onlyRepos, when = [] } = rule.applies ?? {};
   if (kinds && !kinds.includes(snap.kind)) return false;
+  if (onlyRepos && !onlyRepos.includes(snap.name)) return false;
   if (notRepos.includes(snap.name)) return false;
   for (const w of when) {
     if (!(await holds(w, snap, lists))) return false;
@@ -136,6 +146,11 @@ export async function evaluate(rules, snapshots, lists = {}) {
     for (const rule of rules) {
       if (!(await appliesTo(rule, snap, lists))) {
         cells[snap.name][rule.id] = { status: "n/a", why: "" };
+        continue;
+      }
+      const reason = rule.exempt?.[snap.name];
+      if (reason) {
+        cells[snap.name][rule.id] = { status: "n/a", why: `exempt: ${reason}` };
         continue;
       }
       const { ok, why } = await runCheck(rule.check, snap);

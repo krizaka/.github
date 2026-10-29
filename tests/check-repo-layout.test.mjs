@@ -125,3 +125,11 @@ test("the command line: exit 0 on a clean repository, 1 with the problems listed
 test("the accessibility baseline and the pre-commit config are allowed at the root", () => {
   assert.deepEqual(rules([...NEXT, "a11y-baseline.json", ".pre-commit-config.yaml"]), []);
 });
+
+test("the gitleaks ignore file is a common root file (reviewed fixtures are listed in it)", () => {
+  assert.deepEqual(checkLayout([...NEXT, ".gitleaksignore"]), { kind: "next-app", violations: [] });
+});
+
+test(".claude/ (the agents' settings and edit hook) is a standard folder in every repository", () => {
+  assert.deepEqual(checkLayout([...NEXT, ".claude/settings.json"]), { kind: "next-app", violations: [] });
+});
