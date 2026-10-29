@@ -70,7 +70,7 @@ jobs:
           persist-credentials: false
 
       - id: detect
-        uses: krizaka/.github/actions/detect@147c1925368d98fb07887257549db36556644cc5 # main
+        uses: krizaka/.github/actions/detect@b9ceb6bea30155a19f51893ef8bc4df312cf0a88 # main
         with:
           working-directory: ${{ inputs.working-directory }}
           timeout-minutes: ${{ inputs.timeout-minutes }}
@@ -129,7 +129,7 @@ jobs:
           working-directory: incoming
 
       # ── the pack ─────────────────────────────────────────────────────────────────────────────────────────────────
-      - uses: krizaka/.github/actions/setup@147c1925368d98fb07887257549db36556644cc5 # main
+      - uses: krizaka/.github/actions/setup@b9ceb6bea30155a19f51893ef8bc4df312cf0a88 # main
         with:
           stack: ${{ fromJSON(env.PLAN).stack }}
           working-directory: ${{ fromJSON(env.PLAN).workingDirectory }}
@@ -145,7 +145,7 @@ jobs:
           extra-packages: ${{ fromJSON(env.PLAN).pythonExtras }}
           component: ${{ fromJSON(env.PLAN).component }}
 
-      - uses: krizaka/.github/actions/quality@147c1925368d98fb07887257549db36556644cc5 # main
+      - uses: krizaka/.github/actions/quality@b9ceb6bea30155a19f51893ef8bc4df312cf0a88 # main
         if: ${{ needs.detect.outputs.stack != 'workspace' }}
         with:
           stack: ${{ fromJSON(env.PLAN).stack }}
@@ -160,7 +160,7 @@ jobs:
           python-manager: ${{ fromJSON(env.PLAN).pythonManager || 'pip' }}
           duplication: ${{ fromJSON(env.PLAN).duplication }}
 
-      - uses: krizaka/.github/actions/test@147c1925368d98fb07887257549db36556644cc5 # main
+      - uses: krizaka/.github/actions/test@b9ceb6bea30155a19f51893ef8bc4df312cf0a88 # main
         with:
           stack: ${{ fromJSON(env.PLAN).stack }}
           working-directory: ${{ fromJSON(env.PLAN).workingDirectory }}
@@ -172,14 +172,14 @@ jobs:
           tf-dirs: ${{ fromJSON(env.PLAN).tfDirs }}
 
       # The workspace's OpenRewrite dry run reads the upstreams that `workspace.mjs ci` installed: it comes after the tests.
-      - uses: krizaka/.github/actions/quality@147c1925368d98fb07887257549db36556644cc5 # main
+      - uses: krizaka/.github/actions/quality@b9ceb6bea30155a19f51893ef8bc4df312cf0a88 # main
         if: ${{ needs.detect.outputs.stack == 'workspace' }}
         with:
           stack: workspace
           rewrite: ${{ fromJSON(env.PLAN).rewrite }}
           component: ${{ fromJSON(env.PLAN).component }}
 
-      - uses: krizaka/.github/actions/build@147c1925368d98fb07887257549db36556644cc5 # main
+      - uses: krizaka/.github/actions/build@b9ceb6bea30155a19f51893ef8bc4df312cf0a88 # main
         with:
           working-directory: ${{ fromJSON(env.PLAN).workingDirectory }}
           package-manager: ${{ fromJSON(env.PLAN).packageManager || 'npm' }}
@@ -189,7 +189,7 @@ jobs:
           container-dockerfile: ${{ fromJSON(env.PLAN).containerDockerfile }}
           container-image: ci-image:ci
 
-      - uses: krizaka/.github/actions/after-build@147c1925368d98fb07887257549db36556644cc5 # main
+      - uses: krizaka/.github/actions/after-build@b9ceb6bea30155a19f51893ef8bc4df312cf0a88 # main
         with:
           working-directory: ${{ fromJSON(env.PLAN).workingDirectory }}
           package-manager: ${{ fromJSON(env.PLAN).packageManager || 'npm' }}

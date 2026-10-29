@@ -334,7 +334,7 @@ jobs:
       - uses: krizaka/.github/actions/repo-layout@f182d162d3446f254433714bc6f155d55a2e4084 # main
         if: ${{ matrix.task == 'all' || matrix.task == 'lint' }}
 
-      - uses: krizaka/.github/actions/setup@147c1925368d98fb07887257549db36556644cc5 # main
+      - uses: krizaka/.github/actions/setup@b9ceb6bea30155a19f51893ef8bc4df312cf0a88 # main
         with:
           stack: node
           working-directory: ${{ inputs.working-directory }}
@@ -346,7 +346,7 @@ jobs:
           postgres-image: ${{ (matrix.task == 'all' || matrix.task == 'test' || matrix.task == 'build') && inputs.postgres-image || '' }}
           postgres-name: ${{ inputs.postgres-name }}
 
-      - uses: krizaka/.github/actions/quality@147c1925368d98fb07887257549db36556644cc5 # main
+      - uses: krizaka/.github/actions/quality@b9ceb6bea30155a19f51893ef8bc4df312cf0a88 # main
         with:
           working-directory: ${{ inputs.working-directory }}
           package-manager: ${{ inputs.package-manager }}
@@ -355,7 +355,7 @@ jobs:
           typecheck-script: ${{ (matrix.task == 'all' || matrix.task == 'typecheck') && inputs.typecheck-script || '' }}
 
       # Turborepo's local cache (every leg but lint), then the tests (the test and build legs).
-      - uses: krizaka/.github/actions/test@147c1925368d98fb07887257549db36556644cc5 # main
+      - uses: krizaka/.github/actions/test@b9ceb6bea30155a19f51893ef8bc4df312cf0a88 # main
         with:
           working-directory: ${{ inputs.working-directory }}
           package-manager: ${{ inputs.package-manager }}
@@ -363,14 +363,14 @@ jobs:
           cache-scope: ${{ matrix.task }}
           test-script: ${{ (matrix.task == 'all' || matrix.task == 'test' || matrix.task == 'build') && inputs.test-script || '' }}
 
-      - uses: krizaka/.github/actions/build@147c1925368d98fb07887257549db36556644cc5 # main
+      - uses: krizaka/.github/actions/build@b9ceb6bea30155a19f51893ef8bc4df312cf0a88 # main
         with:
           working-directory: ${{ inputs.working-directory }}
           package-manager: ${{ inputs.package-manager }}
           next-cache-paths: ${{ (matrix.task == 'all' || matrix.task == 'build') && inputs.next-cache-paths || '' }}
           build-script: ${{ (matrix.task == 'all' || matrix.task == 'build') && inputs.build-script || '' }}
 
-      - uses: krizaka/.github/actions/after-build@147c1925368d98fb07887257549db36556644cc5 # main
+      - uses: krizaka/.github/actions/after-build@b9ceb6bea30155a19f51893ef8bc4df312cf0a88 # main
         with:
           working-directory: ${{ inputs.working-directory }}
           package-manager: ${{ inputs.package-manager }}
@@ -436,7 +436,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: krizaka/.github/actions/setup@147c1925368d98fb07887257549db36556644cc5 # main
+      - uses: krizaka/.github/actions/setup@b9ceb6bea30155a19f51893ef8bc4df312cf0a88 # main
         with:
           stack: node
           working-directory: ${{ inputs.working-directory }}
@@ -448,19 +448,19 @@ jobs:
           postgres-name: ${{ inputs.postgres-name }}
 
       # The Next.js cache only (no build here: the e2e script builds if it must).
-      - uses: krizaka/.github/actions/build@147c1925368d98fb07887257549db36556644cc5 # main
+      - uses: krizaka/.github/actions/build@b9ceb6bea30155a19f51893ef8bc4df312cf0a88 # main
         with:
           working-directory: ${{ inputs.working-directory }}
           package-manager: ${{ inputs.package-manager }}
           next-cache-paths: ${{ inputs.next-cache-paths }}
 
-      - uses: krizaka/.github/actions/after-build@147c1925368d98fb07887257549db36556644cc5 # main
+      - uses: krizaka/.github/actions/after-build@b9ceb6bea30155a19f51893ef8bc4df312cf0a88 # main
         with:
           working-directory: ${{ inputs.working-directory }}
           package-manager: ${{ inputs.package-manager }}
           playwright: ${{ inputs.e2e-browsers }}
 
-      - uses: krizaka/.github/actions/test@147c1925368d98fb07887257549db36556644cc5 # main
+      - uses: krizaka/.github/actions/test@b9ceb6bea30155a19f51893ef8bc4df312cf0a88 # main
         with:
           working-directory: ${{ inputs.working-directory }}
           package-manager: ${{ inputs.package-manager }}
@@ -503,7 +503,7 @@ jobs:
 
       # buildx with the Actions cache (actions/build): layers are restored on every run and written on main only,
       # so a pull request never pays for the export. The image is loaded into the local daemon (never pushed) for the scan and the smoke script.
-      - uses: krizaka/.github/actions/build@147c1925368d98fb07887257549db36556644cc5 # main
+      - uses: krizaka/.github/actions/build@b9ceb6bea30155a19f51893ef8bc4df312cf0a88 # main
         with:
           container: "true"
           container-context: ${{ inputs.container-context }}
@@ -549,7 +549,7 @@ jobs:
           trivyignores: ${{ steps.allow.outputs.file }}
 
       # Node (and pnpm) only for a smoke script that needs them; a build-only job needs neither.
-      - uses: krizaka/.github/actions/setup@147c1925368d98fb07887257549db36556644cc5 # main
+      - uses: krizaka/.github/actions/setup@b9ceb6bea30155a19f51893ef8bc4df312cf0a88 # main
         if: ${{ inputs.container-smoke != '' }}
         with:
           stack: node
@@ -558,7 +558,7 @@ jobs:
           node-version: ${{ inputs.node-version }}
           package-manager: ${{ inputs.package-manager }}
 
-      - uses: krizaka/.github/actions/after-build@147c1925368d98fb07887257549db36556644cc5 # main
+      - uses: krizaka/.github/actions/after-build@b9ceb6bea30155a19f51893ef8bc4df312cf0a88 # main
         with:
           working-directory: ${{ inputs.working-directory }}
           package-manager: ${{ inputs.package-manager }}
