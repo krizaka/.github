@@ -126,7 +126,7 @@ export async function waitForPublished(packages, { fetchVersion, sleep = (ms) =>
 
 /** Does npm serve this exact version? */
 async function npmServes(name, version) {
-  const response = await fetch(`https://registry.npmjs.org/${name.replace("/", "%2F")}/${version}`);
+  const response = await fetch(`https://registry.npmjs.org/${name.replaceAll("/", "%2F")}/${version}`);
   return response.ok;
 }
 
