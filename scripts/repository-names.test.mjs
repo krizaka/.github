@@ -55,9 +55,3 @@ test("legacy and unknown roles are reported, but the org profile repository is e
     ["orazaka-web-client"],
   );
 });
-
-test("a paused product owns no new repository name (2026-10-25)", () => {
-  for (const name of ["orochia", "orochia-mobile", "yasakia-web", "yororis", "kachizaka-admin"]) {
-    assert.equal(isValidRepositoryName(name), false, name);
-  }
-});

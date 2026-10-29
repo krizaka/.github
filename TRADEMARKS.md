@@ -4,7 +4,7 @@
 
 ## What the marks are
 
-The names **Krizaka**, **Orazaka**, **Yomizaka**, **Akinaza**, **Orochia**, **Kachizaka**, **Yasakia**, **Yororis**, every product's logo, and the **birds** that stand for them (the drawings and mascots of `@krizaka/ui`: `KrizakaLogo`, `OrazakaLogo`, `ProductLogo` and the mascot illustrations), are trademarks of Technologies Krizaka Inc., used in Canada (*Trademarks Act*, R.S.C. 1985, c. T-13, ss. 2, 4, 19, 20, 22 — [Justice Laws](https://laws-lois.justice.gc.ca/eng/acts/T-13/)). Registration applications are being prepared; an unregistered mark is still protected against passing off (s. 7).
+The names **Krizaka**, **Orazaka**, **Yomizaka**, **Akinaza**, every product's logo, and the **birds** that stand for them (the drawings and mascots of `@krizaka/ui`: `KrizakaLogo`, `OrazakaLogo`, `ProductLogo` and the mascot illustrations), are trademarks of Technologies Krizaka Inc., used in Canada (*Trademarks Act*, R.S.C. 1985, c. T-13, ss. 2, 4, 19, 20, 22 — [Justice Laws](https://laws-lois.justice.gc.ca/eng/acts/T-13/)). Registration applications are being prepared; an unregistered mark is still protected against passing off (s. 7).
 
 ## The code licence gives no right to the marks
 

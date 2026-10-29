@@ -20,8 +20,7 @@ AI that runs on your own machines and powers both. In that order:
 with the company and its accounts in order (M0), a public launch (M2) and Orazaka out of its local phase (M3), while the
 platform keeps shipping — Krizaka UI, the Java and TypeScript building blocks from CI.
 
-**Paused** (Oussama, 2026-10-25): Orochia, Yasakia, Yororis and Kachizaka. Their environments are deleted and their
-repositories are private; their milestones are closed.
+**Focus** (Oussama, 2026-10-29): the org holds Yomizaka, Akinaza and Orazaka, and the platforms. The other products left to the founder's account.
 
 ## Milestones
 
@@ -50,14 +49,9 @@ underwriting takes four to six weeks after that.
 
 **Recently done** (October 2026)
 
-- Yasakia announced: its brand in `@krizaka/ui`, a coming-soon page on krizaka.com, its two repositories
-- `@krizaka/realtime` and `@krizaka/push` extracted from Orochia, `@krizaka/fonts`, `@krizaka/ui` 2.8
-- Orochia: creator onboarding that follows who is looking, error pages, connection budget
 - `@krizaka/ui` 2.0.0 stable, `@krizaka/icons`, `@krizaka/i18n`, `@krizaka/intl`; every product on the shared primitives
-- One brand identity: Krizaka blue, Orazaka orange, Orochia violet → magenta
 - krizaka.com/docs: one documentation, component docs generated from the code
 - Maven Central 0.2.0: build, BOM, platform kit and the four Spring Boot starters
-- Orochia: a home that sells, Explore phase 0, the complete story viewer, configurable e-mail templates
 - Orazaka: home and feature pages, Eric's demo recorded on the real app
 
 ## How we plan
