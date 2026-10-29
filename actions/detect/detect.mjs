@@ -101,6 +101,50 @@ const has = (dir, name) => existsSync(join(dir, name));
 const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
 const lines = (list) => list.filter(Boolean).join("\n");
 
+const CONFIG_FILE = ".krizaka/ci.json";
+const fail = (message) => new Error(`${CONFIG_FILE}: ${message}`);
+const isPlainObject = (value) => Boolean(value) && typeof value === "object" && !Array.isArray(value);
+
+/** One key of the configuration: known, of its type, on one line when it is a string. */
+function checkEntry(key, value) {
+  if (!(key in CONFIG_KEYS)) {
+    throw fail(`unknown key "${key}" (it holds values, never steps; known: ${Object.keys(CONFIG_KEYS).join(", ")})`);
+  }
+  const type = CONFIG_KEYS[key];
+  if (type === "object" ? !isPlainObject(value) : typeof value !== type) throw fail(`"${key}" must be a ${type}`);
+  if (type === "string" && /[\r\n]/.test(value)) throw fail(`"${key}" must be one line`);
+}
+
+/** The `env` values: variable names and one-line strings. */
+function checkEnv(env = {}) {
+  for (const [name, value] of Object.entries(env)) {
+    if (!KEY.test(name)) throw fail(`env key "${name}" is not a variable name`);
+    if (typeof value !== "string" || /[\r\n]/.test(value)) throw fail(`env "${name}" must be a one-line string`);
+  }
+}
+
+/** `ignore` and `relevant` are JavaScript regular expressions. */
+function checkPatterns(config) {
+  for (const key of ["ignore", "relevant"]) {
+    if (config[key] === undefined) continue;
+    try {
+      new RegExp(config[key]);
+    } catch (error) {
+      throw fail(`"${key}" is not a JavaScript RegExp: ${error.message}`);
+    }
+  }
+}
+
+/** The working directory stays in the repository; the timeout is a sane number of minutes. */
+function checkLimits({ workingDirectory, timeoutMinutes }) {
+  if (workingDirectory !== undefined && (workingDirectory.startsWith("/") || workingDirectory.split("/").includes(".."))) {
+    throw fail('"workingDirectory" must stay inside the repository');
+  }
+  if (timeoutMinutes !== undefined && !(Number.isInteger(timeoutMinutes) && timeoutMinutes > 0 && timeoutMinutes <= 360)) {
+    throw fail('"timeoutMinutes" must be an integer from 1 to 360');
+  }
+}
+
 /** Read and validate `.krizaka/ci.json` of a checkout; `{}` when there is none. */
 export function readConfig(root) {
   const path = join(root, ".krizaka", "ci.json");
@@ -109,88 +153,81 @@ export function readConfig(root) {
   try {
     config = readJson(path);
   } catch (error) {
-    throw new Error(`.krizaka/ci.json is not JSON: ${error.message}`);
+    throw fail(`is not JSON: ${error.message}`);
   }
-  if (!config || typeof config !== "object" || Array.isArray(config)) throw new Error(".krizaka/ci.json must be an object");
+  if (!isPlainObject(config)) throw new Error(".krizaka/ci.json must be an object");
   for (const [key, value] of Object.entries(config)) {
-    if (key.startsWith("$") || key === "_") continue; // comments
-    if (!(key in CONFIG_KEYS)) {
-      throw new Error(`.krizaka/ci.json: unknown key "${key}" (it holds values, never steps; known: ${Object.keys(CONFIG_KEYS).join(", ")})`);
-    }
-    const type = CONFIG_KEYS[key];
-    if (type === "object" ? !value || typeof value !== "object" || Array.isArray(value) : typeof value !== type) {
-      throw new Error(`.krizaka/ci.json: "${key}" must be a ${type}`);
-    }
-    if (type === "string" && /[\r\n]/.test(value)) throw new Error(`.krizaka/ci.json: "${key}" must be one line`);
+    if (!key.startsWith("$") && key !== "_") checkEntry(key, value); // `$…` and `_` are comments
   }
-  for (const [name, value] of Object.entries(config.env ?? {})) {
-    if (!KEY.test(name)) throw new Error(`.krizaka/ci.json: env key "${name}" is not a variable name`);
-    if (typeof value !== "string" || /[\r\n]/.test(value)) throw new Error(`.krizaka/ci.json: env "${name}" must be a one-line string`);
-  }
-  for (const key of ["ignore", "relevant"]) {
-    if (config[key] === undefined) continue;
-    try {
-      new RegExp(config[key]);
-    } catch (error) {
-      throw new Error(`.krizaka/ci.json: "${key}" is not a JavaScript RegExp: ${error.message}`);
-    }
-  }
-  if (config.workingDirectory !== undefined && (config.workingDirectory.startsWith("/") || config.workingDirectory.split("/").includes(".."))) {
-    throw new Error('.krizaka/ci.json: "workingDirectory" must stay inside the repository');
-  }
-  if (config.timeoutMinutes !== undefined && !(Number.isInteger(config.timeoutMinutes) && config.timeoutMinutes > 0 && config.timeoutMinutes <= 360)) {
-    throw new Error('.krizaka/ci.json: "timeoutMinutes" must be an integer from 1 to 360');
-  }
+  checkEnv(config.env);
+  checkPatterns(config);
+  checkLimits(config);
   return config;
+}
+
+/** The index after the comment (`#`, `//` or a block comment) that starts at `i`. */
+function skipComment(text, i) {
+  if (text.startsWith("/*", i)) {
+    const end = text.indexOf("*/", i + 2);
+    return end < 0 ? text.length : end + 2;
+  }
+  const end = text.indexOf("\n", i);
+  return end < 0 ? text.length : end;
+}
+
+/** A heredoc (`<<EOT` … `EOT`) that starts at `i`: its lexeme and the index after it, or null when `<<` is not a heredoc. */
+function readHeredoc(text, i) {
+  const name = text.slice(i + 2).match(/^-?[ \t]*([A-Za-z_][A-Za-z0-9_]*)/);
+  const headerEnd = name ? text.indexOf("\n", i) : -1;
+  if (!name || headerEnd < 0) return null;
+  let next = headerEnd + 1;
+  while (next < text.length) {
+    const end = text.indexOf("\n", next);
+    const line = text.slice(next, end < 0 ? text.length : end).replace(/\r$/, "");
+    next = end < 0 ? text.length : end + 1;
+    if (line.trim() === name[1]) break;
+  }
+  return { lexeme: { type: "string", value: "" }, next };
+}
+
+/** A quoted string that starts at `i`: its lexeme and the index after it. */
+function readQuoted(text, i) {
+  let value = "";
+  let next = i + 1;
+  while (next < text.length && text[next] !== '"') {
+    if (text[next] === "\\" && next + 1 < text.length) {
+      value += text[next + 1];
+      next += 2;
+    } else value += text[next++];
+  }
+  if (text[next] === '"') next++;
+  return { lexeme: { type: "string", value }, next };
+}
+
+/** The lexeme that starts at `i` (not a space or a comment) and the index after it. */
+function readLexeme(text, i) {
+  if (text.startsWith("<<", i)) {
+    const heredoc = readHeredoc(text, i);
+    if (heredoc) return heredoc;
+  }
+  if (text[i] === '"') return readQuoted(text, i);
+  if (/[A-Za-z_]/.test(text[i])) {
+    const value = text.slice(i).match(/^[A-Za-z_][A-Za-z0-9_-]*/)[0];
+    return { lexeme: { type: "identifier", value }, next: i + value.length };
+  }
+  return { lexeme: { type: "symbol", value: text[i] }, next: i + 1 };
 }
 
 /** Tokenize enough HCL syntax to ignore comments, quoted strings and heredocs while inspecting run blocks. */
 function hclTokens(text) {
   const tokens = [];
   for (let i = 0; i < text.length;) {
-    if (/\s/.test(text[i])) {
-      i++;
-    } else if (text[i] === "#" || text.startsWith("//", i)) {
-      while (i < text.length && text[i] !== "\n") i++;
-    } else if (text.startsWith("/*", i)) {
-      const end = text.indexOf("*/", i + 2);
-      i = end < 0 ? text.length : end + 2;
-    } else if (text.startsWith("<<", i)) {
-      const name = text.slice(i + 2).match(/^-?[ \t]*([A-Za-z_][A-Za-z0-9_]*)/);
-      const headerEnd = name ? text.indexOf("\n", i) : -1;
-      if (!name || headerEnd < 0) {
-        tokens.push({ type: "symbol", value: "<" });
-        i++;
-        continue;
-      }
-      const delimiter = name[1];
-      i = headerEnd + 1;
-      while (i < text.length) {
-        const end = text.indexOf("\n", i);
-        const lineEnd = end < 0 ? text.length : end;
-        const line = text.slice(i, lineEnd).replace(/\r$/, "");
-        i = end < 0 ? text.length : end + 1;
-        if (line.trim() === delimiter) break;
-      }
-      tokens.push({ type: "string", value: "" });
-    } else if (text[i] === '"') {
-      let value = "";
-      i++;
-      while (i < text.length && text[i] !== '"') {
-        if (text[i] === "\\" && i + 1 < text.length) {
-          value += text[i + 1];
-          i += 2;
-        } else value += text[i++];
-      }
-      if (text[i] === '"') i++;
-      tokens.push({ type: "string", value });
-    } else if (/[A-Za-z_]/.test(text[i])) {
-      const identifier = text.slice(i).match(/^[A-Za-z_][A-Za-z0-9_-]*/)[0];
-      tokens.push({ type: "identifier", value: identifier });
-      i += identifier.length;
-    } else {
-      tokens.push({ type: "symbol", value: text[i] });
-      i++;
+    if (/\s/.test(text[i])) i++;
+    else if (text[i] === "#" || text.startsWith("//", i) || text.startsWith("/*", i)) i = skipComment(text, i);
+    else {
+      const { lexeme, next } = readLexeme(text, i);
+      tokens.push(lexeme);
+      i = next;
     }
   }
   return tokens;
@@ -240,19 +277,9 @@ function tofuTestFiles(dir) {
   return out;
 }
 
-/**
- * The stack and the plan of one checkout.
- * `base` is the project's folder in the checkout (default: its root); every path of the plan is relative to the checkout.
- * @param {{ root: string, base?: string, repository?: string, manifest?: { repositories: { name: string }[] } | null, timeout?: number }} options
- */
-export function detect({ root, base = ".", repository = "", manifest = null, timeout = 0 }) {
-  const config = readConfig(join(root, base));
-  const workingDirectory = posix.normalize(posix.join(base, config.workingDirectory ?? "."));
-  const dir = join(root, workingDirectory);
-  if (!existsSync(dir)) throw new Error(`working directory not found: ${workingDirectory}`);
-  const name = repository.split("/").pop();
-  const files = walk(dir, 4);
-  const plan = {
+/** The plan before any stack is known: every field at its default, from the configuration. */
+function basePlan(config, workingDirectory) {
+  return {
     stack: "",
     workingDirectory,
     component: "",
@@ -287,54 +314,94 @@ export function detect({ root, base = ".", repository = "", manifest = null, tim
     relevant: config.relevant ?? ".",
     timeout: 0,
   };
+}
+
+/** A component of the Orazaka workspace: `workspace.mjs ci` is the whole pipeline. */
+function detectWorkspace(plan, config, name) {
+  plan.stack = "workspace";
+  plan.component = name;
+  plan.rewrite = config.rewrite ?? false; // component.yml: opt-in, turned on in the pull request that applies rewrite:run
+  // The component is verified inside the workspace: `workspace.mjs ci` is the whole pipeline.
+  if (config.afterBuild) throw new Error('.krizaka/ci.json: "afterBuild" does not apply to an Orazaka workspace component (workspace.mjs ci runs everything)');
+}
+
+/** A Maven project: Spotless and OpenRewrite come from the pom itself or from the parents that declare them. */
+function detectMaven(plan, dir, config) {
+  plan.stack = "maven";
+  const pom = readFileSync(join(dir, "pom.xml"), "utf8");
+  const inherits = /<artifactId>\s*(krizaka-parent|orazaka-build|orazaka-parent)\s*<\/artifactId>/.test(pom);
+  plan.spotless = inherits || /spotless-maven-plugin/.test(pom);
+  plan.rewrite = (inherits || /rewrite-maven-plugin/.test(pom)) && (config.rewrite ?? true);
+}
+
+/** A Node project (a blog when it has MDX content): the package manager, its version and the scripts it has. */
+function detectNode(plan, dir, pkg, mdx) {
+  plan.stack = mdx ? "blog" : "node";
+  const pm = String(pkg?.packageManager ?? "");
+  plan.packageManager = pm.startsWith("pnpm") || has(dir, "pnpm-lock.yaml") || has(dir, "pnpm-workspace.yaml") ? "pnpm" : "npm";
+  if (plan.packageManager === "pnpm") {
+    const lockfile = has(dir, "pnpm-lock.yaml") ? readFileSync(join(dir, "pnpm-lock.yaml"), "utf8") : "";
+    plan.pnpmVersion = resolvePnpmVersion(pkg, lockfile);
+  }
+  const scripts = pkg?.scripts ?? {};
+  for (const key of ["lint", "typecheck", "test", "build"]) plan[key] = scripts[key] ? key : "";
+  plan.quality = lines(QUALITY_SCRIPTS.filter((s) => scripts[s]));
+  plan.duplication = has(dir, "dup-ratchet.json");
+}
+
+/** A Python project: uv or pip, ruff and pytest when the project has them. */
+function detectPython(plan, dir, files) {
+  plan.stack = "python";
+  const pyproject = readFileSync(join(dir, "pyproject.toml"), "utf8");
+  plan.pythonManager = has(dir, "uv.lock") ? "uv" : "pip";
+  const reqs = ["requirements.txt", "requirements-dev.txt", "requirements-test.txt"].filter((f) => has(dir, f));
+  plan.requirements = lines(reqs.map((f) => posix.join(plan.workingDirectory, f)));
+  const installable = /^\[(project|build-system)\]/m.test(pyproject);
+  const ruff = /^\[tool\.ruff/m.test(pyproject) || has(dir, "ruff.toml") || has(dir, ".ruff.toml");
+  const tests = /^\[tool\.pytest/m.test(pyproject) || files.some((f) => /(^|\/)(test_[^/]*|[^/]*_test)\.py$/.test(f));
+  plan.pythonLint = ruff ? "ruff check ." : "";
+  plan.pythonTest = pytestCommand(tests, plan.pythonManager);
+  if (plan.pythonManager === "pip") {
+    plan.pythonExtras = [installable ? "-e ." : "", tests ? "pytest-xdist" : "", ruff ? "ruff" : ""].filter(Boolean).join(" ");
+  }
+}
+
+/** The pytest command: parallel under pip, plain under uv, none without tests. */
+function pytestCommand(tests, manager) {
+  if (!tests) return "";
+  return manager === "pip" ? "pytest -n auto" : "pytest";
+}
+
+/** An infrastructure project: every folder that holds a `.tf` file. */
+function detectIac(plan, files) {
+  plan.stack = "iac";
+  const dirs = [...new Set(files.filter((f) => f.endsWith(".tf")).map((f) => f.split("/").slice(0, -1).join("/") || "."))].sort(byCodePoint);
+  plan.tfDirs = lines(dirs);
+}
+
+/**
+ * The stack and the plan of one checkout.
+ * `base` is the project's folder in the checkout (default: its root); every path of the plan is relative to the checkout.
+ * @param {{ root: string, base?: string, repository?: string, manifest?: { repositories: { name: string }[] } | null, timeout?: number }} options
+ */
+export function detect({ root, base = ".", repository = "", manifest = null, timeout = 0 }) {
+  const config = readConfig(join(root, base));
+  const workingDirectory = posix.normalize(posix.join(base, config.workingDirectory ?? "."));
+  const dir = join(root, workingDirectory);
+  if (!existsSync(dir)) throw new Error(`working directory not found: ${workingDirectory}`);
+  const name = repository.split("/").pop();
+  const files = walk(dir, 4);
+  const plan = basePlan(config, workingDirectory);
 
   const members = manifest?.repositories?.map((r) => r.name) ?? [];
   const pkg = has(dir, "package.json") ? readJson(join(dir, "package.json")) : null;
   const mdx = files.some((f) => /^content\/.*\.mdx$/.test(f));
-  if (name && members.includes(name)) {
-    plan.stack = "workspace";
-    plan.component = name;
-    plan.rewrite = config.rewrite ?? false; // component.yml: opt-in, turned on in the pull request that applies rewrite:run
-    // The component is verified inside the workspace: `workspace.mjs ci` is the whole pipeline.
-    if (config.afterBuild) throw new Error('.krizaka/ci.json: "afterBuild" does not apply to an Orazaka workspace component (workspace.mjs ci runs everything)');
-  } else if (has(dir, "pom.xml")) {
-    plan.stack = "maven";
-    const pom = readFileSync(join(dir, "pom.xml"), "utf8");
-    // The plugins come from the pom itself or from the parents that declare them (krizaka-parent, orazaka-build).
-    const inherits = /<artifactId>\s*(krizaka-parent|orazaka-build|orazaka-parent)\s*<\/artifactId>/.test(pom);
-    plan.spotless = inherits || /spotless-maven-plugin/.test(pom);
-    plan.rewrite = (inherits || /rewrite-maven-plugin/.test(pom)) && (config.rewrite ?? true);
-  } else if (pkg || has(dir, "pnpm-workspace.yaml")) {
-    plan.stack = mdx ? "blog" : "node";
-    const pm = String(pkg?.packageManager ?? "");
-    plan.packageManager = pm.startsWith("pnpm") || has(dir, "pnpm-lock.yaml") || has(dir, "pnpm-workspace.yaml") ? "pnpm" : "npm";
-    if (plan.packageManager === "pnpm") {
-      const lockfile = has(dir, "pnpm-lock.yaml") ? readFileSync(join(dir, "pnpm-lock.yaml"), "utf8") : "";
-      plan.pnpmVersion = resolvePnpmVersion(pkg, lockfile);
-    }
-    const scripts = pkg?.scripts ?? {};
-    for (const key of ["lint", "typecheck", "test", "build"]) plan[key] = scripts[key] ? key : "";
-    plan.quality = lines(QUALITY_SCRIPTS.filter((s) => scripts[s]));
-    plan.duplication = has(dir, "dup-ratchet.json");
-  } else if (has(dir, "pyproject.toml")) {
-    plan.stack = "python";
-    const pyproject = readFileSync(join(dir, "pyproject.toml"), "utf8");
-    plan.pythonManager = has(dir, "uv.lock") ? "uv" : "pip";
-    const reqs = ["requirements.txt", "requirements-dev.txt", "requirements-test.txt"].filter((f) => has(dir, f));
-    plan.requirements = lines(reqs.map((f) => posix.join(workingDirectory, f)));
-    const installable = /^\[(project|build-system)\]/m.test(pyproject);
-    const ruff = /^\[tool\.ruff/m.test(pyproject) || has(dir, "ruff.toml") || has(dir, ".ruff.toml");
-    const tests = /^\[tool\.pytest/m.test(pyproject) || files.some((f) => /(^|\/)(test_[^/]*|[^/]*_test)\.py$/.test(f));
-    plan.pythonLint = ruff ? "ruff check ." : "";
-    plan.pythonTest = tests ? (plan.pythonManager === "pip" ? "pytest -n auto" : "pytest") : "";
-    if (plan.pythonManager === "pip") {
-      plan.pythonExtras = [installable ? "-e ." : "", tests ? "pytest-xdist" : "", ruff ? "ruff" : ""].filter(Boolean).join(" ");
-    }
-  } else if (files.some((f) => f.endsWith(".tf"))) {
-    plan.stack = "iac";
-    const dirs = [...new Set(files.filter((f) => f.endsWith(".tf")).map((f) => f.split("/").slice(0, -1).join("/") || "."))].sort(byCodePoint);
-    plan.tfDirs = lines(dirs);
-  } else {
+  if (name && members.includes(name)) detectWorkspace(plan, config, name);
+  else if (has(dir, "pom.xml")) detectMaven(plan, dir, config);
+  else if (pkg || has(dir, "pnpm-workspace.yaml")) detectNode(plan, dir, pkg, mdx);
+  else if (has(dir, "pyproject.toml")) detectPython(plan, dir, files);
+  else if (files.some((f) => f.endsWith(".tf"))) detectIac(plan, files);
+  else {
     throw new Error("no stack detected: no orazaka.workspace.json membership, pom.xml, package.json, pnpm-workspace.yaml, pyproject.toml or *.tf");
   }
 
