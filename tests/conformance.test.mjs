@@ -92,3 +92,19 @@ test("the matrix counts red and green per rule and lists what is out of scope", 
   assert.match(md, /\| bad \| security-scan, dependabot-config \|/);
   assert.match(md, /Out of scope .*paused-one/);
 });
+
+test("a rule may exempt a repository, with a reason of 30+ characters; the cell is n/a and shows it (krizaka/.github#393)", async () => {
+  const rule = { id: "r", title: "t", issue: "krizaka/.github#1", check: { type: "file-exists", paths: ["x"] }, fix: { type: "manual" } };
+  assert.deepEqual(validateRules([{ ...rule, exempt: { a: "tofu with tflint and checkov, not a node stack at all" } }]), []);
+  assert.match(validateRules([{ ...rule, exempt: { a: "too short" } }]).join(), /needs a reason/);
+  const cells = await evaluate([{ ...rule, exempt: { a: "tofu with tflint and checkov, not a node stack at all" } }], [snap("a", "iac", {}), snap("b", "iac", {})]);
+  assert.equal(cells.a.r.status, "n/a");
+  assert.match(cells.a.r.why, /^exempt: tofu/);
+  assert.equal(cells.b.r.status, "red");
+});
+
+test("onlyRepos limits a rule to the repositories that carry the thing (the Turnstile forms)", async () => {
+  const rule = { id: "r", applies: { onlyRepos: ["krizaka-com"] } };
+  assert.equal(await appliesTo(rule, snap("krizaka-com", "site", {})), true);
+  assert.equal(await appliesTo(rule, snap("other", "site", {})), false);
+});
