@@ -15,7 +15,7 @@ exception: it is named after the product alone, with no role suffix.
   for a deployable backend service; `services` for the umbrella repository; `worker-<name>` for a worker; and `packs`,
   `cli`, `contracts` or `build`.
 - **Shared repositories:** `krizaka-ui` (all design kits are packages there), `krizaka-ts`, `krizaka-build` (Java),
-  `krizaka-com` (company site), `krizaka-blog`, `krizaka-infra` (IaC), `krizaka-motion` (motion library) and `krizaka-qa` (internal end-to-end scenarios, private); or
+  `krizaka-com` (company site), `krizaka-blog`, `krizaka-infra` (IaC), `krizaka-lab` (the family lab) and `krizaka-qa` (internal end-to-end scenarios, private); or
   `krizaka-<capability>` for a shared service. The current capabilities are `accounts`, `billing`, `notifications`,
   `users`, `platform` (the Java cross-cutting blocks) and `desktop` (the shared Tauri crate).
 - **Templates:** `template-<stack>-app`.
@@ -42,7 +42,7 @@ shape fits, but whose role needs discussion.
 | `krizaka-build` | Shared Java build | Complies |
 | `krizaka-com` | Shared company site | Complies |
 | `krizaka-infra` | Shared infrastructure as code | Complies |
-| `krizaka-motion` | Shared motion library | Complies |
+| `krizaka-lab` | The family lab: UI, motion, Java, AI and data experiments; publishes nothing (formerly krizaka-motion) | Complies |
 | `krizaka-qa` | Internal end-to-end scenarios (private) | Complies |
 | `krizaka-notifications` | Shared capability service | Complies |
 | `krizaka-platform-kit` | Java cross-cutting blocks | **Rename → `krizaka-platform`** |

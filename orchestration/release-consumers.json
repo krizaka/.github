@@ -106,7 +106,7 @@
       "@krizaka/tokens",
       "@krizaka/ui"
     ],
-    "krizaka-motion": [
+    "krizaka-lab": [
       "@krizaka/charts",
       "@krizaka/fonts",
       "@krizaka/i18n",

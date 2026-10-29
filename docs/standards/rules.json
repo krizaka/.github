@@ -1,6 +1,6 @@
 {
   "_": "The rule registry of the org (krizaka/.github#393): every org rule that must hold in every active repository, with the check that proves it. scripts/conformance.mjs runs it against repos.json (repo x rule). A rule without a check does not pass tests/conformance.test.mjs. Rolling a rule out to every active repo is part of the same work (AGENT-RULES, « A rule reaches every repo »); `node scripts/conformance-fanout.mjs` opens the conforming pull request in each red repo.",
-  "checks": "workflow-calls {workflows | byKind} | workflow-matches {pattern} | workflow-forbids {pattern} | file-exists {paths} | file-matches {path, pattern}. `applies`: kinds, notRepos, onlyRepos, when [{pathEndsWith}|{fileExists}|{fileMatches}|{inList}]. `fix`: copy {from, to} | append-section {file, from, heading} | manual {note}.",
+  "checks": "workflow-calls {workflows | byKind} | workflow-matches {pattern} | workflow-forbids {pattern} | file-exists {paths} | file-matches {path, pattern} | manifests-forbid {pattern}. `applies`: kinds, notRepos, onlyRepos, when [{pathEndsWith}|{fileExists}|{fileMatches}|{inList}]. `fix`: copy {from, to} | append-section {file, from, heading} | manual {note}.",
   "rules": [
     {
       "id": "security-scan",
@@ -130,6 +130,14 @@
       "applies": { "onlyRepos": ["krizaka-com", "krizaka-blog"] },
       "check": { "type": "file-exists", "paths": ["lib/contact-verification.ts", "functions/packages/newsletter/confirm/index.js"] },
       "fix": { "type": "manual", "note": "a code form uses @krizaka/email-verification (6 digits, 15 minutes, single use, 5 tries, hashed; the message is held and released after the code); a subscription uses the signed confirmation link; a repository that adds an e-mail form is added to onlyRepos" }
+    },
+    {
+      "id": "lab-isolation",
+      "title": "Nothing outside the lab depends on the lab (krizaka-lab publishes nothing; a proven piece is promoted by an ADR, never imported)",
+      "issue": "krizaka/krizaka-motion#69",
+      "applies": { "notRepos": ["krizaka-lab", "krizaka-motion"] },
+      "check": { "type": "manifests-forbid", "pattern": "krizaka-lab|krizaka-motion|@krizaka/(lab|motion)\\b" },
+      "fix": { "type": "manual", "note": "promote the piece into @krizaka/ui, krizaka-ts or Krizaka Java by an ADR (rebuilt with its tests) and depend on that package; the lab is private and has no published name to import" }
     }
   ]
 }
