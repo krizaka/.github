@@ -78,12 +78,18 @@ export async function appliesTo(rule, snap, lists = {}) {
   const { kinds, notRepos = [], when = [] } = rule.applies ?? {};
   if (kinds && !kinds.includes(snap.kind)) return false;
   if (notRepos.includes(snap.name)) return false;
-  return when.every((w) => {
-    if (w.pathEndsWith) return snap.paths.some((p) => p === w.pathEndsWith || p.endsWith(`/${w.pathEndsWith}`));
-    if (w.fileExists) return snap.paths.includes(w.fileExists);
-    if (w.inList) return (lists[w.inList] ?? []).includes(snap.name);
-    return false;
-  });
+  for (const w of when) {
+    if (!(await holds(w, snap, lists))) return false;
+  }
+  return true;
+}
+
+async function holds(w, snap, lists) {
+  if (w.pathEndsWith) return snap.paths.some((p) => p === w.pathEndsWith || p.endsWith(`/${w.pathEndsWith}`));
+  if (w.fileExists) return snap.paths.includes(w.fileExists);
+  if (w.fileMatches) return new RegExp(w.fileMatches.pattern).test((await snap.read(w.fileMatches.path)) ?? "");
+  if (w.inList) return (lists[w.inList] ?? []).includes(snap.name);
+  return false;
 }
 
 const callsOf = (text) => new Set([...text.matchAll(CALL)].map((m) => m[1]));

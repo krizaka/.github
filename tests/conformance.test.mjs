@@ -70,7 +70,8 @@ test("conditions: kinds, pnpm workspaces, Expo apps, release consumers", async (
   assert.equal(await appliesTo(by("visual-regression"), snap("m", "maven", {})), false);
   assert.equal(await appliesTo(by("visual-regression"), snap("a", "app", {})), true);
   assert.equal(await appliesTo(by("workspace-guard"), snap("a", "app", {})), false);
-  assert.equal(await appliesTo(by("workspace-guard"), snap("a", "app", { "pnpm-workspace.yaml": "" })), true);
+  assert.equal(await appliesTo(by("workspace-guard"), snap("a", "app", { "pnpm-workspace.yaml": "packages:\n  - a\n" })), true);
+  assert.equal(await appliesTo(by("workspace-guard"), snap("a", "app", { "pnpm-workspace.yaml": "minimumReleaseAge: 1\n" })), false);
   assert.equal(await appliesTo(by("expo-sdk-guard"), snap("a", "app", { "apps/mobile/eas.json": "{}" })), true);
   assert.equal(await appliesTo(by("expo-sdk-guard"), snap("a", "app", { "package.json": "{}" })), false);
   const lists = { "orchestration/release-consumers.json": ["a"] };

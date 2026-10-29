@@ -3,6 +3,7 @@
 //
 //   node scripts/conformance-fanout.mjs --matrix matrix.json [--rules a,b] [--repos x,y]          the plan (dry run)
 //   node scripts/conformance-fanout.mjs --matrix matrix.json --rules security-scan --apply        open the pull requests
+//   --skip a,b leaves repositories that already have an open pull request for the rule
 //
 // `matrix.json` is `conformance.mjs --json`. One pull request per red repository, holding every auto-fixable red rule asked for
 // (copy / append-section / settings-hook of docs/standards/rules.json); the rules that stay `manual` are listed, never guessed.
@@ -28,7 +29,8 @@ export function pinTemplate(text, sha) {
 export function sectionOf(template, heading) {
   const at = template.indexOf(heading);
   if (at < 0) throw new Error(`no « ${heading} » in the template`);
-  return template.slice(at).trimEnd() + "\n";
+  // The template's relative links point into this repository's docs/: in another repository they are absolute.
+  return template.slice(at).trimEnd().replaceAll("](docs/", "](https://github.com/krizaka/.github/blob/main/docs/") + "\n";
 }
 
 /** settings.json with the edit hook added once (existing hooks stay). */
@@ -62,6 +64,7 @@ export function planOf(rules, cells, only = {}) {
   const plan = [];
   for (const [repo, row] of Object.entries(cells)) {
     if (only.repos && !only.repos.includes(repo)) continue;
+    if (only.skip?.includes(repo)) continue;
     const red = asked.filter((r) => row[r.id]?.status === "red");
     const auto = red.filter((r) => r.fix.type !== "manual").map((r) => r.id);
     if (red.length > 0) plan.push({ repo, rules: auto, manual: red.filter((r) => r.fix.type === "manual").map((r) => r.id) });
@@ -118,7 +121,7 @@ const flag = (argv, name) => (argv.includes(name) ? argv[argv.indexOf(name) + 1]
 export async function main(argv) {
   const matrix = JSON.parse(readFileSync(flag(argv, "--matrix") ?? "matrix.json", "utf8"));
   const rules = loadRules();
-  const plan = planOf(rules, matrix.cells, { rules: flag(argv, "--rules")?.split(","), repos: flag(argv, "--repos")?.split(",") });
+  const plan = planOf(rules, matrix.cells, { rules: flag(argv, "--rules")?.split(","), repos: flag(argv, "--repos")?.split(","), skip: flag(argv, "--skip")?.split(",") });
   const apply = argv.includes("--apply");
   const sha = apply ? (await api("GET", "/repos/krizaka/.github/commits/main")).sha : "<sha of main>";
   for (const step of plan) {

@@ -28,6 +28,7 @@ test("the anti-slop section is appended to AGENTS.md, or starts one; never twice
   assert.match(appended.content, /^# AGENTS.md\n\nMine\.\n\n## 9\. Anti-slop \(ADR-015\)/);
   const [created] = await filesFor(r, { sha: SHA, current: async () => null });
   assert.match(created.content, /^# AGENTS.md[\s\S]*## 9\. Anti-slop/);
+  assert.doesNotMatch(created.content, /\]\(docs\//, "links are absolute in another repository");
   assert.equal(sectionOf("a\n## 9. Anti-slop (ADR-015)\nbody\n", "## 9. Anti-slop (ADR-015)"), "## 9. Anti-slop (ADR-015)\nbody\n");
 });
 
