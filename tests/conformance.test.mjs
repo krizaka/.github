@@ -108,3 +108,13 @@ test("onlyRepos limits a rule to the repositories that carry the thing (the Turn
   assert.equal(await appliesTo(rule, snap("krizaka-com", "site", {})), true);
   assert.equal(await appliesTo(rule, snap("other", "site", {})), false);
 });
+
+test("the email-verification rule: the two public e-mail forms, each with the file that proves the address", async () => {
+  const { loadRules, runCheck } = await import("../scripts/conformance.mjs");
+  const rule = loadRules().find((r) => r.id === "email-verification");
+  assert.ok(rule, "the rule is in the registry");
+  assert.deepEqual(rule.applies.onlyRepos, ["krizaka-com", "krizaka-blog"]);
+  assert.equal((await runCheck(rule.check, { paths: ["lib/contact-verification.ts"] })).ok, true);
+  assert.equal((await runCheck(rule.check, { paths: ["functions/packages/newsletter/confirm/index.js"] })).ok, true);
+  assert.equal((await runCheck(rule.check, { paths: ["lib/contact.ts"] })).ok, false);
+});

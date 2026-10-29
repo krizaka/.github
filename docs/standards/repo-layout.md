@@ -26,7 +26,7 @@ shared CI (`node-ci`, `java-ci`, `python-ci`, `maven`, `krizaka-ci`, `expo-ci`) 
 Every kind may hold the common files (README, LICENSE, NOTICE, SECURITY, AGENTS, CLAUDE, CONTRIBUTING, CHANGELOG,
 CODEOWNERS, git and editor dotfiles, `.env.example`, release-please files, `dev-preview.json`, `*-ratchet.json`, `a11y-baseline.json`,
 `app-links*.json`, Sonar files, Dockerfiles and compose files, Prettier and commit-lint config) and the common folders
-`docs`, `scripts`, `tests`, `test`, `.github`, `.githooks`, `.husky`, `.do`, `deploy`, `infra`.
+`docs`, `scripts`, `tests`, `test`, `.github`, `.claude`, `.githooks`, `.husky`, `.do`, `deploy`, `infra`.
 
 | Kind | Detected by | Adds (files) | Adds (folders) |
 | --- | --- | --- | --- |
