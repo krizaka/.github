@@ -9,7 +9,7 @@
 //
 // `<packages json>` is `{ "@krizaka/ui": "3.74.0" }` or the `publishedPackages` of changesets (`[{ name, version }]`).
 import { execFileSync } from "node:child_process";
-import { appendFileSync, existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -23,13 +23,18 @@ export function normalisePackages(input) {
   return Object.fromEntries(entries.filter(([name, version]) => name.startsWith("@krizaka/") && /^\d+\.\d+\.\d+$/.test(version)));
 }
 
+/** Code-unit order (Sonar S2871). */
+const byName = (a, b) => Number(a > b) - Number(a < b);
+const GIT = "/usr/bin/git"; // absolute (Sonar S4036); the runners' gh is at /usr/bin too
+const GH = "/usr/bin/gh";
+
 /** The repositories that depend on at least one published package. `consumers` is `{ repo: [package names] }`. */
 export function consumersOf(consumers, packages) {
   const names = new Set(Object.keys(packages));
   return Object.entries(consumers)
     .filter(([, deps]) => deps.some((name) => names.has(name)))
     .map(([repo]) => repo)
-    .sort();
+    .sort(byName);
 }
 
 /** `[major, minor, patch]` of a plain version, or null. */
@@ -89,17 +94,20 @@ export function planManifest(manifest, packages, own = new Set()) {
 export function applyPlan(text, plan) {
   const manifest = JSON.parse(text);
   for (const { name, field, to } of plan) manifest[field][name] = to;
-  const indent = /^(\s+)"/m.exec(text)?.[1] ?? "  ";
-  return `${JSON.stringify(manifest, null, indent)}${text.endsWith("\n") ? "\n" : ""}`;
+  const second = text.split("\n")[1] ?? "";
+  const indent = second.slice(0, second.length - second.trimStart().length) || "  ";
+  const newline = text.endsWith("\n") ? "\n" : "";
+  return JSON.stringify(manifest, null, indent) + newline;
 }
 
 /** The title and the major flag of the pull request. */
 export function summarise(packages, plans) {
   const bumped = new Map();
   for (const { name, to, level } of plans.flat()) bumped.set(name, { version: to.replace(/^[\^~]/, ""), level });
-  const list = [...bumped].sort(([a], [b]) => a.localeCompare(b));
+  const list = [...bumped].sort(([a], [b]) => byName(a, b));
+  const names = list.map(([name, { version }]) => name + " " + version);
   return {
-    title: `deps: ${list.map(([name, { version }]) => `${name} ${version}`).join(", ")}`,
+    title: "deps: " + names.join(", "),
     major: list.some(([, { level }]) => level === "major"),
     changed: list.length > 0,
   };
@@ -124,7 +132,7 @@ async function npmServes(name, version) {
 
 /** The package.json files of a checkout (git-tracked, not node_modules). */
 function manifestPaths(root) {
-  const files = execFileSync("git", ["ls-files", "--", "package.json", "**/package.json"], { cwd: root, encoding: "utf8" });
+  const files = execFileSync(GIT, ["ls-files", "--", "package.json", "**/package.json"], { cwd: root, encoding: "utf8" });
   return files.split("\n").filter(Boolean);
 }
 
@@ -134,7 +142,7 @@ export function readDependencies(root) {
   const own = workspaceNames(manifests);
   const names = new Set();
   for (const m of manifests) for (const f of DEP_FIELDS) for (const n of Object.keys(m[f] ?? {})) if (n.startsWith("@krizaka/") && !own.has(n)) names.add(n);
-  return [...names].sort();
+  return [...names].sort(byName);
 }
 
 /** Drift between release-consumers.json and the clones of a folder: `[ "repo: +added -removed" ]`. */
@@ -146,7 +154,8 @@ export function driftOf(consumers, clones) {
     const real = readDependencies(dir);
     const added = real.filter((n) => !listed.includes(n));
     const removed = listed.filter((n) => !real.includes(n));
-    if (added.length || removed.length) drift.push(`${repo}: ${added.map((n) => `+${n}`).concat(removed.map((n) => `-${n}`)).join(" ")}`);
+    const changes = added.map((n) => "+" + n).concat(removed.map((n) => "-" + n));
+    if (changes.length > 0) drift.push(repo + ": " + changes.join(" "));
   }
   return drift;
 }
@@ -157,8 +166,34 @@ function bumpCheckout(root, packages, dryRun) {
   const texts = paths.map((p) => readFileSync(join(root, p), "utf8"));
   const own = workspaceNames(texts.map((t) => JSON.parse(t)));
   const plans = texts.map((t) => planManifest(JSON.parse(t), packages, own));
-  if (!dryRun) plans.forEach((plan, i) => plan.length > 0 && writeFileSync(join(root, paths[i]), applyPlan(texts[i], plan)));
+  if (!dryRun) {
+    plans.forEach((plan, i) => {
+      if (plan.length > 0) writeFileSync(join(root, paths[i]), applyPlan(texts[i], plan));
+    });
+  }
   return plans;
+}
+
+function dispatchAll(consumers, packages, dryRun) {
+  for (const repo of consumersOf(consumers, packages)) {
+    console.log((dryRun ? "would tell " : "telling ") + repo);
+    if (dryRun) continue;
+    const body = JSON.stringify({ event_type: "krizaka-release", client_payload: { packages } });
+    execFileSync(GH, ["api", "-X", "POST", `repos/krizaka/${repo}/dispatches`, "--input", "-"], { input: body, stdio: ["pipe", "inherit", "inherit"] });
+  }
+  return 0;
+}
+
+async function bumpCommand(packages, flags, dryRun) {
+  const missing = flags.includes("--no-wait") ? [] : await waitForPublished(packages, { fetchVersion: npmServes });
+  if (missing.length > 0) {
+    console.error(`npm does not serve ${missing.join(", ")} yet`);
+    return 1;
+  }
+  const summary = summarise(packages, bumpCheckout(process.cwd(), packages, dryRun));
+  console.log(JSON.stringify(summary));
+  if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `changed=${summary.changed}\nmajor=${summary.major}\ntitle=${summary.title}\n`);
+  return 0;
 }
 
 async function main([command, argument, ...flags]) {
@@ -170,25 +205,12 @@ async function main([command, argument, ...flags]) {
     return drift.length > 0 ? 1 : 0;
   }
   const packages = normalisePackages(JSON.parse(argument ?? "{}"));
-  if (command === "consumers") return console.log(JSON.stringify(consumersOf(consumers, packages))), 0;
-  if (command === "dispatch") {
-    for (const repo of consumersOf(consumers, packages)) {
-      console.log(`${dryRun ? "would tell" : "telling"} ${repo}`);
-      if (!dryRun) {
-        const body = JSON.stringify({ event_type: "krizaka-release", client_payload: { packages } });
-        execFileSync("gh", ["api", "-X", "POST", `repos/krizaka/${repo}/dispatches`, "--input", "-"], { input: body, stdio: ["pipe", "inherit", "inherit"] });
-      }
-    }
+  if (command === "consumers") {
+    console.log(JSON.stringify(consumersOf(consumers, packages)));
     return 0;
   }
-  if (command === "bump") {
-    const missing = flags.includes("--no-wait") ? [] : await waitForPublished(packages, { fetchVersion: npmServes });
-    if (missing.length > 0) return console.error(`npm does not serve ${missing.join(", ")} yet`), 1;
-    const summary = summarise(packages, bumpCheckout(process.cwd(), packages, dryRun));
-    console.log(JSON.stringify(summary));
-    if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `changed=${summary.changed}\nmajor=${summary.major}\ntitle=${summary.title}\n`);
-    return 0;
-  }
+  if (command === "dispatch") return dispatchAll(consumers, packages, dryRun);
+  if (command === "bump") return bumpCommand(packages, flags, dryRun);
   console.error("Usage: krizaka-release.mjs <consumers|dispatch|bump|check> …");
   return 2;
 }
