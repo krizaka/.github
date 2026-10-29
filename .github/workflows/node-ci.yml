@@ -336,7 +336,7 @@ jobs:
           persist-credentials: false
 
       # The repository's folders stay clean (docs/standards/repo-layout.md): once per run, on the lint leg.
-      - uses: krizaka/.github/actions/repo-layout@f182d162d3446f254433714bc6f155d55a2e4084 # main
+      - uses: krizaka/.github/actions/repo-layout@4d440de1d8392bb59431759579295e89ed5f6986 # main
         if: ${{ matrix.task == 'all' || matrix.task == 'lint' }}
 
       - uses: krizaka/.github/actions/setup@b9ceb6bea30155a19f51893ef8bc4df312cf0a88 # main

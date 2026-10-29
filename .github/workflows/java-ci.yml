@@ -144,7 +144,7 @@ jobs:
       # The repository's folders stay clean (docs/standards/repo-layout.md): the component as checked out, before it moves.
       - name: Repository layout (component)
         if: ${{ inputs.workspace-component != '' }}
-        uses: krizaka/.github/actions/repo-layout@f182d162d3446f254433714bc6f155d55a2e4084 # main
+        uses: krizaka/.github/actions/repo-layout@4d440de1d8392bb59431759579295e89ed5f6986 # main
         with:
           working-directory: incoming
 
@@ -169,7 +169,7 @@ jobs:
 
       - name: Repository layout
         if: ${{ inputs.workspace-component == '' }}
-        uses: krizaka/.github/actions/repo-layout@f182d162d3446f254433714bc6f155d55a2e4084 # main
+        uses: krizaka/.github/actions/repo-layout@4d440de1d8392bb59431759579295e89ed5f6986 # main
 
       - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
         with:
