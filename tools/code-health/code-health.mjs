@@ -18,13 +18,19 @@ import { measureTs } from "./lib/ts-health.mjs";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const JAVA_THRESHOLDS = { CyclomaticComplexity: [10, 15], CognitiveComplexity: [15, 25], NPathComplexity: [200] };
 
-const git = (dir, ...args) => execFileSync("git", ["-C", dir, ...args], { encoding: "utf8", maxBuffer: 64 << 20 }).trim();
+/** An absolute path to a tool (Sonar S4036: never a bare name looked up in PATH): `<home>/bin/<name>`, else /usr/bin. */
+export const toolPath = (name, home) => join(home || "/usr", "bin", name);
+const GIT = toolPath("git");
+const MVN = toolPath("mvn", process.env.MAVEN_HOME || process.env.M2_HOME);
+const JAVA = toolPath("java", process.env.JAVA_HOME);
+
+const git = (dir, ...args) => execFileSync(GIT, ["-C", dir, ...args], { encoding: "utf8", maxBuffer: 64 << 20 }).trim();
 
 let classpath;
 function javaClasspath(work) {
   if (classpath) return classpath;
   const out = join(work, "cp.txt");
-  execFileSync("mvn", ["-q", "-f", join(HERE, "java/pom.xml"), "dependency:build-classpath", `-Dmdep.outputFile=${out}`], { stdio: "inherit" });
+  execFileSync(MVN, ["-q", "-f", join(HERE, "java/pom.xml"), "dependency:build-classpath", `-Dmdep.outputFile=${out}`], { stdio: "inherit" });
   classpath = readFileSync(out, "utf8").trim();
   return classpath;
 }
@@ -36,7 +42,7 @@ export function measureJava(repoDir, tracked, work) {
   if (!main.length) return null;
   const list = join(work, `${basename(repoDir)}-java.txt`);
   writeFileSync(list, main.join("\n"));
-  const raw = execFileSync("java", ["-cp", javaClasspath(work), join(HERE, "java/JavaHealth.java"), repoDir, list, join(HERE, "java/metrics-ruleset.xml")], {
+  const raw = execFileSync(JAVA, ["-cp", javaClasspath(work), join(HERE, "java/JavaHealth.java"), repoDir, list, join(HERE, "java/metrics-ruleset.xml")], {
     encoding: "utf8",
     maxBuffer: 256 << 20,
     stdio: ["ignore", "pipe", "ignore"],

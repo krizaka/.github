@@ -8,7 +8,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { distribution, isTestPath, perKloc, renderSummary, valueOf } from "../lib/stats.mjs";
 import { collect, finish, measureTs } from "../lib/ts-health.mjs";
-import { measureJava } from "../code-health.mjs";
+import { measureJava, toolPath } from "../code-health.mjs";
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), "fixtures");
 
@@ -111,6 +111,12 @@ test("the summary renders both ecosystems", () => {
   assert.match(md, /## Java/);
   assert.match(md, /\| a \| 1 \|/);
   assert.match(md, /\| b \| 1 \|/);
+});
+
+test("tools are run by absolute path: <home>/bin, else /usr/bin", () => {
+  assert.equal(toolPath("java", "/opt/jdk"), "/opt/jdk/bin/java");
+  assert.equal(toolPath("git"), "/usr/bin/git");
+  assert.equal(toolPath("mvn", ""), "/usr/bin/mvn");
 });
 
 test("the CLI refuses to run without --out", () => {
