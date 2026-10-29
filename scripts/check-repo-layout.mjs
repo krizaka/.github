@@ -49,7 +49,7 @@ const COMMON_FILES = [
   ".release-please-manifest.json", "release-please-config.json", ".krizaka-deploy.json", "dev-preview.json",
   ".repo-layout.json", ".gitleaks.toml", ".gitleaksignore", ".pre-commit-config.yaml", "sonar-project.properties", ".sonarcloud.properties", "*-ratchet.json", "a11y-baseline.json", "app-links.json", "app-links.routes.json", "sgconfig.yml", ".dependency-cruiser.cjs", "renovate.json", "Makefile",
   "Dockerfile", "Dockerfile.*", "docker-compose.yml", "docker-compose.*.yml", "compose.yml",
-  ".prettierrc", ".prettierrc.*", ".lintstagedrc", ".lintstagedrc.*", ".commitlintrc.*", ".checkov.yml",
+  "prettier.config.*", ".git-blame-ignore-revs", ".prettierrc", ".prettierrc.*", ".lintstagedrc", ".lintstagedrc.*", ".commitlintrc.*", ".checkov.yml",
 ];
 const COMMON_DIRS = ["docs", "scripts", "tests", "test", ".github", ".claude", ".githooks", ".husky", ".do", "deploy", "infra"];
 
