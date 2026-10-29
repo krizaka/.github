@@ -1,0 +1,6 @@
+{
+  "name": "Security scan",
+  "description": "gitleaks and zizmor through the org's shared workflow.",
+  "iconName": "octicon shield",
+  "categories": ["Code Scanning"]
+}

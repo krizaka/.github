@@ -1,0 +1,62 @@
+# The conformance matrix (krizaka/.github#393): every rule of docs/standards/rules.json against every active repository.
+# Weekly, on a pull request that adds or changes a rule (a rule without its check fails), and by hand. The pull request run
+# validates the registry and prints the matrix; the weekly run reads the repositories with the agents' app and fails while a cell is red.
+name: Conformance
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  pull_request:
+    paths:
+      - docs/standards/rules.json
+      - scripts/conformance*.mjs
+      - tests/conformance*.test.mjs
+      - workflow-templates/**
+      - AGENTS.template.md
+      - repos.json
+      - .github/workflows/conformance.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  matrix:
+    name: Conformance matrix
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: The registry is valid and its tests pass
+        run: |
+          node scripts/conformance.mjs --validate
+          node --test tests/conformance.test.mjs tests/conformance-fanout.test.mjs
+      - id: app
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: krizaka
+          permission-contents: read
+          permission-metadata: read
+      - name: The matrix
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          FAIL: ${{ github.event_name == 'schedule' && '--fail' || '' }}
+        run: |
+          set +e
+          node scripts/conformance.mjs --json matrix.json $FAIL | tee matrix.md
+          status=${PIPESTATUS[0]}
+          { echo '### Conformance matrix'; cat matrix.md; } >> "$GITHUB_STEP_SUMMARY"
+          exit "$status"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: conformance-matrix
+          path: matrix.json
+          retention-days: 14
