@@ -52,3 +52,15 @@ test("the plan: one pull request per red repository, manual rules listed apart",
   ]);
   assert.deepEqual(planOf(rules, cells, { repos: ["a"], rules: ["security-scan"] }), [{ repo: "a", rules: ["security-scan"], manual: [] }]);
 });
+
+test("every template job that runs on a runner has a timeout-minutes (krizaka-ts refuses one without)", async () => {
+  const { readdirSync, readFileSync } = await import("node:fs");
+  const dir = new URL("../workflow-templates/", import.meta.url);
+  for (const name of readdirSync(dir).filter((f) => f.endsWith(".yml"))) {
+    const text = readFileSync(new URL(name, dir), "utf8");
+    const jobs = text.split(/^jobs:\n/m)[1] ?? "";
+    for (const job of jobs.split(/^  (?=[\w-]+:\n)/m).filter((j) => /runs-on:/.test(j))) {
+      assert.match(job, /timeout-minutes:/, `${name}: ${job.split("\n")[0]}`);
+    }
+  }
+});

@@ -35,7 +35,7 @@ jobs:
       - name: The registry is valid and its tests pass
         run: |
           node scripts/conformance.mjs --validate
-          node --test tests/conformance.test.mjs tests/conformance-fanout.test.mjs
+          node --test tests/conformance.test.mjs tests/conformance-fanout.test.mjs tests/conformance-issues.test.mjs
       - id: repos
         run: echo "list=$(node scripts/conformance.mjs --repo-list)" >> "$GITHUB_OUTPUT"
       - id: app
@@ -47,6 +47,7 @@ jobs:
           repositories: ${{ steps.repos.outputs.list }}
           permission-contents: read
           permission-metadata: read
+          permission-issues: write
       - name: The matrix
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
@@ -59,6 +60,12 @@ jobs:
           status=${PIPESTATUS[0]}
           { echo '### Conformance matrix'; cat matrix.md; } >> "$GITHUB_STEP_SUMMARY"
           exit "$status"
+      # Weekly (and by hand): one issue per red repository, refreshed while red, closed when green. Never on a pull request.
+      - name: One issue per red repository
+        if: ${{ always() && github.event_name != 'pull_request' }}
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+        run: node scripts/conformance-issues.mjs --matrix matrix.json --apply
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:

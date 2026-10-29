@@ -106,7 +106,7 @@
       "title": "Expo apps: the SDK builds with the App Store's Xcode (check-expo-sdk)",
       "issue": "krizaka/.github#393",
       "applies": { "when": [{ "pathEndsWith": "eas.json" }] },
-      "check": { "type": "workflow-matches", "pattern": "check-expo-sdk" },
+      "check": { "type": "workflow-matches", "pattern": "actions/expo-sdk|check-expo-sdk" },
       "fix": { "type": "manual", "note": "run scripts/check-expo-sdk.mjs of krizaka/.github (docs/standards/expo-sdk.json) in CI" }
     }
   ]
