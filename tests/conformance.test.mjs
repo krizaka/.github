@@ -118,3 +118,19 @@ test("the email-verification rule: the two public e-mail forms, each with the fi
   assert.equal((await runCheck(rule.check, { paths: ["functions/packages/newsletter/confirm/index.js"] })).ok, true);
   assert.equal((await runCheck(rule.check, { paths: ["lib/contact.ts"] })).ok, false);
 });
+
+test("the lab-isolation rule: nothing outside the lab depends on the lab", async () => {
+  const rule = loadRules().find((r) => r.id === "lab-isolation");
+  assert.ok(rule, "the rule is in the registry");
+  assert.equal(await appliesTo(rule, snap("krizaka-lab", "npm", {})), false);
+  assert.equal(await appliesTo(rule, snap("krizaka-ui", "npm", {})), true);
+  const clean = snap("krizaka-ui", "npm", { "package.json": '{"dependencies":{"@krizaka/tokens":"1"}}' });
+  assert.equal((await runCheck(rule.check, clean)).ok, true);
+  for (const body of ['{"dependencies":{"krizaka-lab":"github:krizaka/krizaka-lab"}}', '{"dependencies":{"@krizaka/motion":"1"}}']) {
+    assert.equal((await runCheck(rule.check, snap("x", "npm", { "package.json": body }))).ok, false, body);
+  }
+  const sub = snap("x", "npm", { ".gitmodules": "[submodule]\n url = https://github.com/krizaka/krizaka-lab" });
+  assert.equal((await runCheck(rule.check, sub)).ok, false);
+  const doc = snap("x", "npm", { "README.md": "see krizaka-lab", "package.json": "{}" });
+  assert.equal((await runCheck(rule.check, doc)).ok, true, "prose is not a dependency");
+});

@@ -109,9 +109,9 @@
       "status": "Complies"
     },
     {
-      "name": "krizaka-motion",
+      "name": "krizaka-lab",
       "owner": "krizaka",
-      "role": "Shared motion library",
+      "role": "The family lab (UI, motion, Java, AI, data experiments; publishes nothing)",
       "team": "krizaka",
       "kind": "npm",
       "deploy": [],

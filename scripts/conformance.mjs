@@ -14,7 +14,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 
 const HERE = new URL("../", import.meta.url);
-export const CHECK_TYPES = ["workflow-calls", "workflow-matches", "workflow-forbids", "file-exists", "file-matches"];
+export const CHECK_TYPES = ["workflow-calls", "workflow-matches", "workflow-forbids", "file-exists", "file-matches", "manifests-forbid"];
 export const FIX_TYPES = ["copy", "append-section", "settings-hook", "manual"];
 const WORKFLOW_PATH = /^\.github\/workflows\/[^/]+\.ya?ml$/;
 const CALL = /uses:\s*krizaka\/(?:\.github|orazaka)\/\.github\/workflows\/([\w.-]+\.ya?ml)@/g;
@@ -55,6 +55,7 @@ function checkShape({ id, check = {} }) {
     "workflow-forbids": () => Boolean(check.pattern),
     "file-exists": () => Boolean(check.paths?.length),
     "file-matches": () => Boolean(check.path && check.pattern),
+    "manifests-forbid": () => Boolean(check.pattern),
   };
   return needs[check.type]?.() === false ? [`${id}: the ${check.type} check is incomplete`] : [];
 }
@@ -103,6 +104,8 @@ async function holds(w, snap, lists) {
   return false;
 }
 
+const MANIFEST = /(^|\/)(package\.json|pnpm-workspace\.yaml|\.gitmodules|pom\.xml|build\.gradle(\.kts)?)$/;
+
 const callsOf = (text) => new Set([...text.matchAll(CALL)].map((m) => m[1]));
 
 /** @returns {Promise<{ ok: boolean, why: string }>} */
@@ -132,6 +135,16 @@ export async function runCheck(check, snap) {
       if (body === null) return { ok: false, why: `no ${check.path}` };
       const ok = new RegExp(check.pattern).test(body);
       return { ok, why: ok ? "" : `${check.path} lacks ${check.pattern}` };
+    }
+    case "manifests-forbid": {
+      // The manifests that can name a dependency: npm, pnpm workspaces, git submodules, Maven, Gradle.
+      const manifests = snap.paths.filter((p) => MANIFEST.test(p));
+      const re = new RegExp(check.pattern);
+      for (const p of manifests) {
+        const found = re.exec((await snap.read(p)) ?? "");
+        if (found) return { ok: false, why: `${p} names « ${found[0]} »` };
+      }
+      return { ok: true, why: "" };
     }
     default:
       return { ok: false, why: `unknown check ${check.type}` };
