@@ -143,7 +143,10 @@ jobs:
           for repository in $UPSTREAMS; do
             git clone --depth 1 "https://github.com/krizaka/${repository}.git" "../${repository}"
             # -DskipTests alone still runs the Failsafe integration tests (Testcontainers): an upstream is built to be installed.
-            (cd "../${repository}" && ./mvnw -B -ntp install -DskipTests -DskipITs)
+            # NullAway (krizaka-parent profile krizaka-nullaway) checks the repository's own code in its own CI; an upstream
+            # is only installed here, and its modules that declare their own annotationProcessorPaths cannot host Error Prone
+            # ("plug-in not found: ErrorProne", seen on krizaka-security once krizaka-build#121 was on main).
+            (cd "../${repository}" && ./mvnw -B -ntp install -DskipTests -DskipITs -Dkrizaka.nullaway.skip=true)
           done
 
       - name: Verify with the release profile, unsigned

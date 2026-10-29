@@ -44,33 +44,53 @@ function manifest(org, repo, path) {
   return JSON.parse(Buffer.from(b64, "base64").toString("utf8"));
 }
 
+/** The manifest at `path` as a row of the table, or null when it is unreadable or has none of the packages. */
+function rowOf(org, repo, path, packages) {
+  let json;
+  try {
+    json = manifest(org, repo, path);
+  } catch {
+    return null;
+  }
+  const deps = { ...json.peerDependencies, ...json.devDependencies, ...json.dependencies };
+  const row = { where: `${repo}/${path.replace(/package\.json$/, "").replace(/\/$/, "")}`.replace(/\/$/, ""), cells: {} };
+  for (const p of packages) if (deps[`@krizaka/${p}`]) row.cells[p] = deps[`@krizaka/${p}`];
+  return Object.keys(row.cells).length ? row : null;
+}
+
+/** The rows of every repository of the organisation. */
+function collectRows(org, packages) {
+  const rows = [];
+  for (const repo of repos(org)) {
+    let paths = [];
+    try { paths = manifests(org, repo); } catch { continue; }
+    for (const path of paths) {
+      const row = rowOf(org, repo, path, packages);
+      if (row) rows.push(row);
+    }
+  }
+  return rows;
+}
+
+/** Prints the table; returns how many manifests are behind. */
+function printTable(rows, packages, latest) {
+  let drift = 0;
+  console.log(["app", ...packages.map((p) => `${p} (latest ${latest[p]})`), "status"].join(" | "));
+  for (const row of rows) {
+    const bad = packages.some((p) => row.cells[p] && status(row.cells[p], latest[p]) === "behind");
+    if (bad) drift++;
+    console.log([row.where, ...packages.map((p) => row.cells[p] ?? "-"), bad ? "DRIFT" : "ok"].join(" | "));
+  }
+  return drift;
+}
+
 function main() {
   const args = process.argv.slice(2);
   const opt = (name, d) => (args.includes(name) ? args[args.indexOf(name) + 1] : d);
   const org = opt("--org", "krizaka");
   const packages = opt("--packages", "ui,tokens,tailwind").split(",");
   const latest = Object.fromEntries(packages.map((p) => [p, latestOf(p)]));
-  const rows = [];
-  for (const repo of repos(org)) {
-    let paths = [];
-    try { paths = manifests(org, repo); } catch { continue; }
-    for (const path of paths) {
-      let json;
-      try { json = manifest(org, repo, path); } catch { continue; }
-      const deps = { ...json.peerDependencies, ...json.devDependencies, ...json.dependencies };
-      const row = { where: `${repo}/${path.replace(/package\.json$/, "").replace(/\/$/, "")}`.replace(/\/$/, ""), cells: {} };
-      for (const p of packages) if (deps[`@krizaka/${p}`]) row.cells[p] = deps[`@krizaka/${p}`];
-      if (Object.keys(row.cells).length) rows.push(row);
-    }
-  }
-  let drift = 0;
-  console.log(["app", ...packages.map((p) => `${p} (latest ${latest[p]})`), "status"].join(" | "));
-  for (const row of rows) {
-    const st = packages.map((p) => (row.cells[p] ? status(row.cells[p], latest[p]) : "-"));
-    const bad = st.includes("behind");
-    if (bad) drift++;
-    console.log([row.where, ...packages.map((p) => row.cells[p] ?? "-"), bad ? "DRIFT" : "ok"].join(" | "));
-  }
+  const drift = printTable(collectRows(org, packages), packages, latest);
   console.log(`\n${drift} manifest(s) behind the latest minor.`);
   if (drift && args.includes("--strict")) process.exit(1);
 }

@@ -31,6 +31,47 @@ export const checkedOutCommits = (log) => [...new Set([...String(log).replace(AN
 
 const STALE_HINT = "main may have moved during the deploy (run it again), or the build reused a cached clone: ship the commit with a plain apply (krizaka-deploy deploy --apply, or doctl apps update <id> --spec) instead of --force-rebuild alone";
 
+/** The head of each branch the app follows: "repo@branch" -> sha. */
+async function headsOf(sources, { fetch, env }) {
+  const heads = new Map();
+  for (const { repo, branch } of sources.map((c) => c.github)) {
+    const key = `${repo}@${branch}`;
+    if (!heads.has(key)) heads.set(key, await branchHead(repo, branch, { fetch, env }));
+  }
+  return heads;
+}
+
+/** Every component runs the head of its branch. */
+function assertBuiltHeads(sources, deployment, heads) {
+  const built = new Map(componentsOf(deployment).map((c) => [c.name, c.source_commit_hash]));
+  return sources.map((c) => {
+    const { repo, branch } = c.github;
+    const head = heads.get(`${repo}@${branch}`);
+    const running = built.get(c.name);
+    if (running !== head) {
+      throw new GuardError("commit", `component ${c.name} runs ${running ? short(running) : "an unknown commit"} but ${repo}@${branch} is at ${short(head)}. ${STALE_HINT}`);
+    }
+    return { component: c.name, repo, branch, commit: head };
+  });
+}
+
+/** The build log names only commits that are a head: no cached source clone. */
+function assertCheckedOut(log, deployment, known) {
+  const checkedOut = checkedOutCommits(log);
+  if (!checkedOut.length) throw new GuardError("commit", `the build log of deployment ${deployment.id} names no checked-out commit, so the clone cannot be verified (use --skip-head-check only if you checked it yourself)`);
+  for (const sha of checkedOut) {
+    if (!known.some((h) => h.startsWith(sha))) throw new GuardError("commit", `the build log checked out ${short(sha)}, not the head (${known.map(short).join(", ")}) — a cached source clone. ${STALE_HINT}`);
+  }
+}
+
+/** The push that caused the deployment is the head. */
+function assertPushCause(deployment, heads, known) {
+  const push = deployment.cause_details?.git_push;
+  if (!push?.commit_sha) return;
+  const head = heads.get(`${push.github?.repo}@${push.github?.branch}`) ?? known[0];
+  if (push.commit_sha !== head) throw new GuardError("commit", `the deployment cause says commit ${short(push.commit_sha)} was pushed, but the head is ${short(head)}. ${STALE_HINT}`);
+}
+
 /**
  * @returns the verified [{ component, repo, branch, commit }]
  * @throws GuardError("commit") on any disagreement, an unreadable head or an empty build log
@@ -38,33 +79,11 @@ const STALE_HINT = "main may have moved during the deploy (run it again), or the
 export async function verifyRunningHead({ doctl, fetch, appId, deployment, spec, env = process.env }) {
   const sources = componentsOf(spec).filter((c) => c.github?.repo);
   if (!sources.length) return [];
-  const heads = new Map();
-  for (const { repo, branch } of sources.map((c) => c.github)) {
-    const key = `${repo}@${branch}`;
-    if (!heads.has(key)) heads.set(key, await branchHead(repo, branch, { fetch, env }));
-  }
-  const built = new Map(componentsOf(deployment).map((c) => [c.name, c.source_commit_hash]));
-  const verified = [];
-  for (const c of sources) {
-    const { repo, branch } = c.github;
-    const head = heads.get(`${repo}@${branch}`);
-    const running = built.get(c.name);
-    if (running !== head) {
-      throw new GuardError("commit", `component ${c.name} runs ${running ? short(running) : "an unknown commit"} but ${repo}@${branch} is at ${short(head)}. ${STALE_HINT}`);
-    }
-    verified.push({ component: c.name, repo, branch, commit: head });
-  }
+  const heads = await headsOf(sources, { fetch, env });
+  const verified = assertBuiltHeads(sources, deployment, heads);
   const log = await doctl.run(["apps", "logs", appId, "--type", "build", "--deployment", deployment.id]);
-  const checkedOut = checkedOutCommits(log);
-  if (!checkedOut.length) throw new GuardError("commit", `the build log of deployment ${deployment.id} names no checked-out commit, so the clone cannot be verified (use --skip-head-check only if you checked it yourself)`);
   const known = [...heads.values()];
-  for (const sha of checkedOut) {
-    if (!known.some((h) => h.startsWith(sha))) throw new GuardError("commit", `the build log checked out ${short(sha)}, not the head (${known.map(short).join(", ")}) — a cached source clone. ${STALE_HINT}`);
-  }
-  const push = deployment.cause_details?.git_push;
-  if (push?.commit_sha) {
-    const head = heads.get(`${push.github?.repo}@${push.github?.branch}`) ?? known[0];
-    if (push.commit_sha !== head) throw new GuardError("commit", `the deployment cause says commit ${short(push.commit_sha)} was pushed, but the head is ${short(head)}. ${STALE_HINT}`);
-  }
+  assertCheckedOut(log, deployment, known);
+  assertPushCause(deployment, heads, known);
   return verified;
 }
