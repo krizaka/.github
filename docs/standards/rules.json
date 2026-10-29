@@ -165,6 +165,12 @@
           "visual-regression.yml"
         ]
       },
+      "exempt": {
+        "template-expo-app": "A template has no journeys of its own (they are written per app, docs/standards/visual-regression.md); an app made from it adds the workflow with its first journey.",
+        "template-next-app": "A template has no journeys of its own (they are written per app, docs/standards/visual-regression.md); an app made from it adds the workflow with its first journey.",
+        "template-tauri-app": "A template has no journeys of its own (they are written per app, docs/standards/visual-regression.md); an app made from it adds the workflow with its first journey.",
+        "orazaka-mobile-client": "A React Native app: the shared workflow compares Playwright screenshots of web pages in a Linux container, which cannot render it; its journeys are Maestro flows (mobile-e2e.yml)."
+      },
       "fix": {
         "type": "manual",
         "note": "journeys are written per app (docs/standards/visual-regression.md); not a template"
@@ -263,6 +269,9 @@
       "check": {
         "type": "workflow-matches",
         "pattern": "actions/expo-sdk|check-expo-sdk"
+      },
+      "exempt": {
+        "orazaka-mobile-client": "Expo SDK 53 and no pinned Xcode image: the guard would fail until the move to the family's SDK, which krizaka/orazaka-mobile-client#96 (App Store rejects build 5) carries; the guard is added in that same change."
       },
       "fix": {
         "type": "manual",
