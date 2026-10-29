@@ -26,26 +26,70 @@ const OVERRIDES = { strict: true, strictNullChecks: true, noEmit: true, skipLibC
 
 /** One program per tsconfig; a tsconfig whose `extends` cannot resolve (no node_modules) still gives its files. */
 export function programsFor(repoDir, tsconfigs) {
-  const host = { ...ts.sys, onUnRecoverableConfigFileDiagnostic: () => {} };
+  const host = { ...ts.sys, onUnRecoverableConfigFileDiagnostic: () => undefined };
   const programs = [];
   for (const rel of tsconfigs) {
     const path = join(repoDir, rel);
     const parsed = ts.getParsedCommandLineOfConfigFile(path, OVERRIDES, host);
     const files = (parsed?.fileNames ?? []).filter((f) => SOURCE.test(f) && !f.endsWith(".d.ts") && !f.includes("/node_modules/"));
     if (!files.length) continue;
-    const options = { ...(parsed?.options ?? {}), ...OVERRIDES, jsx: parsed?.options.jsx ?? ts.JsxEmit.Preserve, types: [], configFilePath: path };
+    const options = { ...parsed?.options, ...OVERRIDES, jsx: parsed?.options.jsx ?? ts.JsxEmit.Preserve, types: [], configFilePath: path };
     programs.push(ts.createProgram({ rootNames: files, options }));
   }
   return programs;
 }
 
-/** Lints the repository's TypeScript and returns the counts (main and test apart) and the complexity distributions. */
-export async function measureTs(repoDir, trackedFiles) {
-  const tsconfigs = trackedFiles.filter((f) => /(^|\/)tsconfig\.json$/.test(f) && !f.includes("node_modules/") && !isTestPath(f));
-  const programs = programsFor(repoDir, tsconfigs);
-  const tracked = new Set(trackedFiles.map((f) => join(repoDir, f)));
-  const files = [...new Set(programs.flatMap((p) => p.getRootFileNames()))].filter((f) => tracked.has(f));
-  const eslint = new ESLint({
+/** The rule that measures a complexity, by ESLint rule id. */
+const METRIC = { complexity: "cyclomatic", "sonarjs/cognitive-complexity": "cognitive" };
+
+const bump = (counts, key) => {
+  counts[key] = (counts[key] ?? 0) + 1;
+};
+
+/** Accumulates the messages of one linted file into the measure. */
+export function collect(acc, rel, messages, loc) {
+  const test = isTestPath(rel);
+  if (test) acc.testFiles++;
+  else {
+    acc.files++;
+    acc.loc += loc;
+  }
+  for (const m of messages) {
+    if (m.fatal || !m.ruleId) bump(acc, "fatal");
+    else if (test) bump(acc.testRules, m.ruleId);
+    else if (METRIC[m.ruleId]) addMetric(acc, METRIC[m.ruleId], valueOf(m.message), `${rel}:${m.line}`);
+    else addHit(acc, m.ruleId, `${rel}:${m.line}`);
+  }
+}
+
+function addMetric(acc, key, value, where) {
+  if (value === null) return;
+  acc.values[key].push(value);
+  acc.top[key].push([value, where]);
+}
+
+function addHit(acc, ruleId, where) {
+  bump(acc.rules, ruleId);
+  const examples = acc.examples[ruleId] ?? [];
+  acc.examples[ruleId] = examples;
+  if (examples.length < 5) examples.push(where);
+}
+
+/** The accumulated measure, with its distributions and the three worst functions per metric. */
+export function finish(acc, programs) {
+  const top = (key) => acc.top[key].sort((a, b) => b[0] - a[0]).slice(0, 3).map(([v, w]) => w + " (" + v + ")");
+  const { values, ...rest } = acc;
+  return {
+    ...rest,
+    top: { cyclomatic: top("cyclomatic"), cognitive: top("cognitive") },
+    cyclomatic: distribution(values.cyclomatic, [10, 15]),
+    cognitive: distribution(values.cognitive, [15, 25]),
+    programs,
+  };
+}
+
+function linter(repoDir, programs) {
+  return new ESLint({
     cwd: repoDir,
     overrideConfigFile: true,
     errorOnUnmatchedPattern: false,
@@ -59,42 +103,24 @@ export async function measureTs(repoDir, trackedFiles) {
       },
     ],
   });
-  const result = { files: 0, testFiles: 0, loc: 0, rules: {}, testRules: {}, examples: {}, cyclomaticValues: [], cognitiveValues: [], top: { cyclomatic: [], cognitive: [] }, fatal: 0 };
+}
+
+const nonBlankLines = (path) => readFileSync(path, "utf8").split("\n").filter((l) => l.trim()).length;
+
+/** Lints the repository's TypeScript and returns the counts (main and test apart) and the complexity distributions. */
+export async function measureTs(repoDir, trackedFiles) {
+  const tsconfigs = trackedFiles.filter((f) => /(^|\/)tsconfig\.json$/.test(f) && !f.includes("node_modules/") && !isTestPath(f));
+  const programs = programsFor(repoDir, tsconfigs);
+  const tracked = new Set(trackedFiles.map((f) => join(repoDir, f)));
+  const files = [...new Set(programs.flatMap((p) => p.getRootFileNames()))].filter((f) => tracked.has(f));
+  const eslint = linter(repoDir, programs);
+  const acc = { files: 0, testFiles: 0, loc: 0, fatal: 0, rules: {}, testRules: {}, examples: {}, values: { cyclomatic: [], cognitive: [] }, top: { cyclomatic: [], cognitive: [] } };
   const CHUNK = 200;
   for (let i = 0; i < files.length; i += CHUNK) {
     for (const r of await eslint.lintFiles(files.slice(i, i + CHUNK))) {
       const rel = relative(repoDir, r.filePath);
-      const test = isTestPath(rel);
-      if (test) result.testFiles++;
-      else {
-        result.files++;
-        result.loc += readFileSync(r.filePath, "utf8").split("\n").filter((l) => l.trim()).length;
-      }
-      for (const m of r.messages) {
-        if (m.fatal || !m.ruleId) { result.fatal++; continue; }
-        if (test) { result.testRules[m.ruleId] = (result.testRules[m.ruleId] ?? 0) + 1; continue; }
-        const where = `${rel}:${m.line}`;
-        if (m.ruleId === "complexity" || m.ruleId === "sonarjs/cognitive-complexity") {
-          const v = valueOf(m.message);
-          if (v === null) continue;
-          const key = m.ruleId === "complexity" ? "cyclomatic" : "cognitive";
-          result[`${key}Values`].push(v);
-          result.top[key].push([v, where]);
-          continue;
-        }
-        result.rules[m.ruleId] = (result.rules[m.ruleId] ?? 0) + 1;
-        (result.examples[m.ruleId] ??= []).length < 5 && result.examples[m.ruleId].push(where);
-      }
+      collect(acc, rel, r.messages, isTestPath(rel) ? 0 : nonBlankLines(r.filePath));
     }
   }
-  for (const key of ["cyclomatic", "cognitive"]) {
-    result.top[key] = result.top[key].sort((a, b) => b[0] - a[0]).slice(0, 3).map(([v, w]) => `${w} (${v})`);
-  }
-  result.cyclomatic = distribution(result.cyclomaticValues, [10, 15]);
-  result.cognitive = distribution(result.cognitiveValues, [15, 25]);
-  delete result.cyclomaticValues;
-  delete result.cognitiveValues;
-  result.programs = programs.length;
-  return result;
+  return finish(acc, programs.length);
 }
-

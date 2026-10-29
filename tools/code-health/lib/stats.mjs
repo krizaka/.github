@@ -27,7 +27,8 @@ const fmt = (d, t) => `${d.count} · ${d.mean} · ${d.p95} · ${d.max} · ${d.ov
 
 /** The Markdown summary of a measure (the JSON written by code-health.mjs). */
 export function renderSummary(measure) {
-  const out = [`# Code health — measured ${measure.date}`, "", `Checkouts: ${measure.repos.map((r) => `${r.repo}@${r.sha}`).join(", ")}.`, ""];
+  const checkouts = measure.repos.map((r) => r.repo + "@" + r.sha).join(", ");
+  const out = [`# Code health — measured ${measure.date}`, "", `Checkouts: ${checkouts}.`, ""];
   const ts = measure.repos.filter((r) => r.ts);
   if (ts.length) {
     out.push(

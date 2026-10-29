@@ -7,7 +7,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { distribution, isTestPath, perKloc, renderSummary, valueOf } from "../lib/stats.mjs";
-import { measureTs } from "../lib/ts-health.mjs";
+import { collect, finish, measureTs } from "../lib/ts-health.mjs";
 import { measureJava } from "../code-health.mjs";
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), "fixtures");
@@ -29,6 +29,26 @@ test("tests, stories and fixtures are not main code", () => {
   for (const p of ["src/a.test.ts", "e2e/x.ts", "packages/ui/src/b.stories.tsx", "tests/c.ts", "src/__tests__/d.ts"]) assert.ok(isTestPath(p), p);
   for (const p of ["src/a.ts", "apps/web/lib/testing-mode.ts"]) assert.ok(!isTestPath(p), p);
   assert.equal(perKloc(3, 1500), 2);
+});
+
+test("collect keeps tests apart, reads metrics, counts parse failures; finish ranks the worst", () => {
+  const acc = { files: 0, testFiles: 0, loc: 0, fatal: 0, rules: {}, testRules: {}, examples: {}, values: { cyclomatic: [], cognitive: [] }, top: { cyclomatic: [], cognitive: [] } };
+  collect(acc, "src/a.ts", [
+    { ruleId: "complexity", line: 3, message: "Function 'a' has a complexity of 12. Maximum allowed is 0." },
+    { ruleId: "@typescript-eslint/prefer-optional-chain", line: 4, message: "x" },
+    { ruleId: null, fatal: true, line: 1, message: "Parsing error" },
+  ], 10);
+  collect(acc, "src/a.test.ts", [{ ruleId: "@typescript-eslint/prefer-optional-chain", line: 1, message: "x" }], 0);
+  const r = finish(acc, 1);
+  assert.equal(r.files, 1);
+  assert.equal(r.testFiles, 1);
+  assert.equal(r.loc, 10);
+  assert.equal(r.fatal, 1);
+  assert.deepEqual(r.rules, { "@typescript-eslint/prefer-optional-chain": 1 });
+  assert.deepEqual(r.testRules, { "@typescript-eslint/prefer-optional-chain": 1 });
+  assert.deepEqual(r.top.cyclomatic, ["src/a.ts:3 (12)"]);
+  assert.equal(r.cyclomatic.over[10], 1);
+  assert.equal(r.values, undefined);
 });
 
 test("TypeScript: the candidate rules find the fixture's optional chain, nullish fallback and dead condition", async () => {
