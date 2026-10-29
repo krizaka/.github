@@ -449,3 +449,13 @@ test("maven.yml: sonar, sonar-light and an always-reporting gate, the release jo
   assert.match(src, /sonar:\n\s+description:[^\n]*\n\s+required: false\n\s+default: false/);
   assert.match(src, /startsWith\(github\.ref, 'refs\/tags\/v'\)/);
 });
+
+// The reusable workflows all run the SAME repo-layout action (a stale pin once refused `.claude/` in every consumer).
+test("every reusable workflow pins actions/repo-layout to one and the same commit", () => {
+  const pins = new Set();
+  for (const name of [...WORKFLOWS.filter((w) => w !== "mobile-e2e"), "maven"]) {
+    for (const m of read(name).matchAll(/actions\/repo-layout@([0-9a-f]{40}) # main/g)) pins.add(m[1]);
+    assert.match(read(name), /actions\/repo-layout@[0-9a-f]{40} # main/, `${name} runs repo-layout`);
+  }
+  assert.equal(pins.size, 1, `one repo-layout pin, got ${[...pins].join(", ")}`);
+});
