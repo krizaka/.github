@@ -386,6 +386,22 @@
       "applies": { "notRepos": ["krizaka-lab", "krizaka-motion"] },
       "check": { "type": "manifests-forbid", "pattern": "krizaka-lab|krizaka-motion|@krizaka/(lab|motion)\\b" },
       "fix": { "type": "manual", "note": "promote the piece into @krizaka/ui, krizaka-ts or Krizaka Java by an ADR (rebuilt with its tests) and depend on that package; the lab is private and has no published name to import" }
+    },
+    {
+      "id": "code-rules-ratchet",
+      "title": "Code rules in the lint ratchet: braces always, max-depth 2, max-nested-callbacks 3, no console in runtime (@krizaka/config krizakaCodeRules, code/<rule> counters)",
+      "issue": "krizaka/.github#422",
+      "applies": { "when": [{ "fileExists": "lint-ratchet.json" }] },
+      "check": { "type": "file-matches", "path": "lint-ratchet.json", "pattern": "\"codeRules\"" },
+      "fix": { "type": "manual", "note": "bump @krizaka/config to the release with krizakaCodeRules, then `npx krizaka-ratchet --update` (records the code/<rule> counters at today's counts); pass `codeRules: \"warn\"` to krizakaStack() while there is debt" }
+    },
+    {
+      "id": "code-rules-sg",
+      "title": "ast-grep code rules in the sg ratchet: no-sync-fs-in-runtime, no-hand-written-validation-regex (@krizaka/config ast-grep core)",
+      "issue": "krizaka/.github#422",
+      "applies": { "when": [{ "fileExists": "sg-ratchet.json" }] },
+      "check": { "type": "file-matches", "path": "sg-ratchet.json", "pattern": "no-sync-fs-in-runtime" },
+      "fix": { "type": "manual", "note": "bump @krizaka/config, then `npx krizaka-sg-ratchet --update` (a repository with its own copy of the rules adopts the pack's core set instead)" }
     }
   ]
 }
