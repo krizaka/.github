@@ -8,8 +8,9 @@
 //
 //   node maven-github-packages-settings.mjs --settings ~/.m2/settings.xml --repositories "krizaka-build" --username "$GITHUB_ACTOR"
 //
-// The credential is read by Maven from the environment of the job: the settings file holds a reference, never a value.
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+// The credential comes from the CREDENTIAL environment variable (never an argument, never printed) and is written to the
+// settings file of the ephemeral runner, mode 0600. Without it the file holds an environment reference.
+import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -32,18 +33,18 @@ const repositoryXml = (kind, repository, org) => `        <${kind}>
           <snapshots><enabled>false</enabled></snapshots>
         </${kind}>`;
 
-const serverXml = (repository, username) => `    <server>
+const serverXml = (repository, username, credential) => `    <server>
       <id>${SERVER_ID}-${repository}</id>
       <username>${escapeXml(username)}</username>
-      <password>\${env.${CREDENTIAL_ENV}}</password>
+      <password>${credential ? escapeXml(credential) : `\${env.${CREDENTIAL_ENV}}`}</password>
     </server>`;
 
 /** The settings with one server per repository, the profile (repositories and plugin repositories) and its activation. Idempotent. */
-export function mergeSettings(xml, { repositories, username, org = "krizaka" }) {
+export function mergeSettings(xml, { repositories, username, credential = "", org = "krizaka" }) {
   if (!repositories.length) throw new Error("no repository to add");
   if (xml.includes(`<id>${SERVER_ID}-${repositories[0]}</id>`)) return xml;
   const base = xml.includes("</settings>") ? xml : '<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0">\n</settings>\n';
-  const servers = repositories.map((r) => serverXml(r, username)).join("\n");
+  const servers = repositories.map((r) => serverXml(r, username, credential)).join("\n");
   const profile = `    <profile>
       <id>${SERVER_ID}</id>
       <repositories>
@@ -69,6 +70,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const username = option(process.argv, "username", process.env.GITHUB_ACTOR ?? "krizaka-agents[bot]");
   const xml = existsSync(settings) ? readFileSync(settings, "utf8") : "";
   mkdirSync(dirname(settings), { recursive: true });
-  writeFileSync(settings, mergeSettings(xml, { repositories, username }));
+  writeFileSync(settings, mergeSettings(xml, { repositories, username, credential: process.env.CREDENTIAL ?? "" }), { mode: 0o600 });
+  chmodSync(settings, 0o600);
   console.log(`GitHub Packages repositories added to ${settings}: ${repositories.join(", ")}`);
 }

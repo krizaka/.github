@@ -1,6 +1,6 @@
 # A development build resolves the Krizaka libraries just released from GitHub Packages (maven.pkg.github.com/krizaka/<repository>),
 # where CI publishes them before the human release to Maven Central (the Central release stays a manual Publish; one cannot be
-# deleted). The repositories and a reference to the credential go into the runner's ~/.m2/settings.xml, never into a POM.
+# deleted). The repositories and the credential go into the runner's ~/.m2/settings.xml (mode 0600, an ephemeral machine), never into a POM.
 #
 #   - uses: actions/setup-java@<sha>
 #   - uses: krizaka/.github/actions/maven-github-packages@<sha>
@@ -35,6 +35,4 @@ runs:
         SCRIPT: ${{ github.action_path }}/../../scripts/maven-github-packages-settings.mjs
       run: |
         echo "::add-mask::$CREDENTIAL"
-        # Maven reads the credential from the environment of the following steps; the settings file only references it.
-        echo "MAVEN_GITHUB_PACKAGES_TOKEN=$CREDENTIAL" >> "$GITHUB_ENV"
         node "$SCRIPT" --settings "$HOME/.m2/settings.xml" --repositories "$REPOSITORIES" --username "$USERNAME"

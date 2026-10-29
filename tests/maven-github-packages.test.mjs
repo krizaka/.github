@@ -28,9 +28,14 @@ test("keeps the servers setup-java wrote, inside one <servers>", () => {
   assert.match(xml, /<id>central<\/id>/);
 });
 
-test("the settings hold a reference to the credential, never a value", () => {
+test("without a credential the settings hold an environment reference", () => {
   const xml = mergeSettings(SETUP_JAVA, options);
   assert.match(xml, new RegExp(`<password>\\$\\{env\\.${CREDENTIAL_ENV}\\}</password>`));
+});
+
+test("with a credential it is written escaped", () => {
+  const xml = mergeSettings(SETUP_JAVA, { ...options, credential: "a<b&c" });
+  assert.match(xml, /<password>a&lt;b&amp;c<\/password>/);
 });
 
 test("creates the settings from nothing", () => {
