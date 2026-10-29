@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Writes release-consumers.json from clones: node scripts/gen-release-consumers.mjs <folder of clones>
+// Writes orchestration/release-consumers.json from clones: node scripts/gen-release-consumers.mjs <folder of clones>
 // (the check is `node scripts/krizaka-release.mjs check <folder>`). The repositories are the ones that consume @krizaka/*.
 import { existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";

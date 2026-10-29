@@ -18,7 +18,7 @@ import {
   waitForPublished,
 } from "../scripts/krizaka-release.mjs";
 
-const consumers = JSON.parse(readFileSync(new URL("../release-consumers.json", import.meta.url), "utf8"));
+const consumers = JSON.parse(readFileSync(new URL("../orchestration/release-consumers.json", import.meta.url), "utf8"));
 const registry = JSON.parse(readFileSync(new URL("../repos.json", import.meta.url), "utf8"));
 
 describe("the packages a publisher announces", () => {

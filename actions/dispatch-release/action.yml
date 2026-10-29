@@ -1,5 +1,5 @@
 # Tell the consumers of a @krizaka release (krizaka/.github#388). After `changeset publish`, the publisher (krizaka-ts,
-# krizaka-ui) calls this with the packages it published; every repository of release-consumers.json that depends on one of
+# krizaka-ui) calls this with the packages it published; every repository of orchestration/release-consumers.json that depends on one of
 # them gets a repository_dispatch `krizaka-release`, which runs its bump-krizaka.yml workflow.
 name: dispatch-release
 description: Send a krizaka-release repository_dispatch to the repositories that depend on the published packages.
@@ -22,14 +22,25 @@ inputs:
 runs:
   using: composite
   steps:
+    # The App token is scoped to the repositories that will be told, never to the whole organisation.
+    - id: who
+      shell: bash
+      run: |
+        repos=$(node "${{ github.action_path }}/../../scripts/krizaka-release.mjs" consumers "$PACKAGES" | node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(0,"utf8")).join(","))')
+        echo "repos=$repos" >> "$GITHUB_OUTPUT"
+      env:
+        PACKAGES: ${{ inputs.packages }}
     - id: app
+      if: steps.who.outputs.repos != ''
       uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
       with:
         app-id: ${{ inputs.app-id }}
         private-key: ${{ inputs.private-key }}
         owner: krizaka
+        repositories: ${{ steps.who.outputs.repos }}
         permission-contents: write # repository_dispatch needs it on the receiving repository
-    - shell: bash
+    - if: steps.who.outputs.repos != ''
+      shell: bash
       run: node "${{ github.action_path }}/../../scripts/krizaka-release.mjs" dispatch "$PACKAGES" ${DRY_RUN:+--dry-run}
       env:
         GH_TOKEN: ${{ steps.app.outputs.token }}

@@ -15,7 +15,7 @@ import { pathToFileURL } from "node:url";
 
 const DEP_FIELDS = ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"];
 const SIMPLE_RANGE = /^([\^~]?)(\d+)\.(\d+)\.(\d+)$/;
-export const CONSUMERS_FILE = new URL("../release-consumers.json", import.meta.url);
+export const CONSUMERS_FILE = new URL("../orchestration/release-consumers.json", import.meta.url);
 
 /** `{ name: version }` from either shape a publisher gives. */
 export function normalisePackages(input) {
