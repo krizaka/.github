@@ -469,3 +469,13 @@ test("the build-pack actions are pinned to one commit across the reusable workfl
   assert.ok(pins.size >= 1);
   assert.equal(pins.size, 1, `one pin for the build pack, got ${[...pins].join(", ")}`);
 });
+
+test("node-ci runs the repository's format:check with the lint step, opt-in by `format-script` (krizaka/.github#427)", () => {
+  const src = read("node-ci");
+  assert.match(src, /\n {6}format-script:\n(?: {8}.*\n)*? {8}default: ""\n/);
+  const step = src.slice(src.indexOf("- name: Format (prettier --check)"));
+  assert.match(step, /if: \$\{\{ inputs\.format-script != '' && \(matrix\.task == 'all' \|\| matrix\.task == 'lint'\) \}\}/);
+  assert.match(step, /run: '"\$PM" run "\$SCRIPT"'/);
+  // The parallel plan still makes a lint leg when only the format script is set.
+  assert.match(src, /\{ \[ -n "\$LINT" \] \|\| \[ -n "\$FORMAT" \]; \} && tasks\+=\(lint\)/);
+});
