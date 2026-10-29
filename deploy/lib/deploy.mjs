@@ -46,105 +46,126 @@ export function rollbackNote({ app, appId, previous }) {
   ].join("\n");
 }
 
+/** The short form of a commit for the log. */
+const shortCommit = (commit) => commit.slice(0, 10);
+
+/** Step 2: the one app of the team that matches, and what runs now. */
+async function locateApp({ config, deps, report, step }) {
+  const apps = await deps.doctl.run(["apps", "list", "-o", "json"]).then((t) => JSON.parse(t || "[]"));
+  const found = apps.filter((a) => a?.spec?.name === config.app || a?.id === config.app);
+  if (found.length !== 1) throw new GuardError("app", `${found.length} apps match '${config.app}' in the Krizaka team (expected exactly one)`);
+  const appId = found[0].id;
+  report.appId = appId;
+  const liveApp = await deps.doctl.json(["apps", "get", appId]);
+  const previousDeployment = liveApp?.active_deployment;
+  report.previous = previousDeployment ? { id: previousDeployment.id, commit: commitsOf(previousDeployment)[0] ?? null } : null;
+  const previous = report.previous;
+  step("previous deployment", previous ? `${previous.id}${previous.commit ? ` @ ${shortCommit(previous.commit)}` : ""}` : "none");
+  const liveSpec = liveApp?.spec ?? parseSpec(await deps.doctl.run(["apps", "spec", "get", appId, "--format", "yaml"]));
+  return { appId, liveSpec };
+}
+
+/** Step 4: apply the repository's spec, with the merge that cannot blank a variable. */
+async function applySpec(ctx, appId, liveSpec, indexingOptions) {
+  const { config, options, deps, step } = ctx;
+  if (!config.spec) throw new GuardError("config", '--apply needs "spec" in the configuration');
+  const { secret = async () => undefined, readFile = readFileFs } = deps;
+  const { allowDrop = [], allowChange = [], setSecret = [] } = options;
+  const fileSpec = parseSpec(await readFile(resolve(config.root, config.spec), "utf8"));
+  assertIndexing(fileSpec, { ...indexingOptions, label: config.spec });
+  assertIngressRoutes(fileSpec, { label: config.spec });
+  const merged = await mergeWithLive(fileSpec, liveSpec, { secret, allowDrop, allowChange, setSecret });
+  if (merged.problems.length) throw new GuardError("secrets", `${config.spec} cannot be applied:\n  - ${merged.problems.join("\n  - ")}`);
+  assertIndexing(merged.spec, { ...indexingOptions, label: "merged spec" });
+  const text = dumpSpec(merged.spec);
+  await deps.doctl.run(["apps", "spec", "validate", "-", "--schema-only"], { input: text });
+  step("spec", `valid; ${merged.carried.length} variable(s) kept from the live app, ${merged.resolved.length} filled from the vault`);
+  if (options.dryRun) {
+    step("apply", `would update ${appId}`);
+    return;
+  }
+  await deps.doctl.run(["apps", "update", appId, "--spec", "-", "--format", "ID", "--no-header"], { input: text });
+  step("apply", `updated ${appId}`);
+}
+
+/** The ACTIVE deployment must have built the commit that was expected. */
+function assertExpectedCommit(deployment, expectSha, step) {
+  const commits = commitsOf(deployment);
+  if (!commits.length || !commits.every((c) => c === expectSha)) {
+    throw new GuardError("commit", `the ACTIVE deployment built ${commits.join(", ") || "an unknown commit"}, expected ${expectSha}`);
+  }
+  step("commit", `${shortCommit(expectSha)} is what runs`);
+}
+
+/** What runs is the head of the branch the app follows — never a cached clone (the deployment's own word is not enough). */
+async function assertRunningHead({ config, options, deps, step }, appId, deployment, after) {
+  if (options.skipHeadCheck) {
+    step("head", "skipped (--skip-head-check)");
+    return;
+  }
+  const { doctl, fetch = globalThis.fetch, env = process.env } = deps;
+  const verified = await verifyRunningHead({ doctl, fetch, appId, deployment, spec: after?.spec ?? {}, env });
+  const where = [...new Set(verified.map((v) => `${v.repo}@${v.branch} ${shortCommit(v.commit)}`))].join(", ");
+  step("head", verified.length ? `${where} is what runs (deployment, build log and branch head agree)` : "no GitHub component to verify");
+}
+
+/** Step 5: rebuild from the source, never reuse (an apply alone keeps the previous image). */
+async function rebuild(ctx, appId, indexingOptions) {
+  const { config, options, deps, report, step } = ctx;
+  if (options.dryRun) {
+    step("create-deployment", "would run with --force-rebuild and wait for ACTIVE");
+    return;
+  }
+  const { doctl, sleep = sleepDefault, now = Date.now } = deps;
+  const created = await doctl.json(["apps", "create-deployment", appId, "--force-rebuild"]);
+  if (!created?.id) throw new GuardError("deployment", "create-deployment returned no deployment id");
+  step("create-deployment", `${created.id} (--force-rebuild)`);
+  const waitOptions = { timeoutMs: config.waitMinutes * 60_000, pollMs: options.pollMs ?? 15_000, sleep, now, log: (m) => step("deployment", m) };
+  const deployment = await waitActive(doctl, appId, created.id, waitOptions);
+  report.deployment = { id: deployment.id, commit: commitsOf(deployment)[0] ?? null };
+  step("ACTIVE", `${deployment.id}${report.deployment.commit ? ` @ ${shortCommit(report.deployment.commit)}` : ""}`);
+  if (options.expectSha) assertExpectedCommit(deployment, options.expectSha, step);
+  const after = await doctl.json(["apps", "get", appId]);
+  await assertRunningHead(ctx, appId, deployment, after);
+  assertIndexing(after?.spec ?? {}, { ...indexingOptions, label: "live spec after the deploy" });
+  step("indexing (after)", config.indexing);
+}
+
 /**
  * @returns the report: { app, appId, dryRun, steps[], previous, deployment, rollback }
  */
 export async function deploy(config, options = {}, deps) {
-  const {
-    doctl,
-    fetch = globalThis.fetch,
-    secret = async () => undefined,
-    readFile = readFileFs,
-    spawnCheck,
-    sleep = sleepDefault,
-    now = Date.now,
-    log = console.log,
-    env = process.env,
-    argv = [],
-  } = deps;
-  const { dryRun = false, apply = false, expectSha = null, skipHeadCheck = false, allowDrop = [], allowChange = [], setSecret = [], pollMs = 15_000, healthAttempts = 12, healthDelayMs = 10_000 } = options;
+  const { log = console.log, env = process.env, argv = [] } = deps;
+  const { dryRun = false, apply = false, healthAttempts = 12, healthDelayMs = 10_000 } = options;
   const report = { app: config.app, dryRun, steps: [] };
   const step = (name, detail = "") => {
     report.steps.push({ name, detail });
     log(`${dryRun ? "[dry-run] " : ""}${name}${detail ? `: ${detail}` : ""}`);
   };
+  const ctx = { config, options, deps, report, step };
 
   // 1. Guards that need no network.
   assertContext({ env, argv });
   step("context", "default");
-  const team = await doctl.assertTeam();
-  step("team", team);
+  step("team", await deps.doctl.assertTeam());
 
   // 2. The app and what runs now.
-  const apps = await doctl.run(["apps", "list", "-o", "json"]).then((t) => JSON.parse(t || "[]"));
-  const found = apps.filter((a) => a?.spec?.name === config.app || a?.id === config.app);
-  if (found.length !== 1) throw new GuardError("app", `${found.length} apps match '${config.app}' in the Krizaka team (expected exactly one)`);
-  const appId = found[0].id;
-  report.appId = appId;
-  const liveApp = await doctl.json(["apps", "get", appId]);
-  const previousDeployment = liveApp?.active_deployment;
-  report.previous = previousDeployment ? { id: previousDeployment.id, commit: commitsOf(previousDeployment)[0] ?? null } : null;
-  step("previous deployment", report.previous ? `${report.previous.id}${report.previous.commit ? ` @ ${report.previous.commit.slice(0, 10)}` : ""}` : "none");
-  const liveSpec = liveApp?.spec ?? parseSpec(await doctl.run(["apps", "spec", "get", appId, "--format", "yaml"]));
+  const { appId, liveSpec } = await locateApp(ctx);
 
   // 3. The indexing flag the live app carries must be the one this environment expects, before and after.
   const indexingOptions = { expect: config.indexing, variable: config.indexingVariable };
   assertIndexing(liveSpec, { ...indexingOptions, label: "live spec" });
   step("indexing (live)", `${config.indexing}`);
 
-  // 4. Apply the repository's spec (opt-in), with the merge that cannot blank a variable.
-  if (apply) {
-    if (!config.spec) throw new GuardError("config", '--apply needs "spec" in the configuration');
-    const fileSpec = parseSpec(await readFile(resolve(config.root, config.spec), "utf8"));
-    assertIndexing(fileSpec, { ...indexingOptions, label: config.spec });
-    assertIngressRoutes(fileSpec, { label: config.spec });
-    const merged = await mergeWithLive(fileSpec, liveSpec, { secret, allowDrop, allowChange, setSecret });
-    if (merged.problems.length) throw new GuardError("secrets", `${config.spec} cannot be applied:\n  - ${merged.problems.join("\n  - ")}`);
-    assertIndexing(merged.spec, { ...indexingOptions, label: "merged spec" });
-    const text = dumpSpec(merged.spec);
-    await doctl.run(["apps", "spec", "validate", "-", "--schema-only"], { input: text });
-    step("spec", `valid; ${merged.carried.length} variable(s) kept from the live app, ${merged.resolved.length} filled from the vault`);
-    if (dryRun) step("apply", `would update ${appId}`);
-    else {
-      await doctl.run(["apps", "update", appId, "--spec", "-", "--format", "ID", "--no-header"], { input: text });
-      step("apply", `updated ${appId}`);
-    }
-  } else {
-    step("apply", "skipped (the app deploys from its repository; pass --apply to send the spec)");
-  }
+  // 4. Apply the repository's spec (opt-in).
+  if (apply) await applySpec(ctx, appId, liveSpec, indexingOptions);
+  else step("apply", "skipped (the app deploys from its repository; pass --apply to send the spec)");
 
   report.rollback = rollbackNote({ app: config.app, appId, previous: report.previous });
   try {
-    // 5. Rebuild from the source, never reuse (an apply alone keeps the previous image).
-    let deployment = null;
-    if (dryRun) {
-      step("create-deployment", "would run with --force-rebuild and wait for ACTIVE");
-    } else {
-      const created = await doctl.json(["apps", "create-deployment", appId, "--force-rebuild"]);
-      if (!created?.id) throw new GuardError("deployment", "create-deployment returned no deployment id");
-      step("create-deployment", `${created.id} (--force-rebuild)`);
-      deployment = await waitActive(doctl, appId, created.id, { timeoutMs: config.waitMinutes * 60_000, pollMs, sleep, now, log: (m) => step("deployment", m) });
-      report.deployment = { id: deployment.id, commit: commitsOf(deployment)[0] ?? null };
-      step("ACTIVE", `${deployment.id}${report.deployment.commit ? ` @ ${report.deployment.commit.slice(0, 10)}` : ""}`);
-      if (expectSha) {
-        const commits = commitsOf(deployment);
-        if (!commits.length || !commits.every((c) => c === expectSha)) {
-          throw new GuardError("commit", `the ACTIVE deployment built ${commits.join(", ") || "an unknown commit"}, expected ${expectSha}`);
-        }
-        step("commit", `${expectSha.slice(0, 10)} is what runs`);
-      }
-      const after = await doctl.json(["apps", "get", appId]);
-      // What runs is the head of the branch the app follows — never a cached clone (the deployment's own word is not enough).
-      if (skipHeadCheck) step("head", "skipped (--skip-head-check)");
-      else {
-        const verified = await verifyRunningHead({ doctl, fetch, appId, deployment, spec: after?.spec ?? {}, env });
-        step("head", verified.length ? [...new Set(verified.map((v) => `${v.repo}@${v.branch} ${v.commit.slice(0, 10)}`))].join(", ") + " is what runs (deployment, build log and branch head agree)" : "no GitHub component to verify");
-      }
-      assertIndexing(after?.spec ?? {}, { ...indexingOptions, label: "live spec after the deploy" });
-      step("indexing (after)", config.indexing);
-    }
-
+    await rebuild(ctx, appId, indexingOptions);
     // 6. The live site says what it should.
+    const { fetch = globalThis.fetch, spawnCheck, sleep = sleepDefault } = deps;
     await runChecks(config, { fetch, spawnCheck, healthAttempts, healthDelayMs, sleepFn: sleep, step });
   } catch (error) {
     // Whatever failed after the first change: say where to go back to.
