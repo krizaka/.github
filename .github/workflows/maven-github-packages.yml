@@ -33,6 +33,16 @@ on:
         description: "The v* tag to publish (v0.2.0)."
         required: true
         type: string
+      ref:
+        description: "Publish this ref (a branch or sha) instead of the tag, at the version its POMs carry. For a module the tag predates."
+        required: false
+        default: ""
+        type: string
+      modules:
+        description: "Publish only these modules (Maven -pl, comma-separated). Empty: the whole reactor."
+        required: false
+        default: ""
+        type: string
       java-version:
         description: "JDK used to build."
         required: false
@@ -53,7 +63,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          ref: refs/tags/${{ inputs.tag }}
+          ref: ${{ inputs.ref || format('refs/tags/{0}', inputs.tag) }}
           persist-credentials: false
 
       - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
@@ -66,6 +76,7 @@ jobs:
           server-password: GITHUB_TOKEN
 
       - name: Version from the tag
+        if: ${{ inputs.ref == '' }}
         env:
           TAG: ${{ inputs.tag }}
         run: |
@@ -83,6 +94,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPOSITORY: ${{ github.repository }}
+          MODULES: ${{ inputs.modules }}
         run: |
-          ./mvnw -B -ntp deploy -DskipTests -DskipITs -Dkrizaka.quality.phase=none \
+          # shellcheck disable=SC2086  # -pl and its value are word-split on purpose
+          ./mvnw -B -ntp deploy ${MODULES:+-pl $MODULES} -DskipTests -DskipITs -Dkrizaka.quality.phase=none \
             "-DaltDeploymentRepository=github::https://maven.pkg.github.com/${REPOSITORY}"
