@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { movePins, pinFiles, pinPattern } from "./propagate-pins.mjs";
+import { failure, movePins, pinFiles, pinPattern, pushArgs } from "./propagate-pins.mjs";
 
 const OLD = "a".repeat(40);
 const NEW = "b".repeat(40);
@@ -39,4 +39,12 @@ test("--source moves the component.yml pins of krizaka/orazaka and leaves the or
   assert.equal(movePins(root, NEW, "orazaka").length, 0, "idempotent");
   assert.ok(pinPattern(".github").test("krizaka/.github/x@" + OLD), "the default source is the org's .github");
   assert.ok(!pinPattern("orazaka").test("krizaka/orazaka-edge/x@" + OLD), "the source name is exact");
+});
+
+test("the push carries the app's token through gh's credential helper (a runner has none: every push of 2026-10-29 failed), and a failure says why", () => {
+  const args = pushArgs("/w/repo", "deps/x");
+  assert.deepEqual(args.slice(-5), ["push", "-q", "-f", "origin", "deps/x"]);
+  assert.ok(args.includes("credential.helper=!gh auth git-credential"));
+  assert.ok(args.indexOf("credential.helper=") < args.indexOf("credential.helper=!gh auth git-credential"), "the helper list is reset first");
+  assert.equal(failure(Object.assign(new Error("Command failed: git push\nsecond"), { stderr: "fatal: could not read Username\nmore" })), "Command failed: git push — fatal: could not read Username");
 });

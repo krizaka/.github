@@ -24,6 +24,18 @@ export function pinPattern(source = ".github") {
 }
 const sh = (cmd, args, opts = {}) => execFileSync(cmd, args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], ...opts }).trim();
 
+/** `git push` of a clone: the app's token reaches git through `gh` (the clone keeps a plain https remote, and a runner has no credential helper). */
+export function pushArgs(dir, branch) {
+  return ["-C", dir, "-c", "credential.helper=", "-c", "credential.helper=!gh auth git-credential", "push", "-q", "-f", "origin", branch];
+}
+
+/** The reason a command failed: its first line and the first line of what it printed on stderr (execFileSync hides it from `message`). */
+export function failure(error) {
+  const first = (text) => String(text ?? "").trim().split("\n")[0];
+  const stderr = first(error?.stderr);
+  return [first(error instanceof Error ? error.message : error), stderr].filter(Boolean).join(" — ");
+}
+
 /** The files of a clone that can hold a pin: workflows and local composite actions. */
 export function pinFiles(root) {
   const out = [];
@@ -89,11 +101,11 @@ function main(argv) {
       git("switch", "-C", branch);
       git("add", "-A");
       git("-c", "user.name=krizaka-agents[bot]", "-c", "user.email=krizaka-agents[bot]@users.noreply.github.com", "commit", "-q", "-m", `ci(deps): the ${label} move to krizaka/${source}@${sha.slice(0, 8)}`);
-      git("push", "-q", "-f", "origin", branch);
+      sh("git", pushArgs(dir, branch));
       const url = sh("gh", ["pr", "create", "-R", `krizaka/${repo}`, "--head", branch, "--title", `ci(deps): the ${label} move to krizaka/${source}@${sha.slice(0, 8)}`, "--body", `A change in krizaka/${source} reaches this repository (propagate-pins, rule « a rule reaches every repo »). Only the \`@<sha>\` pins of krizaka/${source} change; CI decides.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)`]);
       console.log(`${repo}: ${url}`);
     } catch (error) {
-      console.error(`${repo}: ${error instanceof Error ? error.message.split("\n")[0] : error}`);
+      console.error(`${repo}: ${failure(error)}`);
       process.exitCode = 1;
     }
   }
