@@ -268,3 +268,15 @@ path-filtered workflows, which cannot be required (a PR outside their paths woul
 called by [`ci-gate.yml`](../../.github/workflows/ci-gate.yml) on **every** pull request; `scripts/ci-scope.mjs` (tested) decides which apply from the
 changed files, read from the base branch so a PR cannot narrow its own checks; a suite that does not apply is skipped, and the job `CI gate` fails
 when an applicable one did not succeed. Fail-open: a broken scope runs everything. **Required checks on main: `CI gate` and `SonarCloud Code Analysis`** (CodeQL stays its own).
+
+## Brand icons follow the brand export (krizaka/.github#388)
+
+A site commits its icons (`sync-brand-icons.mjs`, byte for byte from the CDN) and a `brand-icons` test compares them with the
+CDN manifest. When krizaka-ui's `export-brand` changes the brand files, that test would go red in every consumer at its next
+unrelated change. So the export tells `krizaka/.github`: krizaka-ui's `release.yml` sends `repository_dispatch` `brand-changed`
+after `export-brand --upload`, and `.github/workflows/brand-icons-sync.yml` runs `scripts/brand-icons-fanout.mjs`: for every
+active repository of the conformance registry (never a list kept by hand), it runs the repository's own sync script and opens
+ONE pull request (`chore/brand-icons-<day>`, the app as author, auto-merge) where the icons drifted. A repository in sync gets
+nothing; one without a sync script has no guard and is skipped. A daily run is the safety net for a lost event; by hand:
+`gh workflow run brand-icons-sync.yml -R krizaka/.github` (`-f dry-run=true` only reports). Tested by
+`scripts/brand-icons-fanout.test.mjs`.

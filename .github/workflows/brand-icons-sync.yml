@@ -1,0 +1,51 @@
+# A brand change never reaches a repository as a red test (krizaka/.github#388). krizaka-ui's release workflow sends the event
+# `brand-changed` after `export-brand --upload`; this workflow then opens ONE pull request per active repository of the
+# conformance registry whose committed icons drifted (scripts/brand-icons-fanout.mjs: each repository's own
+# sync-brand-icons.mjs, auto-merge on). Idempotent: a repository in sync gets nothing. The daily run is the safety net for a
+# lost event. By hand: `gh workflow run brand-icons-sync.yml -R krizaka/.github` (input `dry-run` only reports).
+name: Sync brand icons
+
+on:
+  repository_dispatch:
+    types: [brand-changed]
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: "Report who drifted, open nothing"
+        type: boolean
+        default: false
+  schedule:
+    - cron: "17 6 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: brand-icons-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - id: app
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: krizaka # zizmor: ignore[github-app] one pull request in every active repository of the org, by design
+          permission-contents: write
+          permission-pull-requests: write
+          permission-workflows: write
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Open one pull request per drifted repository
+        run: node scripts/brand-icons-fanout.mjs ${DRY_RUN:+--dry-run}
+        env:
+          DRY_RUN: ${{ inputs.dry-run && 'true' || '' }}
+          GH_TOKEN: ${{ steps.app.outputs.token }}
