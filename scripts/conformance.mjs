@@ -15,7 +15,7 @@ import { pathToFileURL } from "node:url";
 import { gunzipSync } from "node:zlib";
 
 const HERE = new URL("../", import.meta.url);
-export const CHECK_TYPES = ["workflow-calls", "workflow-matches", "workflow-forbids", "file-exists", "file-matches", "manifests-forbid", "no-mention"];
+export const CHECK_TYPES = ["workflow-calls", "workflow-matches", "workflow-forbids", "file-exists", "file-matches", "manifests-forbid", "no-mention", "published-no-mention"];
 export const FIX_TYPES = ["copy", "append-section", "settings-hook", "manual"];
 const WORKFLOW_PATH = /^\.github\/workflows\/[^/]+\.ya?ml$/;
 const CALL = /uses:\s*krizaka\/(?:\.github|orazaka)\/\.github\/workflows\/([\w.-]+\.ya?ml)@/g;
@@ -72,7 +72,7 @@ export function scopeOf(repositories) {
 }
 
 /** A repository as the checks see it: its tracked paths and a reader of one file (null when absent). */
-export function snapshotOf(name, kind, paths, readFile, scan = null) {
+export function snapshotOf(name, kind, paths, readFile, scan = null, published = null) {
   const cache = new Map();
   const read = async (path) => {
     if (!paths.includes(path)) return null;
@@ -83,7 +83,7 @@ export function snapshotOf(name, kind, paths, readFile, scan = null) {
     const texts = await Promise.all(paths.filter((p) => WORKFLOW_PATH.test(p)).map(read));
     return texts.filter(Boolean).join("\n");
   };
-  return { name, kind, paths, read, workflows, scan };
+  return { name, kind, paths, read, workflows, scan, published };
 }
 
 /** Does the rule concern this repository? */
@@ -147,6 +147,14 @@ const CHECKS = {
     const allowed = [...(check.allow ?? []), ...(check.allowIn?.[snap.name] ?? [])];
     const hits = (await snap.scan(new RegExp(check.pattern, "i"))).filter((p) => !allowed.some((a) => p === a || p.startsWith(a) || p.endsWith(`/${a}`)));
     return verdict(hits.length === 0, `${hits.length} file(s) name a departed product, e.g. ${hits.slice(0, 3).join(", ")}`);
+  },
+  // What the repository PUBLISHES: the latest npm tarball of each of its public packages (built CSS/JS included), not its sources.
+  // `published` is absent offline: nothing to prove. `allow`: files that are history inside a package (its CHANGELOG).
+  "published-no-mention": async (check, snap) => {
+    if (!snap.published) return { ok: true, why: "" };
+    const allowed = check.allow ?? [];
+    const hits = (await snap.published(new RegExp(check.pattern, "i"))).filter((h) => !allowed.some((a) => h.endsWith(`:${a}`) || h.includes(`:${a}`)));
+    return verdict(hits.length === 0, `${hits.length} published file(s) name a departed product, e.g. ${hits.slice(0, 3).join(", ")}`);
   },
 };
 
@@ -246,7 +254,27 @@ export async function liveSnapshot({ name, kind }, org = "krizaka") {
     if (!res.ok) throw new Error(`${name} tarball: ${res.status}`);
     return tarballMatches(Buffer.from(await res.arrayBuffer()), re);
   };
-  return snapshotOf(name, kind, paths, raw, scan);
+  const published = async (re) => {
+    const manifests = paths.filter((p) => /(^|\/)package\.json$/.test(p) && !/node_modules/.test(p));
+    const hits = [];
+    for (const m of manifests) {
+      let pkg;
+      try {
+        pkg = JSON.parse((await raw(m)) ?? "{}");
+      } catch {
+        continue;
+      }
+      if (!pkg.name || pkg.private) continue;
+      const meta = await fetch(`https://registry.npmjs.org/${pkg.name.replace("/", "%2F")}/latest`, { signal: AbortSignal.timeout(30000) });
+      if (!meta.ok) continue;
+      const { version, dist } = await meta.json();
+      const tgz = await fetch(dist.tarball, { signal: AbortSignal.timeout(120000) });
+      if (!tgz.ok) throw new Error(`${pkg.name} tarball: ${tgz.status}`);
+      hits.push(...tarballMatches(Buffer.from(await tgz.arrayBuffer()), re).map((f) => `${pkg.name}@${version}:${f}`));
+    }
+    return hits;
+  };
+  return snapshotOf(name, kind, paths, raw, scan, published);
 }
 
 const flag = (argv, name) => (argv.includes(name) ? argv[argv.indexOf(name) + 1] : undefined);
