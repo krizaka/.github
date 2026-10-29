@@ -4,21 +4,25 @@ import { GuardError } from "./errors.mjs";
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+/** A robots.txt line as [name, value], or null for a blank or comment-only line. */
+function robotsField(raw) {
+  const line = raw.replace(/#.*/, "").trim();
+  if (!line) return null;
+  const [field, ...rest] = line.split(":");
+  return [field.trim().toLowerCase(), rest.join(":").trim()];
+}
+
 /** The Disallow lines under `User-agent: *`. */
 export function wildcardDisallows(robots) {
   const out = [];
   let applies = false;
   let inGroupStart = false;
-  for (const raw of robots.split(/\r?\n/)) {
-    const line = raw.replace(/#.*/, "").trim();
-    if (!line) continue;
-    const [field, ...rest] = line.split(":");
-    const value = rest.join(":").trim();
-    const name = field.trim().toLowerCase();
+  for (const parsed of robots.split(/\r?\n/).map(robotsField)) {
+    if (!parsed) continue;
+    const [name, value] = parsed;
     if (name === "user-agent") {
-      if (!inGroupStart) applies = false;
+      applies = (inGroupStart ? applies : false) || value === "*";
       inGroupStart = true;
-      if (value === "*") applies = true;
     } else {
       inGroupStart = false;
       if (applies && name === "disallow") out.push(value);
