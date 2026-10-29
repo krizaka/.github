@@ -28,6 +28,17 @@ How GitHub coding agents (Copilot, Claude) work in the krizaka organisation. The
 - **A review.** Claude (CTO) reviews every agent PR: the build, the tests, the words, the admin side, the docs. Then
   Oussama approves and merges.
 
+## The edit hook (ADR-015 §7)
+
+`krizaka-edit-check` (a bin of [`@krizaka/config`](https://www.npmjs.com/package/@krizaka/config)) checks the one file
+an agent just edited, from a Claude Code `PostToolUse` hook. TypeScript and JavaScript: the repository's ESLint on that
+file. Java: PMD's CLI with the Krizaka rules (the PMD distribution is pinned by checksum and cached once under
+`~/.cache/krizaka`; the first call installs it in the background and stays silent). It never runs Maven: a per-edit
+`mvn verify` costs 30 to 60 s. Its budget is 10 s; a finding goes back to the agent on stderr with exit 2; a timeout is
+silent. NullAway and ArchUnit need a compile, so they stay at pre-push and in CI.
+
+The snippet every repository carries in `.claude/settings.json` is in [AGENTS.template.md §9](../../AGENTS.template.md).
+
 ## The model, chosen per task
 
 | Kind of task | Model | Examples |

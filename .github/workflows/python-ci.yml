@@ -190,7 +190,7 @@ jobs:
         working-directory: ${{ inputs.working-directory }}
         run: |
           case "$TASK" in lint) c="$LINT" ;; test) c="$TEST" ;; esac
-          if [ "$PM" = uv ]; then uv run --frozen bash -eo pipefail -c "$c"; else bash -eo pipefail -c "$c"; fi
+          if [ "$PM" = uv ]; then uv run --frozen --no-build bash -eo pipefail -c "$c"; else bash -eo pipefail -c "$c"; fi
 
       - name: Collect the coverage for SonarCloud
         if: ${{ inputs.sonar && matrix.task == 'test' && steps.which.outputs.run == 'true' }}

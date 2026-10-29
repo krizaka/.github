@@ -47,30 +47,34 @@ export function fakeDoctl(state = {}, calls = []) {
     ...state,
   };
   let polls = 0;
+  // What `doctl <group> <verb>` answers, by the first two words after the context.
+  const answers = {
+    "account get": () => JSON.stringify([{ team: { name: s.team } }]),
+    "apps list": () => JSON.stringify(s.apps ?? [{ id: APP_ID, spec: { name: "krizaka-com" } }]),
+    "apps get": () => {
+      const spec = s.deployed ? (s.specAfter ?? s.spec) : s.spec;
+      return JSON.stringify([{ id: APP_ID, spec, active_deployment: { id: s.deployed ? "new-1" : s.previous.id, services: [{ name: "web", source_commit_hash: s.deployed ? s.commit : s.previous.commit }] } }]);
+    },
+    "apps create-deployment": () => {
+      s.deployed = false;
+      return JSON.stringify([{ id: "new-1", phase: "PENDING_BUILD" }]);
+    },
+    "apps get-deployment": () => {
+      const phase = s.phases[Math.min(polls++, s.phases.length - 1)];
+      if (phase === "ACTIVE") s.deployed = true;
+      return JSON.stringify([{ id: "new-1", phase, cause_details: s.cause, services: [{ name: "web", source_commit_hash: s.commit }] }]);
+    },
+    "apps logs": () => (s.noLog ? "" : `web 2026-10-21T17:00:00Z \u001b[34m│\u001b[0m => Checking out commit "${s.buildLogSha ?? s.commit}"\n`),
+    "apps spec": () => "",
+    "apps update": () => "",
+  };
   const exec = async (args, options = {}) => {
     calls.push({ args: args.slice(2), input: options.input });
     if (args[0] !== "--context" || args[1] !== "default") throw new Error("a doctl call without --context default");
     const [a, b] = args.slice(2);
-    const key = `${a} ${b}`;
-    if (key === "account get") return JSON.stringify([{ team: { name: s.team } }]);
-    if (key === "apps list") return JSON.stringify(s.apps ?? [{ id: APP_ID, spec: { name: "krizaka-com" } }]);
-    if (key === "apps get") {
-      const spec = s.deployed ? (s.specAfter ?? s.spec) : s.spec;
-      return JSON.stringify([{ id: APP_ID, spec, active_deployment: { id: s.deployed ? "new-1" : s.previous.id, services: [{ name: "web", source_commit_hash: s.deployed ? s.commit : s.previous.commit }] } }]);
-    }
-    if (key === "apps create-deployment") {
-      s.deployed = false;
-      return JSON.stringify([{ id: "new-1", phase: "PENDING_BUILD" }]);
-    }
-    if (key === "apps get-deployment") {
-      const phase = s.phases[Math.min(polls++, s.phases.length - 1)];
-      if (phase === "ACTIVE") s.deployed = true;
-      return JSON.stringify([{ id: "new-1", phase, cause_details: s.cause, services: [{ name: "web", source_commit_hash: s.commit }] }]);
-    }
-    if (key === "apps logs") return s.noLog ? "" : `web 2026-10-21T17:00:00Z \u001b[34m│\u001b[0m => Checking out commit "${s.buildLogSha ?? s.commit}"\n`;
-    if (key === "apps spec") return "";
-    if (key === "apps update") return "";
-    throw new Error(`unscripted doctl call: ${args.slice(2).join(" ")}`);
+    const answer = answers[`${a} ${b}`];
+    if (!answer) throw new Error(`unscripted doctl call: ${args.slice(2).join(" ")}`);
+    return answer();
   };
   const doctl = createDoctl({ exec, env: {} });
   return { doctl, calls, state: s };
