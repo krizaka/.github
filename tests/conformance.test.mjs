@@ -143,3 +143,19 @@ test("tarballMatches reads the text files of a GitHub tarball and skips the bina
   const tar = Buffer.concat([entry("top/a.md", Buffer.from("see Orochia")), entry("top/b.md", Buffer.from("clean")), entry("top/c.bin", Buffer.from([0, 1, 2])), Buffer.alloc(1024)]);
   assert.deepEqual(tarballMatches(gzipSync(tar), /orochia/i), ["a.md"]);
 });
+
+test("the lab-isolation rule: nothing outside the lab depends on the lab", async () => {
+  const rule = loadRules().find((r) => r.id === "lab-isolation");
+  assert.ok(rule, "the rule is in the registry");
+  assert.equal(await appliesTo(rule, snap("krizaka-lab", "npm", {})), false);
+  assert.equal(await appliesTo(rule, snap("krizaka-ui", "npm", {})), true);
+  const clean = snap("krizaka-ui", "npm", { "package.json": '{"dependencies":{"@krizaka/tokens":"1"}}' });
+  assert.equal((await runCheck(rule.check, clean)).ok, true);
+  for (const body of ['{"dependencies":{"krizaka-lab":"github:krizaka/krizaka-lab"}}', '{"dependencies":{"@krizaka/motion":"1"}}']) {
+    assert.equal((await runCheck(rule.check, snap("x", "npm", { "package.json": body }))).ok, false, body);
+  }
+  const sub = snap("x", "npm", { ".gitmodules": "[submodule]\n url = https://github.com/krizaka/krizaka-lab" });
+  assert.equal((await runCheck(rule.check, sub)).ok, false);
+  const doc = snap("x", "npm", { "README.md": "see krizaka-lab", "package.json": "{}" });
+  assert.equal((await runCheck(rule.check, doc)).ok, true, "prose is not a dependency");
+});

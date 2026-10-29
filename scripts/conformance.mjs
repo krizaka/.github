@@ -15,7 +15,7 @@ import { pathToFileURL } from "node:url";
 import { gunzipSync } from "node:zlib";
 
 const HERE = new URL("../", import.meta.url);
-export const CHECK_TYPES = ["workflow-calls", "workflow-matches", "workflow-forbids", "file-exists", "file-matches", "no-mention"];
+export const CHECK_TYPES = ["workflow-calls", "workflow-matches", "workflow-forbids", "file-exists", "file-matches", "manifests-forbid", "no-mention"];
 export const FIX_TYPES = ["copy", "append-section", "settings-hook", "manual"];
 const WORKFLOW_PATH = /^\.github\/workflows\/[^/]+\.ya?ml$/;
 const CALL = /uses:\s*krizaka\/(?:\.github|orazaka)\/\.github\/workflows\/([\w.-]+\.ya?ml)@/g;
@@ -56,6 +56,7 @@ function checkShape({ id, check = {} }) {
     "workflow-forbids": () => Boolean(check.pattern),
     "file-exists": () => Boolean(check.paths?.length),
     "file-matches": () => Boolean(check.path && check.pattern),
+    "manifests-forbid": () => Boolean(check.pattern),
     "no-mention": () => Boolean(check.pattern),
   };
   return needs[check.type]?.() === false ? [`${id}: the ${check.type} check is incomplete`] : [];
@@ -105,45 +106,54 @@ async function holds(w, snap, lists) {
   return false;
 }
 
+const MANIFEST = /(^|\/)(package\.json|pnpm-workspace\.yaml|\.gitmodules|pom\.xml|build\.gradle(\.kts)?)$/;
+
 const callsOf = (text) => new Set([...text.matchAll(CALL)].map((m) => m[1]));
+
+const verdict = (ok, why) => ({ ok, why: ok ? "" : why });
+
+/** One handler per check type: each returns { ok, why }. */
+const CHECKS = {
+  "workflow-calls": async (check, snap) => {
+    const wanted = check.byKind ? (check.byKind[snap.kind] ?? []) : check.workflows;
+    const calls = callsOf(await snap.workflows());
+    return verdict(wanted.some((w) => calls.has(w)), `calls none of ${wanted.join(", ")}`);
+  },
+  "workflow-matches": async (check, snap) =>
+    verdict(new RegExp(check.pattern).test(await snap.workflows()), `no workflow matches ${check.pattern}`),
+  "workflow-forbids": async (check, snap) => {
+    const found = new RegExp(check.pattern).exec(await snap.workflows());
+    return { ok: !found, why: found ? `a workflow has « ${found[0]} »` : "" };
+  },
+  "file-exists": async (check, snap) =>
+    verdict(check.paths.some((p) => snap.paths.includes(p)), `no ${check.paths[0]}`),
+  "file-matches": async (check, snap) => {
+    const body = await snap.read(check.path);
+    if (body === null) return { ok: false, why: `no ${check.path}` };
+    return verdict(new RegExp(check.pattern).test(body), `${check.path} lacks ${check.pattern}`);
+  },
+  // The manifests that can name a dependency: npm, pnpm workspaces, git submodules, Maven, Gradle.
+  "manifests-forbid": async (check, snap) => {
+    const re = new RegExp(check.pattern);
+    for (const p of snap.paths.filter((x) => MANIFEST.test(x))) {
+      const found = re.exec((await snap.read(p)) ?? "");
+      if (found) return { ok: false, why: `${p} names « ${found[0]} »` };
+    }
+    return { ok: true, why: "" };
+  },
+  "no-mention": async (check, snap) => {
+    // `allow`: path prefixes whose text is history (a released chapter, a changelog). `scan` is absent offline: nothing to prove.
+    if (!snap.scan) return { ok: true, why: "" };
+    const allowed = [...(check.allow ?? []), ...(check.allowIn?.[snap.name] ?? [])];
+    const hits = (await snap.scan(new RegExp(check.pattern, "i"))).filter((p) => !allowed.some((a) => p === a || p.startsWith(a)));
+    return verdict(hits.length === 0, `${hits.length} file(s) name a departed product, e.g. ${hits.slice(0, 3).join(", ")}`);
+  },
+};
 
 /** @returns {Promise<{ ok: boolean, why: string }>} */
 export async function runCheck(check, snap) {
-  const text = async () => snap.workflows();
-  switch (check.type) {
-    case "workflow-calls": {
-      const wanted = check.byKind ? (check.byKind[snap.kind] ?? []) : check.workflows;
-      const calls = callsOf(await text());
-      const ok = wanted.some((w) => calls.has(w));
-      return { ok, why: ok ? "" : `calls none of ${wanted.join(", ")}` };
-    }
-    case "workflow-matches": {
-      const ok = new RegExp(check.pattern).test(await text());
-      return { ok, why: ok ? "" : `no workflow matches ${check.pattern}` };
-    }
-    case "workflow-forbids": {
-      const found = new RegExp(check.pattern).exec(await text());
-      return { ok: !found, why: found ? `a workflow has « ${found[0]} »` : "" };
-    }
-    case "file-exists": {
-      const ok = check.paths.some((p) => snap.paths.includes(p));
-      return { ok, why: ok ? "" : `no ${check.paths[0]}` };
-    }
-    case "file-matches": {
-      const body = await snap.read(check.path);
-      if (body === null) return { ok: false, why: `no ${check.path}` };
-      const ok = new RegExp(check.pattern).test(body);
-      return { ok, why: ok ? "" : `${check.path} lacks ${check.pattern}` };
-    }
-    case "no-mention": {
-      // `allow`: path prefixes whose text is history (a released chapter, a changelog). `scan` is absent offline: nothing to prove.
-      if (!snap.scan) return { ok: true, why: "" };
-      const hits = (await snap.scan(new RegExp(check.pattern, "i"))).filter((p) => ![...(check.allow ?? []), ...(check.allowIn?.[snap.name] ?? [])].some((a) => p === a || p.startsWith(a)));
-      return { ok: hits.length === 0, why: hits.length ? `${hits.length} file(s) name a departed product, e.g. ${hits.slice(0, 3).join(", ")}` : "" };
-    }
-    default:
-      return { ok: false, why: `unknown check ${check.type}` };
-  }
+  const handler = CHECKS[check.type];
+  return handler ? handler(check, snap) : { ok: false, why: `unknown check ${check.type}` };
 }
 
 /** The matrix: `cells[repo][rule]` = { status: "green" | "red" | "n/a", why }. */

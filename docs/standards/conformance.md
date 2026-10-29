@@ -6,7 +6,7 @@ matrix lists as out of scope. There are no exceptions.
 
 - **Registry**: `docs/standards/rules.json`, one entry per rule (`id`, `issue`, `applies`, `check`, `fix`). A rule without its check
   or its fix fails `tests/conformance.test.mjs`. Checks: `workflow-calls`, `workflow-matches`, `workflow-forbids`, `file-exists`,
-  `file-matches`.
+  `file-matches`, `manifests-forbid {pattern}` (no manifest, workspace file, submodule list, POM or Gradle file names the pattern).
 - **Matrix**: `node scripts/conformance.mjs` (repo x rule, green / red / n/a). Weekly and on every pull request that touches the rules
   (`.github/workflows/conformance.yml`); the 3-hour checkpoint prints it (`checkpoint-gen.sh`, « Conformance »).
 - **Fan-out**: `node scripts/conformance-fanout.mjs --matrix matrix.json [--rules a,b] [--repos x] [--apply]` opens one pull request per

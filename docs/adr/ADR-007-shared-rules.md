@@ -80,6 +80,6 @@ The code rules of the organisation exist, and they work. They are spread across 
 - **One package carries more.** `@krizaka/config` gets ast-grep, its rules, and five bins. Its version spread (0.1 to 0.7 today) is the first thing the migration fixes: every pilot moves to the release that ships the rules.
 - **One generated folder per repository** (`.krizaka/ast-grep/`, git-ignored), rebuilt by `sync`. A stale copy fails `sync --check` in `lint`.
 - **A rule change reaches every repository through a version bump,** never through 10 copies. Renovate opens the PR, and a new rule asks for its baseline in that PR.
-- **Repositories without ast-grep get the rules by declaring a profile.** That covers the mobile apps, orazaka-ui-kit, orochia-design-system, orazaka-cli, krizaka-blog, krizaka-motion and yororis. They start at their current counts.
+- **Repositories without ast-grep get the rules by declaring a profile.** That covers the mobile apps, orazaka-ui-kit, orochia-design-system, orazaka-cli, krizaka-blog, krizaka-lab (formerly krizaka-motion) and yororis. They start at their current counts.
 - **The Java move touches the governance tests of the Orazaka services.** Each one keeps its frozen store, so no violation appears or disappears.
 - **Not decided here:** moving `@krizaka/config` out of krizaka-ui (it stays); a shared Python rule set (not needed yet); the CI pack itself (#113).

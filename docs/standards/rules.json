@@ -1,6 +1,6 @@
 {
   "_": "The rule registry of the org (krizaka/.github#393): every org rule that must hold in every active repository, with the check that proves it. scripts/conformance.mjs runs it against repos.json (repo x rule). A rule without a check does not pass tests/conformance.test.mjs. Rolling a rule out to every active repo is part of the same work (AGENT-RULES, « A rule reaches every repo »); `node scripts/conformance-fanout.mjs` opens the conforming pull request in each red repo.",
-  "checks": "workflow-calls {workflows | byKind} | workflow-matches {pattern} | workflow-forbids {pattern} | file-exists {paths} | file-matches {path, pattern}. `applies`: kinds, notRepos, onlyRepos, when [{pathEndsWith}|{fileExists}|{fileMatches}|{inList}]. `fix`: copy {from, to} | append-section {file, from, heading} | manual {note} | no-mention {pattern, allow, allowIn}: no tracked text file matches the pattern (path prefixes in `allow`, or in `allowIn[repo]`, are history).",
+  "checks": "workflow-calls {workflows | byKind} | workflow-matches {pattern} | workflow-forbids {pattern} | file-exists {paths} | file-matches {path, pattern} | manifests-forbid {pattern} | no-mention {pattern, allow, allowIn}: no tracked text file matches the pattern (path prefixes in `allow`, or in `allowIn[repo]`, are history). `applies`: kinds, notRepos, onlyRepos, when [{pathEndsWith}|{fileExists}|{fileMatches}|{inList}]. `fix`: copy {from, to} | append-section {file, from, heading} | manual {note}.",
   "rules": [
     {
       "id": "security-scan",
@@ -343,6 +343,14 @@
         "type": "manual",
         "note": "remove the name (code, messages, docs, configs, workflows, manifests); an old address redirects to the home, never to a dead site. History stays only where the check's allow list says so (released chapters, changelogs, ADRs); the founder keeps the repositories in his own account"
       }
+    },
+    {
+      "id": "lab-isolation",
+      "title": "Nothing outside the lab depends on the lab (krizaka-lab publishes nothing; a proven piece is promoted by an ADR, never imported)",
+      "issue": "krizaka/krizaka-motion#69",
+      "applies": { "notRepos": ["krizaka-lab", "krizaka-motion"] },
+      "check": { "type": "manifests-forbid", "pattern": "krizaka-lab|krizaka-motion|@krizaka/(lab|motion)\\b" },
+      "fix": { "type": "manual", "note": "promote the piece into @krizaka/ui, krizaka-ts or Krizaka Java by an ADR (rebuilt with its tests) and depend on that package; the lab is private and has no published name to import" }
     }
   ]
 }
