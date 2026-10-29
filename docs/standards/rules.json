@@ -338,6 +338,9 @@
             "posts/",
             "public/audits/"
           ],
+          "krizaka-users": [
+            "krizaka-users-persistence/src/main/resources/db/migration/V4__organizations.sql"
+          ],
           "krizaka-ts": [
             "docs/design/"
           ],
