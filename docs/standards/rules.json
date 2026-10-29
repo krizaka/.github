@@ -405,7 +405,7 @@
     },
     {
       "id": "formatter",
-      "title": "Prettier with @krizaka/config/prettier in every TS/JS repository: config, format and format:check scripts, checked in the shared Node CI (google-java-format stays for Java)",
+      "title": "Prettier with @krizaka/config/prettier in every TS/JS repository: config, format and format:check scripts, checked in CI (google-java-format stays for Java)",
       "issue": "krizaka/.github#427",
       "applies": { "when": [{ "fileExists": "package.json" }] },
       "check": {
@@ -413,10 +413,16 @@
         "checks": [
           { "type": "file-exists", "paths": ["prettier.config.js", "prettier.config.mjs", "prettier.config.cjs"] },
           { "type": "file-matches", "path": "package.json", "pattern": "\"format:check\"\\s*:\\s*\"prettier --check" },
-          { "type": "workflow-matches", "pattern": "format-script:\\s*format:check|format:check" }
+          {
+            "type": "any-of",
+            "checks": [
+              { "type": "workflow-matches", "pattern": "format:check" },
+              { "type": "file-matches", "path": "package.json", "pattern": "\"(lint|check|ci)[\\w:.-]*\"\\s*:\\s*\"[^\"]*format:check" }
+            ]
+          }
         ]
       },
-      "fix": { "type": "manual", "note": "add prettier + `prettier.config.js` (`export { default } from \"@krizaka/config/prettier\";`) + `.prettierignore` (generated files, lockfiles, vendored), the `format` / `format:check` scripts, commit one `chore(format): prettier` change alone with its SHA in `.git-blame-ignore-revs`, and pass `format-script: format:check` to node-ci (or list it in quality-scripts). Open PRs are rebased with `prettier --write`, never left conflicting on formatting" }
+      "fix": { "type": "manual", "note": "add prettier + `prettier.config.js` (`export { default } from \"@krizaka/config/prettier\";`) + `.prettierignore` (generated files, lockfiles, vendored), the `format` / `format:check` scripts, commit one `chore(format): prettier` change that only formats and put its SHA in `.git-blame-ignore-revs`, and run `format:check` in CI: `format-script: format:check` of node-ci, or the lint script (`... && <pm> run format:check`) when the repository's pipeline is not node-ci. Open PRs are rebased with `prettier --write`, never left conflicting on formatting" }
     }
   ]
 }

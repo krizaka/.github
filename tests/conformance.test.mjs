@@ -184,6 +184,9 @@ test("formatter: a config, the format:check script and its CI step are all requi
   assert.equal((await runCheck(rule.check, snap("r", "site", noConfig))).ok, false);
   assert.match((await runCheck(rule.check, snap("r", "site", { ...full, "package.json": "{}" }))).why, /format:check/);
   assert.equal((await runCheck(rule.check, snap("r", "site", { ...full, ".github/workflows/ci.yml": call("node-ci.yml") }))).ok, false);
+  // The same step as the lint script's tail, for a pipeline that is not node-ci.
+  const inLint = { ...full, ".github/workflows/ci.yml": call("expo-ci.yml"), "package.json": JSON.stringify({ scripts: { lint: "eslint . && pnpm run format:check", "format:check": "prettier --check ." } }) };
+  assert.equal((await runCheck(rule.check, snap("r", "site", inLint))).ok, true);
 });
 
 test("all-of must list real, non-nested checks", () => {

@@ -15,7 +15,7 @@ import { pathToFileURL } from "node:url";
 import { gunzipSync } from "node:zlib";
 
 const HERE = new URL("../", import.meta.url);
-export const CHECK_TYPES = ["workflow-calls", "workflow-matches", "workflow-forbids", "file-exists", "file-matches", "manifests-forbid", "no-mention", "published-no-mention", "all-of"];
+export const CHECK_TYPES = ["workflow-calls", "workflow-matches", "workflow-forbids", "file-exists", "file-matches", "manifests-forbid", "no-mention", "published-no-mention", "all-of", "any-of"];
 export const FIX_TYPES = ["copy", "append-section", "settings-hook", "manual"];
 const WORKFLOW_PATH = /^\.github\/workflows\/[^/]+\.ya?ml$/;
 const CALL = /uses:\s*krizaka\/(?:\.github|orazaka)\/\.github\/workflows\/([\w.-]+\.ya?ml)@/g;
@@ -49,6 +49,12 @@ export function exemptionProblems({ id, exempt = {} }) {
     .map(([repo]) => `${id}: the exemption of ${repo} needs a reason of at least ${MIN_REASON} characters`);
 }
 
+/** A composite check lists real sub-checks (themselves complete, composite or not). */
+const composite = (check) =>
+  Array.isArray(check.checks) &&
+  check.checks.length > 0 &&
+  check.checks.every((c) => CHECK_TYPES.includes(c.type) && (!["all-of", "any-of"].includes(c.type) || composite(c)));
+
 function checkShape({ id, check = {} }) {
   const needs = {
     "workflow-calls": () => Boolean(check.workflows?.length || check.byKind),
@@ -58,7 +64,8 @@ function checkShape({ id, check = {} }) {
     "file-matches": () => Boolean(check.path && check.pattern),
     "manifests-forbid": () => Boolean(check.pattern),
     "no-mention": () => Boolean(check.pattern),
-    "all-of": () => Array.isArray(check.checks) && check.checks.length > 0 && check.checks.every((c) => CHECK_TYPES.includes(c.type) && c.type !== "all-of"),
+    "all-of": () => composite(check),
+    "any-of": () => composite(check),
   };
   return needs[check.type]?.() === false ? [`${id}: the ${check.type} check is incomplete`] : [];
 }
@@ -149,6 +156,16 @@ const CHECKS = {
       if (!result.ok) return result;
     }
     return { ok: true, why: "" };
+  },
+  // Several checks, one of which must hold (the same fact done in a workflow input or in a package script).
+  "any-of": async (check, snap) => {
+    const results = [];
+    for (const sub of check.checks) {
+      const result = await runCheck(sub, snap);
+      if (result.ok) return result;
+      results.push(result.why);
+    }
+    return { ok: false, why: results.join("; or ") };
   },
   "no-mention": async (check, snap) => {
     // `allow`: path prefixes whose text is history (a released chapter, a changelog). `scan` is absent offline: nothing to prove.
