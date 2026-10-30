@@ -5,18 +5,8 @@
 name: CI workflows self-test
 
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/node-ci.yml"
-      - ".github/workflows/java-ci.yml"
-      - ".github/workflows/expo-ci.yml"
-      - ".github/workflows/python-ci.yml"
-      - ".github/workflows/krizaka-ci.yml"
-      - "actions/**"
-      - ".github/workflows/changes.yml"
-      - ".github/workflows/selftest-ci.yml"
-      - "tests/fixtures/**"
-      - "tests/buildpack/**"
+  # Called by ci-gate.yml on every pull request (which suites apply is decided there, by scripts/ci-scope.mjs).
+  workflow_call:
   push:
     branches: [main]
     paths:
@@ -33,10 +23,6 @@ on:
 
 permissions:
   contents: read
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   node-runs:

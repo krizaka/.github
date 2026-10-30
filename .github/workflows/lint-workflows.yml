@@ -3,14 +3,8 @@
 name: Workflows lint
 
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/**"
-      - "actions/**"
-      - "deploy/**"
-      - "scripts/**"
-      - "tests/**"
-      - "repos.json"
+  # Called by ci-gate.yml on every pull request (which suites apply is decided there, by scripts/ci-scope.mjs).
+  workflow_call:
   push:
     branches: [main]
     paths:
@@ -24,10 +18,6 @@ on:
 
 permissions:
   contents: read
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   lint:
@@ -49,8 +39,19 @@ jobs:
       - name: Every action pinned by SHA
         run: node scripts/pin-supply-chain.mjs . --no-docker --check
 
+      - name: Repository layout of this repository
+        run: node scripts/check-repo-layout.mjs
+
+      - uses: ./actions/security-tools
+
+      - name: zizmor on this repository's workflows
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ZIZMOR_GITHUB_TOKEN: ${{ github.token }}
+        run: zizmor --offline --min-severity medium --no-progress .
+
       - name: Unit tests of the shared CI
-        run: node --test tests/ci-workflows.test.mjs tests/buildpack.test.mjs tests/repos-registry.test.mjs tests/rename-repo.test.mjs tests/workflows-lint.test.mjs tests/tauri-macos.test.mjs tests/weekly-digest.test.mjs actions/dup-check/dup-ratchet.test.mjs actions/release-notes/release-notes.test.mjs
+        run: node --test tests/ci-workflows.test.mjs tests/buildpack.test.mjs tests/repos-registry.test.mjs tests/rename-repo.test.mjs tests/workflows-lint.test.mjs tests/ci-scope.test.mjs actions/security-tools/security-tools.test.mjs tests/check-repo-layout.test.mjs tests/tauri-macos.test.mjs tests/weekly-digest.test.mjs actions/dup-check/dup-ratchet.test.mjs tests/repo-layout-pin.test.mjs actions/release-notes/release-notes.test.mjs actions/licence-check/licence-gate.test.mjs actions/cdn-purge/cdn-purge.test.mjs actions/app-videos/app-videos.test.mjs tests/fix-needs-guard.test.mjs tests/check-expo-sdk.test.mjs tests/krizaka-release.test.mjs tests/conformance.test.mjs tests/conformance-fanout.test.mjs
 
       - name: krizaka-deploy — unit tests (doctl and HTTP mocked)
         working-directory: deploy

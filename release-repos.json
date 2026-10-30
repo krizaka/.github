@@ -12,10 +12,6 @@
     },
     { "id": "akinaza", "name": "Akinaza", "repos": ["akinaza"] },
     { "id": "yomizaka", "name": "Yomizaka", "repos": ["yomizaka"] },
-    { "id": "orochia", "name": "Orochia", "repos": ["orochia"] },
-    { "id": "yasakia", "name": "Yasakia", "repos": ["yasakia"] },
-    { "id": "yororis", "name": "Yororis", "repos": ["yororis"] },
-    { "id": "kachizaka", "name": "Kachizaka", "repos": ["kachizaka"] },
     { "id": "java", "name": "Krizaka Java", "repos": ["krizaka-build"] }
   ]
 }

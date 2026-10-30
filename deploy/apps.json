@@ -6,11 +6,7 @@
     { "app": "krizaka-ui-site", "repo": "krizaka/krizaka-ui", "spec": "apps/site/deploy/app.yaml" },
     { "app": "krizaka-java-site", "repo": "krizaka/krizaka-build", "spec": ".do/app.yaml" },
     { "app": "akinaza-dev", "repo": "krizaka/akinaza", "spec": "deploy/digitalocean/app.yaml" },
-    { "app": "kachizaka-dev", "repo": "krizaka/kachizaka", "spec": "deploy/digitalocean/app.yaml" },
-    { "app": "yasakia-dev", "repo": "krizaka/yasakia", "spec": "deploy/digitalocean/web.app.yaml" },
     { "app": "yomizaka-dev", "repo": "krizaka/yomizaka", "spec": "deploy/digitalocean/dev.app.yaml" },
-    { "app": "yororis-qa", "repo": "krizaka/yororis", "spec": "deploy/digitalocean/qa.app.yaml" },
-    { "app": "orochia-dev", "repo": "krizaka/orochia", "spec": "deploy/digitalocean/app-spec.dev.yaml" },
     { "app": "orazaka-dev", "repo": "krizaka/orazaka", "spec": "infra/deploy/orazaka-dev.app.yaml" }
   ]
 }

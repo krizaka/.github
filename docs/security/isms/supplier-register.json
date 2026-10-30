@@ -1,0 +1,13 @@
+{
+  "note": "Supplier register as data (ISO/IEC 27001 A 5.19-5.23; ISO/IEC 27701; P-39.1 art. 17). Public level: no contract figure, no account id. 'dpa': to-collect | on-file | not-needed. 'region': to-confirm until checked in the supplier's console (.github#285). Canadian hosting is planned, not claimed.",
+  "suppliers": [
+    { "id": "digitalocean", "name": "DigitalOcean", "categories": ["hosting"], "service": "Apps, managed databases", "personalInformation": true, "region": "to-confirm", "dpa": "to-collect", "exit": "Containers and standard Postgres: movable to another host" },
+    { "id": "bunny", "name": "Bunny", "categories": ["CDN"], "service": "Storage, CDN, video", "personalInformation": true, "region": "to-confirm", "dpa": "to-collect", "exit": "Hashed files and a manifest: re-uploadable elsewhere" },
+    { "id": "runpod", "name": "RunPod", "categories": ["GPU compute"], "service": "GPU workers for Orazaka runs", "personalInformation": true, "region": "to-confirm", "dpa": "to-collect", "exit": "Stateless workers; any GPU host" },
+    { "id": "stripe", "name": "Stripe", "categories": ["payments"], "service": "Checkout and subscriptions of Krizaka's own products", "personalInformation": true, "region": "to-confirm", "dpa": "to-collect", "exit": "Another processor; customers re-enter their card" },
+    { "id": "mailgun", "name": "Mailgun", "categories": ["e-mail"], "service": "Transactional e-mail and the contact form", "personalInformation": true, "region": "to-confirm", "dpa": "to-collect", "exit": "Any provider behind MAIL_PROVIDER" },
+    { "id": "github", "name": "GitHub", "categories": ["code"], "service": "Code, CI, issues", "personalInformation": false, "region": "to-confirm", "dpa": "not-needed", "exit": "Git is portable; workflows to rewrite" },
+    { "id": "sonarcloud", "name": "SonarCloud", "categories": ["code"], "service": "Static analysis of public code", "personalInformation": false, "region": "to-confirm", "dpa": "not-needed", "exit": "Optional check" },
+    { "id": "screening", "name": "Tenant-screening provider (to choose)", "categories": ["screening"], "service": "Credit and screening option of Yomizaka (planned)", "personalInformation": true, "region": "to-confirm", "dpa": "to-collect", "exit": "Not wired yet" }
+  ]
+}

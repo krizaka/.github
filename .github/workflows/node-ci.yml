@@ -19,8 +19,13 @@
 #              (PostgreSQL), optional browsers (Playwright, cached) and a repository script after the build. With
 #              `parallel: true` it is a matrix: one leg per task (lint, typecheck, test, build), run side by side.
 #   e2e        optional: Playwright, `e2e-shards` legs in parallel, only when a changed file matches `e2e-relevant`.
-#   container  optional: build the Dockerfile and run a repository smoke script against the image.
-#   gate       ALWAYS reports. Green when every job that had to run succeeded or was legitimately skipped by the gate; red
+#   container  optional, AFTER verify (no image is built when lint or tests fail): build the Dockerfile, scan the image with Trivy
+#              (fails on a fixable HIGH or CRITICAL finding, minus the repository's written allowlist), keep an SBOM
+#              artifact, run a repository smoke script against the image. PR images are never published: the image is
+#              loaded into the runner's daemon only; the deploy builds from main after the merge.
+#   sonar      optional, AFTER verify: the SonarCloud CI analysis with the coverage the test leg uploaded, and the quality gate
+#              awaited. (CodeQL is not here: it scans the source, needs neither build nor tests, and stays its own required check.)
+#   gate       ALWAYS reports (verify, duplication, e2e, container and sonar). Green when every job that had to run succeeded or was legitimately skipped by the gate; red
 #              on a failure, a cancellation or a heavy job skipped without the gate asking for it. Required checks and the
 #              code-scanning ruleset stay satisfied on a docs-only change, and never on a broken one.
 #
@@ -135,6 +140,26 @@ on:
         description: "Restore and save the Playwright browsers cache for the smoke script."
         type: boolean
         default: false
+      container-scan-allowlist:
+        description: "Trivy allowlist (.trivyignore.yaml: id, statement, expired_at per accepted finding), relative to the repository root. Used when the file exists."
+        type: string
+        default: ".trivyignore.yaml"
+      guard:
+        description: "Run fix-needs-guard (job `guard`): a pull request titled `fix...` adds a test, a rule or an audit, or is exempted by the `guard-exempt` label and a `Guard exemption:` line in its body."
+        type: boolean
+        default: true
+      sonar:
+        description: "Run the SonarCloud CI analysis after verify (job `sonar`). Turn off the project's automatic analysis once it is green."
+        type: boolean
+        default: false
+      sonar-coverage-paths:
+        description: "Newline-separated coverage reports (lcov) the test leg uploads for the analysis, relative to working-directory. Globs allowed."
+        type: string
+        default: "coverage/lcov.info"
+      sonar-args:
+        description: "Extra scanner arguments (e.g. -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info). Project settings belong in sonar-project.properties."
+        type: string
+        default: ""
       relevant:
         description: "changes.yml: JavaScript RegExp, a changed file matching it needs the jobs."
         type: string
@@ -151,6 +176,10 @@ on:
         description: "Space-separated paths the duplicate-code check scans (default: the whole checkout; tests and generated code are ignored by the shared config)."
         type: string
         default: "."
+      format-script:
+        description: "package.json script that fails when a file is not formatted (`format:check` = `prettier --check`, the `formatter` rule, krizaka/.github#427); run with the lint step. Empty skips it: opt-in until every repository passes, then the default."
+        type: string
+        default: ""
       quality-scripts:
         description: "Newline-separated package.json scripts run in a `quality` leg (depcruise, ast-grep, the ratchets: clean imports, debt counters that only go down). Part of the serial job when parallel is false."
         type: string
@@ -183,6 +212,10 @@ on:
         description: "Timeout of the verify job (the container and e2e jobs get the same)."
         type: number
         default: 25
+    secrets:
+      SONAR_TOKEN:
+        description: "SonarCloud token (the org secret). Required when `sonar` is true; never printed."
+        required: false
     outputs:
       result:
         description: "success or failure: the gate's verdict."
@@ -199,6 +232,9 @@ on:
       e2e-result:
         description: "success, failure, cancelled or skipped."
         value: ${{ jobs.gate.outputs.e2e }}
+      sonar-result:
+        description: "success, failure, cancelled or skipped."
+        value: ${{ jobs.gate.outputs.sonar }}
       code:
         description: "'false' when the change needed no heavy job."
         value: ${{ jobs.changes.outputs.code }}
@@ -211,7 +247,7 @@ jobs:
     name: Changed files
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/changes.yml@ccd224612f5bb9db815335654f359a595a597fbb # main
+    uses: krizaka/.github/.github/workflows/changes.yml@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
     with:
       relevant: ${{ inputs.relevant }}
       ignore: ${{ inputs.ignore }}
@@ -221,7 +257,7 @@ jobs:
     if: ${{ inputs.container }}
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/changes.yml@ccd224612f5bb9db815335654f359a595a597fbb # main
+    uses: krizaka/.github/.github/workflows/changes.yml@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
     with:
       # What can break an image build whatever the caller's `ignore` says: the Dockerfile and .dockerignore, the manifests and
       # lockfiles the install COPYs, the workspace definition. Any other path a COPY names is covered by `relevant: .` of the main gate
@@ -234,7 +270,7 @@ jobs:
     if: ${{ inputs.e2e-script != '' }}
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/changes.yml@ccd224612f5bb9db815335654f359a595a597fbb # main
+    uses: krizaka/.github/.github/workflows/changes.yml@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
     with:
       relevant: ${{ inputs.e2e-relevant }}
       ignore: ${{ inputs.ignore }}
@@ -252,6 +288,7 @@ jobs:
         env:
           PARALLEL: ${{ inputs.parallel }}
           LINT: ${{ inputs.lint-script }}
+          FORMAT: ${{ inputs.format-script }}
           QUALITY: ${{ inputs.quality-scripts }}
           TYPECHECK: ${{ inputs.typecheck-script }}
           TEST: ${{ inputs.test-script }}
@@ -261,7 +298,7 @@ jobs:
         run: |
           if [ "$PARALLEL" = true ]; then
             tasks=()
-            [ -n "$LINT" ] && tasks+=(lint)
+            { [ -n "$LINT" ] || [ -n "$FORMAT" ]; } && tasks+=(lint)
             [ -n "$QUALITY" ] && tasks+=(quality)
             [ -n "$TYPECHECK" ] && tasks+=(typecheck)
             [ -n "$TEST" ] && tasks+=(test)
@@ -298,7 +335,11 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: krizaka/.github/actions/setup@147c1925368d98fb07887257549db36556644cc5 # main
+      # The repository's folders stay clean (docs/standards/repo-layout.md): once per run, on the lint leg.
+      - uses: krizaka/.github/actions/repo-layout@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
+        if: ${{ matrix.task == 'all' || matrix.task == 'lint' }}
+
+      - uses: krizaka/.github/actions/setup@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
         with:
           stack: node
           working-directory: ${{ inputs.working-directory }}
@@ -310,7 +351,7 @@ jobs:
           postgres-image: ${{ (matrix.task == 'all' || matrix.task == 'test' || matrix.task == 'build') && inputs.postgres-image || '' }}
           postgres-name: ${{ inputs.postgres-name }}
 
-      - uses: krizaka/.github/actions/quality@147c1925368d98fb07887257549db36556644cc5 # main
+      - uses: krizaka/.github/actions/quality@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
         with:
           working-directory: ${{ inputs.working-directory }}
           package-manager: ${{ inputs.package-manager }}
@@ -318,8 +359,17 @@ jobs:
           quality-scripts: ${{ (matrix.task == 'all' || matrix.task == 'quality') && inputs.quality-scripts || '' }}
           typecheck-script: ${{ (matrix.task == 'all' || matrix.task == 'typecheck') && inputs.typecheck-script || '' }}
 
+      # The `formatter` rule (krizaka/.github#427): `prettier --check` through the repository's own script, with the lint step.
+      - name: Format (prettier --check)
+        if: ${{ inputs.format-script != '' && (matrix.task == 'all' || matrix.task == 'lint') }}
+        working-directory: ${{ inputs.working-directory }}
+        env:
+          PM: ${{ inputs.package-manager }}
+          SCRIPT: ${{ inputs.format-script }}
+        run: '"$PM" run "$SCRIPT"'
+
       # Turborepo's local cache (every leg but lint), then the tests (the test and build legs).
-      - uses: krizaka/.github/actions/test@147c1925368d98fb07887257549db36556644cc5 # main
+      - uses: krizaka/.github/actions/test@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
         with:
           working-directory: ${{ inputs.working-directory }}
           package-manager: ${{ inputs.package-manager }}
@@ -327,19 +377,59 @@ jobs:
           cache-scope: ${{ matrix.task }}
           test-script: ${{ (matrix.task == 'all' || matrix.task == 'test' || matrix.task == 'build') && inputs.test-script || '' }}
 
-      - uses: krizaka/.github/actions/build@147c1925368d98fb07887257549db36556644cc5 # main
+      - uses: krizaka/.github/actions/build@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
         with:
           working-directory: ${{ inputs.working-directory }}
           package-manager: ${{ inputs.package-manager }}
           next-cache-paths: ${{ (matrix.task == 'all' || matrix.task == 'build') && inputs.next-cache-paths || '' }}
           build-script: ${{ (matrix.task == 'all' || matrix.task == 'build') && inputs.build-script || '' }}
 
-      - uses: krizaka/.github/actions/after-build@147c1925368d98fb07887257549db36556644cc5 # main
+      - uses: krizaka/.github/actions/after-build@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
         with:
           working-directory: ${{ inputs.working-directory }}
           package-manager: ${{ inputs.package-manager }}
           playwright: ${{ (matrix.task == 'all' || matrix.task == 'build') && inputs.playwright || '' }}
           script: ${{ (matrix.task == 'all' || matrix.task == 'build') && inputs.after-build || '' }}
+
+      # The coverage the analysis reads: only the leg that ran the tests uploads it, as one tar that keeps the paths.
+      - name: Collect the coverage for SonarCloud
+        if: ${{ inputs.sonar && (matrix.task == 'all' || matrix.task == 'test') }}
+        working-directory: ${{ inputs.working-directory }}
+        env:
+          PATHS: ${{ inputs.sonar-coverage-paths }}
+          OUT: ${{ runner.temp }}/sonar-coverage.tar
+        run: |
+          shopt -s globstar nullglob
+          files=()
+          while IFS= read -r pattern; do
+            [ -z "$pattern" ] && continue
+            # shellcheck disable=SC2206  # the pattern is a glob on purpose
+            matches=($pattern)
+            files+=("${matches[@]}")
+          done <<< "$PATHS"
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "::warning::no coverage report found ($PATHS): the analysis runs without coverage and the new-code coverage condition will fail"
+            tar -cf "$OUT" --files-from /dev/null
+          else
+            # A monorepo package writes its lcov with paths relative to the package (SF:src/a.ts); the scanner resolves them from the
+            # project root. Rebase them in place (SF:packages/core/src/a.ts); absolute paths and a root-level report are left alone.
+            for f in "${files[@]}"; do
+              case "$f" in *.info) ;; *) continue ;; esac
+              pkg=$(dirname "$f"); [ "$(basename "$pkg")" = coverage ] && pkg=$(dirname "$pkg")
+              [ "$pkg" = "." ] && continue
+              awk -v p="$pkg" '/^SF:/ && substr($0,4,1) != "/" { $0 = "SF:" p "/" substr($0,4) } { print }' "$f" > "$f.rebased" && mv "$f.rebased" "$f"
+            done
+            tar -cf "$OUT" "${files[@]}"
+            echo "coverage: ${files[*]}"
+          fi
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ inputs.sonar && (matrix.task == 'all' || matrix.task == 'test') }}
+        with:
+          name: sonar-coverage
+          path: ${{ runner.temp }}/sonar-coverage.tar
+          retention-days: 1
+          if-no-files-found: error
 
   e2e:
     name: ${{ format('E2E ({0}/{1})', matrix.shard, inputs.e2e-shards) }}
@@ -360,7 +450,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: krizaka/.github/actions/setup@147c1925368d98fb07887257549db36556644cc5 # main
+      - uses: krizaka/.github/actions/setup@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
         with:
           stack: node
           working-directory: ${{ inputs.working-directory }}
@@ -372,19 +462,19 @@ jobs:
           postgres-name: ${{ inputs.postgres-name }}
 
       # The Next.js cache only (no build here: the e2e script builds if it must).
-      - uses: krizaka/.github/actions/build@147c1925368d98fb07887257549db36556644cc5 # main
+      - uses: krizaka/.github/actions/build@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
         with:
           working-directory: ${{ inputs.working-directory }}
           package-manager: ${{ inputs.package-manager }}
           next-cache-paths: ${{ inputs.next-cache-paths }}
 
-      - uses: krizaka/.github/actions/after-build@147c1925368d98fb07887257549db36556644cc5 # main
+      - uses: krizaka/.github/actions/after-build@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
         with:
           working-directory: ${{ inputs.working-directory }}
           package-manager: ${{ inputs.package-manager }}
           playwright: ${{ inputs.e2e-browsers }}
 
-      - uses: krizaka/.github/actions/test@147c1925368d98fb07887257549db36556644cc5 # main
+      - uses: krizaka/.github/actions/test@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
         with:
           working-directory: ${{ inputs.working-directory }}
           package-manager: ${{ inputs.package-manager }}
@@ -406,15 +496,16 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ inputs.node-version }}
-      - uses: krizaka/.github/actions/dup-check@d468b5eb10b785034c2834f31c0dd671b51ca0fe # main
+      - uses: krizaka/.github/actions/dup-check@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
         with:
           paths: ${{ inputs.duplication-paths }}
           working-directory: ${{ inputs.working-directory }}
 
   container:
     name: Container image
-    needs: [changes, docker-changes]
-    if: ${{ inputs.container && !cancelled() && (needs.changes.outputs.code != 'false' || needs.docker-changes.outputs.code != 'false') }}
+    # After verify: no image is built when lint or tests fail. A skipped verify (the gate said no code changed) still lets a Docker-file change build.
+    needs: [changes, docker-changes, verify]
+    if: ${{ inputs.container && !cancelled() && (needs.changes.outputs.code != 'false' || needs.docker-changes.outputs.code != 'false') && (needs.verify.result == 'success' || needs.verify.result == 'skipped') }}
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.timeout-minutes }}
     permissions:
@@ -425,8 +516,8 @@ jobs:
           persist-credentials: false
 
       # buildx with the Actions cache (actions/build): layers are restored on every run and written on main only,
-      # so a pull request never pays for the export. The image is loaded into the local daemon for the smoke script.
-      - uses: krizaka/.github/actions/build@147c1925368d98fb07887257549db36556644cc5 # main
+      # so a pull request never pays for the export. The image is loaded into the local daemon (never pushed) for the scan and the smoke script.
+      - uses: krizaka/.github/actions/build@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
         with:
           container: "true"
           container-context: ${{ inputs.container-context }}
@@ -434,8 +525,45 @@ jobs:
           container-image: ${{ inputs.container-image }}
           container-build-args: ${{ inputs.container-build-args }}
 
+      - name: Allowlist of accepted findings
+        id: allow
+        env:
+          FILE: ${{ inputs.container-scan-allowlist }}
+        run: |
+          if [ -n "$FILE" ] && [ -f "$FILE" ]; then echo "file=$FILE" >> "$GITHUB_OUTPUT"; echo "allowlist: $FILE"; else echo "file=" >> "$GITHUB_OUTPUT"; echo "no allowlist: every fixable HIGH or CRITICAL finding fails"; fi
+
+      # The SBOM first (CycloneDX), kept as an artifact whatever the scan says.
+      - name: SBOM of the image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: image
+          image-ref: ${{ inputs.container-image }}
+          format: cyclonedx
+          output: ${{ runner.temp }}/sbom.cdx.json
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sbom-cyclonedx
+          path: ${{ runner.temp }}/sbom.cdx.json
+          retention-days: 30
+          if-no-files-found: error
+
+      # Fixable HIGH and CRITICAL findings fail the job. What has no fix yet does not block; an accepted exception is written
+      # in the allowlist with its reason and an expiry, never silenced here.
+      - name: Scan the image (fixable HIGH and CRITICAL fail)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: image
+          image-ref: ${{ inputs.container-image }}
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+          format: table
+          trivyignores: ${{ steps.allow.outputs.file }}
+
       # Node (and pnpm) only for a smoke script that needs them; a build-only job needs neither.
-      - uses: krizaka/.github/actions/setup@147c1925368d98fb07887257549db36556644cc5 # main
+      - uses: krizaka/.github/actions/setup@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
         if: ${{ inputs.container-smoke != '' }}
         with:
           stack: node
@@ -444,7 +572,7 @@ jobs:
           node-version: ${{ inputs.node-version }}
           package-manager: ${{ inputs.package-manager }}
 
-      - uses: krizaka/.github/actions/after-build@147c1925368d98fb07887257549db36556644cc5 # main
+      - uses: krizaka/.github/actions/after-build@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
         with:
           working-directory: ${{ inputs.working-directory }}
           package-manager: ${{ inputs.package-manager }}
@@ -453,9 +581,107 @@ jobs:
           script: ${{ inputs.container-smoke }}
           image: ${{ inputs.container-image }}
 
+  # fix-needs-guard (.github#323): a `fix` PR adds a test, a rule or an audit, or carries the `guard-exempt` label and a
+  # `Guard exemption: <reason>` line. The patterns are docs/standards/guard-paths.json of krizaka/.github (read from main: one source).
+  guard:
+    name: Fix needs a guard
+    if: ${{ inputs.guard && github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/.github
+          ref: main
+          sparse-checkout: |
+            scripts/fix-needs-guard.mjs
+            scripts/ci-scope.mjs
+            docs/standards/guard-paths.json
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          # fail-open until the script is on main (and if it is ever moved): a broken gate never blocks a merge
+          if [ -f scripts/fix-needs-guard.mjs ]; then node scripts/fix-needs-guard.mjs; else echo "::warning::fix-needs-guard.mjs is not on krizaka/.github main yet: skipped"; fi
+
+  # A docs-only change skips the heavy jobs, yet the required « SonarCloud Code Analysis » must still be posted by the SonarCloud app:
+  # a light scan (checkout, no build, no tests, no coverage) does it, and its quality gate is real on the changed files (.github#330).
+  # Never a synthetic status: that would forge a check which belongs to another app.
+  sonar-light:
+    name: SonarCloud (docs only)
+    needs: changes
+    if: ${{ inputs.sonar && !cancelled() && needs.changes.outputs.code == 'false' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    steps:
+      - name: The token is there
+        run: |
+          if [ -z "$SONAR_TOKEN" ]; then echo "::error::SONAR_TOKEN is empty: pass the org secret to the workflow (secrets: SONAR_TOKEN) and, for Dependabot, add it as a Dependabot secret"; exit 1; fi
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0  # blame and new-code detection need the history
+          persist-credentials: false
+
+      - uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
+        env:
+          SONAR_HOST_URL: https://sonarcloud.io
+        with:
+          projectBaseDir: ${{ inputs.working-directory }}
+          args: -Dsonar.projectVersion=ci-${{ github.run_number }} -Dsonar.qualitygate.wait=true ${{ inputs.sonar-args }}
+
+  sonar:
+    name: SonarCloud
+    needs: [changes, verify]
+    if: ${{ inputs.sonar && !cancelled() && needs.changes.outputs.code != 'false' && needs.verify.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    steps:
+      - name: The token is there
+        run: |
+          if [ -z "$SONAR_TOKEN" ]; then echo "::error::SONAR_TOKEN is empty: pass the org secret to the workflow (secrets: SONAR_TOKEN) and, for Dependabot, add it as a Dependabot secret"; exit 1; fi
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0  # blame and new-code detection need the history
+          persist-credentials: false
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: sonar-coverage
+          path: ${{ runner.temp }}/sonar-coverage
+
+      - name: Restore the coverage reports
+        working-directory: ${{ inputs.working-directory }}
+        env:
+          TAR: ${{ runner.temp }}/sonar-coverage/sonar-coverage.tar
+        run: tar -xf "$TAR"
+
+      # CI analysis: the SonarCloud app still decorates the pull request and posts « SonarCloud Code Analysis »; the quality gate is awaited
+      # here so the CI gate carries its verdict too.
+      - uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
+        env:
+          SONAR_HOST_URL: https://sonarcloud.io
+        with:
+          projectBaseDir: ${{ inputs.working-directory }}
+          args: -Dsonar.projectVersion=ci-${{ github.run_number }} -Dsonar.qualitygate.wait=true ${{ inputs.sonar-args }}
+
   gate:
     name: CI gate
-    needs: [changes, ui-changes, docker-changes, plan, verify, e2e, duplication, container]
+    needs: [changes, ui-changes, docker-changes, plan, verify, e2e, duplication, container, sonar, sonar-light, guard]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -466,6 +692,7 @@ jobs:
       container: ${{ needs.container.result }}
       e2e: ${{ needs.e2e.result }}
       duplication: ${{ needs.duplication.result }}
+      sonar: ${{ needs.sonar.result }}
     steps:
       - id: verdict
         env:
@@ -481,13 +708,17 @@ jobs:
           PLAN: ${{ needs.plan.result }}
           DUP: ${{ needs.duplication.result }}
           DUP_WANTED: ${{ inputs.duplication }}
+          SONAR: ${{ needs.sonar.result }}
+          SONAR_WANTED: ${{ inputs.sonar }}
+          SONAR_LIGHT: ${{ needs.sonar-light.result }}
+          GUARD: ${{ needs.guard.result }}
         run: |
           fail=0
           echo "gate: code=${CODE:-unknown} changes=$CHANGES plan=${PLAN:-success} verify=$VERIFY container=$CONTAINER (container wanted: $CONTAINER_WANTED) e2e=${E2E:-skipped} (wanted: ${E2E_WANTED:-false}, ui=${UI_CODE:-unknown})"
           [ "${PLAN:-success}" = success ] || { echo "::error::plan ${PLAN}"; fail=1; }
           # A broken gate (changes) is never a reason to fail: the heavy jobs ran in full.
           [ "$CHANGES" = success ] || echo "::warning::the changes gate did not succeed ($CHANGES): the jobs ran in full"
-          for pair in "verify:$VERIFY" "container:$CONTAINER" "e2e:${E2E:-skipped}" "duplication:${DUP:-skipped}"; do
+          for pair in "verify:$VERIFY" "container:$CONTAINER" "e2e:${E2E:-skipped}" "duplication:${DUP:-skipped}" "sonar:${SONAR:-skipped}"; do
             case "${pair#*:}" in
               success|skipped) ;;
               *) echo "::error::${pair%%:*} ${pair#*:}"; fail=1 ;;
@@ -498,7 +729,8 @@ jobs:
             [ "$VERIFY" = success ] || { echo "::error::verify must run when the gate did not answer false"; fail=1; }
           fi
           # The image is built unless NEITHER gate answered false: a Dockerfile, a manifest or a lockfile always builds it.
-          if [ "$CONTAINER_WANTED" = "true" ] && { [ "$CODE" != "false" ] || [ "${DOCKER_CODE:-}" != "false" ]; } && [ "$CONTAINER" != success ]; then
+          # It waits for verify: when verify failed, the image was rightly not built and verify already made the gate red.
+          if [ "$CONTAINER_WANTED" = "true" ] && [ "$VERIFY" != failure ] && [ "$VERIFY" != cancelled ] && { [ "$CODE" != "false" ] || [ "${DOCKER_CODE:-}" != "false" ]; } && [ "$CONTAINER" != success ]; then
             echo "::error::container must run when a gate did not answer false"; fail=1
           fi
           # The e2e job runs unless the main gate or the UI gate answered exactly `false`.
@@ -508,6 +740,16 @@ jobs:
           if [ "$CODE" != "false" ] && [ "${DUP_WANTED:-false}" = "true" ] && [ "${DUP:-skipped}" != success ]; then
             echo "::error::duplication must run when the gate did not answer false"; fail=1
           fi
+          # SonarCloud runs after a green verify whenever it is wanted: a skip without the gate's `false` is a bug, not a pass.
+          if [ "$CODE" != "false" ] && [ "${SONAR_WANTED:-false}" = "true" ] && [ "$VERIFY" = success ] && [ "${SONAR:-skipped}" != success ]; then
+            echo "::error::sonar must run and succeed when the gate did not answer false"; fail=1
+          fi
+          # A docs-only change still gets its Sonar analysis, by the light scan.
+          if [ "$CODE" = "false" ] && [ "${SONAR_WANTED:-false}" = "true" ] && [ "${SONAR_LIGHT:-skipped}" != success ]; then
+            echo "::error::sonar-light must run and succeed on a docs-only change"; fail=1
+          fi
+          case "${SONAR_LIGHT:-skipped}" in success|skipped) ;; *) echo "::error::sonar-light $SONAR_LIGHT"; fail=1 ;; esac
+          case "${GUARD:-skipped}" in success|skipped) ;; *) echo "::error::fix-needs-guard $GUARD"; fail=1 ;; esac
           if [ "$fail" = 0 ]; then echo "result=success" >> "$GITHUB_OUTPUT"; else echo "result=failure" >> "$GITHUB_OUTPUT"; fi
           {
             echo "### CI gate"
@@ -518,5 +760,8 @@ jobs:
             echo "| container | $CONTAINER |"
             echo "| duplication | ${DUP:-skipped} |"
             echo "| e2e | ${E2E:-skipped} (ui=${UI_CODE:-unknown}) |"
+            echo "| sonar | ${SONAR:-skipped} |"
+            echo "| sonar-light | ${SONAR_LIGHT:-skipped} |"
+            echo "| guard | ${GUARD:-skipped} |"
           } >> "$GITHUB_STEP_SUMMARY"
           exit "$fail"

@@ -1,5 +1,7 @@
 # Shared rules, by repository profile
 
+<!-- summary: Shared lint and architecture rules written once in the package of their runtime, with each repository declaring its profile. -->
+
 This is the standard behind [ADR-007](../adr/ADR-007-shared-rules.md) (krizaka/.github#217).
 
 - **The idea:** a rule is written once, with its tests, in the package of its runtime. A repository declares its **profile**, keeps its **local rules** and its **ratchet counts**, and its `AGENTS.md` points here.
@@ -64,7 +66,7 @@ A repository declares one or more profiles. A monorepo declares one per folder: 
 
 | Profile | Repositories today | Rules |
 |---|---|---|
-| `ts-library` | krizaka-ts `packages/*`, krizaka-ui `packages/*`, orazaka-ui-kit, orochia-design-system, krizaka-motion, orazaka-cli, the products' `packages/*` | ESLint `krizakaBase` + `krizakaStack()` + `envNames`. dependency-cruiser boundary (no app import, no cycle). ast-grep: the time rules (`no-hand-ms-*`, `no-get-time-*`), `no-ambient-clock`, `no-env-in-domain`, `no-db-in-service-or-rules`, `no-ts-enum`, `no-enum-string-compare`, `no-types-at-package-root`, `no-unjustified-numeric-export`. File names by function. Ratchets: ast-grep, `krizaka-ratchet`, duplication. |
+| `ts-library` | krizaka-ts `packages/*`, krizaka-ui `packages/*`, orazaka-ui-kit, orochia-design-system, krizaka-lab, orazaka-cli, the products' `packages/*` | ESLint `krizakaBase` + `krizakaStack()` + `envNames`. dependency-cruiser boundary (no app import, no cycle). ast-grep: the time rules (`no-hand-ms-*`, `no-get-time-*`), `no-ambient-clock`, `no-env-in-domain`, `no-db-in-service-or-rules`, `no-ts-enum`, `no-enum-string-compare`, `no-types-at-package-root`, `no-unjustified-numeric-export`. File names by function. Ratchets: ast-grep, `krizaka-ratchet`, duplication. |
 | `next-app` (product or site) | yomizaka, akinaza, kachizaka, orochia, yasakia, yororis, orazaka-web-client `apps/web` or root, krizaka-com, template-next-app | `ts-library`, plus ESLint `krizakaNext` + `krizakaUi()` + `noLocaleTernary()`, plus ast-grep `no-hand-made-nav`, `no-hand-made-language-switch`, `no-raw-inner-html` (from krizaka-com) |
 | `site` (public docs or blog) | krizaka-ui `apps/site`, krizaka-ts `site/`, krizaka-build `site/`, krizaka-blog, yororis `site/` | `next-app`, plus the SEO family check (`krizaka-rules seo-family`) |
 | `expo-app` | orazaka-mobile-client, orochia-mobile, yasakia-mobile, yororis-mobile, template-expo-app, the products' `apps/mobile` | `ts-library`, plus ESLint for React Native, plus `no-hand-made-tab-bar` (from orochia), plus the charter §6 rules as they become rules |
@@ -153,6 +155,14 @@ ratchet (`sg-ratchet.json`: the debt only goes down; `npx krizaka-rules ratchet 
 ```
 
 The charter (`AGENTS.template.md`) gets one line under §7: « Static rules: your profile, declared in `krizaka.rules.json`; see docs/standards/rules.md ». CONTRIBUTING §10 keeps its principle and links here instead of listing the rules.
+
+## Code rules (2026-10-29, #422)
+
+Founder review of a nested, synchronous script: readable shapes are lint rules, ratcheted at today's counts. In `@krizaka/config`: `krizakaCodeRules` (`curly: all`, `max-depth: 2`, `max-nested-callbacks: 3`, `no-console` in runtime code) with `code/<rule>` counters in `krizaka-ratchet`; ast-grep `core`: `no-sync-fs-in-runtime` (sync is fine in scripts, tools, configs, tests) and `no-hand-written-validation-regex` (use `isIsoDate` of `@krizaka/time`, or `isEmail`, `isHttpUrl`, `isSlug`, `isE164Phone`, `isCanadianPostalCode` of `@krizaka/validate`). Constants out of the logic stays with `no-unjustified-numeric-export`. Registry: `code-rules-ratchet`, `code-rules-sg` (docs/standards/rules.json).
+
+## Formatter (2026-10-29, #427)
+
+One tool per language: **Prettier** with `@krizaka/config/prettier` in every TS/JS repository (`prettier.config.js` = `export { default } from "@krizaka/config/prettier";`, scripts `format` and `format:check` over `**/*.{ts,tsx,js,jsx,mjs,cjs,json,css}`, a `.prettierignore` for generated files, lockfiles and vendored code, the only per-repo difference); **google-java-format** through Spotless for Java, unchanged. Formatting is never a review topic. CI: `format-script: format:check` of `node-ci.yml` (opt-in, default once every repository passes). Agents: `krizaka-edit-check` formats the edited file. Rollout per repository: one `chore(format): prettier` commit with nothing else, its SHA in `.git-blame-ignore-revs`; open PRs are rebased with `prettier --write`, never left conflicting on formatting. Registry: `formatter` (docs/standards/rules.json).
 
 ## 5. The migration plan: one small PR per repository, pilots first
 

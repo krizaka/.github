@@ -1,0 +1,41 @@
+{
+  "note": "Records of processing, one entry per product (ISO/IEC 27701; P-39.1). Public level: categories only, no figures. 'to-complete' marks what the product issues still have to confirm.",
+  "products": [
+    {
+      "id": "yomizaka",
+      "role": ["processor", "controller"],
+      "purposes": ["lease verification for a property firm", "tenant screening on the owner's request", "account and billing"],
+      "categories": ["identity", "lease documents", "pay stubs", "applicant files", "billing"],
+      "persons": ["tenants", "applicants", "landlord users"],
+      "retention": "Purged after the check unless the owner consents to keep it; signed report retention to be set (question to the lawyer)",
+      "transfers": "to-complete",
+      "suppliers": ["hosting", "CDN", "payments", "e-mail", "GPU compute"],
+      "rights": "rights-requests.md",
+      "pia": "yomizaka#365"
+    },
+    {
+      "id": "akinaza",
+      "role": ["controller", "processor"],
+      "purposes": ["shop account", "appointments and invoices for the shop's clients", "billing"],
+      "categories": ["identity", "contact", "appointments", "invoices"],
+      "persons": ["shop owners", "shop clients"],
+      "retention": "Tax records six years (CQLR c. A-6.002 art. 35); the rest until deletion of the account",
+      "transfers": "to-complete",
+      "suppliers": ["hosting", "CDN", "payments", "e-mail"],
+      "rights": "rights-requests.md",
+      "pia": "akinaza#369"
+    },
+    {
+      "id": "orazaka",
+      "role": ["controller"],
+      "purposes": ["dev-site accounts", "runs and uploaded files on the dev site"],
+      "categories": ["account", "uploaded files", "run metadata"],
+      "persons": ["developers"],
+      "retention": "Engine default retention.none; dev-site data until deletion",
+      "transfers": "to-complete",
+      "suppliers": ["hosting", "CDN", "GPU compute"],
+      "rights": "rights-requests.md",
+      "pia": "to-complete"
+    }
+  ]
+}

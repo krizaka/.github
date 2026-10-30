@@ -1,0 +1,20 @@
+# Hooks of the org, for the standard `pre-commit` framework (krizaka/.github#324, #325). A repository adds, once:
+#
+#   repos:
+#     - repo: https://github.com/krizaka/.github
+#       rev: <sha of main>
+#       hooks: [{ id: krizaka-gitleaks }, { id: krizaka-zizmor }]
+#
+# then runs `pre-commit install` (docs/standards/secrets-and-workflows.md). CI runs both again: hooks can be bypassed.
+- id: krizaka-gitleaks
+  name: gitleaks (secrets in the staged changes)
+  entry: scripts/hooks/gitleaks-staged.sh
+  language: script
+  pass_filenames: false
+  always_run: true
+- id: krizaka-zizmor
+  name: zizmor (GitHub Actions workflow security)
+  entry: zizmor --offline --min-severity medium
+  language: python
+  additional_dependencies: ["zizmor==1.31.1"]
+  files: ^\.github/(workflows|actions)/.*\.ya?ml$|(^|/)action\.ya?ml$

@@ -1,0 +1,66 @@
+# Security scan, org-wide (reusable; krizaka/.github#324 and #325, ADR-013): gitleaks (secrets in the whole history of the
+# pull request's checkout, central config .gitleaks.toml) and zizmor (GitHub Actions vulnerabilities: script injection,
+# unpinned or over-privileged steps). A repository calls it from a thin workflow:
+#
+#   jobs:
+#     security:
+#       uses: krizaka/.github/.github/workflows/security-scan.yml@<sha> # main
+#       permissions: { contents: read }
+#
+# The same checks run earlier on the developer's machine through the pre-commit hooks (.pre-commit-hooks.yaml).
+name: Security scan
+
+on:
+  workflow_call:
+    inputs:
+      guards-ref:
+        description: Revision of krizaka/.github whose config and tool pins are used (main, except for this repository's own pull requests).
+        type: string
+        default: main
+
+permissions:
+  contents: read
+
+jobs:
+  gitleaks:
+    name: gitleaks (secrets)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # The central configuration, and tool pins, from krizaka/.github main (public, our own).
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/.github
+          ref: ${{ inputs.guards-ref }}
+          path: .krizaka-guards
+          persist-credentials: false
+      - uses: ./.krizaka-guards/actions/security-tools
+      - name: Scan (values are redacted; the repository's own .gitleaks.toml is never read)
+        run: gitleaks git --redact --no-banner -v --config .krizaka-guards/actions/security-tools/gitleaks.toml .
+
+  zizmor:
+    name: zizmor (workflows)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/.github
+          ref: ${{ inputs.guards-ref }}
+          path: .krizaka-guards
+          persist-credentials: false
+      - uses: ./.krizaka-guards/actions/security-tools
+      - name: zizmor (pinned; the guards checkout is removed first, it is not part of the repository)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ZIZMOR_GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          rm -rf .krizaka-guards
+          zizmor --offline --min-severity medium --no-progress .

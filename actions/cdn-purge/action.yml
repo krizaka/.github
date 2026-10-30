@@ -1,0 +1,32 @@
+name: cdn-purge
+description: >
+  Purge by URL of the media pull zone (Bunny, krizaka-assets) for the files that change in place (org/v1/org.json,
+  brand/manifest.json, README.txt). Hashed files are immutable and are skipped. Call it right after publishing such a file.
+  The pages of blog., www. and ui. are not behind a pull zone, so nothing to purge there. Pass the org Actions secret
+  MEDIA_ACCOUNT_API_KEY as `account-key`.
+inputs:
+  urls:
+    description: The URLs to purge, one per line.
+    required: true
+  account-key:
+    description: The Bunny account key (secrets.MEDIA_ACCOUNT_API_KEY). Not needed with dry-run.
+    required: false
+    default: ""
+  dry-run:
+    description: "true: print what would be purged, call nothing."
+    required: false
+    default: "false"
+runs:
+  using: composite
+  steps:
+    - name: Purge
+      shell: bash
+      env:
+        MEDIA_ACCOUNT_API_KEY: ${{ inputs.account-key }}
+        PURGE_URLS: ${{ inputs.urls }}
+        PURGE_DRY: ${{ inputs.dry-run }}
+        ACTION_PATH: ${{ github.action_path }}
+      run: |
+        flag=""
+        if [ "$PURGE_DRY" = "true" ]; then flag="--dry-run"; fi
+        printf '%s\n' "$PURGE_URLS" | node "$ACTION_PATH/cdn-purge.mjs" $flag

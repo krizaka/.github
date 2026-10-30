@@ -17,7 +17,8 @@ export const END = "<!-- products:end -->";
 export const MARKS_CDN = "https://krizaka-assets.b-cdn.net/brand";
 const STATUS = { released: "Available", upcoming: "Coming soon", construction: "Under construction", development: "In development" };
 
-/** The products to show, in reading order: the sites of kind `product`, plus the `fallback` ones the package does not know yet. */
+/** The products to show, in reading order: the sites of kind `product`, plus the `fallback` ones the package does not know yet,
+ *  (the published @krizaka/ui/sites lists only the products of the org). */
 export function collectProducts({ sites, descriptions = {}, knowhow }) {
   const byId = new Map();
   for (const s of sites) if (s.kind === "product") byId.set(s.id, { ...s, known: true });

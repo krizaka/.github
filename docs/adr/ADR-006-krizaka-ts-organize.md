@@ -45,3 +45,30 @@ them for studios and projects. Writing them again per product is the debt Krizak
 - Publishing needs the npm trusted publisher declared for the new scope's packages (Oussama), until then a local publish.
 - The package never imports a product, an environment variable or a vendor SDK; a dependency-cruiser rule and the
   conformance kit keep it that way.
+
+## Update 2026-10-26 (B66, krizaka/.github#196): where it stands, and the UI blocks' contract
+
+**Shipped.** `@krizaka/organize` 0.5.0: collections and tags with the database invariants, `organizeSchema` / `workspaceSchema` as
+`@krizaka/db` modules, the workspace layer (tags with colour markers, status sets as data, saved views, bulk actions), the browser-safe
+`/contract` and the `/testkit`. Yomizaka runs on it (organize routes, applicant files). Akinaza has the shop tables (migration
+`0014_organize_shops`) and its admin configures kinds through `@krizaka/organize/contract`; the essentials UI of a shop is still
+assembled locally. Orazaka has not started.
+
+**Open: the UI blocks (point 6).** Krizaka UI's ADR-006 (reduction) forbids a new entry where one does the job, so the block list
+shrinks to what is really missing. Agreed API, web first, then the native twin of each (krizaka-ui#740):
+
+| Need | Krizaka UI entry | Status |
+|---|---|---|
+| Name, avatar, description, tag chips of one entity, inline-editable, refusals shown by code | **`EntityHeader`** (new) | to build |
+| Collection switcher and tree, nesting optional, the default collection marked and never removable, the current one in the URL | **`CollectionSwitcher`** (new) | to build |
+| A card and a grid of entities | `Card` / `ArgumentCard` in `CardGrid` | exists |
+| A list of entities | `DataTable` | exists |
+| Tag input and filter chips with counts, tag marker palette, `TagChip` | `tag-selector creatable`, `filter-bar`, `TagChip` (krizaka-ui#627, #690) | in progress |
+| Avatar choice (set or upload) | `AvatarPicker` (account-settings) | exists |
+| Shop (entity) switcher in the shell | `CollectionSwitcher` in its `entity` mode, current id in the URL | to build |
+
+Props are plain data from `@krizaka/organize/contract` (`OrganizeError` codes drive the messages); no block imports the package's server code.
+
+**Rule kept.** A product does not hand-write name, avatar, description, tags or collections: it composes `@krizaka/organize` and
+these blocks. The conformance kit already checks the data side; the UI side is checked by the product's own test per kind that its
+screen renders the `EntityHeader`. **Rollout order is unchanged**: Akinaza multi-shop (P0) on the blocks as they land, then Orazaka (studios, projects).

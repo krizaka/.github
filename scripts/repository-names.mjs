@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import { pathToFileURL } from "node:url";
 
-const PRODUCT_OWNERS = ["akinaza", "kachizaka", "orazaka", "orochia", "yasakia", "yomizaka", "yororis"];
+// The products in focus.
+const PRODUCT_OWNERS = ["akinaza", "orazaka", "yomizaka"];
 const SHARED_REPOSITORIES = new Set([
   "krizaka-ui",
   "krizaka-ts",
@@ -9,7 +10,7 @@ const SHARED_REPOSITORIES = new Set([
   "krizaka-com",
   "krizaka-blog",
   "krizaka-infra",
-  "krizaka-motion",
+  "krizaka-lab",
   "krizaka-qa",
   "krizaka-accounts",
   "krizaka-billing",

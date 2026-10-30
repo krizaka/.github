@@ -179,7 +179,7 @@ runs:
         ENV_LINES: ${{ inputs.env }}
         TOKEN_NAME: ${{ inputs.github-token-env }}
         TOKEN: ${{ inputs.token }}
-      run: |
+      run: | # zizmor: ignore[github-env] the lines are the caller's own `env` input, never pull-request text
         while IFS= read -r line; do
           [ -z "$line" ] && continue
           case "$line" in

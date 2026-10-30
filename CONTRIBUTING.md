@@ -24,7 +24,7 @@ Thank you for helping. Every Krizaka repository follows the same rules.
      `ABUSE_` (bot challenge, quotas, rate limits), `OBSERVABILITY_`, `AI_` (the Orazaka client), `OPERATOR_` (admin console).
    - The vendor is a **value**: `MEDIA_STORAGE_PROVIDER=bunny`, `MAIL_PROVIDER=mailgun`, `PUSH_PROVIDER=expo`; its settings
      sit under the context (`MEDIA_STREAM_LIBRARY_ID`, `MAIL_API_KEY`). Never `BUNNY_…`, `MAILGUN_…`, `GOOGLE_…`.
-   - **No product name** (`OROCHIA_…`, `YASAKIA_…`): the deployment already says which product it is.
+   - **No product name** (`YOMIZAKA_…`, `AKINAZA_…`): the deployment already says which product it is.
    - `NEXT_PUBLIC_` / `EXPO_PUBLIC_` only where the framework requires a client-exposed value, then the context
      (`NEXT_PUBLIC_APP_URL`, `EXPO_PUBLIC_APP_URL`).
    - **One typed env module per app** (zod): every variable declared once with its context, whether production needs
@@ -52,5 +52,23 @@ Thank you for helping. Every Krizaka repository follows the same rules.
      fails, a fixed one leaves the store.
    - A rule is never skipped, weakened or deleted to get a PR green: fix the code, or (JVM) freeze the debt that exists.
 
-By contributing you agree that your contributions are licensed under the repository's license
-(Apache-2.0) and that you follow the [Code of Conduct](CODE_OF_CONDUCT.md).
+## Licence of your contribution, and the human trail
+
+Each repository says its licence in its `LICENSE` file ([ADR-012](docs/adr/ADR-012-licensing-libraries-open-products-fair-source.md)):
+
+- **Libraries (Apache-2.0)** — `krizaka-ui`, `krizaka-ts`, `krizaka-build`, `krizaka-platform-kit`, the building blocks and the
+  Orazaka SDK pieces. Your contribution is licensed under Apache-2.0 (its s. 5). Sign off every commit
+  (`git commit -s`): the `Signed-off-by:` line certifies the [Developer Certificate of Origin](https://developercertificate.org) —
+  that you wrote the change or have the right to submit it under the repository's licence.
+- **Products (FSL-1.1-ALv2, once their licence PR is merged)** — Yomizaka, Akinaza and the Orazaka engine. An external
+  contribution also needs the Krizaka Contributor Licence Agreement, signed once from the PR (a bot asks). Until the CLA
+  check is live, these repositories accept issues and discussions, not external code.
+- **Names and marks** are never licensed by either: see [TRADEMARKS.md](TRADEMARKS.md).
+
+Inside Krizaka, most changes are written by AI agents directed by Oussama. Authorship rests on the human direction,
+selection and review, so the trail is kept on every change ([docs/legal/ai-authorship.md](docs/legal/ai-authorship.md)):
+the change starts from an issue; a structural choice is an ADR or a decision written in the issue; the PR body says who
+decided what (« Direction: issue #n »); review comments stay on the PR; agents commit as `krizaka-agents[bot]` with a
+`Co-Authored-By:` trailer, and only Oussama approves and merges; nothing third-party is pasted without its licence named.
+
+By contributing you also agree to follow the [Code of Conduct](CODE_OF_CONDUCT.md).

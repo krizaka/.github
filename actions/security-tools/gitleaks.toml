@@ -1,0 +1,31 @@
+# The one gitleaks configuration of Krizaka (krizaka/.github#324, ADR-013). Every repository consumes THIS file: the
+# reusable workflow `security-scan.yml` and the pre-commit hook `krizaka-gitleaks` both read it from here, never a copy.
+# The default ruleset stays whole; an exception goes below with its reason, scoped as narrowly as possible.
+title = "Krizaka gitleaks"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Synthetic Stripe-shaped key built to prove the legal-docs test refuses a secret-looking token (not a credential)"
+condition = "AND"
+paths = ['''tests/legal-docs\.test\.mjs''']
+regexes = ['''sk_live_[A-Za-z0-9]+''']
+
+# Test fixtures and CI-only dummies found by the first scan of the focus repositories (2026-10-27). Each is a path-scoped
+# exception with its reason; a real credential is never allowlisted: it is rotated.
+[[allowlists]]
+description = "yomizaka: fake hash/token/password constants of the auth and redaction unit tests"
+paths = ['''apps/web/lib/auth-compat\.test\.ts''', '''apps/web/lib/redact\.test\.ts''']
+
+[[allowlists]]
+description = "akinaza: CI-only build/e2e environment (the sibling secret is named ci-only-...), set after the build; production keys come from the deployment environment"
+paths = ['''scripts/ci-after-build\.sh''']
+
+[[allowlists]]
+description = "krizaka-ui: synthetic QR payload, fake bearer token and fake keychain value in unit tests"
+paths = ['''packages/ui/src/qr-code/encode\.test\.ts''', '''packages/app-client/test/react\.test\.tsx''', '''packages/app-desktop/test/storage-links\.test\.ts''']
+
+[[allowlists]]
+description = "krizaka-ts: fake API key of the video client unit test"
+paths = ['''packages/video/test/video\.test\.ts''']

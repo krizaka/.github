@@ -10,7 +10,7 @@ import { pathToFileURL } from "node:url";
 const ORG = "krizaka";
 const ROOT = new URL("../", import.meta.url);
 export const KINDS = ["maven", "npm", "app", "site", "iac", "python", "rust", "none"];
-export const PRODUCTS = ["akinaza", "kachizaka", "orazaka", "orochia", "yasakia", "yomizaka", "yororis"];
+export const PRODUCTS = ["akinaza", "orazaka", "yomizaka"];
 
 /** The inventory table of docs/standards/repositories.md: name → { role, status, renameTo, foldInto }. */
 export function parseStandard(markdown) {
@@ -33,6 +33,15 @@ export function ownerOf(name) {
   return PRODUCTS.find((product) => name === product || name.startsWith(`${product}-`)) ?? ORG;
 }
 
+/** A Node repository is an npm package, an app, or a site (an app of the organisation that is not a template). */
+function nodeKind({ name, files, topics, deploy }) {
+  if (topics.includes("npm-package")) return "npm";
+  const app = /^template-.+-app$/.test(name) || deploy.length > 0 || topics.some((t) => t === "nextjs" || t === "expo")
+    || files.some((file) => file === "app.json" || /^next\.config\.(js|mjs|ts)$/.test(file));
+  if (!app) return "npm";
+  return ownerOf(name) === ORG && !name.startsWith("template-") ? "site" : "app";
+}
+
 /** What the repository builds, from its root files first, then its topics, then its role in the standard. */
 export function kindOf({ name, files = [], topics = [], role = "", deploy = [] }) {
   const has = (file) => files.includes(file);
@@ -41,13 +50,7 @@ export function kindOf({ name, files = [], topics = [], role = "", deploy = [] }
   if (files.some((file) => file.endsWith(".tf"))) return "iac";
   if (!node && (has("pyproject.toml") || has("requirements.txt"))) return "python";
   if (!node && has("Cargo.toml")) return "rust";
-  if (node) {
-    if (topics.includes("npm-package")) return "npm";
-    const app = /^template-.+-app$/.test(name) || deploy.length > 0 || topics.some((t) => t === "nextjs" || t === "expo")
-      || files.some((file) => file === "app.json" || /^next\.config\.(js|mjs|ts)$/.test(file));
-    if (!app) return "npm";
-    return ownerOf(name) === ORG && !name.startsWith("template-") ? "site" : "app";
-  }
+  if (node) return nodeKind({ name, files, topics, deploy });
   if (/infrastructure/i.test(role)) return "iac";
   if (deploy.length > 0 || /^(Main product repository|Mobile app|Web app)$/.test(role)) return "app";
   return "none";

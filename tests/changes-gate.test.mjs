@@ -53,6 +53,8 @@ test("schedule, dispatch, tags and a first push run in full", () => {
 
 test("fails open: an unreachable API, a bad pattern, a bad hook all run everything", () => {
   assert.equal(gate({ EVENT: "pull_request", PR: "1", IGNORE: docs, API_TOKEN: "x" }), "true");
+  // The merge queue compares the entry with its base; when that cannot be read it runs everything.
+  assert.equal(gate({ EVENT: "merge_group", MQ_BASE: "a".repeat(40), IGNORE: docs, API_TOKEN: "x", GITHUB_API_URL: "http://127.0.0.1:9" }), "true");
   assert.equal(gate({ IGNORE: "(", GATE_TEST_FILES: JSON.stringify(["README.md"]) }), "true");
   assert.equal(gate({ IGNORE: docs, GATE_TEST_FILES: "not json" }), "true");
 });

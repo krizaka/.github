@@ -7,9 +7,28 @@ body:
     id: what
     attributes:
       label: What happened?
-      description: What you did, what you expected, what happened instead.
+      description: What you did and what happened.
     validations:
       required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected
+      description: What should have happened.
+    validations:
+      required: true
+  - type: textarea
+    id: guard
+    attributes:
+      label: Which guard should have caught it?
+      description: "A bug means a missing guard (docs/standards/bug-means-missing-guard.md): type, ArchUnit, ast-grep, ESLint, dependency-cruiser, page audit, e2e flow, contract test, Sonar, Trivy, CI gate. Say « none exists yet » if so, and which one to add."
+    validations:
+      required: true
+  - type: textarea
+    id: missed
+    attributes:
+      label: Why the guards missed it
+      description: Which rule or test exists nearby and why it did not fire (scope, missing seed state, not run before push). Can be completed in the fix PR.
   - type: textarea
     id: repro
     attributes:

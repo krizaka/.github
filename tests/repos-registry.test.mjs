@@ -10,10 +10,10 @@ const { repositories } = JSON.parse(read("repos.json"));
 const standard = parseStandard(read("docs/standards/repositories.md"));
 const apps = JSON.parse(read("deploy/apps.json"));
 
-test("every name follows the naming checker, or the standard has decided its rename, fold or archive", () => {
+test("every name follows the naming checker, or the standard has decided its rename, fold, archive or pause", () => {
   for (const row of repositories) {
     if (row.name === ".github" || isValidRepositoryName(row.name)) continue;
-    assert.match(row.status, /^(Rename|Fold into|Archive)\b/, `${row.name} breaks the standard and nothing is decided`);
+    assert.match(row.status, /^(Rename|Fold into|Archive|Paused)\b/, `${row.name} breaks the standard and nothing is decided`);
   }
   for (const row of repositories.filter((r) => r.renameTo)) {
     assert.ok(isValidRepositoryName(row.renameTo), `${row.name} → ${row.renameTo} is outside the standard`);
@@ -48,10 +48,10 @@ test("kind: root files first, then topics, then the role", () => {
   assert.equal(kindOf({ name: "krizaka-ui", files: ["package.json"], topics: ["npm-package", "react"], deploy: ["krizaka-ui-site"] }), "npm");
   assert.equal(kindOf({ name: "krizaka-com", files: ["package.json", "next.config.ts"] }), "site");
   assert.equal(kindOf({ name: "akinaza", files: ["package.json"], topics: ["nextjs"] }), "app");
-  assert.equal(kindOf({ name: "orochia-mobile", files: ["package.json", "app.json"] }), "app");
+  assert.equal(kindOf({ name: "akinaza-mobile", files: ["package.json", "app.json"] }), "app");
   assert.equal(kindOf({ name: "template-next-app", files: ["package.json"] }), "app");
   assert.equal(kindOf({ name: "krizaka-ts", files: ["package.json"] }), "npm");
-  assert.equal(kindOf({ name: "yororis-mobile", files: [], role: "Mobile app" }), "app");
+  assert.equal(kindOf({ name: "yomizaka-mobile", files: [], role: "Mobile app" }), "app");
   assert.equal(kindOf({ name: "krizaka-accounts", files: [], role: "Shared capability service" }), "none");
 });
 

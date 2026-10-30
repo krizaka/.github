@@ -39,31 +39,45 @@ async function api(path) {
   return res.json();
 }
 
+/** The newest `vX.Y.Z` tag of the organisation's `.github`. */
+async function latestRelease(org) {
+  const tags = (await api(`/repos/${org}/.github/tags?per_page=100`)).filter((t) => /^v\d+\.\d+\.\d+$/.test(t.name));
+  tags.sort((a, b) => compareTags(b.name, a.name));
+  return { tag: tags[0].name, sha: tags[0].commit.sha };
+}
+
+/** The workflow files of a repository, or none when it has no `.github/workflows`. */
+async function workflowsOf(org, repo) {
+  try {
+    const files = await api(`/repos/${org}/${repo.name}/contents/.github/workflows`);
+    return files.filter((x) => /\.ya?ml$/.test(x.name));
+  } catch {
+    return [];
+  }
+}
+
+/** Prints every call of a shared workflow in a repository; returns how many are stale. */
+async function reportRepository(org, repo, latest) {
+  let stale = 0;
+  for (const f of await workflowsOf(org, repo)) {
+    const text = await (await fetch(f.download_url)).text();
+    for (const call of callsIn(text)) {
+      const old = isStale(call, latest);
+      if (old) stale++;
+      console.log(`${old ? "STALE" : "ok   "} ${repo.name}/${f.name} ${call.workflow} ${call.tag ?? call.sha.slice(0, 7)}`);
+    }
+  }
+  return stale;
+}
+
 async function main() {
   const argv = process.argv.slice(2);
   const org = argv.includes("--org") ? argv[argv.indexOf("--org") + 1] : "krizaka";
-  const tags = (await api(`/repos/${org}/.github/tags?per_page=100`)).filter((t) => /^v\d+\.\d+\.\d+$/.test(t.name));
-  tags.sort((a, b) => compareTags(b.name, a.name));
-  const latest = { tag: tags[0].name, sha: tags[0].commit.sha };
+  const latest = await latestRelease(org);
   console.log(`latest release: ${latest.tag} (${latest.sha.slice(0, 7)})`);
   const repos = (await api(`/orgs/${org}/repos?per_page=100&type=public`)).filter((r) => !r.archived && r.name !== ".github");
   let stale = 0;
-  for (const repo of repos) {
-    let files;
-    try {
-      files = await api(`/repos/${org}/${repo.name}/contents/.github/workflows`);
-    } catch {
-      continue;
-    }
-    for (const f of files.filter((x) => /\.ya?ml$/.test(x.name))) {
-      const text = await (await fetch(f.download_url)).text();
-      for (const call of callsIn(text)) {
-        const old = isStale(call, latest);
-        if (old) stale++;
-        console.log(`${old ? "STALE" : "ok   "} ${repo.name}/${f.name} ${call.workflow} ${call.tag ?? call.sha.slice(0, 7)}`);
-      }
-    }
-  }
+  for (const repo of repos) stale += await reportRepository(org, repo, latest);
   console.log(`${stale} stale call(s)`);
   if (argv.includes("--fail-on-stale") && stale) process.exit(1);
 }

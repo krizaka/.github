@@ -196,15 +196,15 @@ test("java gate: red on failure, cancellation, or an unasked skip; open when the
   assert.equal(runGate("java-ci", JAVA({ CHANGES: "failure", CODE: "" })).status, 0);
 });
 
-// The daily SEO check (epic #119): the products' public addresses are www.<product>.com (indexed; Orochia's noindex for now),
+// The daily SEO check (epic #119): the products' public addresses are www.<product>.com (indexed),
 // every dev.<product>.com is checked as a development host that sends its pages to www.
 test("the daily SEO check covers the www addresses and the dev hosts (--redirects-to www)", () => {
   const yml = readFileSync(new URL("../.github/workflows/seo-family.yml", import.meta.url), "utf8");
-  for (const p of ["orazaka", "orochia", "yasakia", "yororis", "yomizaka", "kachizaka", "akinaza"]) {
+  for (const p of ["orazaka", "yomizaka", "akinaza"]) {
     assert.match(yml, new RegExp(`host: www\\.${p}\\.com,`), `www.${p}.com`);
     assert.match(yml, new RegExp(`host: dev\\.${p}\\.com, args: "--index off --redirects-to https://www\\.${p}\\.com"`), `dev.${p}.com`);
   }
-  assert.match(yml, /host: www\.orochia\.com, args: "--index off"/, "Orochia's www stays noindex");
+  assert.deepEqual([...yml.matchAll(/host: dev\.([a-z]+)\.com/g)].map((m) => m[1]).sort(), ["akinaza", "orazaka", "yomizaka"], "only the three products are checked");
   assert.doesNotMatch(yml, /^\s+- dev\./m, "no dev host is checked as an indexed site");
 });
 
@@ -335,4 +335,147 @@ test("mobile-e2e: the demo account is masked, scrubbed from the reports, and onl
   // The only secrets the workflow declares are the demo account's.
   const secrets = src.slice(src.indexOf("    secrets:\n"), src.indexOf("    outputs:\n"));
   assert.deepEqual([...secrets.matchAll(/^ {6}([A-Z_]+):$/gm)].map((m) => m[1]).sort(), ["DEMO_ACCOUNT_EMAIL", "DEMO_ACCOUNT_PASSWORD"]);
+});
+
+// --- SonarCloud after the tests, the image after verify and scanned (krizaka/.github#237).
+test("node gate: SonarCloud wanted must succeed after a green verify; a skip or failure is red; docs-only stays green", () => {
+  const wanted = { SONAR_WANTED: "true" };
+  assert.equal(runGate("node-ci", NODE({ ...wanted, SONAR: "success" })).status, 0);
+  assert.equal(runGate("node-ci", NODE({ ...wanted, SONAR: "failure" })).status, 1);
+  assert.equal(runGate("node-ci", NODE({ ...wanted, SONAR: "skipped" })).status, 1);
+  assert.equal(runGate("node-ci", NODE({ ...wanted, CODE: "false", VERIFY: "skipped", SONAR: "skipped", SONAR_LIGHT: "success" })).status, 0);
+  // verify failed: sonar is rightly skipped, the gate is red once (by verify)
+  assert.equal(runGate("node-ci", NODE({ ...wanted, VERIFY: "failure", SONAR: "skipped" })).status, 1);
+  // not wanted: no effect
+  assert.equal(runGate("node-ci", NODE({ SONAR: "skipped" })).status, 0);
+});
+
+test("node gate: the image is not built when verify failed — verify alone makes the gate red", () => {
+  const vars = NODE({ VERIFY: "failure", CONTAINER_WANTED: "true", CONTAINER: "skipped" });
+  assert.deepEqual(runGate("node-ci", vars), { status: 1, result: "failure" });
+});
+
+test("java and python gates: SonarCloud wanted must succeed; not wanted changes nothing", () => {
+  assert.equal(runGate("java-ci", JAVA({ SONAR_WANTED: "true", SONAR: "success" })).status, 0);
+  assert.equal(runGate("java-ci", JAVA({ SONAR_WANTED: "true", SONAR: "skipped" })).status, 1);
+  assert.equal(runGate("java-ci", JAVA({ SONAR_WANTED: "true", SONAR: "failure" })).status, 1);
+  assert.equal(runGate("java-ci", JAVA({ SONAR: "skipped" })).status, 0);
+  assert.equal(runGate("python-ci", SIMPLE({ SONAR_WANTED: "true", SONAR: "success" })).status, 0);
+  assert.equal(runGate("python-ci", SIMPLE({ SONAR_WANTED: "true", SONAR: "skipped" })).status, 1);
+  assert.equal(runGate("python-ci", SIMPLE({ SONAR_WANTED: "true", SONAR: "failure" })).status, 1);
+});
+
+for (const name of ["node-ci", "java-ci", "python-ci"]) {
+  test(`${name}: the sonar job waits for the tests, uses the org secret, awaits the quality gate and is part of the CI gate`, () => {
+    const src = read(name);
+    const sonar = jobs(src).find((j) => j.id === "sonar");
+    assert.ok(sonar, "a sonar job exists");
+    assert.match(sonar.text, /^ {4}needs: \[changes, (verify|checks)\]$/m);
+    assert.match(sonar.text, /needs\.(verify|checks)\.result == 'success'/);
+    assert.match(sonar.text, /SONAR_TOKEN: \$\{\{ secrets\.SONAR_TOKEN \}\}/);
+    assert.match(sonar.text, /uses: SonarSource\/sonarqube-scan-action@[0-9a-f]{40}/);
+    assert.match(sonar.text, /-Dsonar\.qualitygate\.wait=true/);
+    assert.doesNotMatch(sonar.text, /echo[^\n]*\$SONAR_TOKEN|\$\{\{ *secrets\.SONAR_TOKEN *\}\}[^\n]*\n[^\n]*run:/);
+    assert.match(src, /secrets:\n {6}SONAR_TOKEN:\n[^\n]*\n {8}required: false/);
+    assert.match(jobs(src).find((j) => j.id === "gate").text, /needs: \[[^\]]*\bsonar\b/);
+  });
+}
+
+test("node-ci: the image waits for verify, is scanned (fixable HIGH and CRITICAL fail, written allowlist) with an SBOM, and is never pushed", () => {
+  const src = read("node-ci");
+  const container = jobs(src).find((j) => j.id === "container");
+  assert.match(container.text, /^ {4}needs: \[changes, docker-changes, verify\]$/m);
+  assert.match(container.text, /needs\.verify\.result == 'success' \|\| needs\.verify\.result == 'skipped'/);
+  assert.match(container.text, /uses: aquasecurity\/trivy-action@[0-9a-f]{40}/);
+  assert.match(container.text, /severity: HIGH,CRITICAL/);
+  assert.match(container.text, /ignore-unfixed: true/);
+  assert.match(container.text, /exit-code: "1"/);
+  assert.match(container.text, /trivyignores: \$\{\{ steps\.allow\.outputs\.file \}\}/);
+  assert.match(container.text, /format: cyclonedx/);
+  assert.match(container.text, /name: sbom-cyclonedx/);
+  // scan before the smoke script
+  assert.ok(container.text.indexOf("Scan the image") < container.text.indexOf("script: ${{ inputs.container-smoke }}"));
+  assert.doesNotMatch(src, /push: true|docker push/);
+  assert.match(readFileSync(new URL("../actions/build/action.yml", import.meta.url), "utf8"), /push: false/);
+});
+
+test("node-ci: a monorepo package's lcov is rebased to the project root before the analysis", () => {
+  const verify = jobs(read("node-ci")).find((j) => j.id === "verify");
+  assert.match(verify.text, /awk -v p="\$pkg" '\/\^SF:\/ && substr\(\$0,4,1\) != "\/"/);
+  assert.match(verify.text, /\[ "\$pkg" = "\." \] && continue/);
+});
+
+// --- Light Sonar scan on docs-only changes (.github#330) and fix-needs-guard (.github#323).
+test("gates: docs-only with Sonar wanted needs the light scan to succeed; a failed light scan or guard is red", () => {
+  for (const [name, base] of [["node-ci", NODE], ["java-ci", JAVA]]) {
+    const docs = { SONAR_WANTED: "true", CODE: "false", VERIFY: "skipped", SONAR: "skipped" };
+    assert.equal(runGate(name, base({ ...docs, SONAR_LIGHT: "success" })).status, 0, name);
+    assert.equal(runGate(name, base({ ...docs, SONAR_LIGHT: "skipped" })).status, 1, name);
+    assert.equal(runGate(name, base({ ...docs, SONAR_LIGHT: "failure" })).status, 1, name);
+    assert.equal(runGate(name, base({ GUARD: "failure" })).status, 1, name);
+    assert.equal(runGate(name, base({ GUARD: "success" })).status, 0, name);
+    assert.equal(runGate(name, base({ GUARD: "skipped" })).status, 0, name);
+  }
+});
+
+for (const name of ["node-ci", "java-ci"]) {
+  test(`${name}: sonar-light has no build or coverage step, uses the org secret and awaits the quality gate; guard reads the central config`, () => {
+    const src = read(name);
+    const light = jobs(src).find((j) => j.id === "sonar-light");
+    assert.ok(light, "a sonar-light job exists");
+    assert.match(light.text, /^ {4}needs: changes$/m);
+    assert.match(light.text, /needs\.changes\.outputs\.code == 'false'/);
+    assert.match(light.text, /SONAR_TOKEN: \$\{\{ secrets\.SONAR_TOKEN \}\}/);
+    assert.match(light.text, /-Dsonar\.qualitygate\.wait=true/);
+    assert.doesNotMatch(light.text, /download-artifact|setup-node|setup-java|npm |pnpm |mvnw/);
+    const guard = jobs(src).find((j) => j.id === "guard");
+    assert.ok(guard, "a guard job exists");
+    assert.match(guard.text, /scripts\/fix-needs-guard\.mjs/);
+    assert.match(guard.text, /docs\/standards\/guard-paths\.json/);
+    assert.match(guard.text, /PR: \$\{\{ github\.event\.pull_request\.number \}\}/);
+    const gate = jobs(src).find((j) => j.id === "gate").text;
+    assert.match(gate, /needs: \[[^\]]*\bsonar-light\b[^\]]*\bguard\b/);
+  });
+}
+
+// maven.yml (the Central-published JVM repositories) carries the same Sonar legs and an always-reporting gate as java-ci.yml.
+test("maven.yml: sonar, sonar-light and an always-reporting gate, the release job kept", () => {
+  const src = read("maven");
+  const ids = jobs(src).map((j) => j.id);
+  for (const id of ["changes", "verify", "sonar", "sonar-light", "gate", "release"]) assert.ok(ids.includes(id), `job ${id}`);
+  const gate = jobs(src).find((j) => j.id === "gate");
+  assert.match(gate.text, /if: \$\{\{ always\(\) \}\}/);
+  assert.match(gate.text, /needs: \[changes, verify, sonar, sonar-light\]/);
+  assert.match(src, /sonar:\n\s+description:[^\n]*\n\s+required: false\n\s+default: false/);
+  assert.match(src, /startsWith\(github\.ref, 'refs\/tags\/v'\)/);
+});
+
+// The reusable workflows all run the SAME repo-layout action (a stale pin once refused `.claude/` in every consumer).
+test("every reusable workflow pins actions/repo-layout to one and the same commit", () => {
+  const pins = new Set();
+  for (const name of [...WORKFLOWS.filter((w) => w !== "mobile-e2e"), "maven"]) {
+    for (const m of read(name).matchAll(/actions\/repo-layout@([0-9a-f]{40}) # main/g)) pins.add(m[1]);
+    assert.match(read(name), /actions\/repo-layout@[0-9a-f]{40} # main/, `${name} runs repo-layout`);
+  }
+  assert.equal(pins.size, 1, `one repo-layout pin, got ${[...pins].join(", ")}`);
+});
+
+// The build-pack actions the reusable workflows call by pin move together: a stale pin kept `npx playwright-core` (not found under pnpm) in every consumer.
+test("the build-pack actions are pinned to one commit across the reusable workflows", () => {
+  const pins = new Set();
+  for (const name of [...WORKFLOWS.filter((w) => w !== "mobile-e2e"), "maven"]) {
+    for (const m of read(name).matchAll(/krizaka\/\.github\/actions\/(?:setup|build|after-build|test|quality|detect)@([0-9a-f]{40}) # main/g)) pins.add(m[1]);
+  }
+  assert.ok(pins.size >= 1);
+  assert.equal(pins.size, 1, `one pin for the build pack, got ${[...pins].join(", ")}`);
+});
+
+test("node-ci runs the repository's format:check with the lint step, opt-in by `format-script` (krizaka/.github#427)", () => {
+  const src = read("node-ci");
+  assert.match(src, /\n {6}format-script:\n(?: {8}.*\n)*? {8}default: ""\n/);
+  const step = src.slice(src.indexOf("- name: Format (prettier --check)"));
+  assert.match(step, /if: \$\{\{ inputs\.format-script != '' && \(matrix\.task == 'all' \|\| matrix\.task == 'lint'\) \}\}/);
+  assert.match(step, /run: '"\$PM" run "\$SCRIPT"'/);
+  // The parallel plan still makes a lint leg when only the format script is set.
+  assert.match(src, /\{ \[ -n "\$LINT" \] \|\| \[ -n "\$FORMAT" \]; \} && tasks\+=\(lint\)/);
 });

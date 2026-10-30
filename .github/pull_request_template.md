@@ -4,6 +4,7 @@
 
 ## How it was verified
 
+- [ ] A guard that fails without this fix is added (and shown failing on `main`), or the reason there is none is written here — [a bug means a missing guard](https://github.com/krizaka/.github/blob/main/docs/standards/bug-means-missing-guard.md)
 - [ ] Quality gates pass locally (lint, type-check, tests, build — see the README)
 - [ ] Generated docs/data regenerated, not hand-edited
 - [ ] The repository's `AGENTS.md` contract still holds

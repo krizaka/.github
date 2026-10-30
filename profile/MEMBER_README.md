@@ -23,12 +23,10 @@ and where the work is tracked. The public face of the organisation is the [profi
 | Product | Workspace | What it is | Contract |
 | :--- | :--- | :--- | :--- |
 | **Orazaka** | [`krizaka/orazaka`](https://github.com/krizaka/orazaka) — clones every component; the [`orazaka` CLI](https://github.com/krizaka/orazaka-cli) installs, starts and seeds the demo (`orazaka demo seed`) | Multimodal AI orchestration — chat, RAG, agents, image, audio, video — on **local** models, behind a deterministic interceptor pipeline | [`AGENTS.md`](https://github.com/krizaka/orazaka/blob/main/AGENTS.md) |
-| **Orochia** | [`krizaka/orochia`](https://github.com/krizaka/orochia) (web app, API, packages, operator console) · [`orochia-design-system`](https://github.com/krizaka/orochia-design-system) · [`orochia-mobile`](https://github.com/krizaka/orochia-mobile) | The creator video platform: signed 4K streaming, Explore, stories, paid unlocks, **auctions** and **challenges** paid in credits held in escrow until delivery; creators keep **90 %**, settled once on a double-entry ledger; 18+ compliance built in | [`AGENTS.md`](https://github.com/krizaka/orochia/blob/main/AGENTS.md) |
 | **krizaka.com** | [`krizaka/krizaka-com`](https://github.com/krizaka/krizaka-com) | The site: products, demos, the single docs site, interactive architecture views — dark and light, English and French | [`AGENTS.md`](https://github.com/krizaka/krizaka-com/blob/main/AGENTS.md) |
 
-Running environments: Orochia's development deployment at [dev.orochia.com](https://dev.orochia.com) · the site at
-[krizaka.com](https://www.krizaka.com). Video tours, recorded on the real applications:
-[Orochia](https://www.krizaka.com/en/products/orochia#tour) · [Orazaka](https://www.krizaka.com/en/products/orazaka/demos).
+Running environments: [dev.orazaka.com](https://dev.orazaka.com), [dev.yomizaka.com](https://dev.yomizaka.com),
+[dev.akinaza.com](https://dev.akinaza.com) · the site at [krizaka.com](https://www.krizaka.com).
 
 ## Building blocks
 
@@ -48,15 +46,15 @@ repository (parent first, signed).
 **TypeScript — `@krizaka` on npm.** From [`krizaka-ui`](https://github.com/krizaka/krizaka-ui) (Changesets releases):
 `@krizaka/ui` (marks, primitives, section backdrops), `@krizaka/tokens`, `@krizaka/tailwind`, `@krizaka/icons`,
 `@krizaka/intl`, `@krizaka/i18n` (with the `krizaka-i18n` catalogue checker) and `@krizaka/config` (ESLint, tsconfig,
-Prettier, `krizaka-ratchet`). Product identities: `@krizaka/orochia-design-system`, `@krizaka/orazaka-design-system`,
+Prettier, `krizaka-ratchet`). Product identities: `@krizaka/orazaka-design-system`,
 `@krizaka/orazaka-shared`. All on the public registry: [npmjs.com/org/krizaka](https://www.npmjs.com/org/krizaka).
 
 ## Documentation — one place
 
 [krizaka.com/docs](https://www.krizaka.com/docs): [Orazaka](https://www.krizaka.com/docs/orazaka) ·
-[Orochia](https://www.krizaka.com/docs/orochia) · [UI components](https://www.krizaka.com/docs/ui) (interactive previews and
+[UI components](https://www.krizaka.com/docs/ui) (interactive previews and
 prop tables read from `@krizaka/ui`) · [Java building blocks](https://www.krizaka.com/docs/java).
-Product docs are generated from the code (`orazaka docs sync`, `npm run docs:generate` in Orochia) and published
+Product docs are generated from the code (`orazaka docs sync`) and published
 through krizaka.com's manifest — never edited by hand on the site.
 
 ## How we work
@@ -71,9 +69,9 @@ through krizaka.com's manifest — never edited by hand on the site.
 - **Shared code is a package, never a copy** — Maven Central or npm, released, then adopted.
 - **Interfaces:** `--kz-*` tokens only, dark and light both verified, reduced motion respected, every string in the
   message catalogues (English and French on the site); the UI debt ratchet only goes down.
-- **Money is a ledger.** Tips, unlocks, auction bids and challenge pledges are recorded once on an append-only,
+- **Money is a ledger.** Payments are recorded once on an append-only,
   double-entry ledger; payments are confirmed by the gateway, never by the client.
-- **Demos are honest.** A credible persona with a first name (Eric for Orazaka; Alex and Elena for Orochia), never an
+- **Demos are honest.** A credible persona with a first name (Eric for Orazaka), never an
   "admin" account; real application, real flows, figures from the data on screen.
 
 ## Where the work is tracked
@@ -87,7 +85,7 @@ product) are closed; their issues live here.
 | :--- | :--- |
 | [Board](https://github.com/orgs/krizaka/projects/4/views/2) · [Roadmap](https://github.com/orgs/krizaka/projects/4/views/3) | Every open issue by status, and on a timeline by milestone |
 | [P0 / P1](https://github.com/orgs/krizaka/projects/4/views/5) · [Epics](https://github.com/orgs/krizaka/projects/4/views/6) | What blocks a launch, and the large initiatives |
-| [Orochia](https://github.com/orgs/krizaka/projects/4/views/8) · [Orazaka](https://github.com/orgs/krizaka/projects/4/views/9) · [Krizaka](https://github.com/orgs/krizaka/projects/4/views/10) · [Site](https://github.com/orgs/krizaka/projects/4/views/11) | One product at a time |
+| [Orazaka](https://github.com/orgs/krizaka/projects/4/views/9) · [Krizaka](https://github.com/orgs/krizaka/projects/4/views/10) · [Site](https://github.com/orgs/krizaka/projects/4/views/11) | One product at a time |
 | [Oussama's actions](https://github.com/orgs/krizaka/projects/4/views/4) | `owner:oussama` — accounts, money, DNS: what only the owner can do |
 
 ## Funding and sponsorship
@@ -104,8 +102,8 @@ product) are closed; their issues live here.
 
 - [Contributing](https://github.com/krizaka/.github/blob/main/CONTRIBUTING.md) · [Code of conduct](https://github.com/krizaka/.github/blob/main/CODE_OF_CONDUCT.md) · [Support](https://github.com/krizaka/.github/blob/main/SUPPORT.md)
 - [Security policy](https://github.com/krizaka/.github/blob/main/SECURITY.md) — vulnerabilities are reported privately, never in an issue
-- Contracts: [krizaka-com](https://github.com/krizaka/krizaka-com/blob/main/AGENTS.md) · [orazaka](https://github.com/krizaka/orazaka/blob/main/AGENTS.md) · [orochia](https://github.com/krizaka/orochia/blob/main/AGENTS.md) · [krizaka-ui](https://github.com/krizaka/krizaka-ui/blob/main/AGENTS.md)
-- Run locally: Orochia `npm run setup && npm run dev` (Node ≥ 20, Docker) · Orazaka through the [`orazaka` CLI](https://github.com/krizaka/orazaka-cli)
+- Contracts: [krizaka-com](https://github.com/krizaka/krizaka-com/blob/main/AGENTS.md) · [orazaka](https://github.com/krizaka/orazaka/blob/main/AGENTS.md) · [krizaka-ui](https://github.com/krizaka/krizaka-ui/blob/main/AGENTS.md)
+- Run locally: Orazaka through the [`orazaka` CLI](https://github.com/krizaka/orazaka-cli)
 - Support policy for the packages: [`krizaka-ui/SUPPORT.md`](https://github.com/krizaka/krizaka-ui/blob/main/SUPPORT.md) — N and N-1 supported, deprecated for a full minor before removal
 
 <sub>Made in Montréal · Open by default · Sovereign by design · Apache-2.0</sub>

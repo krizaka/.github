@@ -21,3 +21,10 @@ body:
     id: alternatives
     attributes:
       label: Alternatives considered
+  - type: textarea
+    id: privacy
+    attributes:
+      label: Privacy by design
+      description: "What personal data does it touch, why, and for how long is it kept? Write « none » if it touches none. (ISO/IEC 27701; P-39.1 arts. 3.3, 23.)"
+    validations:
+      required: true

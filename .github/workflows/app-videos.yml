@@ -1,0 +1,145 @@
+# The download pages' videos, recorded by the e2e tests (reusable; krizaka/.github#315).
+#
+# A product's CI calls it AFTER its e2e jobs are green, on main only:
+#
+#   app-videos:
+#     needs: [mobile-e2e, web-showcase]
+#     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+#     permissions: { contents: write, pull-requests: write }
+#     uses: krizaka/.github/.github/workflows/app-videos.yml@<sha> # main
+#     with:
+#       product: yomizaka
+#       manifest: apps/web/content/app-videos.json
+#       artifacts: |
+#         maestro-e2e        # Maestro: `startRecording: android-documents` … `stopRecording` (files named <platform>-<flow>.mp4)
+#         showcase-web       # Playwright: video of a showcase journey, saved as web-<flow>.webm
+#     secrets: inherit       # the org secrets MEDIA_STORAGE_API_KEY, MEDIA_STORAGE_ZONE, MEDIA_STORAGE_ENDPOINT, MEDIA_CDN_HOSTNAME
+#
+# What it does: downloads the artifacts, transcodes (webm + mp4 + poster, <= 30 s, no audio), uploads to Bunny under
+# sites/<product>/download/<platform>-<flow>.<hash>.<ext> (hashed, immutable), merges the manifest and opens (or
+# updates) ONE pull request `chore/app-videos-<product>` with the manifest. Old objects are only LISTED (a preview), never deleted.
+# The pull request is opened with a token minted here (actions/create-github-app-token, the org variable RELEASE_APP_ID and the
+# org secret RELEASE_APP_PRIVATE_KEY: the Krizaka Agents app, as release-please and the CLA workflow do), so its checks run;
+# with the default token GitHub does not start workflows on it. No secret to create in the caller.
+name: app-videos
+
+on:
+  workflow_call:
+    inputs:
+      product:
+        description: "The product id (yomizaka, akinaza, orazaka)."
+        type: string
+        required: true
+      manifest:
+        description: "The manifest file in the caller's repository, updated by the pull request."
+        type: string
+        required: true
+      artifacts:
+        description: "Names of the artifacts of this run that hold recordings, one per line (a trailing # comment is ignored)."
+        type: string
+        required: true
+      node-version:
+        description: "Node.js version."
+        type: string
+        default: "22"
+    secrets:
+      MEDIA_STORAGE_API_KEY:
+        required: true
+      MEDIA_STORAGE_ZONE:
+        required: true
+      MEDIA_STORAGE_ENDPOINT:
+        required: false
+      MEDIA_CDN_HOSTNAME:
+        required: false
+      RELEASE_APP_PRIVATE_KEY:
+        description: "The Krizaka Agents app's private key (org secret), to mint the token of the manifest pull request. Default: GITHUB_TOKEN."
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: App videos
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ inputs.node-version }}
+      - name: Artifact names
+        id: names
+        env:
+          ARTIFACTS: ${{ inputs.artifacts }}
+        run: |
+          i=0
+          while IFS= read -r line; do
+            name="$(printf '%s' "${line%%#*}" | xargs)"
+            [ -z "$name" ] && continue
+            printf '%s' "$name" | grep -Eq '^[A-Za-z0-9_.-]+$' || { echo "::error::artifact name not allowed"; exit 1; }
+            i=$((i + 1))
+            echo "n$i=$name" >> "$GITHUB_OUTPUT"
+          done <<< "$ARTIFACTS"
+          echo "count=$i" >> "$GITHUB_OUTPUT"
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        if: ${{ steps.names.outputs.n1 != '' }}
+        with:
+          name: ${{ steps.names.outputs.n1 }}
+          path: recordings/1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        if: ${{ steps.names.outputs.n2 != '' }}
+        with:
+          name: ${{ steps.names.outputs.n2 }}
+          path: recordings/2
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        if: ${{ steps.names.outputs.n3 != '' }}
+        with:
+          name: ${{ steps.names.outputs.n3 }}
+          path: recordings/3
+      - name: Transcode, upload, manifest
+        uses: krizaka/.github/actions/app-videos@8a90a66bec6c227af139b39c6c33ba58b400b59a # main (sites/<product>/download, Bunny layout v2)
+        with:
+          product: ${{ inputs.product }}
+          inputs: recordings
+          manifest: ${{ inputs.manifest }}
+          storage-api-key: ${{ secrets.MEDIA_STORAGE_API_KEY }}
+          storage-zone: ${{ secrets.MEDIA_STORAGE_ZONE }}
+          storage-endpoint: ${{ secrets.MEDIA_STORAGE_ENDPOINT }}
+          cdn-hostname: ${{ secrets.MEDIA_CDN_HOSTNAME }}
+      - id: app
+        if: ${{ vars.RELEASE_APP_ID != '' }}
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+          permission-pull-requests: write
+      - name: Pull request with the manifest
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token || github.token }}
+          PRODUCT: ${{ inputs.product }}
+          MANIFEST: ${{ inputs.manifest }}
+          REPO: ${{ github.repository }}
+        run: |
+          if git diff --quiet -- "$MANIFEST"; then echo "manifest unchanged"; exit 0; fi
+          branch="chore/app-videos-$PRODUCT"
+          git config user.name "krizaka-agents[bot]"
+          git config user.email "krizaka-agents[bot]@users.noreply.github.com"
+          git checkout -q -B "$branch"
+          git add -- "$MANIFEST"
+          git commit -q -m "chore(media): $PRODUCT download videos, recorded by the e2e tests" -m "Automated by krizaka/.github app-videos (krizaka/.github#315)."
+          git push -q --force "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" "$branch"
+          if [ -z "$(gh pr list --repo "$REPO" --head "$branch" --json number -q '.[0].number')" ]; then
+            body="$(printf '%s\n\n%s\n' "The download page's videos, re-recorded by the e2e tests on main and uploaded to Bunny (hashed, immutable). Only the manifest changes. Old objects are listed in the run's log, never deleted." '🤖 Generated with [Claude Code](https://claude.com/claude-code)')"
+            gh pr create --repo "$REPO" --head "$branch" --base main \
+              --title "chore(media): $PRODUCT download videos (recorded by the e2e tests)" --body "$body"
+          fi
+          gh pr merge --repo "$REPO" "$branch" --squash --auto || echo "::notice::auto-merge not armed"

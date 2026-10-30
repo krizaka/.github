@@ -1,0 +1,10 @@
+{
+  "note": "Risk register as data. Likelihood and impact: 1 (low) to 5 (high). Score = likelihood x impact. Treatment: reduce, accept, transfer, avoid. Initial entries from known risks; to be completed in the gap analysis.",
+  "risks": [
+    { "id": "R-01", "title": "Leak of a credential (database, registry, payment, GitHub App)", "likelihood": 3, "impact": 5, "treatment": "reduce", "controls": ["5.17", "8.4", "8.24"], "plan": "Rotation runbook, secret guard, short-lived tokens" },
+    { "id": "R-02", "title": "Personal information exposed by a product", "likelihood": 2, "impact": 5, "treatment": "reduce", "controls": ["5.34", "8.3", "8.11"], "plan": "Retention and purge tests, incident procedure" },
+    { "id": "R-03", "title": "Compromised dependency or build pipeline", "likelihood": 3, "impact": 4, "treatment": "reduce", "controls": ["5.21", "8.8", "8.28"], "plan": "Pinning, provenance, scorecard, required checks" },
+    { "id": "R-04", "title": "Loss of data without a working restore", "likelihood": 2, "impact": 5, "treatment": "reduce", "controls": ["8.13"], "plan": "Scheduled backups and one tested restore" },
+    { "id": "R-05", "title": "Supplier outage or breach (hosting, CDN, GPU, payments, e-mail)", "likelihood": 3, "impact": 3, "treatment": "reduce", "controls": ["5.19", "5.20", "5.22"], "plan": "Supplier register, DPAs, exit options" }
+  ]
+}

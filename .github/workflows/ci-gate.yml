@@ -1,0 +1,136 @@
+# The one required check of this repository: `CI gate` (krizaka/.github).
+#
+# The suites of this repository (workflow lint, the CI self-test, the org profile, the registry, the repository names, the roadmap
+# sync) used to be path-filtered workflows on their own: a path-filtered check cannot be required (a pull request that does not touch
+# its paths would wait for it forever), so two pull requests merged with a red `test`. They are now called from here, on EVERY pull
+# request, and `scope` decides which of them apply (scripts/ci-scope.mjs, tested): a suite that does not apply is skipped, and a
+# skipped job counts as passing. The gate fails when an applicable suite did not succeed. Fail-open: when the scope itself breaks,
+# every suite runs.
+#
+# Required checks of the repository: `CI gate` and `SonarCloud Code Analysis`. CodeQL stays its own check.
+name: CI gate
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scope:
+    name: Scope
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      lint: ${{ steps.scope.outputs.lint }}
+      selftest: ${{ steps.scope.outputs.selftest }}
+      profile: ${{ steps.scope.outputs.profile }}
+      registry: ${{ steps.scope.outputs.registry }}
+      names: ${{ steps.scope.outputs.names }}
+      roadmap: ${{ steps.scope.outputs.roadmap }}
+    steps:
+      # The scope script of the BASE branch decides, so a pull request cannot narrow its own checks.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+      - id: scope
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          files=$(gh api "repos/$REPO/pulls/$PR/files" --paginate --jq '.[].filename' || true)
+          if [ -f scripts/ci-scope.mjs ]; then
+            printf '%s\n' "$files" | node scripts/ci-scope.mjs
+          else
+            echo "::warning::no scope script on the base branch: every suite runs"
+          fi
+
+  lint:
+    name: Workflows lint
+    needs: scope
+    if: ${{ !cancelled() && needs.scope.outputs.lint != 'false' }}
+    permissions:
+      contents: read
+    uses: ./.github/workflows/lint-workflows.yml
+
+  selftest:
+    name: CI workflows self-test
+    needs: scope
+    if: ${{ !cancelled() && needs.scope.outputs.selftest != 'false' }}
+    permissions:
+      contents: read
+    uses: ./.github/workflows/selftest-ci.yml
+
+  profile:
+    name: Org profile
+    needs: scope
+    if: ${{ !cancelled() && needs.scope.outputs.profile != 'false' }}
+    permissions:
+      contents: read
+    uses: ./.github/workflows/profile-check.yml
+
+  registry:
+    name: Repository registry
+    needs: scope
+    if: ${{ !cancelled() && needs.scope.outputs.registry != 'false' }}
+    permissions:
+      contents: read
+    uses: ./.github/workflows/repos-registry.yml
+
+  names:
+    name: Repository names
+    needs: scope
+    if: ${{ !cancelled() && needs.scope.outputs.names != 'false' }}
+    permissions:
+      contents: read
+    uses: ./.github/workflows/repository-names.yml
+
+  roadmap:
+    name: Roadmap sync
+    needs: scope
+    if: ${{ !cancelled() && needs.scope.outputs.roadmap != 'false' }}
+    permissions:
+      contents: read
+    uses: ./.github/workflows/roadmap-sync.yml
+
+  security:
+    name: Security scan
+    if: ${{ !cancelled() }}
+    permissions:
+      contents: read
+    uses: ./.github/workflows/security-scan.yml
+    with:
+      guards-ref: ${{ github.sha }}
+
+  gate:
+    name: CI gate
+    needs: [scope, security, lint, selftest, profile, registry, names, roadmap]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+      - name: Verdict
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          if [ -f scripts/ci-scope.mjs ]; then
+            node scripts/ci-scope.mjs --verdict
+          else
+            # no verdict script on the base branch yet: every suite must have succeeded or been skipped, none failed
+            echo "$NEEDS" | node -e 'const n=JSON.parse(require("fs").readFileSync(0,"utf8"));const bad=Object.entries(n).filter(([k,v])=>!["success","skipped"].includes(v.result));bad.forEach(([k,v])=>console.log("::error::"+k+": "+v.result));process.exit(bad.length?1:0)'
+          fi

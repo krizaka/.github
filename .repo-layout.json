@@ -1,0 +1,12 @@
+{
+  "allow": [
+    {
+      "path": ".pre-commit-hooks.yaml",
+      "why": "the hooks of the org, read by the pre-commit framework from the repository root (krizaka/.github#324)"
+    },
+    {
+      "path": "tools",
+      "why": "the org's measuring tools, run against the repositories' checkouts (tools/code-health, krizaka/.github#384)"
+    }
+  ]
+}

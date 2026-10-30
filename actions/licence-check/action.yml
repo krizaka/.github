@@ -1,0 +1,34 @@
+# Licence gate (ADR-012): fail when a third-party component of an SBOM is under a forbidden licence.
+#
+#   - uses: krizaka/.github/actions/licence-check@<sha> # main
+#     with:
+#       sbom: ${{ runner.temp }}/sbom.cdx.json     # CycloneDX (Trivy) or SPDX (GitHub dependency graph)
+#
+# The policy is the org's (policy.json, an allowlist); a repository lists an accepted finding in .licence-exceptions.json
+# ({ "exceptions": [{ "package": "name", "reason": "why", "expires": "YYYY-MM-DD" }] }), never by editing the policy.
+# The report is written to the job summary. Needs only Node (on every runner).
+name: licence-check
+description: Fail when an SBOM holds a dependency under a licence the Krizaka policy forbids (GPL, AGPL, SSPL, non-commercial).
+author: Krizaka
+
+inputs:
+  sbom:
+    description: "Path to the SBOM (CycloneDX or SPDX JSON)."
+    required: true
+  exceptions:
+    description: "The repository's exceptions file, relative to the working directory."
+    default: .licence-exceptions.json
+  working-directory:
+    description: "Directory the check runs in."
+    default: "."
+
+runs:
+  using: composite
+  steps:
+    - name: Licence gate (ADR-012)
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        LG_SBOM: ${{ inputs.sbom }}
+        LG_EXCEPTIONS: ${{ inputs.exceptions }}
+      run: node "$GITHUB_ACTION_PATH/licence-gate.mjs" --sbom "$LG_SBOM" --exceptions "$LG_EXCEPTIONS"

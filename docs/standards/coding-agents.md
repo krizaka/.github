@@ -3,6 +3,8 @@
 How GitHub coding agents (Copilot, Claude) work in the krizaka organisation. The rules are §8 of
 [AGENTS.template.md](../../AGENTS.template.md); this page gives their reasons and the setup each repository owes them.
 
+> **Copilot is no longer used (2026-10-25).** Copilot access is disabled in the organisation after a cost spike. Never assign issues or PRs to Copilot, and never mention `@copilot`. Work goes to Claude sessions. The Copilot sections below are kept as history until the `copilot-setup-steps.yml` workflows are removed.
+
 ## Why each rule exists (2026-10-23)
 
 | Rule | What happened without it |
@@ -25,6 +27,17 @@ How GitHub coding agents (Copilot, Claude) work in the krizaka organisation. The
   (or the krizaka-agents app) kicks the checks with an empty commit before reviewing.
 - **A review.** Claude (CTO) reviews every agent PR: the build, the tests, the words, the admin side, the docs. Then
   Oussama approves and merges.
+
+## The edit hook (ADR-015 §7)
+
+`krizaka-edit-check` (a bin of [`@krizaka/config`](https://www.npmjs.com/package/@krizaka/config)) checks the one file
+an agent just edited, from a Claude Code `PostToolUse` hook. TypeScript and JavaScript: the repository's ESLint on that
+file. Java: PMD's CLI with the Krizaka rules (the PMD distribution is pinned by checksum and cached once under
+`~/.cache/krizaka`; the first call installs it in the background and stays silent). It never runs Maven: a per-edit
+`mvn verify` costs 30 to 60 s. Its budget is 10 s; a finding goes back to the agent on stderr with exit 2; a timeout is
+silent. NullAway and ArchUnit need a compile, so they stay at pre-push and in CI.
+
+The snippet every repository carries in `.claude/settings.json` is in [AGENTS.template.md §9](../../AGENTS.template.md).
 
 ## The model, chosen per task
 

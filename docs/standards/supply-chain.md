@@ -1,5 +1,7 @@
 # Supply chain — the Krizaka standard (OpenSSF Scorecard)
 
+<!-- summary: OpenSSF Scorecard on every public repository, pinned actions, and npm publishing with provenance. -->
+
 Every public repository of the org runs the [OpenSSF Scorecard](https://scorecard.dev) (`.github/workflows/scorecard.yml`, weekly and on
 push to `main`, `publish_results: true`), and shows its badge. The public viewer
 (`https://scorecard.dev/viewer/?uri=github.com/krizaka/<repo>`) is what search engines show for our projects, so it is kept honest and as high
@@ -16,7 +18,7 @@ Measure the whole org: `node scripts/scorecard-report.mjs > scorecard.md` (reads
 | Dependency-Update-Tool | `.github/dependabot.yml`: one ecosystem per manifest kind (npm, maven, pip, cargo, docker, github-actions), **monthly, one grouped PR per ecosystem, limit 1** (decision of 2026-10-13: fewer mails). Security updates arrive grouped apart. | Copy the file of a sibling repository. |
 | Security-Policy | The org default `SECURITY.md` of this repository is detected on every repo (check = 10); a repository may add its own. | Nothing to do. |
 | SAST | CodeQL default setup, on every repository with code. It reads 10 only once the last 30 commits all went through a CodeQL-checked PR: it climbs by itself. | Nothing to do. |
-| License | `LICENSE` (Apache-2.0, SPDX-detected) in every repository. | Nothing to do. |
+| License | A licence file in every repository: `LICENSE` (Apache-2.0) for the libraries, `LICENSE.md` (FSL-1.1-ALv2) for the products ([ADR-012](../adr/ADR-012-licensing-libraries-open-products-fair-source.md)). Third-party licences are checked by `actions/licence-check`. | Nothing to do. |
 | Vulnerabilities | No known OSV advisory on a dependency in a lockfile. | Dependabot security updates; for a transitive dependency without a bump, a pinned override (`pnpm.overrides` / `overrides` / constraint) with the advisory in the commit. |
 | Branch-Protection | `main`: PR required, required status checks, administrators included, **linear history, conversation resolution, no force push, no deletion**. | Same on all repositories (checked by `gh api repos/krizaka/<repo>/branches/main/protection`). |
 
@@ -59,7 +61,7 @@ package trusts the workflow, which needs the 2FA-protected settings page. Per `@
 4. Re-run the workflow (`workflow_dispatch`): the version page then shows the *Provenance* badge, and the local `pnpm changeset publish` step
    of the orchestrator addendum is no longer needed.
 
-The same for `krizaka/orochia-mobile` and every other repository that publishes to npm (`release.yml`).
+The same for every other repository that publishes to npm (`release.yml`).
 
 ## Secrets never reach a pull request
 
