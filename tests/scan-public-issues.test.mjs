@@ -19,12 +19,13 @@ test("classify flags each sensitive category by title", () => {
 
 test("classify reads the body only past a threshold, and the labels as hints", () => {
   assert.deepEqual(classify({ title: "feat(ui): a button", body: "one threshold" }), {});
+  assert.deepEqual(classify({ title: "chore: gate", body: "the quality gate threshold; the coverage threshold" }), {});
   assert.equal(classify({ title: "feat(checks): signals", body: "recall 0 on overlays; false positive over 5 %" }).fraud, "body ×3");
   assert.equal(classify({ title: "chore: tidy", body: "", labels: ["area:security"] }).security, "label area:security");
 });
 
 test("classify leaves plain product work alone", () => {
-  for (const title of ["feat(tree-view): rich nodes", "fix(nav): the bar flickers on mobile", "docs: README badges", "feat(form): Money input"]) {
+  for (const title of ["quality(sonar): resolve 5 static analysis findings (1 bugs, 0 vulnerabilities)", "feat(law): a semantic index over the law corpus", "feat(tree-view): rich nodes", "fix(nav): the bar flickers on mobile", "docs: README badges", "feat(form): Money input"]) {
     assert.deepEqual(classify({ title, body: "Acceptance criteria: renders in both themes." }), {}, title);
   }
 });

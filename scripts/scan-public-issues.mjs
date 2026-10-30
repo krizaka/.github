@@ -16,13 +16,13 @@ export const REPORT_LABEL = "scan-report";
 /** Title patterns per category (strong signals), then body patterns that need `min` hits. */
 export const RULES = {
   security: {
-    title: /bug\(security\)|^security\b|vulnerab|\bCVE\b|\bleak|exposed|unauthenticated|not verified server|faille|\bsecrets?\b|bypass|static analysis findings \(\d+ bugs?, [1-9]\d* vulnerab/i,
+    title: /bug\(security\)|^security\b|(?<!\d )vulnerab|\bCVE\b|\bleak|exposed|unauthenticated|not verified server|faille|\bsecrets?\b|bypass|static analysis findings \(\d+ bugs?, [1-9]\d* vulnerab/i,
     body: /vulnerab|exploit|bypass|unauthenticated|not verified|\bIDOR\b|\bSSRF\b|\bXSS\b|\bCSRF\b|to rotate|was exposed/gi,
     min: 3,
   },
   fraud: {
-    title: /fraud|tamper|forensic|screening|corpus|\brecall\b|false.positive|faux.positif|risk engine|anti.?abuse|authenticity signal/i,
-    body: /\brecall\b|false.positive|faux.positif|\boverlay|pasted image|jpeg edit|threshold|seuil|evasion|corpus/gi,
+    title: /fraud|tamper|forensic|screening|tampered corpus|\brecall\b|false.positive|faux.positif|risk engine|anti.?abuse|authenticity signal/i,
+    body: /\brecall\b|false.positive|faux.positif|\boverlay|pasted image|jpeg edit|evasion|tampered corpus/gi,
     min: 2,
   },
   pricing: {
