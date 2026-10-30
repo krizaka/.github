@@ -404,6 +404,22 @@
       "fix": { "type": "manual", "note": "bump @krizaka/config, then `npx krizaka-sg-ratchet --update` (a repository with its own copy of the rules adopts the pack's core set instead)" }
     },
     {
+      "id": "feature-surfaces",
+      "title": "« Done » covers every surface: the feature issue template has the Surfaces checklist and the repository calls the closing check (feature-surfaces.yml)",
+      "issue": "krizaka/.github#439",
+      "applies": {
+        "onlyRepos": ["orazaka", "orazaka-web-client", "orazaka-web-admin", "orazaka-mobile-client", "orazaka-cli", "orazaka-contracts", "yomizaka", "akinaza"]
+      },
+      "check": {
+        "type": "all-of",
+        "checks": [
+          { "type": "file-matches", "path": ".github/ISSUE_TEMPLATE/feature_request.yml", "pattern": "label: Surfaces" },
+          { "type": "workflow-calls", "workflows": ["feature-surfaces.yml"] }
+        ]
+      },
+      "fix": { "type": "manual", "note": "copy docs/standards/surfaces/feature_request.<product>.yml to .github/ISSUE_TEMPLATE/feature_request.yml (generated from docs/standards/surfaces.json by scripts/surfaces.mjs) and add a workflow on `issues: [closed]` that calls krizaka/.github/.github/workflows/feature-surfaces.yml@<sha> with `permissions: issues: write` (one PR per repo, joined to its open fan-out PR)" }
+    },
+    {
       "id": "formatter",
       "title": "Prettier with @krizaka/config/prettier in every TS/JS repository: config, format and format:check scripts, checked in CI (google-java-format stays for Java)",
       "issue": "krizaka/.github#427",

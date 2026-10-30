@@ -1,0 +1,72 @@
+# « Done » covers every surface of the product (krizaka/.github#439): a closed `feature` issue must have every surface of its
+# product ticked with a PR or marked `n/a — reason` (docs/standards/surfaces.json), else it is reopened with a comment.
+#   - `check` (reusable): a product repository calls it on `issues: closed` with the permission `issues: write`.
+#   - `sweep` (scheduled, the 30-min plan check): the same rule over the issues closed in the last hours of every product organisation.
+name: Feature surfaces
+
+on:
+  schedule:
+    - cron: "11,41 * * * *"
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Feature surfaces
+    if: ${{ github.event_name == 'issues' || github.event_name == 'workflow_call' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/.github
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Reopen a feature that misses a surface
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          ISSUE: ${{ github.event.issue.number }}
+        run: node scripts/surfaces.mjs check --repo "$REPO" --issue "$ISSUE"
+
+  sweep:
+    name: Feature surfaces sweep
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        owner: [orazaka, yomizaka, akinaza]
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      # The Krizaka Agents app reads the issues closed in the organisation and reopens the ones that miss a surface.
+      - id: app
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: ${{ matrix.owner }} # zizmor: ignore[github-app] the sweep reads every repository of the product organisation, by design
+          permission-issues: write
+          permission-metadata: read
+        continue-on-error: true
+      - if: ${{ steps.app.outcome == 'success' }}
+        run: node scripts/surfaces.mjs sweep --owners "$OWNER" --hours 3 # zizmor: ignore[github-app] issues write on closed feature issues only
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          OWNER: ${{ matrix.owner }}

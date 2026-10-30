@@ -1,0 +1,34 @@
+{
+  "_": "Where a feature must land before it is « done » (krizaka/.github#439, founder 2026-10-30). Per product (the GitHub owner of its repositories): its surfaces. A feature issue lists them in a « Surfaces » checklist generated from this file (scripts/surfaces.mjs); each is ticked with the PR that ships it or marked `n/a — <reason>`, else the closing check reopens the issue. Add a surface here and every template and check follows.",
+  "products": {
+    "orazaka": {
+      "title": "Orazaka",
+      "surfaces": [
+        { "id": "web-client", "label": "Web client", "repo": "orazaka-web-client" },
+        { "id": "web-admin", "label": "Web admin", "repo": "orazaka-web-admin" },
+        { "id": "mobile", "label": "Mobile", "repo": "orazaka-mobile-client" },
+        { "id": "mac", "label": "Mac" },
+        { "id": "cli", "label": "CLI", "repo": "orazaka-cli" },
+        { "id": "api-sdk", "label": "API/SDK", "repo": "orazaka-contracts" }
+      ]
+    },
+    "yomizaka": {
+      "title": "Yomizaka",
+      "surfaces": [
+        { "id": "web", "label": "Web" },
+        { "id": "admin", "label": "Admin" },
+        { "id": "mobile", "label": "Mobile" },
+        { "id": "mac", "label": "Mac" }
+      ]
+    },
+    "akinaza": {
+      "title": "Akinaza",
+      "surfaces": [
+        { "id": "web", "label": "Web" },
+        { "id": "admin", "label": "Admin" },
+        { "id": "mobile", "label": "Mobile" },
+        { "id": "mac", "label": "Mac" }
+      ]
+    }
+  }
+}
