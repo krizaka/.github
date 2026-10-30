@@ -19,7 +19,7 @@ test("a product is its repositories of the krizaka organisation, named in surfac
   assert.equal(productOf("krizaka/yomizaka", products), "yomizaka");
   assert.equal(productOf("krizaka/akinaza", products), "akinaza");
   assert.equal(productOf("krizaka/krizaka-ui", products), null);
-  assert.equal(productOf("krizaka/yomizaka", products), null, "there is no product organisation");
+  assert.equal(productOf("yomizaka/yomizaka", products), null, "there is no product organisation");
 });
 
 test("the sweep reads krizaka/<repo> for every repo of surfaces.json, never an organisation of a product", () => {
