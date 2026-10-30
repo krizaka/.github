@@ -439,6 +439,14 @@
         ]
       },
       "fix": { "type": "manual", "note": "add prettier + `prettier.config.js` (`export { default } from \"@krizaka/config/prettier\";`) + `.prettierignore` (generated files, lockfiles, vendored), the `format` / `format:check` scripts, commit one `chore(format): prettier` change that only formats and put its SHA in `.git-blame-ignore-revs`, and run `format:check` in CI: `format-script: format:check` of node-ci, or the lint script (`... && <pm> run format:check`) when the repository's pipeline is not node-ci. Open PRs are rebased with `prettier --write`, never left conflicting on formatting" }
+    },
+    {
+      "id": "agents-template",
+      "title": "AGENTS.md is the org template (AGENTS.repo.md): purpose, profile, commands, the 10 rules, the krizaka-engineering skill; at most 80 lines, links resolve",
+      "issue": "krizaka/krizaka-internal#876",
+      "applies": { "kinds": ["npm", "site", "app", "maven", "python", "rust", "iac"] },
+      "check": { "type": "agents-template" },
+      "fix": { "type": "agents-template" }
     }
   ]
 }
