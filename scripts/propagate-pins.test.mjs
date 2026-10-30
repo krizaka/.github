@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { failure, movePins, pinFiles, pinPattern, pushArgs } from "./propagate-pins.mjs";
+import { failure, movePins, pinBranch, pinFiles, pinPattern, publishPinPr, pushArgs } from "./propagate-pins.mjs";
 
 const OLD = "a".repeat(40);
 const NEW = "b".repeat(40);
@@ -47,4 +47,39 @@ test("the push carries the app's token through gh's credential helper (a runner 
   assert.ok(args.includes("credential.helper=!gh auth git-credential"));
   assert.ok(args.indexOf("credential.helper=") < args.indexOf("credential.helper=!gh auth git-credential"), "the helper list is reset first");
   assert.equal(failure(Object.assign(new Error("Command failed: git push\nsecond"), { stderr: "fatal: could not read Username\nmore" })), "Command failed: git push — fatal: could not read Username");
+});
+
+function fakeRun(open) {
+  const calls = [];
+  const run = (cmd, args) => {
+    calls.push([cmd, ...args]);
+    if (args[0] === "api" && String(args[1]).includes("/pulls?state=open")) return JSON.stringify(open);
+    if (args[0] === "pr") return "https://github.com/krizaka/r/pull/9";
+    return "";
+  };
+  return { run, calls };
+}
+const input = { repo: "r", branch: "deps/org-workflow-pins", title: "T", body: "B" };
+
+test("the pin branch is stable: no sha in its name", () => {
+  assert.equal(pinBranch("org workflow pins"), "deps/org-workflow-pins");
+});
+
+test("an open PR of the same head is updated in place, never created again", () => {
+  const { run, calls } = fakeRun([{ number: 4, url: "https://github.com/krizaka/r/pull/4", head: "deps/org-workflow-pins" }]);
+  assert.equal(publishPinPr({ ...input, run }), "https://github.com/krizaka/r/pull/4");
+  assert.ok(!calls.some((c) => c[1] === "pr"), "no gh pr create");
+  assert.ok(calls.some((c) => c.includes("repos/krizaka/r/pulls/4") && c.includes("PATCH") && c.includes("title=T")));
+});
+
+test("without an open PR one is created, and the older sha-named PRs are closed as superseded", () => {
+  const { run, calls } = fakeRun([
+    { number: 2, url: "u2", head: "deps/org-workflow-pins-1234abcd" },
+    { number: 3, url: "u3", head: "deps/other-thing" },
+  ]);
+  assert.equal(publishPinPr({ ...input, run }), "https://github.com/krizaka/r/pull/9");
+  assert.ok(calls.some((c) => c[1] === "pr" && c[2] === "create"));
+  assert.ok(calls.some((c) => c.includes("repos/krizaka/r/issues/2/comments") && c.includes("body=Superseded by #9")));
+  assert.ok(calls.some((c) => c.includes("repos/krizaka/r/pulls/2") && c.includes("state=closed")));
+  assert.ok(!calls.some((c) => c.some((x) => String(x).includes("/3"))), "unrelated PRs are left alone");
 });
