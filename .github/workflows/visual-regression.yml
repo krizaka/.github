@@ -82,6 +82,10 @@ on:
       timeout-minutes:
         type: number
         default: 40
+      group-suffix:
+        description: "Appended to the concurrency group. A second caller on the same ref (the journeys next to the visual regression) sets one, or it cancels the first run (yomizaka#623: cancelled in 0 s)."
+        type: string
+        default: ""
     secrets:
       RELEASE_APP_PRIVATE_KEY:
         description: "The Krizaka Agents app's private key (org secret): mints the token that pushes the baselines, so the branch's checks start. Update mode only."
@@ -91,7 +95,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: visual-regression-${{ inputs.update && inputs.branch || github.ref }}
+  group: visual-regression${{ inputs.group-suffix }}-${{ inputs.update && inputs.branch || github.ref }}
   cancel-in-progress: ${{ !inputs.update }}
 
 jobs:
