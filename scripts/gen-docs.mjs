@@ -153,8 +153,8 @@ export function npmVersions(rows) {
 
 /** What `@krizaka/config` ships, read from its latest package.json: the bins and the sub-path exports. */
 export function configExports(pkg) {
-  const bins = Object.keys(pkg.bin ?? {}).sort();
-  const exports = Object.keys(pkg.exports ?? {}).filter((k) => k !== "./package.json").sort();
+  const bins = Object.keys(pkg.bin ?? {}).sort((a, b) => a.localeCompare(b));
+  const exports = Object.keys(pkg.exports ?? {}).filter((k) => k !== "./package.json").sort((a, b) => a.localeCompare(b));
   return [
     `\`@krizaka/config\` ${pkg.version} ships ${bins.length} command${bins.length === 1 ? "" : "s"} (${bins.map((b) => `\`${b}\``).join(", ") || "none"}) and ${exports.length} entry point${exports.length === 1 ? "" : "s"}: ${exports.map((e) => `\`${e}\``).join(", ") || "none"}.`,
   ].join("\n") + "\n";
