@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { classify, inScope, renderReport } from "../scripts/scan-public-issues.mjs";
+import { classify, inScope, renderReport, SAFE_PATH } from "../scripts/scan-public-issues.mjs";
 
 const NOW = Date.parse("2026-10-30T12:00:00Z");
 const DAY = 24 * 3600 * 1000;
@@ -56,4 +56,14 @@ test("the workflow runs daily and on new issues, writes only to krizaka-internal
   assert.match(wf, /permission-issues: write/);
   const src = readFileSync(new URL("../scripts/scan-public-issues.mjs", import.meta.url), "utf8");
   assert.doesNotMatch(src, /console\.log\([^)]*title/);
+});
+
+test("SAFE_PATH lets through only this org's repos and issues endpoints", () => {
+  assert.ok(SAFE_PATH.test("orgs/krizaka/repos?type=public&per_page=100&page=1"));
+  assert.ok(SAFE_PATH.test("repos/krizaka/yomizaka/issues?state=open&since=2026-10-23T00%3A00%3A00.000Z&per_page=100&page=1"));
+  assert.ok(SAFE_PATH.test("repos/krizaka/krizaka-internal/issues/12"));
+  assert.ok(SAFE_PATH.test("repos/krizaka/.github/issues?state=open"));
+  assert.equal(SAFE_PATH.test("repos/other/x/issues"), false);
+  assert.equal(SAFE_PATH.test("repos/krizaka/.x/../user/issues"), false);
+  assert.equal(SAFE_PATH.test("https://evil.test/x"), false);
 });

@@ -26,8 +26,8 @@ export const RULES = {
     min: 2,
   },
   pricing: {
-    title: /\bpric|\bprix\b|tarif|\boffers?\b|\boffre|\$|\bcosts?\b|coût|budget|competit|concurren|comparison|margin|marge|sponsor|commercial|strategy|stratég|finops|revenue|service levels/i,
-    body: /\d[\d,.]*\s?\$|\$\s?\d|competitor|concurrent|\bmargin|\bmarge\b|\bMRR\b|USD a month|\/month/gi,
+    title: [/\bpric|\bprix\b|tarif|\boffers?\b|\boffre|\$|\bcosts?\b|coût|budget|competit/i, /concurren|comparison|margin|marge|sponsor|commercial|strategy|stratég|finops|revenue|service levels/i],
+    body: /\d ?\$|\$ ?\d|competitor|concurrent|\bmargin|\bmarge\b|\bMRR\b|USD a month|\/month/gi,
     min: 3,
   },
   infra: {
@@ -59,7 +59,8 @@ export function classify(issue) {
   const found = {};
   const body = issue.body ?? "";
   for (const [cat, r] of Object.entries(RULES)) {
-    if (r.title.test(issue.title ?? "")) found[cat] = "title";
+    const titles = Array.isArray(r.title) ? r.title : [r.title];
+    if (titles.some((t) => t.test(issue.title ?? ""))) found[cat] = "title";
     else {
       const hits = body.match(r.body)?.length ?? 0;
       if (hits >= r.min) found[cat] = `body ×${hits}`;
@@ -81,14 +82,20 @@ export function inScope(issue, sinceMs) {
 export function renderReport(suspects, now = new Date()) {
   const head = `Issues opened by our apps in **public** repositories that look internal (criteria: README). Transfer each with\n\`gh issue transfer <n> krizaka/${INTERNAL} -R krizaka/<repo>\`, or label it \`public\` once reviewed. Updated ${now.toISOString().slice(0, 10)} by krizaka/.github « Public issues scan ».`;
   if (!suspects.length) return `${head}\n\nNo suspect issue.`;
-  const rows = suspects.map((s) => `- [ ] ${s.url} — ${Object.entries(s.categories).map(([c, why]) => `\`${c}\` (${why})`).join(", ")}`);
+  const why = (categories) => Object.entries(categories).map(([c, reason]) => "`" + c + "` (" + reason + ")").join(", ");
+  const rows = suspects.map((s) => `- [ ] ${s.url} — ${why(s.categories)}`);
   return `${head}\n\n**${suspects.length} suspect issue(s):**\n\n${rows.join("\n")}`;
 }
 
+/** Only paths of the GitHub REST API under this org, made of safe characters (names come from the API, encoded below). */
+export const SAFE_PATH = /^(?:orgs\/krizaka\/repos|repos\/krizaka\/[\w.-]+\/issues(?:\/\d+)?)(?:\?[\w=&%.:-]*)?$/;
+
 async function gh(path, init = {}) {
-  const res = await fetch(`https://api.github.com/${path}`, {
+  if (!SAFE_PATH.test(path) || path.includes("..")) throw new Error("refused API path");
+  const url = new URL(path, "https://api.github.com/");
+  const res = await fetch(url, {
     ...init,
-    headers: { authorization: `Bearer ${process.env.GH_TOKEN}`, accept: "application/vnd.github+json", "x-github-api-version": "2022-11-28", ...(init.headers ?? {}) },
+    headers: { authorization: `Bearer ${process.env.GH_TOKEN}`, accept: "application/vnd.github+json", "x-github-api-version": "2022-11-28", ...init.headers },
   });
   if (!res.ok) throw new Error(`${init.method ?? "GET"} ${path.split("?")[0]} → ${res.status}`);
   return res.status === 204 ? null : res.json();
@@ -106,12 +113,12 @@ async function all(path) {
 async function main() {
   const days = Number(process.env.SCAN_DAYS ?? 7);
   const sinceMs = Date.now() - days * 24 * 3600 * 1000;
-  const since = new Date(sinceMs).toISOString();
+  const since = encodeURIComponent(new Date(sinceMs).toISOString());
   const repos = (await all(`orgs/${ORG}/repos?type=public`)).filter((r) => !r.archived && !r.private);
   const suspects = [];
   let scanned = 0;
   for (const r of repos) {
-    const issues = (await all(`repos/${ORG}/${r.name}/issues?state=open&since=${since}`)).filter((i) => inScope(i, sinceMs));
+    const issues = (await all(`repos/${ORG}/${encodeURIComponent(r.name)}/issues?state=open&since=${since}`)).filter((i) => inScope(i, sinceMs));
     scanned += issues.length;
     for (const i of issues) {
       const categories = classify({ title: i.title, body: i.body, labels: i.labels.map((l) => l.name) });
@@ -125,12 +132,10 @@ async function main() {
   if (open.length) await gh(`repos/${ORG}/${INTERNAL}/issues/${open[0].number}`, { method: "PATCH", body: JSON.stringify({ body }) });
   else if (suspects.length)
     await gh(`repos/${ORG}/${INTERNAL}/issues`, { method: "POST", body: JSON.stringify({ title: "Public issues that look internal (scan)", body, labels: [REPORT_LABEL, "lane:security"] }) });
-  console.log(open.length ? "tracking issue updated" : suspects.length ? "tracking issue opened" : "nothing to report");
+  let outcome = "nothing to report";
+  if (open.length) outcome = "tracking issue updated";
+  else if (suspects.length) outcome = "tracking issue opened";
+  console.log(outcome);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch((e) => {
-    console.error(e.message);
-    process.exit(1);
-  });
-}
+if (import.meta.url === `file://${process.argv[1]}`) await main();
