@@ -74,6 +74,36 @@ export function defaultRepos(source) {
   return rows.split("\n").filter((n) => n.startsWith(`${source}-`)).join(",");
 }
 
+/** One stable branch per source: the pin PR of a repository is updated in place, not duplicated at every merge. */
+export function pinBranch(label) {
+  return `deps/${label.replace(/ /g, "-")}`;
+}
+
+/**
+ * Opens the pin PR of `repo`, or updates the open one of the same head in place (REST only), then closes the PRs of the
+ * older `deps/<label>-<sha8>` branches with « Superseded by #n ». `run(cmd, args)` runs a command (injected by the tests).
+ * Returns the PR url.
+ */
+export function publishPinPr({ repo, branch, title, body, run = sh }) {
+  const api = (...a) => run("gh", ["api", ...a]);
+  const open = JSON.parse(api(`repos/krizaka/${repo}/pulls?state=open&per_page=100`, "--jq", "[.[]|{number,url:.html_url,head:.head.ref}]") || "[]");
+  const same = open.find((pr) => pr.head === branch);
+  let url;
+  let number;
+  if (same) {
+    api("-X", "PATCH", `repos/krizaka/${repo}/pulls/${same.number}`, "-f", `title=${title}`, "-f", `body=${body}`);
+    ({ url, number } = same);
+  } else {
+    url = run("gh", ["pr", "create", "-R", `krizaka/${repo}`, "--head", branch, "--title", title, "--body", body]);
+    number = Number(url.split("/").pop());
+  }
+  for (const old of open.filter((pr) => pr.head.startsWith(`${branch}-`))) {
+    api("-X", "POST", `repos/krizaka/${repo}/issues/${old.number}/comments`, "-f", `body=Superseded by #${number}`);
+    api("-X", "PATCH", `repos/krizaka/${repo}/pulls/${old.number}`, "-f", "state=closed");
+  }
+  return url;
+}
+
 function main(argv) {
   const sha = argv[0];
   if (!/^[0-9a-f]{40}$/.test(sha ?? "")) throw new Error("usage: propagate-pins.mjs <40-hex sha> [--repos a,b] [--dry-run]");
@@ -83,7 +113,7 @@ function main(argv) {
   const repos = (opt("--repos") ?? defaultRepos(source)).split(",").filter((r) => r && r !== source);
   const work = opt("--work") ?? mkdtempSync(join(tmpdir(), "pins-"));
   const label = source === ".github" ? "org workflow pins" : `${source} workflow pins`;
-  const branch = `deps/${label.replace(/ /g, "-")}-${sha.slice(0, 8)}`;
+  const branch = pinBranch(label);
   for (const repo of repos) {
     const dir = join(work, repo);
     try {
@@ -102,7 +132,9 @@ function main(argv) {
       git("add", "-A");
       git("-c", "user.name=krizaka-agents[bot]", "-c", "user.email=krizaka-agents[bot]@users.noreply.github.com", "commit", "-q", "-m", `ci(deps): the ${label} move to krizaka/${source}@${sha.slice(0, 8)}`);
       sh("git", pushArgs(dir, branch));
-      const url = sh("gh", ["pr", "create", "-R", `krizaka/${repo}`, "--head", branch, "--title", `ci(deps): the ${label} move to krizaka/${source}@${sha.slice(0, 8)}`, "--body", `A change in krizaka/${source} reaches this repository (propagate-pins, rule « a rule reaches every repo »). Only the \`@<sha>\` pins of krizaka/${source} change; CI decides.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)`]);
+      const title = `ci(deps): the ${label} move to krizaka/${source}@${sha.slice(0, 8)}`;
+      const body = `A change in krizaka/${source} reaches this repository (propagate-pins, rule « a rule reaches every repo »). Only the \`@<sha>\` pins of krizaka/${source} change; CI decides. One pull request per repository, updated in place at every change.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)`;
+      const url = publishPinPr({ repo, branch, title, body });
       console.log(`${repo}: ${url}`);
     } catch (error) {
       console.error(`${repo}: ${failure(error)}`);

@@ -43,6 +43,48 @@ jobs:
 | `sonar` | (optional, `sonar: true`) **After `verify`**: the SonarCloud **CI analysis**, with the coverage the test leg uploaded (lcov, JaCoCo, `coverage.xml`), and the quality gate awaited (`sonar.qualitygate.wait`). `SONAR_TOKEN` is the org secret, passed as `secrets: SONAR_TOKEN`, never printed. The project's automatic analysis is switched off only once this job is green, so a repository is never left unanalysed. |
 | `gate` | **Always reports.** Aggregates verify, duplication, e2e, container and sonar. Red on a failure, a cancellation, or a heavy job skipped without the gate's `false`; green otherwise. One required check, `ci / CI gate`, covers the pipeline. |
 
+### The jobs, read from the workflows
+
+Generated from `.github/workflows/*.yml` by `scripts/gen-docs.mjs` (a change to a workflow that is not reflected here fails the « docs are current » check; regenerate, never hand-edit).
+
+<!-- gen:ci-jobs:start -->
+| Workflow | For | Job | Name (the check) | Needs |
+| :--- | :--- | :--- | :--- | :--- |
+| `node-ci.yml` | Next.js, Node, monorepos | `changes` | Changed files | — |
+| `node-ci.yml` | Next.js, Node, monorepos | `docker-changes` | Changed Docker files | — |
+| `node-ci.yml` | Next.js, Node, monorepos | `ui-changes` | Changed UI files | — |
+| `node-ci.yml` | Next.js, Node, monorepos | `plan` | Plan | — |
+| `node-ci.yml` | Next.js, Node, monorepos | `verify` | one check per matrix leg | `changes`, `plan` |
+| `node-ci.yml` | Next.js, Node, monorepos | `e2e` | one check per matrix leg | `changes`, `ui-changes`, `plan` |
+| `node-ci.yml` | Next.js, Node, monorepos | `duplication` | Duplicate code | `changes` |
+| `node-ci.yml` | Next.js, Node, monorepos | `container` | Container image | `changes`, `docker-changes`, `verify` |
+| `node-ci.yml` | Next.js, Node, monorepos | `guard` | Fix needs a guard | — |
+| `node-ci.yml` | Next.js, Node, monorepos | `sonar-light` | SonarCloud (docs only) | `changes` |
+| `node-ci.yml` | Next.js, Node, monorepos | `sonar` | SonarCloud | `changes`, `verify` |
+| `node-ci.yml` | Next.js, Node, monorepos | `gate` | CI gate | `changes`, `ui-changes`, `docker-changes`, `plan`, `verify`, `e2e`, `duplication`, `container`, `sonar`, `sonar-light`, `guard` |
+| `java-ci.yml` | Maven, Orazaka services (workspace flow) | `changes` | Changed files | — |
+| `java-ci.yml` | Maven, Orazaka services (workspace flow) | `verify` | Verify | `changes` |
+| `java-ci.yml` | Maven, Orazaka services (workspace flow) | `guard` | Fix needs a guard | — |
+| `java-ci.yml` | Maven, Orazaka services (workspace flow) | `sonar-light` | SonarCloud (docs only) | `changes` |
+| `java-ci.yml` | Maven, Orazaka services (workspace flow) | `sonar` | SonarCloud | `changes`, `verify` |
+| `java-ci.yml` | Maven, Orazaka services (workspace flow) | `gate` | CI gate | `changes`, `verify`, `sonar`, `sonar-light`, `guard` |
+| `maven.yml` | JVM repositories published to Maven Central | `changes` | — | — |
+| `maven.yml` | JVM repositories published to Maven Central | `verify` | Verify (tests, javadoc, sources) | `changes` |
+| `maven.yml` | JVM repositories published to Maven Central | `duplication` | Duplicate code | `changes` |
+| `maven.yml` | JVM repositories published to Maven Central | `sonar-light` | SonarCloud (docs only) | `changes` |
+| `maven.yml` | JVM repositories published to Maven Central | `sonar` | SonarCloud | `changes`, `verify` |
+| `maven.yml` | JVM repositories published to Maven Central | `gate` | CI gate | `changes`, `verify`, `sonar`, `sonar-light` |
+| `maven.yml` | JVM repositories published to Maven Central | `release` | Sign and upload to Maven Central | `verify` |
+| `expo-ci.yml` | Expo apps | `changes` | Changed files | — |
+| `expo-ci.yml` | Expo apps | `checks` | one check per matrix leg | `changes` |
+| `expo-ci.yml` | Expo apps | `eas` | EAS build (tag) | `changes`, `checks` |
+| `expo-ci.yml` | Expo apps | `gate` | CI gate | `changes`, `checks`, `eas` |
+| `python-ci.yml` | workers, scripts | `changes` | Changed files | — |
+| `python-ci.yml` | workers, scripts | `checks` | one check per matrix leg | `changes` |
+| `python-ci.yml` | workers, scripts | `sonar` | SonarCloud | `changes`, `checks` |
+| `python-ci.yml` | workers, scripts | `gate` | CI gate | `changes`, `checks`, `sonar` |
+<!-- gen:ci-jobs:end -->
+
 ## Gates before the merge (2026-10-27)
 
 - **Merge queue.** Verified on krizaka-ts: a CI analysis of SonarCloud also reports on `gh-readonly-queue/main/...` branches, and the `changes` gate reads a queue entry against its base. It is rolling out repository by repository ([guards.md §2.1](guards.md)). Until a repository joins, **strict up-to-date branches** are on (`required_status_checks.strict`) and a sweep (`scripts/update-behind-prs.sh`) keeps armed PRs current.
@@ -51,6 +93,77 @@ jobs:
 - **A fix needs a guard.** The `guard` job of `node-ci` / `java-ci` refuses a `fix` PR with no test, rule, audit or lowered ratchet (`guard-paths.json`; label `guard-exempt` plus a `Guard exemption:` line). Its sibling, **a feat needs its e2e** (Playwright, Maestro), is specified in [#344](https://github.com/krizaka/.github/issues/344) and not yet enforced.
 - **Secrets and workflows.** `security-scan.yml` runs gitleaks and zizmor on every PR, and the same two run as pre-commit hooks ([secrets-and-workflows.md](secrets-and-workflows.md)). Both are required checks on repositories that adopted them.
 - **Shared rule sets** ([guards.md §3](guards.md)): `@krizaka/config` (ESLint with sonarjs and cognitive-complexity, ast-grep, dependency-cruiser, the ratchets), `@krizaka/page-audit` (overflow, overlap, contrast, both themes), ArchUnit rules in `krizaka-test-support`, and PMD and SpotBugs in `krizaka-parent`. A repository consumes them; nothing is copied.
+
+### Required checks and merge queue, read from GitHub
+
+Generated by the scheduled `docs-current` workflow (`node scripts/gen-docs.mjs --remote`) from the branch protection and the rulesets of each public repository; it opens a pull request when one changes.
+
+<!-- gen:required-checks:start -->
+| Repository | Required checks on main | Strict | Merge queue |
+| :--- | :--- | :--- | :--- |
+| `.github` | `SonarCloud Code Analysis`, `CI gate` | yes | no |
+| `akinaza` | `ci / CI gate`, `SonarCloud Code Analysis`, `mobile-e2e / gate`, `Security scan / gitleaks (secrets)`, `Security scan / zizmor (workflows)` | no | yes |
+| `kachizaka` | `ci / CI gate` | no | no |
+| `krizaka-accounts` | `maven / Verify (tests, javadoc, sources)` | no | no |
+| `krizaka-billing` | `maven / Verify (tests, javadoc, sources)`, `SonarCloud Code Analysis` | no | no |
+| `krizaka-blog` | `Lint, tests, build`, `SonarCloud Code Analysis` | no | no |
+| `krizaka-build` | `maven / Verify (tests, javadoc, sources)`, `Static site`, `SonarCloud Code Analysis` | yes | no |
+| `krizaka-com` | `ci / CI gate`, `SonarCloud Code Analysis`, `Security scan / gitleaks (secrets)`, `Security scan / zizmor (workflows)` | no | yes |
+| `krizaka-infra` | — | ? | no |
+| `krizaka-motion` | `Typecheck, build, test`, `SonarCloud Code Analysis` | no | no |
+| `krizaka-notifications` | `maven / Verify (tests, javadoc, sources)`, `SonarCloud Code Analysis` | no | no |
+| `krizaka-platform-kit` | `maven / Verify (tests, javadoc, sources)`, `SonarCloud Code Analysis` | yes | no |
+| `krizaka-tauri-kit` | — | ? | no |
+| `krizaka-ts` | `ci / CI gate`, `SonarCloud Code Analysis`, `Security scan / gitleaks (secrets)`, `Security scan / zizmor (workflows)` | yes | yes |
+| `krizaka-ui` | `Type-check, test, build`, `Documentation site (ui.krizaka.com)`, `SonarCloud Code Analysis`, `Security scan / gitleaks (secrets)`, `Security scan / zizmor (workflows)` | yes | no |
+| `krizaka-users` | `maven / Verify (tests, javadoc, sources)`, `SonarCloud Code Analysis` | yes | no |
+| `orazaka` | `workspace`, `SonarCloud Code Analysis` | no | no |
+| `orazaka-ai-engine` | `component / verify`, `SonarCloud Code Analysis`, `component / duplication` | yes | no |
+| `orazaka-automation-service` | `component / verify`, `component / duplication` | no | no |
+| `orazaka-build` | `component / verify`, `component / duplication` | no | no |
+| `orazaka-cli` | `component / verify`, `pack`, `component / duplication` | no | no |
+| `orazaka-contracts` | `component / verify`, `component / duplication` | no | no |
+| `orazaka-conversation-service` | `component / verify`, `component / duplication`, `SonarCloud Code Analysis` | yes | no |
+| `orazaka-edge` | `component / verify`, `SonarCloud Code Analysis`, `component / duplication` | no | no |
+| `orazaka-job-service` | `component / verify`, `SonarCloud Code Analysis`, `component / duplication` | no | no |
+| `orazaka-knowledge-service` | `component / verify` | no | no |
+| `orazaka-mobile-client` | `component / verify`, `SonarCloud Code Analysis`, `mobile-e2e / gate`, `component / duplication` | no | no |
+| `orazaka-packs` | `component / verify`, `authenticity-worker`, `photo-worker`, `safety-worker`, `schema-tests`, `SonarCloud Code Analysis`, `component / duplication` | no | no |
+| `orazaka-studio` | `component / verify`, `SonarCloud Code Analysis`, `component / duplication` | no | no |
+| `orazaka-ui-kit` | `component / verify`, `SonarCloud Code Analysis`, `component / duplication` | no | no |
+| `orazaka-web-client` | `component / verify`, `SonarCloud Code Analysis`, `component / duplication`, `Security scan / gitleaks (secrets)`, `Security scan / zizmor (workflows)` | yes | no |
+| `orazaka-worker-media` | `component / verify`, `SonarCloud Code Analysis`, `component / duplication` | no | no |
+| `orochia` | `Feature scenarios (API, real sessions, PostgreSQL 16)`, `Migrations & seed on PostgreSQL 16`, `ci / CI gate`, `SonarCloud Code Analysis` | no | no |
+| `orochia-design-system` | `Lint, test, build` | no | no |
+| `orochia-mobile` | `ci / CI gate`, `SonarCloud Code Analysis` | no | no |
+| `template-expo-app` | — | ? | no |
+| `template-next-app` | `Lint · Typecheck · Tests · Build`, `SonarCloud Code Analysis` | no | no |
+| `template-tauri-app` | — | ? | no |
+| `yasakia` | `Migrations & seed on PostgreSQL 16 + pgvector`, `Feature scenarios (API, real sessions, PostgreSQL + pgvector)`, `ci / CI gate`, `SonarCloud Code Analysis` | no | no |
+| `yasakia-mobile` | `ci / CI gate` | no | no |
+| `yomizaka` | `ci / CI gate`, `SonarCloud Code Analysis`, `mobile-e2e / gate` | no | yes |
+| `yororis` | `Construction mode`, `Member space (local only)`, `Static site`, `SonarCloud Code Analysis` | no | no |
+| `yororis-mobile` | `Construction mode`, `SonarCloud Code Analysis` | no | no |
+<!-- gen:required-checks:end -->
+
+### Published versions of the shared packages
+
+Generated from the npm registry (`latest`) by the same workflow.
+
+<!-- gen:versions:start -->
+| Package | Latest |
+| :--- | :--- |
+| `@krizaka/config` | 0.14.0 |
+| `@krizaka/ui` | 3.68.0 |
+| `@krizaka/query` | 0.2.2 |
+| `@krizaka/i18n` | 0.2.6 |
+| `@krizaka/tokens` | 3.68.0 |
+| `@krizaka/tailwind` | 3.68.0 |
+| `@krizaka/icons` | 0.9.1 |
+| `@krizaka/fonts` | 0.5.2 |
+| `@krizaka/charts` | 0.7.1 |
+| `@krizaka/email` | 0.3.0 |
+<!-- gen:versions:end -->
 
 ## Release trains
 
@@ -211,6 +324,8 @@ A repository adds `.krizaka-deploy.json`:
 4. **Force-rebuild.** `create-deployment --force-rebuild`, then it waits for ACTIVE (ERROR, CANCELED, SUPERSEDED and a timeout are failures). `--expect-sha` refuses a deployment that built another commit.
    (An apply alone keeps the previous image; and a Dockerfile change needs apply **then** force-rebuild.)
 5. **Live checks.** The health URL, `robots.txt` (indexed: no `Disallow: /` and a Sitemap; noindex: `Disallow: /` and a noindex header or meta), and `scripts/check-seo-family.mjs` if configured.
+
+**After every production deploy of a public site (krizaka/.github#438).** A public site calls `post-deploy.yml` once its deploy is triggered (`on: push` to its deploy branch, or `release` for krizaka-com): it polls the live `version-url` until it holds the new build id (`expect`: no fixed sleep, red when `timeout-minutes` is up), tells IndexNow about the URLs whose sitemap `lastmod` moved since the last submission only (the key is a public input; a noindex site, `indexed: false` or `Disallow: /`, is skipped), runs `check-seo-family.mjs` against the LIVE host with the site's `seo-args`, and on red opens (or comments on) `Post-deploy check failing: <host>` in the calling repository. The script is `scripts/post-deploy.mjs`, tested by `scripts/post-deploy.test.mjs`. krizaka-com and krizaka-blog call it first; the other sites join their next fan-out PR.
 6. **Rollback note.** The previous ACTIVE deployment id and commit, printed (and put in the job summary) before anything changes and again on any failure.
 
 `--dry-run` reads everything (guards, live spec, the merge, the live site) and changes nothing. `krizaka-deploy check` runs only the live checks.
@@ -263,11 +378,13 @@ Phase 1 piloted both on `krizaka-com`, `orazaka-knowledge-service` and `akinaza`
 
 ## This repository's own CI — `CI gate`
 
-The suites of krizaka/.github itself (workflow lint, the CI self-test, the org profile, the registry, the repository names, the roadmap sync) were
+The suites of krizaka/.github itself (workflow lint, the CI self-test, the org profile, the registry, the repository names, the roadmap sync, and « docs are current ») were
 path-filtered workflows, which cannot be required (a PR outside their paths would wait forever); two PRs merged with a red `test`. They are now
 called by [`ci-gate.yml`](../../.github/workflows/ci-gate.yml) on **every** pull request; `scripts/ci-scope.mjs` (tested) decides which apply from the
 changed files, read from the base branch so a PR cannot narrow its own checks; a suite that does not apply is skipped, and the job `CI gate` fails
 when an applicable one did not succeed. Fail-open: a broken scope runs everything. **Required checks on main: `CI gate` and `SonarCloud Code Analysis`** (CodeQL stays its own).
+
+**Docs are current** ([`docs-current.yml`](../../.github/workflows/docs-current.yml), [#351](https://github.com/krizaka/.github/issues/351)): the fact blocks of the standards (`<!-- gen:<name>:start -->` … `<!-- gen:<name>:end -->`) are written by `node scripts/gen-docs.mjs` from the workflows, `guard-paths.json`, the rulesets and branch protection, and npm. The pull request check regenerates the blocks read from this repository and fails on a difference (fix: regenerate, never hand-edit); a weekly run regenerates the ones read from outside (`--remote`) and opens a pull request when one changed. Converted so far: this page and [guards.md](guards.md); the other standards follow, one pull request each.
 
 ## Brand icons follow the brand export (krizaka/.github#388)
 

@@ -1,0 +1,136 @@
+# After a public site's production deploy (krizaka/.github#438): one reusable workflow every public Krizaka site calls.
+#   1. wait until the LIVE site serves the new build (poll `version-url` for `expect`; no fixed sleep, a growing poll that ends
+#      the moment the build is served, red when the time is up);
+#   2. IndexNow with the URLs that CHANGED only (the sitemap's new or re-dated URLs since the last submission, kept in the
+#      cache), the key file served by the site; a site closed to crawlers (`indexed: false` or robots Disallow: /) is not pinged;
+#   3. the family's SEO guard (krizaka-com) against the LIVE host, with the site's own arguments;
+#   4. red -> one issue on the CALLING repository (a comment when it is already open).
+# A caller (needs `issues: write`; the key is public by design, a plain input; pin to a SHA):
+#   post-deploy:
+#     uses: krizaka/.github/.github/workflows/post-deploy.yml@<sha>
+#     permissions: { contents: read, issues: write }
+#     with: { site-url: https://www.krizaka.com, version-url: https://www.krizaka.com/, expect: "v1.4.0", indexnow-key: <32 hex>, seo-args: "--organization" }
+name: post-deploy
+
+on:
+  workflow_call:
+    inputs:
+      site-url:
+        description: "The site's origin, e.g. https://www.krizaka.com"
+        type: string
+        required: true
+      version-url:
+        description: "A URL of the live site whose body carries the build id (a page's footer, a build.json)"
+        type: string
+        required: true
+      expect:
+        description: "The build id the deploy must serve (a version, a commit): a substring of the version-url body"
+        type: string
+        required: true
+      indexnow-key:
+        description: "The site's IndexNow key (its public/<key>.txt serves it). Empty: no IndexNow."
+        type: string
+        default: ""
+      indexed:
+        description: "false for a noindex site: no IndexNow, the SEO check runs with the site's seo-args"
+        type: boolean
+        default: true
+      seo-args:
+        description: "Extra arguments of check-seo-family.mjs (e.g. --organization, or --index off --redirects-to https://www.x.com)"
+        type: string
+        default: ""
+      timeout-minutes:
+        description: "How long the deploy may take before the check is red"
+        type: string
+        default: "25"
+
+permissions:
+  contents: read
+
+jobs:
+  after-deploy:
+    name: After the deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+      issues: write
+    env:
+      SITE: ${{ inputs.site-url }}
+    steps:
+      - name: Fetch the scripts
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/.github
+          ref: main
+          sparse-checkout: scripts/post-deploy.mjs
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+          path: tools
+
+      - name: Fetch the family's SEO guard
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/krizaka-com
+          sparse-checkout: scripts/check-seo-family.mjs
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+          path: seo
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 22
+          package-manager-cache: false
+
+      - name: Wait until the live site serves the new build
+        id: wait
+        env:
+          VERSION_URL: ${{ inputs.version-url }}
+          EXPECT: ${{ inputs.expect }}
+          TIMEOUT: ${{ inputs.timeout-minutes }}
+        run: node tools/scripts/post-deploy.mjs wait --version-url "${VERSION_URL}" --expect "${EXPECT}" --timeout-min "${TIMEOUT}" 2>&1 | tee deploy.log
+
+      - name: What the engines were last told
+        if: ${{ inputs.indexnow-key != '' && inputs.indexed }}
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: sitemap-state.json
+          key: post-deploy-${{ inputs.site-url }}-${{ github.run_id }}
+          restore-keys: post-deploy-${{ inputs.site-url }}-
+
+      - name: IndexNow, the changed URLs only
+        if: ${{ inputs.indexnow-key != '' && inputs.indexed }}
+        env:
+          KEY: ${{ inputs.indexnow-key }}
+        run: |
+          set -o pipefail
+          {
+            node tools/scripts/post-deploy.mjs changed --site "${SITE}" --state sitemap-state.json --out changed.json
+            node tools/scripts/post-deploy.mjs indexnow --site "${SITE}" --key "${KEY}" --urls changed.json
+          } 2>&1 | tee -a deploy.log
+
+      - name: The family's SEO check against the live host
+        env:
+          ARGS: ${{ inputs.seo-args }}
+        run: |
+          set -o pipefail
+          read -r -a extra <<< "${ARGS}"
+          node seo/scripts/check-seo-family.mjs --base "${SITE}" --host "${SITE}" "${extra[@]}" 2>&1 | tee -a deploy.log
+
+      - name: Open or update the issue on this repository
+        if: ${{ failure() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="Post-deploy check failing: ${SITE#https://}"
+          {
+            echo "The check after the deploy of \`${SITE}\` failed (${RUN_URL})."
+            echo
+            echo '```'
+            tail -c 6000 deploy.log 2>/dev/null || echo "no log"
+            echo '```'
+          } > body.md
+          n=$(gh api "repos/${GITHUB_REPOSITORY}/issues?state=open&per_page=100" --jq ".[] | select(.title == \"${title}\" and (.pull_request | not)) | .number" 2>/dev/null | head -1 || true)
+          if [ -n "${n}" ]; then gh api "repos/${GITHUB_REPOSITORY}/issues/${n}/comments" -F body=@body.md
+          else gh api "repos/${GITHUB_REPOSITORY}/issues" -f title="${title}" -F body=@body.md; fi

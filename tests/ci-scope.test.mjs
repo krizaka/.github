@@ -17,12 +17,13 @@ test("globs: ** crosses folders, * stays in one", () => {
 });
 
 test("a docs-only change needs no suite", () => {
-  assert.deepEqual(on(["README.md", "docs/standards/ci-and-deploy.md"]), []);
+  assert.deepEqual(on(["README.md", "docs/adr/ADR-013-guards-and-local-sonar.md"]), []);
+  assert.deepEqual(on(["docs/standards/ci-and-deploy.md"]), ["docs"], "a standard is checked by « docs are current »");
 });
 
 test("a workflow change needs the lint suite; a reusable CI workflow also the self-test", () => {
   assert.deepEqual(on([".github/workflows/seo-family.yml"]), ["lint"]);
-  assert.deepEqual(on([".github/workflows/node-ci.yml"]), ["lint", "selftest"]);
+  assert.deepEqual(on([".github/workflows/node-ci.yml"]), ["docs", "lint", "selftest"]);
 });
 
 test("each suite is triggered by its own files", () => {

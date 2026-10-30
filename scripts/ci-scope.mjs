@@ -58,6 +58,15 @@ export const SUITES = {
     "scripts/repository-names.test.mjs",
     ".github/workflows/repository-names.yml",
   ],
+  docs: [
+    "docs/standards/**",
+    "scripts/gen-docs.mjs",
+    "tests/gen-docs.test.mjs",
+    "repos.json",
+    ".github/workflows/*-ci.yml",
+    ".github/workflows/maven.yml",
+    ".github/workflows/docs-current.yml",
+  ],
   roadmap: ["scripts/roadmap-sync.mjs", "tests/roadmap-sync.test.mjs", ".github/workflows/roadmap-sync.yml"],
 };
 
