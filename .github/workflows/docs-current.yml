@@ -48,7 +48,7 @@ jobs:
         with:
           app-id: ${{ vars.RELEASE_APP_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
+          owner: ${{ github.repository_owner }} # zizmor: ignore[github-app] reads the rulesets of every repository of the org (permission-administration: read); writes only on this one, by the pull request below
           permission-contents: write
           permission-pull-requests: write
           permission-administration: read
