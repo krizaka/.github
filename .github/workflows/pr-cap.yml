@@ -1,0 +1,68 @@
+# The open-PR cap (krizaka/.github#436): at most 5 open pull requests per repository.
+#   - `check` (reusable, required on every product repository as « PR cap »): a NEW PR fails when the others already fill the cap;
+#     Dependabot security, the pin PR and release PRs are exempt (scripts/pr-cap.mjs).
+#   - `report` (scheduled): counts every non-archived repository and keeps ONE tracking issue naming the repositories over the cap.
+name: PR cap
+
+on:
+  schedule:
+    - cron: "17 */3 * * *"
+  workflow_dispatch:
+  workflow_call:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: PR cap
+    if: ${{ github.event_name == 'pull_request' || github.event_name == 'workflow_call' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/.github
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Count the other open PRs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: node scripts/pr-cap.mjs check --repo "$REPO" --pr "$PR"
+
+  report:
+    name: PR cap report
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      # The Krizaka Agents app lists the pull requests of every repository and writes the tracking issue.
+      - id: app
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: krizaka # zizmor: ignore[github-app] the report reads every repository of the org, by design
+          permission-pull-requests: read
+          permission-issues: write
+          permission-metadata: read
+      - run: node scripts/pr-cap.mjs report # zizmor: ignore[github-app] pull requests read, issues write on the tracking issue only
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
