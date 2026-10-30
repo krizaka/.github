@@ -126,7 +126,7 @@ jobs:
       - name: Which command
         id: which
         run: |
-          case "$TASK" in lint) c="$LINT" ;; test) c="$TEST" ;; esac
+          case "$TASK" in lint) c="$LINT" ;; test) c="$TEST" ;; *) c="" ;; esac
           case "$PM" in pip|uv) ;; *) echo "::error::package-manager must be pip or uv, got '$PM'"; exit 1 ;; esac
           printf 'run=%s\n' "$([ -n "$c" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
           [ -n "$c" ] || echo "::notice::$TASK has no command: nothing to do"
@@ -189,7 +189,7 @@ jobs:
         if: ${{ steps.which.outputs.run == 'true' }}
         working-directory: ${{ inputs.working-directory }}
         run: |
-          case "$TASK" in lint) c="$LINT" ;; test) c="$TEST" ;; esac
+          case "$TASK" in lint) c="$LINT" ;; test) c="$TEST" ;; *) c="" ;; esac
           if [ "$PM" = uv ]; then uv run --frozen --no-build bash -eo pipefail -c "$c"; else bash -eo pipefail -c "$c"; fi
 
       - name: Collect the coverage for SonarCloud

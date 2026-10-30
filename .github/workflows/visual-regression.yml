@@ -157,6 +157,7 @@ jobs:
           if [ "$UPDATE" = "true" ]; then
             case "$INPUT_BRANCH" in
               ""|main|production|refs/*|-*|*..*) echo "::error::Refusing branch '$INPUT_BRANCH'."; exit 1;;
+              *) ;;
             esac
             echo "ref=$INPUT_BRANCH" >> "$GITHUB_OUTPUT"
           else
