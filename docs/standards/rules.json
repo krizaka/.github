@@ -441,7 +441,7 @@
     },
     {
       "id": "agents-template",
-      "title": "AGENTS.md is the org template (AGENTS.repo.md): purpose, profile, commands, the 10 rules, the krizaka-engineering skill; at most 80 lines, links resolve",
+      "title": "AGENTS.md is the org template (docs/standards/agents-template.md): purpose, profile, commands, the 10 rules, the krizaka-engineering skill; at most 80 lines, links resolve",
       "issue": "krizaka/krizaka-internal#876",
       "applies": { "kinds": ["npm", "site", "app", "maven", "python", "rust", "iac"] },
       "check": { "type": "agents-template" },

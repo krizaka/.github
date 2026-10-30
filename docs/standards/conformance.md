@@ -7,7 +7,7 @@ matrix lists as out of scope. There are no exceptions.
 - **Registry**: `docs/standards/rules.json`, one entry per rule (`id`, `issue`, `applies`, `check`, `fix`). A rule without its check
   or its fix fails `tests/conformance.test.mjs`. Checks: `workflow-calls`, `workflow-matches`, `workflow-forbids`, `file-exists`,
   `file-matches`, `manifests-forbid {pattern}` (no manifest, workspace file, submodule list, POM or Gradle file names the pattern),
-  `agents-template` (AGENTS.md is rendered from [`AGENTS.repo.md`](../../AGENTS.repo.md) by `scripts/agents-md.mjs`: its marker, the five
+  `agents-template` (AGENTS.md is rendered from [`agents-template.md`](agents-template.md) by `scripts/agents-md.mjs`: its marker, the five
   headings, at most 80 lines, the krizaka-engineering skill linked, every relative link resolves).
 - **Matrix**: `node scripts/conformance.mjs` (repo x rule, green / red / n/a). Weekly and on every pull request that touches the rules
   (`.github/workflows/conformance.yml`); the 3-hour checkpoint prints it (`checkpoint-gen.sh`, « Conformance »).

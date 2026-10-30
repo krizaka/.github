@@ -1,11 +1,11 @@
-// The one AGENTS.md of every product and library repository (AGENTS.repo.md): rendered for a repository, and checked.
+// The one AGENTS.md of every product and library repository (docs/standards/agents-template.md): rendered for a repository, and checked.
 // The conformance rule `agents-template` runs `problemsOf` on each repository's AGENTS.md; its fan-out writes `render`'s
 // output and moves what the old AGENTS.md said to docs/agents.md, so nothing a repository wrote is lost.
 import { readFileSync } from "node:fs";
 import { posix } from "node:path";
 
 const ROOT = new URL("../", import.meta.url);
-export const TEMPLATE_PATH = "AGENTS.repo.md";
+export const TEMPLATE_PATH = "docs/standards/agents-template.md";
 export const DETAILS_PATH = "docs/agents.md";
 export const MARKER = "krizaka-agents-template v1";
 /** @fixed: the template's own length budget — the contract an agent reads first must fit one screen and a half. */
@@ -44,7 +44,7 @@ export function render(entry, { packageJson = null, template = readTemplate() } 
 /** What the old AGENTS.md said, kept as the repository's detail page. */
 export function detailsOf(name, oldAgents) {
   const body = oldAgents.replace(/^#\s+.*\n+/, "");
-  return `# ${name} — detail for agents\n\nMoved here from AGENTS.md when it took the org template (krizaka/.github \`AGENTS.repo.md\`). AGENTS.md is the short contract; this page is the repository's own detail, read by section.\n\n${body.trimEnd()}\n`;
+  return `# ${name} — detail for agents\n\nMoved here from AGENTS.md when it took the org template (krizaka/.github \`docs/standards/agents-template.md\`). AGENTS.md is the short contract; this page is the repository's own detail, read by section.\n\n${body.trimEnd()}\n`;
 }
 
 const LINK = /\]\(([^)\s]+)\)/g;

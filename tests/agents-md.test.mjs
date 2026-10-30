@@ -1,4 +1,4 @@
-// The one AGENTS.md of every repository (AGENTS.repo.md, krizaka/krizaka-internal#876): rendered, checked, rolled out.
+// The one AGENTS.md of every repository (docs/standards/agents-template.md, krizaka/krizaka-internal#876): rendered, checked, rolled out.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { commandsOf, detailsOf, MAX_LINES, problemsOf, readTemplate, render, REQUIRED_HEADINGS, SKILL_URL } from "../scripts/agents-md.mjs";

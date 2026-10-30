@@ -168,7 +168,7 @@ const CHECKS = {
     }
     return { ok: false, why: results.join("; or ") };
   },
-  // AGENTS.md rendered from AGENTS.repo.md: the marker, the headings, at most 80 lines, the skill linked, relative links resolve.
+  // AGENTS.md rendered from docs/standards/agents-template.md: the marker, the headings, at most 80 lines, the skill linked, relative links resolve.
   "agents-template": async (_check, snap) => {
     const problems = problemsOf(await snap.read("AGENTS.md"), snap.paths);
     return verdict(problems.length === 0, problems.join("; "));

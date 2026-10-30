@@ -11,7 +11,7 @@
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { loadRules } from "./conformance.mjs";
-import { DETAILS_PATH, detailsOf, MARKER, render } from "./agents-md.mjs";
+import { DETAILS_PATH, detailsOf, MARKER, render, TEMPLATE_PATH } from "./agents-md.mjs";
 
 const ROOT = new URL("../", import.meta.url);
 const read = (path) => readFileSync(new URL(path, ROOT), "utf8");
@@ -70,7 +70,7 @@ const entryOf = (name, readLocal) => JSON.parse(readLocal("repos.json")).find((r
 async function agentsFiles(repo, current, readLocal) {
   if (!repo) throw new Error("agents-template needs the repository name");
   const before = await current("AGENTS.md");
-  const files = [{ path: "AGENTS.md", content: render(entryOf(repo, readLocal), { packageJson: await current("package.json"), template: readLocal("AGENTS.repo.md") }) }];
+  const files = [{ path: "AGENTS.md", content: render(entryOf(repo, readLocal), { packageJson: await current("package.json"), template: readLocal(TEMPLATE_PATH) }) }];
   const keeps = before && !before.includes(MARKER) && before.trim().split("\n").length > 3;
   if (keeps) {
     if (await current(DETAILS_PATH)) return null;
