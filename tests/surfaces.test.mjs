@@ -2,7 +2,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { evaluate, loadConfig, productOf, reopenComment, surfaceProblems, surfacesBlock, surfacesSection, withSurfaces } from "../scripts/surfaces.mjs";
+import { evaluate, loadConfig, productOf, productRepos, reopenComment, surfaceProblems, surfacesBlock, surfacesSection, withSurfaces } from "../scripts/surfaces.mjs";
 
 const products = loadConfig();
 const ids = (p) => products[p].surfaces.map((s) => s.id);
@@ -13,10 +13,27 @@ test("the founder's surfaces per product", () => {
   assert.deepEqual(ids("akinaza"), ["web", "admin", "mobile", "mac"]);
 });
 
-test("a product is the owner of the repository", () => {
-  assert.equal(productOf("orazaka/orazaka-cli", products), "orazaka");
-  assert.equal(productOf("yomizaka/yomizaka", products), "yomizaka");
+test("a product is its repositories of the krizaka organisation, named in surfaces.json", () => {
+  assert.equal(productOf("krizaka/orazaka-cli", products), "orazaka");
+  assert.equal(productOf("krizaka/orazaka", products), "orazaka");
+  assert.equal(productOf("krizaka/yomizaka", products), "yomizaka");
+  assert.equal(productOf("krizaka/akinaza", products), "akinaza");
   assert.equal(productOf("krizaka/krizaka-ui", products), null);
+  assert.equal(productOf("krizaka/yomizaka", products), null, "there is no product organisation");
+});
+
+test("the sweep reads krizaka/<repo> for every repo of surfaces.json, never an organisation of a product", () => {
+  const repos = productRepos(products);
+  assert.ok(repos.length >= 3 && repos.every((r) => r.startsWith("krizaka/")), repos.join());
+  for (const r of ["krizaka/yomizaka", "krizaka/akinaza", "krizaka/orazaka", "krizaka/orazaka-cli"]) assert.ok(repos.includes(r), r);
+  const flow = readFileSync(".github/workflows/feature-surfaces.yml", "utf8");
+  assert.doesNotMatch(flow, /matrix:|owner: \[/);
+  assert.doesNotMatch(readFileSync("scripts/surfaces.mjs", "utf8"), /orgs\//);
+});
+
+test("Orazaka's Mac surface is apps/desktop of krizaka/orazaka", () => {
+  const mac = products.orazaka.surfaces.find((s) => s.id === "mac");
+  assert.deepEqual([mac.repo, mac.path], ["orazaka", "apps/desktop"]);
 });
 
 const done = (lines) => `### The problem\n\nx\n\n### Surfaces\n\n${lines.join("\n")}\n\n### Privacy by design\n\nnone`;
@@ -46,15 +63,15 @@ test("the CLI is a surface of Orazaka only", () => {
 const closed = (extra) => ({ number: 7, state: "closed", labels: [{ name: "type:feature" }], body: done([]), ...extra });
 
 test("the closing check: a feature of a product with a gap fails, anything else is skipped", () => {
-  assert.equal(evaluate(closed(), "yomizaka/yomizaka", products).ok, false);
-  assert.equal(evaluate(closed({ body: done(yomizakaDone) }), "yomizaka/yomizaka", products).ok, true);
-  assert.equal(evaluate(closed({ type: { name: "Feature" }, labels: [] }), "orazaka/orazaka-cli", products).ok, false, "the org issue type counts");
+  assert.equal(evaluate(closed(), "krizaka/yomizaka", products).ok, false);
+  assert.equal(evaluate(closed({ body: done(yomizakaDone) }), "krizaka/yomizaka", products).ok, true);
+  assert.equal(evaluate(closed({ type: { name: "Feature" }, labels: [] }), "krizaka/orazaka-cli", products).ok, false, "the org issue type counts");
   for (const [issue, repo] of [
-    [closed({ labels: [{ name: "type:bug" }] }), "yomizaka/yomizaka"],
+    [closed({ labels: [{ name: "type:bug" }] }), "krizaka/yomizaka"],
     [closed(), "krizaka/krizaka-ui"],
-    [closed({ state: "open" }), "yomizaka/yomizaka"],
-    [closed({ state_reason: "not_planned" }), "yomizaka/yomizaka"],
-    [closed({ pull_request: {} }), "yomizaka/yomizaka"],
+    [closed({ state: "open" }), "krizaka/yomizaka"],
+    [closed({ state_reason: "not_planned" }), "krizaka/yomizaka"],
+    [closed({ pull_request: {} }), "krizaka/yomizaka"],
   ]) assert.equal(evaluate(issue, repo, products).skipped, true);
 });
 

@@ -4,7 +4,7 @@
 //   node scripts/surfaces.mjs write            regenerate the feature templates from docs/standards/surfaces.json
 //   node scripts/surfaces.mjs verify           fail when a generated template is out of date
 //   node scripts/surfaces.mjs check --repo <owner/repo> --issue <n>      the closing check: reopen a closed `feature` issue that misses a surface
-//   node scripts/surfaces.mjs sweep --owners orazaka,yomizaka,akinaza [--hours 3]   the same check over recently closed issues
+//   node scripts/surfaces.mjs sweep [--hours 3]   the same check over the issues recently closed in the product repositories of surfaces.json
 //
 // The pure rules are exported and tested (tests/surfaces.test.mjs); the network part is at the bottom.
 import { readFileSync, writeFileSync } from "node:fs";
@@ -21,11 +21,17 @@ const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 export const loadConfig = (path = CONFIG) => JSON.parse(readFileSync(path, "utf8")).products;
 
-/** The product of a repository: the GitHub owner of its repositories (`orazaka/orazaka-cli` -> orazaka), or null. */
+export const ORG = "krizaka";
+
+/** The product of a repository of the krizaka organisation, by the repository names of surfaces.json (`krizaka/orazaka-cli` -> orazaka), or null. */
 export function productOf(repoFullName, products) {
-  const owner = repoFullName.split("/")[0];
-  return products[owner] ? owner : null;
+  const [owner, name] = repoFullName.split("/");
+  if (owner !== ORG) return null;
+  return Object.keys(products).find((p) => products[p].repos.includes(name)) ?? null;
 }
+
+/** Every product repository to sweep, as `krizaka/<name>`. */
+export const productRepos = (products) => Object.values(products).flatMap((p) => p.repos.map((r) => `${ORG}/${r}`));
 
 /** Is it a feature issue? The `type:feature` label or the org issue type « Feature ». */
 export const isFeature = (issue) => issue.type?.name === "Feature" || (issue.labels ?? []).some((l) => (l.name ?? l) === "type:feature");
@@ -144,20 +150,16 @@ async function check(argv) {
 
 async function sweep(argv) {
   const products = loadConfig();
-  const owners = (flag(argv, "--owners") ?? Object.keys(products).join(",")).split(",");
   const since = new Date(Date.now() - Number(argv.includes("--hours") ? flag(argv, "--hours") : 3) * 3_600_000).toISOString();
-  for (const owner of owners) {
-    let repos;
+  for (const repo of productRepos(products)) {
+    let issues;
     try {
-      repos = (await api(`orgs/${owner}/repos?per_page=100&type=all`)).filter((r) => !r.archived);
+      issues = await api(`repos/${repo}/issues?state=closed&since=${since}&per_page=100`);
     } catch (e) {
-      console.log(`::warning title=Surfaces::${owner} not reachable (${e.message})`);
+      console.log(`::warning title=Surfaces::${repo} not reachable (${e.message})`);
       continue;
     }
-    for (const r of repos) {
-      const issues = await api(`repos/${owner}/${r.name}/issues?state=closed&since=${since}&per_page=100`);
-      for (const i of issues.filter((x) => Date.parse(x.closed_at) >= Date.parse(since))) await enforce(`${owner}/${r.name}`, i, products);
-    }
+    for (const i of issues.filter((x) => Date.parse(x.closed_at) >= Date.parse(since))) await enforce(repo, i, products);
   }
 }
 
@@ -189,7 +191,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const [cmd, ...rest] = process.argv.slice(2);
   const run = { write: () => templates("write"), verify: () => templates("verify"), check, sweep }[cmd];
   if (!run) {
-    console.error("usage: surfaces.mjs write | verify | check --repo <o/r> --issue <n> | sweep [--owners a,b] [--hours 3]");
+    console.error("usage: surfaces.mjs write | verify | check --repo <o/r> --issue <n> | sweep [--hours 3]");
     process.exit(2);
   }
   Promise.resolve(run(rest)).catch((e) => {
