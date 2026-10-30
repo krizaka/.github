@@ -383,3 +383,15 @@ changed files, read from the base branch so a PR cannot narrow its own checks; a
 when an applicable one did not succeed. Fail-open: a broken scope runs everything. **Required checks on main: `CI gate` and `SonarCloud Code Analysis`** (CodeQL stays its own).
 
 **Docs are current** ([`docs-current.yml`](../../.github/workflows/docs-current.yml), [#351](https://github.com/krizaka/.github/issues/351)): the fact blocks of the standards (`<!-- gen:<name>:start -->` … `<!-- gen:<name>:end -->`) are written by `node scripts/gen-docs.mjs` from the workflows, `guard-paths.json`, the rulesets and branch protection, and npm. The pull request check regenerates the blocks read from this repository and fails on a difference (fix: regenerate, never hand-edit); a weekly run regenerates the ones read from outside (`--remote`) and opens a pull request when one changed. Converted so far: this page and [guards.md](guards.md); the other standards follow, one pull request each.
+
+## Brand icons follow the brand export (krizaka/.github#388)
+
+A site commits its icons (`sync-brand-icons.mjs`, byte for byte from the CDN) and a `brand-icons` test compares them with the
+CDN manifest. When krizaka-ui's `export-brand` changes the brand files, that test would go red in every consumer at its next
+unrelated change. So the export tells `krizaka/.github`: krizaka-ui's `release.yml` sends `repository_dispatch` `brand-changed`
+after `export-brand --upload`, and `.github/workflows/brand-icons-sync.yml` runs `scripts/brand-icons-fanout.mjs`: for every
+active repository of the conformance registry (never a list kept by hand), it runs the repository's own sync script and opens
+ONE pull request (`chore/brand-icons-<day>`, the app as author, auto-merge) where the icons drifted. A repository in sync gets
+nothing; one without a sync script has no guard and is skipped. A daily run is the safety net for a lost event; by hand:
+`gh workflow run brand-icons-sync.yml -R krizaka/.github` (`-f dry-run=true` only reports). Tested by
+`scripts/brand-icons-fanout.test.mjs`.

@@ -133,3 +133,7 @@ test("the gitleaks ignore file is a common root file (reviewed fixtures are list
 test(".claude/ (the agents' settings and edit hook) is a standard folder in every repository", () => {
   assert.deepEqual(checkLayout([...NEXT, ".claude/settings.json"]), { kind: "next-app", violations: [] });
 });
+
+test("the formatter's root files are common (krizaka/.github#427: prettier config, ignore list, blame-ignore-revs)", () => {
+  assert.deepEqual(checkLayout([...NEXT, "prettier.config.mjs", ".prettierignore", ".git-blame-ignore-revs"]), { kind: "next-app", violations: [] });
+});

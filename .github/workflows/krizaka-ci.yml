@@ -70,7 +70,7 @@ jobs:
           persist-credentials: false
 
       - id: detect
-        uses: krizaka/.github/actions/detect@b9ceb6bea30155a19f51893ef8bc4df312cf0a88 # main
+        uses: krizaka/.github/actions/detect@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
         with:
           working-directory: ${{ inputs.working-directory }}
           timeout-minutes: ${{ inputs.timeout-minutes }}
@@ -80,7 +80,7 @@ jobs:
     needs: detect
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/changes.yml@719c761b8658dd4da07ea10b3914b9e8d0d021af # main
+    uses: krizaka/.github/.github/workflows/changes.yml@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
     with:
       relevant: ${{ needs.detect.outputs.relevant }}
       ignore: ${{ needs.detect.outputs.ignore }}
@@ -105,7 +105,7 @@ jobs:
       # The repository's folders stay clean (docs/standards/repo-layout.md).
       - name: Repository layout
         if: ${{ needs.detect.outputs.stack != 'workspace' }}
-        uses: krizaka/.github/actions/repo-layout@f182d162d3446f254433714bc6f155d55a2e4084 # main
+        uses: krizaka/.github/actions/repo-layout@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
 
       - name: Check out the Orazaka workspace
         if: ${{ needs.detect.outputs.stack == 'workspace' }}
@@ -124,12 +124,12 @@ jobs:
 
       - name: Repository layout (component)
         if: ${{ needs.detect.outputs.stack == 'workspace' }}
-        uses: krizaka/.github/actions/repo-layout@f182d162d3446f254433714bc6f155d55a2e4084 # main
+        uses: krizaka/.github/actions/repo-layout@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
         with:
           working-directory: incoming
 
       # ── the pack ─────────────────────────────────────────────────────────────────────────────────────────────────
-      - uses: krizaka/.github/actions/setup@b9ceb6bea30155a19f51893ef8bc4df312cf0a88 # main
+      - uses: krizaka/.github/actions/setup@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
         with:
           stack: ${{ fromJSON(env.PLAN).stack }}
           working-directory: ${{ fromJSON(env.PLAN).workingDirectory }}
@@ -145,7 +145,7 @@ jobs:
           extra-packages: ${{ fromJSON(env.PLAN).pythonExtras }}
           component: ${{ fromJSON(env.PLAN).component }}
 
-      - uses: krizaka/.github/actions/quality@b9ceb6bea30155a19f51893ef8bc4df312cf0a88 # main
+      - uses: krizaka/.github/actions/quality@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
         if: ${{ needs.detect.outputs.stack != 'workspace' }}
         with:
           stack: ${{ fromJSON(env.PLAN).stack }}
@@ -160,7 +160,7 @@ jobs:
           python-manager: ${{ fromJSON(env.PLAN).pythonManager || 'pip' }}
           duplication: ${{ fromJSON(env.PLAN).duplication }}
 
-      - uses: krizaka/.github/actions/test@b9ceb6bea30155a19f51893ef8bc4df312cf0a88 # main
+      - uses: krizaka/.github/actions/test@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
         with:
           stack: ${{ fromJSON(env.PLAN).stack }}
           working-directory: ${{ fromJSON(env.PLAN).workingDirectory }}
@@ -172,14 +172,14 @@ jobs:
           tf-dirs: ${{ fromJSON(env.PLAN).tfDirs }}
 
       # The workspace's OpenRewrite dry run reads the upstreams that `workspace.mjs ci` installed: it comes after the tests.
-      - uses: krizaka/.github/actions/quality@b9ceb6bea30155a19f51893ef8bc4df312cf0a88 # main
+      - uses: krizaka/.github/actions/quality@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
         if: ${{ needs.detect.outputs.stack == 'workspace' }}
         with:
           stack: workspace
           rewrite: ${{ fromJSON(env.PLAN).rewrite }}
           component: ${{ fromJSON(env.PLAN).component }}
 
-      - uses: krizaka/.github/actions/build@b9ceb6bea30155a19f51893ef8bc4df312cf0a88 # main
+      - uses: krizaka/.github/actions/build@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
         with:
           working-directory: ${{ fromJSON(env.PLAN).workingDirectory }}
           package-manager: ${{ fromJSON(env.PLAN).packageManager || 'npm' }}
@@ -189,7 +189,7 @@ jobs:
           container-dockerfile: ${{ fromJSON(env.PLAN).containerDockerfile }}
           container-image: ci-image:ci
 
-      - uses: krizaka/.github/actions/after-build@b9ceb6bea30155a19f51893ef8bc4df312cf0a88 # main
+      - uses: krizaka/.github/actions/after-build@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
         with:
           working-directory: ${{ fromJSON(env.PLAN).workingDirectory }}
           package-manager: ${{ fromJSON(env.PLAN).packageManager || 'npm' }}

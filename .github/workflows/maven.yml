@@ -111,7 +111,7 @@ jobs:
   changes:
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/changes.yml@719c761b8658dd4da07ea10b3914b9e8d0d021af # main
+    uses: krizaka/.github/.github/workflows/changes.yml@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
     with:
       ignore: ${{ inputs.ignore }}
 
@@ -127,7 +127,7 @@ jobs:
           persist-credentials: false
 
       # The repository's folders stay clean (docs/standards/repo-layout.md).
-      - uses: krizaka/.github/actions/repo-layout@f182d162d3446f254433714bc6f155d55a2e4084 # main
+      - uses: krizaka/.github/actions/repo-layout@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
 
       - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
         with:
@@ -205,7 +205,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: "22"
-      - uses: krizaka/.github/actions/dup-check@d468b5eb10b785034c2834f31c0dd671b51ca0fe # main
+      - uses: krizaka/.github/actions/dup-check@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
 
   # A docs-only change skips the heavy jobs, yet the required « SonarCloud Code Analysis » must still be posted by the SonarCloud app:
   # a light scan (checkout, no build, no tests, no coverage) does it, and its quality gate is real on the changed files (.github#330).
