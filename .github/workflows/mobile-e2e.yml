@@ -204,7 +204,7 @@ jobs:
           # KEY=VALUE lines only; anything else is refused rather than guessed.
           while IFS= read -r line; do
             [ -z "$line" ] && continue
-            case "$line" in \#*) continue ;; esac
+            case "$line" in \#*) continue ;; *) ;; esac
             if ! printf '%s' "$line" | grep -Eq '^[A-Za-z_][A-Za-z0-9_]*=[^[:cntrl:]]*$'; then
               echo "::error::env: not a KEY=VALUE line"; exit 1
             fi

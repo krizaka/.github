@@ -91,8 +91,8 @@ runs:
         COMPONENT: ${{ inputs.component }}
       run: |
         case "$STACK" in node|blog|maven|workspace|python|iac) ;; *) echo "::error::stack must be node, blog, maven, workspace, python or iac, got '$STACK'"; exit 1 ;; esac
-        case "$STACK" in node|blog) case "$PM" in npm|pnpm) ;; *) echo "::error::package-manager must be npm or pnpm, got '$PM'"; exit 1 ;; esac ;; esac
-        case "$STACK" in python) case "$PY_PM" in pip|uv) ;; *) echo "::error::python-manager must be pip or uv, got '$PY_PM'"; exit 1 ;; esac ;; esac
+        case "$STACK" in node|blog) case "$PM" in npm|pnpm) ;; *) echo "::error::package-manager must be npm or pnpm, got '$PM'"; exit 1 ;; esac ;; *) ;; esac
+        case "$STACK" in python) case "$PY_PM" in pip|uv) ;; *) echo "::error::python-manager must be pip or uv, got '$PY_PM'"; exit 1 ;; esac ;; *) ;; esac
         if [ "$STACK" = workspace ] && [ -z "$COMPONENT" ]; then echo "::error::the workspace stack needs a component"; exit 1; fi
 
     # ── the Orazaka workspace (component.yml's flow) ─────────────────────────────────────────────────────────────────

@@ -134,7 +134,7 @@ jobs:
         id: which
         working-directory: .
         run: |
-          case "$TASK" in lint) s="$LINT" ;; typecheck) s="$TYPECHECK" ;; test) s="$TEST" ;; extra) s="$EXTRA" ;; esac
+          case "$TASK" in lint) s="$LINT" ;; typecheck) s="$TYPECHECK" ;; test) s="$TEST" ;; extra) s="$EXTRA" ;; *) s="" ;; esac
           case "$PM" in npm|pnpm) ;; *) echo "::error::package-manager must be npm or pnpm, got '$PM'"; exit 1 ;; esac
           # a multi-line value goes through a delimiter
           { echo "script<<KZ_EOF"; echo "$s"; echo "KZ_EOF"; } >> "$GITHUB_OUTPUT"
