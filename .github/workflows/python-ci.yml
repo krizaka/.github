@@ -100,7 +100,7 @@ jobs:
     name: Changed files
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/changes.yml@719c761b8658dd4da07ea10b3914b9e8d0d021af # main
+    uses: krizaka/.github/.github/workflows/changes.yml@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
     with:
       relevant: ${{ inputs.relevant }}
       ignore: ${{ inputs.ignore }}
@@ -139,16 +139,16 @@ jobs:
       # The repository's folders stay clean (docs/standards/repo-layout.md): once per run, on the lint leg.
       - name: Repository layout
         if: ${{ steps.which.outputs.run == 'true' && matrix.task == 'lint' }}
-        uses: krizaka/.github/actions/repo-layout@4d440de1d8392bb59431759579295e89ed5f6986 # main
+        uses: krizaka/.github/actions/repo-layout@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
 
-      - uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
         if: ${{ steps.which.outputs.run == 'true' && inputs.package-manager == 'uv' }}
         with:
           python-version: ${{ inputs.python-version }}
           enable-cache: true
           cache-dependency-glob: ${{ inputs.working-directory }}/uv.lock
 
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         if: ${{ steps.which.outputs.run == 'true' && inputs.package-manager == 'pip' }}
         with:
           python-version: ${{ inputs.python-version }}
