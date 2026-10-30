@@ -4,7 +4,7 @@
 - **Date:** 2026-10-28
 - **Builds on:** [ADR-001](ADR-001-krizaka-accounts.md) (krizaka-users is the identity of every product, passwords out of the products' Postgres, linking by verified e-mail, native PKCE, tenants), [ADR-012](ADR-012-licensing-libraries-open-products-fair-source.md) (libraries Apache-2.0), [ADR-015](ADR-015-ai-code-audit-measured-and-enforced.md) (providers as closed types and Spring strategies, `Map<Kind, Strategy>`, fail fast), krizaka-ts [ADR-005](https://github.com/krizaka/krizaka-ts/blob/main/docs/adr/ADR-005-storage-providers.md) (providers as data in the database, credentials sealed under one envelope key, test before save, audit).
 - **Folds in:** [krizaka-users#21](https://github.com/krizaka/krizaka-users/issues/21) (Google, Apple, Entra, GitHub, passkeys, personal access tokens), [krizaka-users#22](https://github.com/krizaka/krizaka-users/issues/22) (ES256 + JWKS, passkeys), [krizaka-users#63](https://github.com/krizaka/krizaka-users/issues/63) (typed provider registry), [krizaka-users#31](https://github.com/krizaka/krizaka-users/issues/31) (tenants).
-- **Repositories:** `krizaka-users` (open core, Apache-2.0), `krizaka-ts` (`@krizaka/auth`), a new **private** `krizaka-users-enterprise`.
+- **Repositories:** `krizaka-users` (open core, Apache-2.0), `krizaka-ts` (`@krizaka/auth`), a new **private** `krizaka-users-enterprise` (never filled; the empty repository was deleted 2026-10-30, krizaka-internal#752, and is recreated with its first real adapter).
 
 ## Context
 

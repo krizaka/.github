@@ -132,17 +132,6 @@
       "renameTo": "krizaka-platform"
     },
     {
-      "name": "krizaka-qa",
-      "owner": "krizaka",
-      "role": "Internal end-to-end scenarios (private)",
-      "team": "krizaka",
-      "kind": "none",
-      "deploy": [],
-      "archived": false,
-      "visibility": "private",
-      "status": "Complies"
-    },
-    {
       "name": "krizaka-tauri-kit",
       "owner": "krizaka",
       "role": "Shared Tauri crate",
@@ -379,17 +368,6 @@
       "role": "Worker",
       "team": "orazaka",
       "kind": "python",
-      "deploy": [],
-      "archived": false,
-      "visibility": "public",
-      "status": "Complies"
-    },
-    {
-      "name": "template-expo-app",
-      "owner": "krizaka",
-      "role": "Template",
-      "team": "krizaka",
-      "kind": "app",
       "deploy": [],
       "archived": false,
       "visibility": "public",
