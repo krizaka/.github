@@ -12,8 +12,8 @@
         {
           "id": "web-admin",
           "label": "Web admin",
-          "repo": "orazaka",
-          "path": "orazaka-apps"
+          "repo": "orazaka-web-client",
+          "path": "src/console"
         },
         {
           "id": "mobile",
