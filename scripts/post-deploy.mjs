@@ -19,13 +19,15 @@ export function sitemapEntries(xml) {
   const out = {};
   for (const m of xml.matchAll(/<url>([\s\S]*?)<\/url>/g)) {
     const loc = m[1].match(/<loc>([^<]+)<\/loc>/)?.[1]?.trim();
-    if (loc) out[loc] = m[1].match(/<lastmod>([^<]+)<\/lastmod>/)?.[1]?.trim() ?? "";
+    if (loc)
+      out[loc] = m[1].match(/<lastmod>([^<]+)<\/lastmod>/)?.[1]?.trim() ?? "";
   }
   return out;
 }
 
 /** The URLs to tell the engines about: new ones and ones whose lastmod moved (the first run, with no state, lists them all). */
-export const changedUrls = (before, after) => Object.keys(after).filter((u) => !(u in before) || before[u] !== after[u]);
+export const changedUrls = (before, after) =>
+  Object.keys(after).filter((u) => !(u in before) || before[u] !== after[u]);
 
 /** True when robots.txt shuts the whole site to every crawler (`User-agent: *` then `Disallow: /`): a noindex site is not pinged. */
 export function robotsClosed(robots) {
@@ -66,7 +68,10 @@ export function* waits(intervalMs, timeoutMs) {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const get = async (url, fetchImpl = fetch) => {
   try {
-    const res = await fetchImpl(url, { headers: { "cache-control": "no-cache" }, signal: AbortSignal.timeout(20000) });
+    const res = await fetchImpl(url, {
+      headers: { "cache-control": "no-cache" },
+      signal: AbortSignal.timeout(20000),
+    });
     return { status: res.status, body: await res.text() };
   } catch (error) {
     return { status: 0, body: String(error) };
@@ -74,13 +79,23 @@ const get = async (url, fetchImpl = fetch) => {
 };
 
 /** Polls until the live site serves `expect`; resolves with the number of tries, rejects when the time is up. */
-export async function waitForBuild({ url, expect, timeoutMs, intervalMs, fetchImpl = fetch, pause = sleep, log = console.log }) {
+export async function waitForBuild({
+  url,
+  expect,
+  timeoutMs,
+  intervalMs,
+  fetchImpl = fetch,
+  pause = sleep,
+  log = console.log,
+}) {
   let tries = 0;
   const check = async () => {
     tries += 1;
     const { status, body } = await get(url, fetchImpl);
     if (status === 200 && serves(body, expect)) return true;
-    log(`wait: try ${tries}, HTTP ${status}, the build "${expect}" is not served yet`);
+    log(
+      `wait: try ${tries}, HTTP ${status}, the build "${expect}" is not served yet`,
+    );
     return false;
   };
   if (await check()) return tries;
@@ -88,7 +103,9 @@ export async function waitForBuild({ url, expect, timeoutMs, intervalMs, fetchIm
     await pause(w);
     if (await check()) return tries;
   }
-  throw new Error(`${url} did not serve "${expect}" within ${Math.round(timeoutMs / 60000)} min`);
+  throw new Error(
+    `${url} did not serve "${expect}" within ${Math.round(timeoutMs / 60000)} min`,
+  );
 }
 
 const arg = (name, fallback) => {
@@ -101,52 +118,80 @@ const need = (name) => {
   return v;
 };
 
-async function main() {
-  const cmd = process.argv[2];
-  if (cmd === "wait") {
-    const tries = await waitForBuild({
-      url: need("version-url"),
-      expect: need("expect"),
-      timeoutMs: Number(arg("timeout-min", "25")) * 60000,
-      intervalMs: Number(arg("interval-s", "20")) * 1000,
-    });
-    console.log(`wait: the live site serves the new build (${tries} ${tries === 1 ? "try" : "tries"})`);
-  } else if (cmd === "changed") {
-    const site = need("site");
-    const stateFile = need("state");
-    const res = await get(`${site}/sitemap.xml`);
-    if (res.status !== 200) throw new Error(`${site}/sitemap.xml: HTTP ${res.status}`);
-    const after = sitemapEntries(res.body);
-    let before = {};
-    try {
-      before = JSON.parse(readFileSync(stateFile, "utf8"));
-    } catch {
-      /* first run: every URL is new */
-    }
-    const urls = changedUrls(before, after);
-    writeFileSync(arg("out", "changed.json"), JSON.stringify(urls));
-    writeFileSync(stateFile, JSON.stringify(after));
-    console.log(`changed: ${urls.length} of ${Object.keys(after).length} URLs are new or changed`);
-  } else if (cmd === "indexnow") {
-    const site = need("site");
-    const key = need("key");
-    const robots = await get(`${site}/robots.txt`);
-    if (robotsClosed(robots.body)) return console.log(`indexnow: ${site} is closed to crawlers (robots.txt), nothing to submit`);
-    const urls = JSON.parse(readFileSync(need("urls"), "utf8"));
-    if (urls.length === 0) return console.log("indexnow: no URL changed, nothing to submit");
-    const keyFile = await get(`${site}/${key}.txt`);
-    if (keyFile.status !== 200 || keyFile.body.trim() !== key) throw new Error(`IndexNow: ${site}/${key}.txt does not serve the key (HTTP ${keyFile.status})`);
-    const body = indexNowBody(site, key, urls);
-    const ping = await fetch("https://api.indexnow.org/IndexNow", {
-      method: "POST",
-      headers: { "Content-Type": "application/json; charset=utf-8" },
-      body: JSON.stringify(body),
-    });
-    console.log(`indexnow: ${body.urlList.length} URLs submitted for ${body.host}, HTTP ${ping.status}`);
-    if (ping.status >= 400) throw new Error(`IndexNow answered HTTP ${ping.status}`);
-  } else {
-    throw new Error("usage: post-deploy.mjs wait|changed|indexnow …");
+async function cmdWait() {
+  const tries = await waitForBuild({
+    url: need("version-url"),
+    expect: need("expect"),
+    timeoutMs: Number(arg("timeout-min", "25")) * 60000,
+    intervalMs: Number(arg("interval-s", "20")) * 1000,
+  });
+  console.log(
+    `wait: the live site serves the new build (${tries} ${tries === 1 ? "try" : "tries"})`,
+  );
+}
+
+function readState(stateFile) {
+  try {
+    return JSON.parse(readFileSync(stateFile, "utf8"));
+  } catch {
+    return {}; // first run: every URL is new
   }
+}
+
+async function cmdChanged() {
+  const site = need("site");
+  const stateFile = need("state");
+  const res = await get(`${site}/sitemap.xml`);
+  if (res.status !== 200)
+    throw new Error(`${site}/sitemap.xml: HTTP ${res.status}`);
+  const after = sitemapEntries(res.body);
+  const urls = changedUrls(readState(stateFile), after);
+  writeFileSync(arg("out", "changed.json"), JSON.stringify(urls));
+  writeFileSync(stateFile, JSON.stringify(after));
+  console.log(
+    `changed: ${urls.length} of ${Object.keys(after).length} URLs are new or changed`,
+  );
+}
+
+async function submittable(site, key) {
+  const robots = await get(`${site}/robots.txt`);
+  if (robotsClosed(robots.body))
+    return `${site} is closed to crawlers (robots.txt), nothing to submit`;
+  const keyFile = await get(`${site}/${key}.txt`);
+  if (keyFile.status !== 200 || keyFile.body.trim() !== key)
+    throw new Error(
+      `IndexNow: ${site}/${key}.txt does not serve the key (HTTP ${keyFile.status})`,
+    );
+  return null;
+}
+
+async function cmdIndexnow() {
+  const site = need("site");
+  const key = need("key");
+  const urls = JSON.parse(readFileSync(need("urls"), "utf8"));
+  if (urls.length === 0)
+    return console.log("indexnow: no URL changed, nothing to submit");
+  const skip = await submittable(site, key);
+  if (skip) return console.log(`indexnow: ${skip}`);
+  const body = indexNowBody(site, key, urls);
+  const ping = await fetch("https://api.indexnow.org/IndexNow", {
+    method: "POST",
+    headers: { "Content-Type": "application/json; charset=utf-8" },
+    body: JSON.stringify(body),
+  });
+  console.log(
+    `indexnow: ${body.urlList.length} URLs submitted for ${body.host}, HTTP ${ping.status}`,
+  );
+  if (ping.status >= 400)
+    throw new Error(`IndexNow answered HTTP ${ping.status}`);
+}
+
+const COMMANDS = { wait: cmdWait, changed: cmdChanged, indexnow: cmdIndexnow };
+
+async function main() {
+  const run = COMMANDS[process.argv[2]];
+  if (!run) throw new Error("usage: post-deploy.mjs wait|changed|indexnow …");
+  await run();
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
