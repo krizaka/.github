@@ -1,0 +1,116 @@
+{
+  "_": "Where a feature must land before it is « done » (krizaka/.github#439, founder 2026-10-30). Per product: its `repos` (repository names in the krizaka organisation, where its features are filed) and its surfaces (`repo` = where a surface lives, `path` = the folder in it). A feature issue lists them in a « Surfaces » checklist generated from this file (scripts/surfaces.mjs); each is ticked with the PR that ships it or marked `n/a — <reason>`, else the closing check reopens the issue. Add a surface here and every template and check follows.",
+  "products": {
+    "orazaka": {
+      "title": "Orazaka",
+      "surfaces": [
+        {
+          "id": "web-client",
+          "label": "Web client",
+          "repo": "orazaka-web-client"
+        },
+        {
+          "id": "web-admin",
+          "label": "Web admin",
+          "repo": "orazaka-web-client",
+          "path": "src/console"
+        },
+        {
+          "id": "mobile",
+          "label": "Mobile",
+          "repo": "orazaka-mobile-client"
+        },
+        {
+          "id": "mac",
+          "label": "Mac",
+          "repo": "orazaka",
+          "path": "apps/desktop"
+        },
+        {
+          "id": "cli",
+          "label": "CLI",
+          "repo": "orazaka-cli"
+        },
+        {
+          "id": "api-sdk",
+          "label": "API/SDK",
+          "repo": "orazaka-contracts"
+        }
+      ],
+      "repos": [
+        "orazaka",
+        "orazaka-build",
+        "orazaka-contracts",
+        "orazaka-studio",
+        "orazaka-ai-engine",
+        "orazaka-conversation-service",
+        "orazaka-job-service",
+        "orazaka-knowledge-service",
+        "orazaka-automation-service",
+        "orazaka-edge",
+        "orazaka-worker-media",
+        "orazaka-ui-kit",
+        "orazaka-web-client",
+        "orazaka-mobile-client",
+        "orazaka-cli",
+        "orazaka-packs"
+      ]
+    },
+    "yomizaka": {
+      "title": "Yomizaka",
+      "surfaces": [
+        {
+          "id": "web",
+          "label": "Web",
+          "repo": "yomizaka"
+        },
+        {
+          "id": "admin",
+          "label": "Admin",
+          "repo": "yomizaka"
+        },
+        {
+          "id": "mobile",
+          "label": "Mobile",
+          "repo": "yomizaka"
+        },
+        {
+          "id": "mac",
+          "label": "Mac",
+          "repo": "yomizaka"
+        }
+      ],
+      "repos": [
+        "yomizaka"
+      ]
+    },
+    "akinaza": {
+      "title": "Akinaza",
+      "surfaces": [
+        {
+          "id": "web",
+          "label": "Web",
+          "repo": "akinaza"
+        },
+        {
+          "id": "admin",
+          "label": "Admin",
+          "repo": "akinaza"
+        },
+        {
+          "id": "mobile",
+          "label": "Mobile",
+          "repo": "akinaza"
+        },
+        {
+          "id": "mac",
+          "label": "Mac",
+          "repo": "akinaza"
+        }
+      ],
+      "repos": [
+        "akinaza"
+      ]
+    }
+  }
+}
