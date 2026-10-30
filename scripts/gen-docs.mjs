@@ -31,7 +31,7 @@ export function withBlock(text, name, body) {
   return text.replace(re, (_, start, end) => `${start}${body.replace(/\n*$/, "\n")}${end}`);
 }
 
-const cell = (value) => String(value).replace(/\|/g, "\\|").replace(/\n/g, " ");
+const cell = (value) => String(value).replace(/\\/g, "\\\\").replace(/\|/g, "\\|").replace(/\n/g, " ");
 const table = (head, rows) =>
   [`| ${head.join(" | ")} |`, `| ${head.map(() => ":---").join(" | ")} |`, ...rows.map((r) => `| ${r.map(cell).join(" | ")} |`)].join("\n");
 

@@ -4,7 +4,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
-  BLOCKS, blockOf, ciJobs, configExports, guardPaths, protection, queueState, regenerate, remoteContext, requiredChecks, withBlock, workflowJobs,
+  BLOCKS, blockOf, ciJobs, configExports, guardPaths, npmVersions, protection, queueState, regenerate, remoteContext, requiredChecks, withBlock, workflowJobs,
 } from "../scripts/gen-docs.mjs";
 
 const repoFile = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
@@ -44,6 +44,11 @@ test("protection reads required checks, strict and the Merge queue ruleset; noth
   assert.match(requiredChecks(one), /\| `r` \| `ci \/ CI gate` \| no \| yes \|/);
   assert.match(queueState(one), /On the merge queue \(1\):\*\* `r`/);
   assert.equal(protection(["r"], () => null), null);
+});
+
+test("a table cell escapes the backslash before the pipe, so the pipe cannot be un-escaped", () => {
+  const out = npmVersions([{ name: "a\\|b", version: "1" }]);
+  assert.ok(out.includes("`a\\\\\\|b`"), out);
 });
 
 test("configExports lists the bins and the entry points", () => {
