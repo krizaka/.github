@@ -479,3 +479,18 @@ test("node-ci runs the repository's format:check with the lint step, opt-in by `
   // The parallel plan still makes a lint leg when only the format script is set.
   assert.match(src, /\{ \[ -n "\$LINT" \] \|\| \[ -n "\$FORMAT" \]; \} && tasks\+=\(lint\)/);
 });
+
+test("org CI throughput: the shared visual regression is gated by changes.yml and skips the merge queue; the security scan cancels superseded PR runs and skips the queue", () => {
+  const visual = read("visual-regression");
+  assert.match(visual, /\n {6}relevant:\n(?: {8}.*\n)*? {8}default: "\."\n/);
+  assert.match(visual, /\n {6}ignore:\n(?: {8}.*\n)*? {8}default: ""\n/);
+  assert.match(visual, /\n {6}on-merge-group:\n(?: {8}.*\n)*? {8}default: false\n/);
+  assert.match(visual, /uses: krizaka\/\.github\/\.github\/workflows\/changes\.yml@[0-9a-f]{40}/);
+  const job = jobs(visual).find((j) => j.id === "visual").text;
+  assert.match(job, /needs: changes/);
+  assert.match(job, /if: \$\{\{ !cancelled\(\) && \(inputs\.update \|\| \(needs\.changes\.outputs\.code != 'false' && \(github\.event_name != 'merge_group' \|\| inputs\.on-merge-group\)\)\) \}\}/);
+
+  const scan = read("security-scan");
+  assert.match(scan, /group: security-scan-\$\{\{ github\.repository \}\}-\$\{\{ github\.event\.pull_request\.number \|\| github\.ref \}\}\n {2}cancel-in-progress: \$\{\{ github\.event_name == 'pull_request' \}\}/);
+  for (const j of jobs(scan)) assert.match(j.text, /if: \$\{\{ github\.event_name != 'merge_group' \}\}/, `${j.id} skipped in the merge queue`);
+});
