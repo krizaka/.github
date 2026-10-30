@@ -86,6 +86,18 @@ on:
         description: "Appended to the concurrency group. A second caller on the same ref (the journeys next to the visual regression) sets one, or it cancels the first run (yomizaka#623: cancelled in 0 s)."
         type: string
         default: ""
+      relevant:
+        description: "JavaScript RegExp (changes.yml): a changed file matching it needs the comparison. Default: every file. Set it to the app's source, its e2e folder and lockfile so a docs, workflow or backend-only change does not queue a 40-minute browser job."
+        type: string
+        default: "."
+      ignore:
+        description: "JavaScript RegExp (changes.yml): a changed file matching it never needs the comparison (checked after `relevant`)."
+        type: string
+        default: ""
+      on-merge-group:
+        description: "Run the comparison again in the merge queue. Default false: the pull request's run already compared the same tree against the baselines, and the queue's capacity is the org's bottleneck."
+        type: boolean
+        default: false
     secrets:
       RELEASE_APP_PRIVATE_KEY:
         description: "The Krizaka Agents app's private key (org secret): mints the token that pushes the baselines, so the branch's checks start. Update mode only."
@@ -99,7 +111,18 @@ concurrency:
   cancel-in-progress: ${{ !inputs.update }}
 
 jobs:
+  # Fail-open gate (changes.yml): the comparison runs unless every changed file is irrelevant. A skipped job reports
+  # « Skipped », which branch protection counts as passing. Update mode (workflow_dispatch) always runs.
+  changes:
+    name: Changed files
+    uses: krizaka/.github/.github/workflows/changes.yml@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
+    with:
+      relevant: ${{ inputs.relevant }}
+      ignore: ${{ inputs.ignore }}
+
   visual:
+    needs: changes
+    if: ${{ !cancelled() && (inputs.update || (needs.changes.outputs.code != 'false' && (github.event_name != 'merge_group' || inputs.on-merge-group))) }}
     name: ${{ inputs.update && 'Update the visual baselines' || 'Visual regression' }}
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.timeout-minutes }}
