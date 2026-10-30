@@ -324,6 +324,8 @@ A repository adds `.krizaka-deploy.json`:
 4. **Force-rebuild.** `create-deployment --force-rebuild`, then it waits for ACTIVE (ERROR, CANCELED, SUPERSEDED and a timeout are failures). `--expect-sha` refuses a deployment that built another commit.
    (An apply alone keeps the previous image; and a Dockerfile change needs apply **then** force-rebuild.)
 5. **Live checks.** The health URL, `robots.txt` (indexed: no `Disallow: /` and a Sitemap; noindex: `Disallow: /` and a noindex header or meta), and `scripts/check-seo-family.mjs` if configured.
+
+**After every production deploy of a public site (krizaka/.github#438).** A public site calls `post-deploy.yml` once its deploy is triggered (`on: push` to its deploy branch, or `release` for krizaka-com): it polls the live `version-url` until it holds the new build id (`expect`: no fixed sleep, red when `timeout-minutes` is up), tells IndexNow about the URLs whose sitemap `lastmod` moved since the last submission only (the key is a public input; a noindex site, `indexed: false` or `Disallow: /`, is skipped), runs `check-seo-family.mjs` against the LIVE host with the site's `seo-args`, and on red opens (or comments on) `Post-deploy check failing: <host>` in the calling repository. The script is `scripts/post-deploy.mjs`, tested by `scripts/post-deploy.test.mjs`. krizaka-com and krizaka-blog call it first; the other sites join their next fan-out PR.
 6. **Rollback note.** The previous ACTIVE deployment id and commit, printed (and put in the job summary) before anything changes and again on any failure.
 
 `--dry-run` reads everything (guards, live spec, the merge, the live site) and changes nothing. `krizaka-deploy check` runs only the live checks.
