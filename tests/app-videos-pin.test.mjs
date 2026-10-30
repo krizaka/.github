@@ -9,15 +9,21 @@ const root = new URL("..", import.meta.url).pathname;
 const workflow = readFileSync(`${root}.github/workflows/app-videos.yml`, "utf8");
 
 describe("the app-videos reusable workflow", () => {
-  it("pins its action to the commit that last changed it", () => {
+  it("pins its action to a commit that carries the current action", () => {
     const pin = /actions\/app-videos@([0-9a-f]{40})/.exec(workflow)?.[1];
     assert.ok(pin, "the workflow pins actions/app-videos by commit");
     assert.notEqual(pin, "d96437b6681524d470ca5050f91c1961a45c5906", "the first version of the action (site/products/… paths) is superseded");
     // CI checks out one commit: the history check needs a full clone (it runs locally and in a full checkout).
     if (execFileSync("git", ["rev-parse", "--is-shallow-repository"], { cwd: root, encoding: "utf8" }).trim() === "true") return;
-    const last = execFileSync("git", ["log", "-1", "--format=%H", "--", "actions/app-videos"], { cwd: root, encoding: "utf8" }).trim();
-    // The newest commit touching the action cannot be the one that bumps the pin (its own hash is not known yet): the pin is the
-    // action's last commit, or the workflow is being changed together with it.
-    assert.ok(last === pin || last === "", `the pin ${pin.slice(0, 8)} is not the action's last commit ${last.slice(0, 8)}`);
+    // What matters is the action's content at the pin, not which commit carries it: Dependabot bumps this self-reference to the
+    // newest commit of main (8a90a66 after #426) and the action did not change. The pin is current when the action is identical at
+    // the pin and in the working tree (so an old pin, or an action edited without bumping the pin, fails).
+    const git = (args) => execFileSync("git", args, { cwd: root, encoding: "utf8" }).trim();
+    assert.equal(git(["cat-file", "-t", pin]), "commit", `the pin ${pin.slice(0, 8)} is a commit of this repository`);
+    assert.equal(
+      git(["rev-parse", `${pin}:actions/app-videos`]),
+      git(["rev-parse", "HEAD:actions/app-videos"]),
+      `the action at the pin ${pin.slice(0, 8)} differs from the action in this tree: bump the pin to the commit that last changed actions/app-videos`,
+    );
   });
 });
