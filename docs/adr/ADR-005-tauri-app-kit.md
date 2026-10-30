@@ -26,7 +26,7 @@ Akinaza (a back office in a native window) need the same, with the same security
    the native window adds what a browser cannot: folders, drag and drop, menu bar, notifications.
 4. **A product keeps only its own**: its commands (a `DocumentStore` adapter for a local folder, the sidecar), its messages
    and its brand. A document leaves the Mac only for the one check that needs it, and is purged server side.
-5. **`krizaka/template-tauri-app` only wires**: `tauri.conf.json`, `capabilities/main.json`, `entitlements.plist`
+5. **`krizaka/krizaka-tauri-kit/template` (ex `template-tauri-app`, merged 2026-10-30) only wires**: `tauri.conf.json`, `capabilities/main.json`, `entitlements.plist`
    (hardened runtime, opts out of nothing), `desktop.yml` (build, sign, notarise when the secrets exist, attach the `.dmg`).
 6. **Signing is configuration**: the Developer ID and notarisation credentials are repository secrets; the code never changes.
 7. **Orazaka Desktop adopts the kit** in a separate PR of the Orazaka lane, after the kit is proven by the first new app.

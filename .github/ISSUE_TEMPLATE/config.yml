@@ -5,7 +5,7 @@ contact_links:
     about: Report it privately (Security → Report a vulnerability), never in a public issue.
   - name: Questions & ideas — Krizaka Java building blocks
     url: https://github.com/krizaka/krizaka-platform-kit/discussions
-    about: krizaka-build, krizaka-platform-kit, krizaka-users, krizaka-notifications, krizaka-billing — one forum, one BOM.
+    about: krizaka-build, krizaka-platform-kit, krizaka-users, krizaka-billing — one forum, one BOM.
   - name: Questions & ideas — Krizaka UI
     url: https://github.com/krizaka/krizaka-ui/discussions
     about: "@krizaka/tokens, tailwind, ui, icons, i18n, intl, config."
