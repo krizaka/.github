@@ -43,6 +43,11 @@ test("a re-run and a run started long after the push are not the push's feedback
   assert.equal(feedbackTimes(runs, "pull_request")[0].seconds, 300);
 });
 
+test("a run that waited for an approval, or whose end moved past what a job can last, is not feedback", () => {
+  const runs = [run("a", "pull_request", 0, 5), run("a", "pull_request", 1, 2000), run("a", "pull_request", 1, 60, { conclusion: "action_required" })];
+  assert.equal(feedbackTimes(runs, "pull_request")[0].seconds, 300);
+});
+
 test("a red run is still feedback (the author waited for it)", () => {
   assert.equal(feedbackTimes([run("a", "pull_request", 0, 7, { conclusion: "failure" })], "pull_request")[0].seconds, 420);
 });

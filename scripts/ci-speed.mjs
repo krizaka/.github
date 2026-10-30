@@ -23,12 +23,15 @@ export function percentile(values, p) {
 
 /** Feedback seconds per head commit for one event: [{ sha, seconds, slowest }]. Runs without times or cancelled are skipped. */
 // A re-run (run_attempt > 1) and a run started more than LATE_MINUTES after the commit's first one (a workflow dispatched
-// by hand days later, a baseline update) are not the feedback the push waited for: left out.
+// by hand days later, a baseline update) are not the feedback the push waited for: left out. So is a run « longer » than a
+// hosted job can last (MAX_RUN_MINUTES): its updated_at moved after the end (an approval, a log deletion), not its work.
 export const LATE_MINUTES = 30;
+export const MAX_RUN_MINUTES = 360;
 export function feedbackTimes(runs, event) {
   const bySha = new Map();
   const eligible = runs.filter(
-    (r) => r.event === event && r.conclusion !== "cancelled" && r.conclusion !== "skipped" && r.status === "completed" && r.run_started_at && r.updated_at && (r.run_attempt ?? 1) === 1,
+    (r) => r.event === event && r.conclusion !== "cancelled" && r.conclusion !== "skipped" && r.status === "completed" && r.run_started_at && r.updated_at && (r.run_attempt ?? 1) === 1 &&
+      r.conclusion !== "action_required" && Date.parse(r.updated_at) - Date.parse(r.run_started_at) <= MAX_RUN_MINUTES * 60000,
   );
   const first = new Map();
   for (const r of eligible) first.set(r.head_sha, Math.min(first.get(r.head_sha) ?? Infinity, Date.parse(r.run_started_at)));

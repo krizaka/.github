@@ -1,6 +1,6 @@
 # ADR-018 — Workflows by concern, repository profiles, speed budgets and a health scorecard
 
-- Status: Accepted (slice 1 shipped with this ADR; the next slices are filed in krizaka-internal, `lane:platform`)
+- Status: Accepted (slice 1 shipped with this ADR; the next slices are sub-issues of krizaka-internal#745)
 - Date: 2026-10-30
 - Owner: Platform lane
 - Founder's mandate (2026-10-30): restudy the reusable workflows (granularity, naming, the right check at the right
@@ -41,15 +41,19 @@ each repository are in the scorecard (§ 7) rather than copied here.
 
 ### Speed: feedback at the 90th percentile (minutes; budget: PR 10, merge queue 15)
 
-| Repository | PR p50 | PR p90 | Queue p50 | Queue p90 | Critical path, measured on three green queue runs |
+Measured by `node scripts/ci-speed.mjs` (this ADR's slice 1) on 2026-10-30: **23 of 41 repository × event rows are over
+budget.** The worst, with the critical path read from three green queue runs' jobs:
+
+| Repository | PR p50 | PR p90 | Queue p50 | Queue p90 | Critical path |
 | :--- | --: | --: | --: | --: | :--- |
-| akinaza | 26.4 | **31.9** | 26.3 | **30.7** | `Verify (build)` 24.9 min = after-build crawls 14.6 + **the tests again, 8.9** + build 0.7; Maestro (Android) 19.9 |
-| krizaka-ui | 19.3 | **27.1** | 27.3 | **29.5** | one serial job « Type-check, test, build » 24.1 min (not on node-ci); three documentation crawls ≈ 10 min each |
-| yomizaka | 16.5 | **26.6** | 15.7 | **21.1** | `Verify (build)` 10.5 min = after-build 4.8 + **the tests again, 4.1** |
-| orazaka | 4.5 | **33.0** | — | — | the workspace build of the upstreams |
-| krizaka-com | 10.5 | **14.1** | 10.6 | 13.9 | `Container image` 7.9 min (the image smoke 5.3) |
-| Orazaka services | 6–12 | 11–19 | — | — | the Maven workspace (`component / verify`) |
-| the libraries (krizaka-ts, krizaka-build, orazaka-cli, …) | 2–6 | 5–9 | 4.8 | 8.4 | within budget |
+| akinaza | 21.2 | **27.5** | 23.5 | **28.5** | `Verify (build)` 24.9 min = after-build crawls 14.6 + **the tests again, 8.9** + build 0.7; Maestro (Android) 19.9 |
+| krizaka-ui | 17.2 | **24.9** | 27.2 | **29.5** | one serial job « Type-check, test, build » 24.1 min (not on node-ci); three documentation crawls ≈ 10 min each |
+| yomizaka | 15.5 | **20.8** | 15.6 | **18.8** | `Verify (build)` 10.5 min = after-build 4.8 + **the tests again, 4.1**; Mobile CI |
+| orazaka | 1.3 | **26.8** | — | — | the workspace build of the upstreams |
+| krizaka-com | 9.7 | **16.7** | 10.6 | 13.6 | `Container image` 7.9 min (the image smoke 5.3) |
+| Orazaka services (job, conversation, automation, studio, ai-engine, edge, knowledge) | 4.5–10.2 | 10.5–17.6 | — | — | the Maven workspace (`component / verify`) |
+| krizaka-lab | 9.1 | 111.9 | — | — | runs waiting for a runner or an approval |
+| within budget | | ≤ 9.5 | | ≤ 13.6 | krizaka-ts, krizaka-build, krizaka-billing, krizaka-notifications, orazaka-web-client, orazaka-cli, orazaka-build, orazaka-contracts, orazaka-ui-kit, template-next-app, template-tauri-app, krizaka-tauri-kit, krizaka-infra, krizaka-accounts, .github |
 
 **The first win is a bug.** Since the build pack (2026-10-25, #224) the `build` leg of `node-ci.yml` in
 `parallel: true` mode runs the test script again after the `test` leg already ran it (v1.3 ran it once). It costs
@@ -178,7 +182,8 @@ its evidence URL) and a page the cockpit and the 7-hour summary read; it compose
 | Supply chain | OpenSSF Scorecard results (the `scorecard` rule's SARIF / the public API) |
 | Freshness | Dependabot alerts and open version PRs (REST), `callers-report` stale pins, the toolchain versions (`expo-sdk.json`, Node/Java versions of the callers), the last non-bot commit |
 | CI green on main | the latest completed runs on `main` (REST) |
-| Code quality | SonarCloud API: quality gate, complexity, duplication (`api/qualitygates/project_status`, `api/measures/component`) |
+| Code quality | SonarCloud API: quality gate, complexity, duplication (`api/qualitygates/project_status`, `api/measures/component`); **security and reliability ratings below A are red** |
+| README badges | every badge image of the README is fetched: a 404, « Measure has not been found », « unknown » or « invalid » badge is red (a badge must show a real value — e.g. a coverage badge without coverage sent) |
 | PRs | open count ≤ 5, age > 3 days, fan-out PRs per repository (`pr-cap.mjs`) |
 | Issues private | `scan-public-issues.mjs` |
 | Required checks | the ruleset of `main` contains the profile's required set |
@@ -204,14 +209,14 @@ and the scorecard's composition.
 1. **Slice 1 (this PR):** this ADR; `node-ci` build leg no longer re-runs the tests; `docs/standards/ci-profiles.json`;
    `scripts/ci-speed.mjs` + `org-ci-speed.yml`; tests. Callers get the fix with their next pin bump (Dependabot's
    `github-actions` group or `bump-krizaka`).
-2. **Slice 2:** the health scorecard (§ 7).
+2. **Slice 2:** the health scorecard (§ 7) — krizaka-internal#821.
 3. **Slice 3:** the renames of § 2 — new files, the old names kept as generated identical copies (a test asserts
    identity) for one release, then deleted; one fan-out PR per repository (joined to its open fan-out PR), in landing
-   order: pins → formatter → conformance; profile caller templates + the `ci-profile` rule.
+   order: pins → formatter → conformance; profile caller templates + the `ci-profile` rule — krizaka-internal#823.
 4. **Slice 4:** the over-budget repositories: akinaza (shard the after-build crawls, narrow Maestro's `relevant`),
-   krizaka-ui (onto ci-node, parallel legs, the shim renames above), yomizaka.
-5. **Slice 5:** `release-changelog` coalesced (one rebuild per window, no runner waiting on `--wait`).
-6. **Slice 6:** the manual rules of § 1 still without a check.
-7. **Slice 7:** buildpacks (§ 6), measured.
+   krizaka-ui (onto ci-node, parallel legs, the shim renames above), yomizaka — krizaka-internal#825 (akinaza), #827 (krizaka-ui).
+5. **Slice 5:** `release-changelog` coalesced (one rebuild per window, no runner waiting on `--wait`) — krizaka-internal#830.
+6. **Slice 6:** the manual rules of § 1 still without a check — krizaka-internal#832.
+7. **Slice 7:** buildpacks (§ 6), measured — krizaka-internal#834.
 
 Every slice: tests for its scripts, actionlint and zizmor green, landed by the train; the speed report is the measure.
