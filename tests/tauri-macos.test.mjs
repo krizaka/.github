@@ -13,7 +13,7 @@ for (const chunk of jobsText.split(/^  (?=[\w-]+:$)/m).slice(1)) jobs[chunk.slic
 const header = text.slice(0, text.indexOf("\njobs:\n"));
 
 test("secrets are declared by name, each required: false, never inherited", () => {
-  const block = header.slice(header.indexOf("    secrets:\n"), header.indexOf("\npermissions:"));
+  const block = header.slice(header.indexOf("    secrets:\n"), header.indexOf("\n# No workflow-level"));
   const names = [...block.matchAll(/^      (APPLE_\w+):\n        required: false$/gm)].map((m) => m[1]);
   assert.ok(names.length >= 7);
   assert.equal([...block.matchAll(/required:/g)].length, names.length);
@@ -117,4 +117,9 @@ test("signed releases require every signing and notarisation credential", () => 
 
 test("the v-tag example sets its tag prefix", () => {
   assert.match(text, /with: \{ working-directory: apps\/desktop, product-name: "Yomizaka", tag-prefix: "v", sign: true \}/);
+});
+
+test("no job asks for more than the pull-request caller grants (startup_failure otherwise)", () => {
+  assert.doesNotMatch(text, /^permissions:/m, "a workflow-level block would cap the release job below the caller's");
+  for (const [name, body] of Object.entries(jobs)) assert.doesNotMatch(body, /contents: write/, `job ${name}`);
 });

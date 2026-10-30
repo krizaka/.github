@@ -71,8 +71,10 @@ on:
       APPLE_TEAM_ID:
         required: false
 
-permissions:
-  contents: read
+# No workflow-level `permissions:`: a called workflow cannot ask for more than its caller grants, and the `release`
+# job needs `contents: write` while the pull-request caller grants `contents: read`. GitHub refuses that at startup
+# (`startup_failure`, even when the job is skipped). Every job below states its own permissions; `release` takes the
+# caller's (`desktop-release` grants `contents: write`).
 
 jobs:
   guard:
@@ -176,8 +178,6 @@ jobs:
     environment: release
     runs-on: macos-15
     timeout-minutes: 60
-    permissions:
-      contents: write
     defaults:
       run:
         working-directory: ${{ inputs.working-directory }}
