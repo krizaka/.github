@@ -31,7 +31,7 @@ This is the standard behind [ADR-007](../adr/ADR-007-shared-rules.md) (krizaka/.
 | Spotless, OpenRewrite | 1 | 1 | **shared already** | `krizaka-parent/pom.xml:83-91,185-187` |
 | Rust (`cargo fmt`, `clippy -D warnings`) | — | — | shared within the Tauri kit's workflow | krizaka-tauri-kit `.github/workflows/rust.yml:24-25` |
 | Python (`ruff check .`) | 1 config | — | **shared already** (workflow input) | `python-ci.yml:10,48`, 5 callers; config `orazaka-worker-media/pyproject.toml:14-30` |
-| `copilot-setup-steps.yml` | 15 | 2 | copy | 14 Java/Orazaka repositories + krizaka-qa |
+| `copilot-setup-steps.yml` | 15 | 2 | copy | 14 Java/Orazaka repositories |
 | AGENTS.md « Static rules » section | 21 | 7 | **restated**, 511 lines | every repository above |
 
 **The rules themselves** (the ast-grep set, as counted per rule):
@@ -69,7 +69,7 @@ A repository declares one or more profiles. A monorepo declares one per folder: 
 | `ts-library` | krizaka-ts `packages/*`, krizaka-ui `packages/*`, orazaka-ui-kit, orochia-design-system, krizaka-lab, orazaka-cli, the products' `packages/*` | ESLint `krizakaBase` + `krizakaStack()` + `envNames`. dependency-cruiser boundary (no app import, no cycle). ast-grep: the time rules (`no-hand-ms-*`, `no-get-time-*`), `no-ambient-clock`, `no-env-in-domain`, `no-db-in-service-or-rules`, `no-ts-enum`, `no-enum-string-compare`, `no-types-at-package-root`, `no-unjustified-numeric-export`. File names by function. Ratchets: ast-grep, `krizaka-ratchet`, duplication. |
 | `next-app` (product or site) | yomizaka, akinaza, kachizaka, orochia, yasakia, yororis, orazaka-web-client `apps/web` or root, krizaka-com, template-next-app | `ts-library`, plus ESLint `krizakaNext` + `krizakaUi()` + `noLocaleTernary()`, plus ast-grep `no-hand-made-nav`, `no-hand-made-language-switch`, `no-raw-inner-html` (from krizaka-com) |
 | `site` (public docs or blog) | krizaka-ui `apps/site`, krizaka-ts `site/`, krizaka-build `site/`, krizaka-blog, yororis `site/` | `next-app`, plus the SEO family check (`krizaka-rules seo-family`) |
-| `expo-app` | orazaka-mobile-client, orochia-mobile, yasakia-mobile, yororis-mobile, template-expo-app, the products' `apps/mobile` | `ts-library`, plus ESLint for React Native, plus `no-hand-made-tab-bar` (from orochia), plus the charter §6 rules as they become rules |
+| `expo-app` | orazaka-mobile-client, orochia-mobile, yasakia-mobile, yororis-mobile, the products' `apps/mobile` | `ts-library`, plus ESLint for React Native, plus `no-hand-made-tab-bar` (from orochia), plus the charter §6 rules as they become rules |
 | `tauri-app` | krizaka-tauri-kit, template-tauri-app | its front end: `next-app` or `ts-library`; its Rust: `cargo fmt --check` and `clippy -D warnings` (`rust.yml:24-25`), unchanged |
 | `java-block` | krizaka-build, krizaka-platform-kit, krizaka-users, krizaka-billing, krizaka-notifications (libraries), orazaka-contracts, orazaka-build | `krizaka-parent` (Spotless, OpenRewrite dry run, javadoc, enforcer); `KrizakaRules.buildingBlock(classes)` (`CodeRules` + `ArchitectureRules` + `ConfigBindingRules` + `SourceRules`) |
 | `java-service` | orazaka-ai-engine, orazaka-automation-service, orazaka-conversation-service, orazaka-edge, orazaka-job-service, orazaka-knowledge-service, orazaka-studio, and the `*-service` modules of users, billing, notifications | `java-block`, plus `KrizakaRules.service(classes)` (layers, `@Transactional` only on services, configuration only in config). Orazaka's own rules stay in `orazaka-test-support`. |
