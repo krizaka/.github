@@ -4,7 +4,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
-  BLOCKS, blockOf, ciJobs, configExports, guardPaths, npmVersions, protection, queueState, regenerate, remoteContext, requiredChecks, withBlock, workflowJobs,
+  BLOCKS, TOOL_DIRS, blockOf, ciJobs, configExports, guardPaths, npmVersions, protection, queueState, regenerate, remoteContext, requiredChecks, withBlock, workflowJobs,
 } from "../scripts/gen-docs.mjs";
 
 const repoFile = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
@@ -71,4 +71,12 @@ test("docs are current: the offline blocks of this repository's standards are wh
   const { changed } = regenerate(files, { remote: false });
   assert.deepEqual(changed, [], `regenerate with node scripts/gen-docs.mjs: ${changed.join(", ")}`);
   for (const b of BLOCKS) assert.notEqual(blockOf(files[b.file], b.name), null, `${b.file} lacks gen:${b.name}`);
+});
+
+test("external tools run with a fixed set of system directories, never the caller's search path (Sonar S4036)", () => {
+  const source = repoFile("scripts/gen-docs.mjs");
+  assert.doesNotMatch(source, /execFileSync\("(gh|curl)"/, "go through runTool");
+  assert.match(source, /runTool\("gh"/);
+  assert.match(source, /runTool\("curl"/);
+  for (const dir of TOOL_DIRS.split(":")) assert.ok(dir.startsWith("/"), `${dir} must be absolute`);
 });

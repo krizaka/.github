@@ -16,6 +16,10 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 
 const ROOT = new URL("../", import.meta.url);
+// Tools are looked up in these system directories only, never in a search path inherited from the caller (Sonar S4036).
+export const TOOL_DIRS = "/usr/bin:/bin:/usr/local/bin:/opt/homebrew/bin";
+const runTool = (command, args) =>
+  execFileSync(command, args, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], env: { ...process.env, PATH: TOOL_DIRS } });
 const read = (path) => readFileSync(new URL(path, ROOT), "utf8");
 
 /** The text between a block's markers (without the marker lines), or null when the block is absent. */
@@ -98,7 +102,7 @@ export function guardPaths(readFile = read) {
 /** `gh api <path>` as JSON, or null when it fails (404, 403, offline): a remote block then keeps its text. */
 export function ghApi(path) {
   try {
-    return JSON.parse(execFileSync("gh", ["api", path], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }));
+    return JSON.parse(runTool("gh", ["api", path]));
   } catch {
     return null;
   }
@@ -162,7 +166,7 @@ export function configExports(pkg) {
 
 function fetchJsonSync(url) {
   try {
-    return JSON.parse(execFileSync("curl", ["-fsS", "--max-time", "20", url], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }));
+    return JSON.parse(runTool("curl", ["-fsS", "--max-time", "20", url]));
   } catch {
     return null;
   }
