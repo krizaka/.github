@@ -87,7 +87,7 @@ A `fix` PR is one whose title matches `^fix(\(|:|!)` (branches `release-please--
 | Kind | Paths |
 | :--- | :--- |
 | tests | `**/*.test.*`, `**/*.spec.*`, `**/src/test/**`, `**/test_*.py`, `**/e2e/**`, `**/.maestro/**`, `**/tests/**`, `**/__tests__/**` |
-| rules | `rules/**`, `rule-tests/**`, `eslint.config.*`, `.dependency-cruiser*`, `*ratchet*.json`, `archunit_store/**`, `**/architecture/**` |
+| rules | `rules/**`, `**/rules/**`, `rule-tests/**`, `**/rule-tests/**`, `eslint.config.*`, `**/eslint.config.*`, `.dependency-cruiser*`, `**/.dependency-cruiser*`, `*ratchet*.json`, `archunit_store/**`, `**/architecture/**` |
 | audits | `**/page-audit*`, `**/a11y*` |
 | ratchets | `lint-ratchet.json`, `sg-ratchet.json`, `perf-budgets.json`, `**/lint-ratchet.json`, `**/sg-ratchet.json`, `**/perf-budgets.json`, `**/*a11y*baseline*`, `**/a11y-baseline*`, `**/pmd-baseline.properties`, `pmd-baseline.properties` |
 
