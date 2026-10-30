@@ -21,11 +21,20 @@ on:
 permissions:
   contents: read
 
+# A newer push to the same pull request replaces the running scan (the scan is a pure function of the checkout). The group is
+# per repository and pull request; the merge queue and main pushes are never cancelled. (org CI throughput, 2026-10-30)
+concurrency:
+  group: security-scan-${{ github.repository }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   gitleaks:
     name: gitleaks (secrets)
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # Skipped in the merge queue (reports « Skipped », which counts as passing): the pull request's own run scanned the same
+    # history and workflows, and a merge cannot introduce a secret that neither side had.
+    if: ${{ github.event_name != 'merge_group' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -46,6 +55,9 @@ jobs:
     name: zizmor (workflows)
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # Skipped in the merge queue (reports « Skipped », which counts as passing): the pull request's own run scanned the same
+    # history and workflows, and a merge cannot introduce a secret that neither side had.
+    if: ${{ github.event_name != 'merge_group' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

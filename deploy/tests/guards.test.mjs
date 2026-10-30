@@ -145,7 +145,7 @@ test("routes: a component may carry at most MAX_PATH_RULES routing rules; retire
   assert.doesNotThrow(() => assertIngressRoutes({ ingress: { rules: [{ match: { authority: { exact: "x.com" } }, redirect: { authority: "www.x.com" } }, rule("/")] } }));
   assert.equal(MAX_PATH_RULES, 3);
   assert.equal(MAX_REDIRECT_RULES, 10);
-  // yororis' shape: one routing rule per path, same component
+  // a product site's shape: one routing rule per path, same component
   const listed = { ingress: { rules: ["/api", "/.well-known", "/robots.txt", "/"].map((p) => rule(p)) } };
   assert.throws(() => assertIngressRoutes(listed, { label: "qa.app.yaml" }), (e) => e instanceof GuardError && e.guard === "routes" && /component 'web' has 4 path rules/.test(e.message));
   // retired URLs: real 308s, not counted as routes, up to the cap

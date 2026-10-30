@@ -17,7 +17,11 @@
 
 const API = "https://api.github.com/graphql";
 
-/** Pure rule: the Status an item should have, or null to leave it as it is. */
+/**
+ * Pure rule: the Status an item should have, or null to leave it as it is.
+ * @param {{ state: string, prs?: { state: string, isDraft: boolean }[], current?: string | null }} item
+ * @returns {string | null}
+ */
 export function decideStatus({ state, prs = [], current = null }) {
   if (state === "CLOSED") return current === "Done" ? null : "Done";
   const open = prs.filter((p) => p.state === "OPEN");

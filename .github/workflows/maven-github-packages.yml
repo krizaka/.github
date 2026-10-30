@@ -1,0 +1,101 @@
+# Publishes a Krizaka Maven repository to GitHub Packages (maven.pkg.github.com/<repository>) from a v* tag.
+#
+# Why: a release on Maven Central is a human pressing Publish and can never be deleted, so it is the last step. Every
+# development build (the Orazaka workspace, the Krizaka repositories) resolves the version just released from GitHub
+# Packages, where this workflow puts it first (actions/maven-github-packages adds the repositories to the runner's settings).
+#
+# A repository calls it from its own workflow; the caller grants `packages: write`:
+#
+#   name: Publish to GitHub Packages
+#   on:
+#     push:
+#       tags: ["v*"]
+#     workflow_dispatch:
+#       inputs:
+#         tag: { description: "The v* tag to publish", required: true }
+#   permissions:
+#     contents: read
+#   jobs:
+#     publish:
+#       permissions: { contents: read, packages: write }
+#       uses: krizaka/.github/.github/workflows/maven-github-packages.yml@<sha> # main
+#       with:
+#         tag: ${{ inputs.tag || github.ref_name }}
+#
+# The version is taken from the tag (v0.2.0 -> 0.2.0) exactly as the Central release does. Tests and analysis ran in the
+# repository's own CI on the commit that was tagged; this job only builds and uploads, unsigned.
+name: maven-github-packages
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: "The v* tag to publish (v0.2.0)."
+        required: true
+        type: string
+      ref:
+        description: "Publish this ref (a branch or sha) instead of the tag, at the version its POMs carry. For a module the tag predates."
+        required: false
+        default: ""
+        type: string
+      modules:
+        description: "Publish only these modules (Maven -pl, comma-separated). Empty: the whole reactor."
+        required: false
+        default: ""
+        type: string
+      java-version:
+        description: "JDK used to build."
+        required: false
+        default: "21"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish to GitHub Packages
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ inputs.ref || format('refs/tags/{0}', inputs.tag) }}
+          persist-credentials: false
+
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+        with:
+          distribution: temurin
+          java-version: ${{ inputs.java-version }}
+          cache: maven
+          server-id: github
+          server-username: GITHUB_ACTOR
+          server-password: GITHUB_TOKEN
+
+      - name: Version from the tag
+        if: ${{ inputs.ref == '' }}
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          version="${TAG#v}"
+          snapshot="$(./mvnw -B -q -ntp help:evaluate -Dexpression=project.version -DforceStdout)"
+          # One literal substitution sets the repository's modules and the krizaka-parent they inherit (see maven.yml).
+          find . -name pom.xml -not -path '*/target/*' -exec \
+            sed -i "s|<version>${snapshot}</version>|<version>${version}</version>|g" {} +
+          if grep -rq --include=pom.xml -e '-SNAPSHOT</version>' .; then
+            echo "::error::a SNAPSHOT version is left after setting ${version}"; exit 1
+          fi
+
+      # No signature, no Central plugin (they belong to the `release` profile), no PMD/SpotBugs (they ran in CI on this commit).
+      - name: Deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          MODULES: ${{ inputs.modules }}
+        run: |
+          # shellcheck disable=SC2086  # -pl and its value are word-split on purpose
+          ./mvnw -B -ntp deploy ${MODULES:+-pl $MODULES} -DskipTests -DskipITs -Dkrizaka.quality.phase=none \
+            "-DaltDeploymentRepository=github::https://maven.pkg.github.com/${REPOSITORY}"

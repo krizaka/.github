@@ -28,7 +28,6 @@ jobs:
           - { host: www.krizaka.com, args: "" }
           - { host: ui.krizaka.com, args: "" }
           - { host: java.krizaka.com, args: "" }
-          # The products' public addresses (sign-up closed). The paused products (Orochia, Yasakia, Yororis, Kachizaka) are not checked.
           - { host: www.orazaka.com, args: "" }
           - { host: www.yomizaka.com, args: "" }
           - { host: www.akinaza.com, args: "" }

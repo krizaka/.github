@@ -1,0 +1,261 @@
+# Visual regression of an app's main journeys (reusable; krizaka/.github#375).
+#
+# The pages of the apps are compared pixel by pixel against baselines, in the official Playwright Linux container (the
+# fonts are the baselines' fonts). One workflow, two modes, so that the capture environment is the same for both:
+#
+#   compare (default)   runs the journeys; a difference fails the job and the diff images are uploaded as artifacts.
+#   update              runs them with --update-snapshots and commits the changed baselines on `branch` (never main).
+#
+# A product's repository keeps two thin callers (`visual.yml` on pull requests, `update-visual-baselines.yml` on
+# workflow_dispatch) and these inputs:
+#
+#   jobs:
+#     visual:
+#       uses: krizaka/.github/.github/workflows/visual-regression.yml@<sha> # main
+#       permissions: { contents: read }
+#       with:
+#         package-manager: pnpm
+#         start-script: scripts/ci-visual-start.sh   # builds, seeds the cast (.github#356), starts the app, waits until it answers
+#         test-command: pnpm --filter @yomizaka/web exec playwright test
+#         snapshot-paths: apps/web/e2e/__screenshots__
+#         base-url: http://localhost:3000
+#         env: |
+#           DATABASE_URL=postgresql://ci:ci-only-password@postgres:5432/ci
+#
+# The tests use `defineJourneyTests` of `@krizaka/page-audit/visual` (frozen clock, reduced motion, masks for live values).
+# The Playwright version of the repository must equal the tag of the image (v1.64.0, pinned by digest here): this workflow fails with a clear message if not.
+# PostgreSQL runs as a service of the container, reachable at host `postgres` (user, database `ci`; password `ci-only-password`).
+# Not a required check until it has been green for a week on main (krizaka/.github#375); the strengthening is the CTO's.
+name: visual-regression
+
+on:
+  workflow_call:
+    inputs:
+      update:
+        description: "Update mode: regenerate the baselines and commit them on `branch`."
+        type: boolean
+        default: false
+      branch:
+        description: "Update mode: the branch to commit to (never main or production). Compare mode: ignored."
+        type: string
+        default: ""
+      node-version:
+        description: "Node.js version."
+        type: string
+        default: "22"
+      package-manager:
+        description: "npm or pnpm."
+        type: string
+        default: pnpm
+      working-directory:
+        description: "Directory of the package (monorepo root by default)."
+        type: string
+        default: "."
+      env:
+        description: "Newline-separated KEY=VALUE for every later step (test values only, never a credential)."
+        type: string
+        default: ""
+      start-script:
+        description: "Bash script (relative to working-directory) that builds, seeds the cast, starts the app in the background and waits until it answers."
+        type: string
+        required: true
+      test-command:
+        description: "The Playwright command (run from working-directory, after the app is up). The workflow appends --update-snapshots in update mode."
+        type: string
+        required: true
+      snapshot-paths:
+        description: "Space-separated paths (repo-relative) holding the baselines: committed in update mode."
+        type: string
+        required: true
+      artifact-paths:
+        description: "Newline-separated paths uploaded when the comparison fails (the diff images, the report)."
+        type: string
+        default: |
+          test-results
+          playwright-report
+          apps/web/test-results
+          apps/web/playwright-report
+      base-url:
+        description: "Where the app answers (exported as VISUAL_BASE_URL)."
+        type: string
+        default: "http://localhost:3000"
+      timeout-minutes:
+        type: number
+        default: 40
+      group-suffix:
+        description: "Appended to the concurrency group. A second caller on the same ref (the journeys next to the visual regression) sets one, or it cancels the first run (yomizaka#623: cancelled in 0 s)."
+        type: string
+        default: ""
+      relevant:
+        description: "JavaScript RegExp (changes.yml): a changed file matching it needs the comparison. Default: every file. Set it to the app's source, its e2e folder and lockfile so a docs, workflow or backend-only change does not queue a 40-minute browser job."
+        type: string
+        default: "."
+      ignore:
+        description: "JavaScript RegExp (changes.yml): a changed file matching it never needs the comparison (checked after `relevant`)."
+        type: string
+        default: ""
+      on-merge-group:
+        description: "Run the comparison again in the merge queue. Default false: the pull request's run already compared the same tree against the baselines, and the queue's capacity is the org's bottleneck."
+        type: boolean
+        default: false
+    secrets:
+      RELEASE_APP_PRIVATE_KEY:
+        description: "The Krizaka Agents app's private key (org secret): mints the token that pushes the baselines, so the branch's checks start. Update mode only."
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: visual-regression${{ inputs.group-suffix }}-${{ inputs.update && inputs.branch || github.ref }}
+  cancel-in-progress: ${{ !inputs.update }}
+
+jobs:
+  # Fail-open gate (changes.yml): the comparison runs unless every changed file is irrelevant. A skipped job reports
+  # « Skipped », which branch protection counts as passing. Update mode (workflow_dispatch) always runs.
+  changes:
+    name: Changed files
+    uses: krizaka/.github/.github/workflows/changes.yml@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
+    with:
+      relevant: ${{ inputs.relevant }}
+      ignore: ${{ inputs.ignore }}
+
+  visual:
+    needs: changes
+    if: ${{ !cancelled() && (inputs.update || (needs.changes.outputs.code != 'false' && (github.event_name != 'merge_group' || inputs.on-merge-group))) }}
+    name: ${{ inputs.update && 'Update the visual baselines' || 'Visual regression' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    # The Playwright image's default shell is sh: the steps below use bash.
+    defaults:
+      run:
+        shell: bash
+    # Pinned by digest: the image of the Playwright version the repositories pin (bump both together, with the baselines).
+    container: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
+    # Some native addons refuse to cache under /github/home: a private cache root.
+    env:
+      XDG_CACHE_HOME: /root/.cache
+      CI: "true"
+    services:
+      postgres:
+        image: postgres:16@sha256:1beaa3084eee2676f20a9cd9928f0bf2c5bf674f8e49f81017912183d377c61c
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_DB: ci
+          POSTGRES_PASSWORD: ci-only-password
+        options: >-
+          --health-cmd "pg_isready -U ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - id: target
+        env:
+          UPDATE: ${{ inputs.update }}
+          INPUT_BRANCH: ${{ inputs.branch }}
+        run: |
+          if [ "$UPDATE" = "true" ]; then
+            case "$INPUT_BRANCH" in
+              ""|main|production|refs/*|-*|*..*) echo "::error::Refusing branch '$INPUT_BRANCH'."; exit 1;;
+            esac
+            echo "ref=$INPUT_BRANCH" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=" >> "$GITHUB_OUTPUT"
+          fi
+      # An App token (not GITHUB_TOKEN) in update mode, so the push starts the branch's checks.
+      - id: app
+        if: ${{ inputs.update }}
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.target.outputs.ref }}
+          token: ${{ steps.app.outputs.token || github.token }}
+          persist-credentials: ${{ inputs.update }} # zizmor: ignore[artipacked] update mode pushes the baselines with the app token
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        if: ${{ inputs.package-manager == 'pnpm' }}
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: ${{ inputs.package-manager }}
+      - name: Environment
+        env:
+          ENV_LINES: ${{ inputs.env }}
+          BASE_URL: ${{ inputs.base-url }}
+        run: |
+          echo "VISUAL_BASE_URL=$BASE_URL" >> "$GITHUB_ENV"
+          while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            printf '%s' "$line" | grep -Eq '^[A-Za-z_][A-Za-z0-9_]*=' || { echo "::error::env line is not KEY=VALUE"; exit 1; }
+            echo "$line" >> "$GITHUB_ENV"
+          done <<< "$ENV_LINES"
+      - name: Install
+        env:
+          PM: ${{ inputs.package-manager }}
+        run: |
+          # No lifecycle script of the install itself; then only the builds the repository allowed (pnpm onlyBuiltDependencies, npm rebuild).
+          if [ "$PM" = "pnpm" ]; then pnpm install --frozen-lockfile --ignore-scripts && pnpm rebuild; else npm ci --ignore-scripts && npm rebuild; fi
+      - name: The Playwright version equals the image's
+        env:
+          IMAGE: mcr.microsoft.com/playwright:v1.64.0-noble
+          PM: ${{ inputs.package-manager }}
+        run: |
+          want="${IMAGE##*:v}"; want="${want%%-*}"
+          if [ "$PM" = "pnpm" ]; then have="$(pnpm exec playwright --version)"; else have="$(npx playwright --version)"; fi
+          case "$have" in
+            *"$want"*) ;;
+            *) echo "::error::Playwright is '$have' but the image is $IMAGE: the browsers would differ from the baselines'. Keep both equal."; exit 1;;
+          esac
+      - name: Build, seed the cast, start the app
+        env:
+          START: ${{ inputs.start-script }}
+          WORKDIR: ${{ inputs.working-directory }}
+        run: |
+          cd "$WORKDIR"
+          bash "$START"
+      - name: ${{ inputs.update && 'Take the baselines' || 'Compare the journeys' }}
+        env:
+          TEST_COMMAND: ${{ inputs.test-command }}
+          WORKDIR: ${{ inputs.working-directory }}
+          UPDATE: ${{ inputs.update }}
+        run: |
+          cd "$WORKDIR"
+          if [ "$UPDATE" = "true" ]; then
+            # The journeys that differ are rewritten; the run itself passes.
+            bash -c "$TEST_COMMAND --update-snapshots"
+          else
+            bash -c "$TEST_COMMAND"
+          fi
+      - name: How to read a failure
+        if: ${{ failure() && !inputs.update }}
+        run: |
+          {
+            echo "### Visual regression failed"
+            echo "The diff images (expected, actual, diff) are in this run's artifact **visual-diffs**."
+            echo "If the change is intended: run **Update visual baselines** on this branch, then review the committed images in the pull request."
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ failure() && !inputs.update }}
+        with:
+          name: visual-diffs
+          path: ${{ inputs.artifact-paths }}
+          retention-days: 14
+          if-no-files-found: ignore
+      - name: Commit the changed baselines
+        if: ${{ inputs.update }}
+        env:
+          BRANCH: ${{ steps.target.outputs.ref }}
+          PATHS: ${{ inputs.snapshot-paths }}
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          # shellcheck disable=SC2086 # the list is space-separated on purpose
+          git add -A -- $PATHS
+          if git diff --cached --quiet; then echo "Baselines already up to date."; exit 0; fi
+          git diff --cached --stat | tail -n 40
+          export GIT_AUTHOR_NAME='krizaka-agents[bot]' GIT_COMMITTER_NAME='krizaka-agents[bot]'
+          export GIT_AUTHOR_EMAIL='krizaka-agents[bot]@users.noreply.github.com' GIT_COMMITTER_EMAIL='krizaka-agents[bot]@users.noreply.github.com'
+          git commit -q -m "test(visual): Linux baselines" -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
+          git push origin "HEAD:refs/heads/$BRANCH"

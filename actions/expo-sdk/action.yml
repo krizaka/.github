@@ -1,0 +1,26 @@
+# The Expo SDK / Xcode guard as a step (docs/standards/expo-sdk.json): fails when the app's Expo SDK is below the minimum that
+# builds with the Xcode the App Store requires, or an iOS build profile of eas.json does not pin an Xcode 26+ image.
+#
+#   - uses: actions/checkout@<sha>
+#   - uses: krizaka/.github/actions/expo-sdk@<sha>
+#     with: { working-directory: apps/mobile }
+#
+# The script is scripts/check-expo-sdk.mjs of this repository (run from next to the action); node is the runner's own.
+name: expo-sdk
+description: Fails when an Expo app cannot be built with the Xcode the App Store requires.
+author: Krizaka
+
+inputs:
+  working-directory:
+    description: "The Expo app, relative to the workspace."
+    default: "."
+
+runs:
+  using: composite
+  steps:
+    - name: Expo SDK and Xcode image
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        SCRIPT: ${{ github.action_path }}/../../scripts/check-expo-sdk.mjs
+      run: node "$SCRIPT" --root .

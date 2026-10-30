@@ -1,0 +1,875 @@
+{
+  "date": "2026-10-29",
+  "repos": [
+    {
+      "repo": "krizaka-users",
+      "sha": "a853dc3",
+      "ts": null,
+      "java": {
+        "counts": {
+          "loc": 10058,
+          "files": 217,
+          "records": 87,
+          "requireNonNull": 296,
+          "nullChecks": 174,
+          "optionalOfNullable": 4,
+          "services": 37,
+          "nullChecksOnInjected": 1,
+          "sealedInterfaces": 1,
+          "methodsWith3PlusNullChecks": 7,
+          "controllers": 9,
+          "requestBodies": 16,
+          "requestBodiesWithoutValid": 15,
+          "requestBodiesRaw": 1,
+          "nonFinalServiceFields": 1,
+          "instanceofPatterns": 4,
+          "switchExpressions": 1,
+          "stringSwitchExpressions": 1
+        },
+        "examples": {
+          "nullChecksOnInjected": [
+            "krizaka-users-core/src/main/java/com/krizaka/users/application/service/IdentityReconciliationServiceImpl.java:53"
+          ],
+          "methodsWith3PlusNullChecks": [
+            "krizaka-users-core/src/main/java/com/krizaka/users/infrastructure/adapter/federation/GithubProviderVerifier.java:59",
+            "krizaka-users-core/src/main/java/com/krizaka/users/infrastructure/adapter/persistence/UserProfileMapper.java:16",
+            "krizaka-users-core/src/main/java/com/krizaka/users/infrastructure/adapter/persistence/VerificationTokenMapper.java:31",
+            "krizaka-users-persistence/src/main/java/com/krizaka/users/persistence/application/service/UserPersistenceProviderImpl.java:119",
+            "krizaka-users-service/src/main/java/com/krizaka/users/service/infrastructure/ratelimit/AuthRateLimitFilter.java:71"
+          ],
+          "requestBodiesWithoutValid": [
+            "krizaka-users-core/src/main/java/com/krizaka/users/infrastructure/adapter/rest/AdminUserController.java:83",
+            "krizaka-users-core/src/main/java/com/krizaka/users/infrastructure/adapter/rest/AdminUserController.java:97",
+            "krizaka-users-core/src/main/java/com/krizaka/users/infrastructure/adapter/rest/ApiKeyController.java:45",
+            "krizaka-users-core/src/main/java/com/krizaka/users/infrastructure/adapter/rest/AuthController.java:73",
+            "krizaka-users-core/src/main/java/com/krizaka/users/infrastructure/adapter/rest/AuthController.java:102"
+          ],
+          "nonFinalServiceFields": [
+            "krizaka-users-persistence/src/main/java/com/krizaka/users/persistence/application/service/AdminUserPersistenceProviderImpl.java:31"
+          ],
+          "stringSwitchExpressions": [
+            "krizaka-users-service/src/main/java/com/krizaka/users/service/infrastructure/ratelimit/AuthRateLimitFilter.java:111"
+          ]
+        },
+        "utilsNames": [],
+        "managerNames": [],
+        "dist": {
+          "CyclomaticComplexity": {
+            "count": 844,
+            "mean": 1.41,
+            "p50": 1,
+            "p95": 4,
+            "max": 14,
+            "over": {
+              "10": 3,
+              "15": 0
+            }
+          },
+          "CognitiveComplexity": {
+            "count": 136,
+            "mean": 2.42,
+            "p50": 2,
+            "p95": 8,
+            "max": 12,
+            "over": {
+              "15": 0,
+              "25": 0
+            }
+          },
+          "NPathComplexity": {
+            "count": 844,
+            "mean": 1.68,
+            "p50": 1,
+            "p95": 3,
+            "max": 192,
+            "over": {
+              "200": 0
+            }
+          }
+        },
+        "top": {
+          "CyclomaticComplexity": [
+            "krizaka-users-core/src/main/java/com/krizaka/users/infrastructure/config/IssuerKeys.java:48 (14)",
+            "krizaka-users-core/src/main/java/com/krizaka/users/infrastructure/adapter/federation/GithubProviderVerifier.java:60 (13)",
+            "krizaka-users-service/src/main/java/com/krizaka/users/service/infrastructure/ratelimit/AuthRateLimitFilter.java:72 (13)"
+          ],
+          "NPathComplexity": [
+            "krizaka-users-service/src/main/java/com/krizaka/users/service/infrastructure/ratelimit/AuthRateLimitFilter.java:72 (192)",
+            "krizaka-users-core/src/main/java/com/krizaka/users/infrastructure/adapter/federation/GithubProviderVerifier.java:60 (31)",
+            "krizaka-users-core/src/main/java/com/krizaka/users/application/service/OrganizationServiceImpl.java:99 (28)"
+          ],
+          "CognitiveComplexity": [
+            "krizaka-users-service/src/main/java/com/krizaka/users/service/infrastructure/ratelimit/ClientIpResolver.java:26 (12)",
+            "krizaka-users-service/src/main/java/com/krizaka/users/service/infrastructure/ratelimit/AuthRateLimitFilter.java:72 (11)",
+            "krizaka-users-core/src/main/java/com/krizaka/users/infrastructure/adapter/federation/GithubProviderVerifier.java:60 (10)"
+          ]
+        }
+      }
+    },
+    {
+      "repo": "orazaka-conversation-service",
+      "sha": "ba87ccc",
+      "ts": null,
+      "java": {
+        "counts": {
+          "loc": 9412,
+          "files": 114,
+          "services": 28,
+          "nullChecks": 188,
+          "requireNonNull": 133,
+          "records": 75,
+          "nullChecksOnInjected": 1,
+          "methodsWith3PlusNullChecks": 12,
+          "switchExpressions": 5,
+          "patternSwitches": 2,
+          "stringSwitchExpressions": 1,
+          "sealedInterfaces": 2,
+          "instanceofPatterns": 24,
+          "controllers": 21,
+          "requestBodies": 25,
+          "requestBodiesRaw": 6,
+          "requestBodiesWithoutValid": 19,
+          "controllersTouchingPersistence": 1,
+          "optionalOfNullable": 1
+        },
+        "examples": {
+          "nullChecksOnInjected": [
+            "src/main/java/com/krizaka/orazaka/conversationservice/application/service/ContextService.java:85"
+          ],
+          "methodsWith3PlusNullChecks": [
+            "src/main/java/com/krizaka/orazaka/conversationservice/application/service/ContextService.java:93",
+            "src/main/java/com/krizaka/orazaka/conversationservice/application/service/VoiceTurnService.java:149",
+            "src/main/java/com/krizaka/orazaka/conversationservice/application/service/VoiceTurnService.java:204",
+            "src/main/java/com/krizaka/orazaka/conversationservice/application/service/VoiceTurnService.java:327",
+            "src/main/java/com/krizaka/orazaka/conversationservice/infrastructure/adapter/rest/ChatController.java:102"
+          ],
+          "stringSwitchExpressions": [
+            "src/main/java/com/krizaka/orazaka/conversationservice/application/service/GateService.java:67"
+          ],
+          "requestBodiesWithoutValid": [
+            "src/main/java/com/krizaka/orazaka/conversationservice/infrastructure/adapter/rest/AgentTurnsController.java:46",
+            "src/main/java/com/krizaka/orazaka/conversationservice/infrastructure/adapter/rest/ChatController.java:108",
+            "src/main/java/com/krizaka/orazaka/conversationservice/infrastructure/adapter/rest/ChecksController.java:72",
+            "src/main/java/com/krizaka/orazaka/conversationservice/infrastructure/adapter/rest/CodeController.java:64",
+            "src/main/java/com/krizaka/orazaka/conversationservice/infrastructure/adapter/rest/EmbeddingController.java:45"
+          ],
+          "controllersTouchingPersistence": [
+            "src/main/java/com/krizaka/orazaka/conversationservice/infrastructure/adapter/rest/PipelineController.java:29"
+          ]
+        },
+        "utilsNames": [],
+        "managerNames": [],
+        "dist": {
+          "CyclomaticComplexity": {
+            "count": 409,
+            "mean": 2.32,
+            "p50": 1,
+            "p95": 7,
+            "max": 17,
+            "over": {
+              "10": 8,
+              "15": 3
+            }
+          },
+          "CognitiveComplexity": {
+            "count": 177,
+            "mean": 3.61,
+            "p50": 2,
+            "p95": 12,
+            "max": 21,
+            "over": {
+              "15": 2,
+              "25": 0
+            }
+          },
+          "NPathComplexity": {
+            "count": 408,
+            "mean": 5.15,
+            "p50": 1,
+            "p95": 9,
+            "max": 750,
+            "over": {
+              "200": 2
+            }
+          }
+        },
+        "top": {
+          "CognitiveComplexity": [
+            "src/main/java/com/krizaka/orazaka/conversationservice/infrastructure/adapter/amqp/JobEventListener.java:117 (21)",
+            "src/main/java/com/krizaka/orazaka/conversationservice/domain/model/voice/SentenceBuffer.java:115 (18)",
+            "src/main/java/com/krizaka/orazaka/conversationservice/infrastructure/adapter/amqp/JobEventListener.java:51 (15)"
+          ],
+          "CyclomaticComplexity": [
+            "src/main/java/com/krizaka/orazaka/conversationservice/domain/model/voice/SentenceBuffer.java:115 (17)",
+            "src/main/java/com/krizaka/orazaka/conversationservice/infrastructure/adapter/amqp/JobEventListener.java:117 (17)",
+            "src/main/java/com/krizaka/orazaka/conversationservice/infrastructure/adapter/rest/IntentController.java:79 (16)"
+          ],
+          "NPathComplexity": [
+            "src/main/java/com/krizaka/orazaka/conversationservice/infrastructure/adapter/amqp/JobEventListener.java:117 (750)",
+            "src/main/java/com/krizaka/orazaka/conversationservice/infrastructure/adapter/rest/OperatorAuditFilter.java:99 (219)",
+            "src/main/java/com/krizaka/orazaka/conversationservice/domain/model/voice/SentenceBuffer.java:115 (74)"
+          ]
+        }
+      }
+    },
+    {
+      "repo": "krizaka-build",
+      "sha": "fe38501",
+      "ts": {
+        "files": 60,
+        "testFiles": 0,
+        "loc": 2242,
+        "rules": {
+          "@typescript-eslint/no-unnecessary-condition": 4,
+          "@typescript-eslint/prefer-optional-chain": 1
+        },
+        "testRules": {},
+        "examples": {
+          "@typescript-eslint/no-unnecessary-condition": [
+            "site/lib/i18n.ts:30",
+            "site/lib/project.ts:45",
+            "site/lib/project.ts:46",
+            "site/lib/project.ts:46"
+          ],
+          "@typescript-eslint/prefer-optional-chain": [
+            "site/app/components/BuildingBlocksMap.tsx:263"
+          ]
+        },
+        "top": {
+          "cyclomatic": [
+            "site/app/components/BuildingBlocksMap.tsx:57 (16)",
+            "site/lib/json-schema.ts:75 (13)",
+            "site/app/components/TopBar.tsx:23 (12)"
+          ],
+          "cognitive": [
+            "site/app/components/BuildingBlocksMap.tsx:57 (14)",
+            "site/lib/json-schema.ts:49 (9)",
+            "site/lib/json-schema.ts:59 (9)"
+          ]
+        },
+        "fatal": 1,
+        "cyclomatic": {
+          "count": 247,
+          "mean": 1.96,
+          "p50": 1,
+          "p95": 5,
+          "max": 16,
+          "over": {
+            "10": 3,
+            "15": 1
+          }
+        },
+        "cognitive": {
+          "count": 76,
+          "mean": 2.21,
+          "p50": 1,
+          "p95": 9,
+          "max": 14,
+          "over": {
+            "15": 0,
+            "25": 0
+          }
+        },
+        "programs": 1
+      },
+      "java": {
+        "counts": {
+          "loc": 1793,
+          "files": 15,
+          "instanceofPatterns": 4,
+          "nullChecks": 12,
+          "requireNonNull": 2
+        },
+        "examples": {},
+        "utilsNames": [],
+        "managerNames": [],
+        "dist": {
+          "CyclomaticComplexity": {
+            "count": 103,
+            "mean": 1.85,
+            "p50": 1,
+            "p95": 5,
+            "max": 10,
+            "over": {
+              "10": 0,
+              "15": 0
+            }
+          },
+          "CognitiveComplexity": {
+            "count": 41,
+            "mean": 3.88,
+            "p50": 3,
+            "p95": 9,
+            "max": 15,
+            "over": {
+              "15": 0,
+              "25": 0
+            }
+          },
+          "NPathComplexity": {
+            "count": 103,
+            "mean": 2.18,
+            "p50": 1,
+            "p95": 7,
+            "max": 30,
+            "over": {
+              "200": 0
+            }
+          }
+        },
+        "top": {
+          "CyclomaticComplexity": [
+            "krizaka-test-support/src/main/java/com/krizaka/test/architecture/ConfigBindingRules.java:288 (10)",
+            "krizaka-test-support/src/main/java/com/krizaka/test/architecture/ConfigBindingRules.java:190 (8)",
+            "krizaka-test-support/src/main/java/com/krizaka/test/architecture/SourceRules.java:31 (8)"
+          ],
+          "NPathComplexity": [
+            "krizaka-test-support/src/main/java/com/krizaka/test/architecture/SourceRules.java:31 (30)",
+            "krizaka-test-support/src/main/java/com/krizaka/test/architecture/ConfigBindingRules.java:288 (18)",
+            "krizaka-test-support/src/main/java/com/krizaka/test/architecture/ConfigBindingRules.java:97 (14)"
+          ],
+          "CognitiveComplexity": [
+            "krizaka-test-support/src/main/java/com/krizaka/test/architecture/SourceRules.java:31 (15)",
+            "krizaka-test-support/src/main/java/com/krizaka/test/architecture/ConfigBindingRules.java:288 (10)",
+            "krizaka-test-support/src/main/java/com/krizaka/test/architecture/CodeRules.java:78 (9)"
+          ]
+        }
+      }
+    },
+    {
+      "repo": "orazaka-ai-engine",
+      "sha": "fd3db42",
+      "ts": null,
+      "java": {
+        "counts": {
+          "loc": 39270,
+          "files": 632,
+          "nullChecks": 767,
+          "methodsWith3PlusNullChecks": 41,
+          "instanceofPatterns": 53,
+          "requireNonNull": 463,
+          "switchExpressions": 19,
+          "records": 240,
+          "stringSwitchExpressions": 5,
+          "patternSwitches": 6,
+          "discriminatorLadders": 1,
+          "optionalOfNullable": 22,
+          "switchStatements": 3,
+          "stringSwitchStatements": 2,
+          "sealedInterfaces": 3,
+          "sealedClasses": 1,
+          "utilsHelperClasses": 4,
+          "services": 49,
+          "nonFinalServiceFields": 1,
+          "nullChecksOnInjected": 3
+        },
+        "examples": {
+          "methodsWith3PlusNullChecks": [
+            "orazaka-adapter-spring-ai/src/main/java/com/krizaka/orazaka/adapter/springai/CoreInfrastructureAutoConfiguration.java:114",
+            "orazaka-adapter-spring-ai/src/main/java/com/krizaka/orazaka/adapter/springai/CoreServicesAutoConfiguration.java:106",
+            "orazaka-adapter-spring-ai/src/main/java/com/krizaka/orazaka/adapter/springai/chat/SpringAiChatInvocation.java:66",
+            "orazaka-adapter-spring-ai/src/main/java/com/krizaka/orazaka/adapter/springai/chat/SpringAiChatInvocation.java:78",
+            "orazaka-adapter-spring-ai/src/main/java/com/krizaka/orazaka/adapter/springai/client/EmbeddingClientImpl.java:68"
+          ],
+          "stringSwitchExpressions": [
+            "orazaka-adapter-spring-ai/src/main/java/com/krizaka/orazaka/adapter/springai/memory/PersistedChatMemoryStore.java:73",
+            "orazaka-adapter-spring-ai/src/main/java/com/krizaka/orazaka/adapter/springai/prompt/ChatOptionsResolver.java:71",
+            "orazaka-adapter-spring-ai/src/main/java/com/krizaka/orazaka/adapter/springai/prompt/MessageCompiler.java:72",
+            "orazaka-core/src/main/java/com/krizaka/orazaka/core/infrastructure/checks/HttpCheckConnector.java:189",
+            "orazaka-interceptors/src/main/java/com/krizaka/orazaka/interceptor/translation/LanguageAlignmentInterceptor.java:83"
+          ],
+          "discriminatorLadders": [
+            "orazaka-adapter-spring-ai/src/main/java/com/krizaka/orazaka/adapter/springai/prompt/MessageCompiler.java:113"
+          ],
+          "stringSwitchStatements": [
+            "orazaka-assets/src/main/java/com/krizaka/orazaka/assets/infrastructure/config/MediaStorageProperties.java:29",
+            "orazaka-assets/src/main/java/com/krizaka/orazaka/assets/infrastructure/tool/AssetEncryptionTool.java:55"
+          ],
+          "utilsHelperClasses": [
+            "orazaka-core/src/main/java/com/krizaka/orazaka/core/application/pipeline/PipelineUtils.java:4",
+            "orazaka-core/src/main/java/com/krizaka/orazaka/core/application/routing/CosineSimilarityUtil.java:7",
+            "orazaka-core/src/main/java/com/krizaka/orazaka/core/infrastructure/adapter/processor/LocalProcessorUtil.java:9",
+            "orazaka-core/src/main/java/com/krizaka/orazaka/core/infrastructure/support/SecurityContextUtil.java:16"
+          ],
+          "nonFinalServiceFields": [
+            "orazaka-persistence-app/src/main/java/com/krizaka/orazaka/persistence/application/service/McpTokenSealer.java:33"
+          ],
+          "nullChecksOnInjected": [
+            "orazaka-tools/src/main/java/com/krizaka/orazaka/tools/infrastructure/adapter/mcp/DefaultMcpOrchestrator.java:57",
+            "orazaka-tools/src/main/java/com/krizaka/orazaka/tools/infrastructure/adapter/mcp/DefaultMcpOrchestrator.java:71",
+            "orazaka-tools/src/main/java/com/krizaka/orazaka/tools/infrastructure/adapter/mcp/DefaultToolCatalogue.java:80"
+          ]
+        },
+        "utilsNames": [
+          "PipelineUtils",
+          "CosineSimilarityUtil",
+          "LocalProcessorUtil",
+          "SecurityContextUtil"
+        ],
+        "managerNames": [],
+        "dist": {
+          "CyclomaticComplexity": {
+            "count": 2485,
+            "mean": 1.86,
+            "p50": 1,
+            "p95": 6,
+            "max": 25,
+            "over": {
+              "10": 24,
+              "15": 7
+            }
+          },
+          "CognitiveComplexity": {
+            "count": 715,
+            "mean": 3.17,
+            "p50": 2,
+            "p95": 9,
+            "max": 29,
+            "over": {
+              "15": 5,
+              "25": 1
+            }
+          },
+          "NPathComplexity": {
+            "count": 2485,
+            "mean": 4.4,
+            "p50": 1,
+            "p95": 7,
+            "max": 2480,
+            "over": {
+              "200": 4
+            }
+          }
+        },
+        "top": {
+          "CyclomaticComplexity": [
+            "orazaka-tools/src/main/java/com/krizaka/orazaka/tools/domain/model/research/PublicAddresses.java:68 (25)",
+            "orazaka-adapter-spring-ai/src/main/java/com/krizaka/orazaka/adapter/springai/client/EmbeddingClientImpl.java:69 (18)",
+            "orazaka-tools/src/main/java/com/krizaka/orazaka/tools/application/service/RulesetPromotionService.java:83 (18)"
+          ],
+          "NPathComplexity": [
+            "orazaka-tools/src/main/java/com/krizaka/orazaka/tools/domain/model/research/PublicAddresses.java:68 (2480)",
+            "orazaka-adapter-spring-ai/src/main/java/com/krizaka/orazaka/adapter/springai/CoreInfrastructureAutoConfiguration.java:114 (2048)",
+            "orazaka-tools/src/main/java/com/krizaka/orazaka/tools/application/service/LawImportService.java:160 (320)"
+          ],
+          "CognitiveComplexity": [
+            "orazaka-tools/src/main/java/com/krizaka/orazaka/tools/infrastructure/adapter/http/PinnedHttpClient.java:81 (29)",
+            "orazaka-tools/src/main/java/com/krizaka/orazaka/tools/application/service/LawImportService.java:160 (24)",
+            "orazaka-tools/src/main/java/com/krizaka/orazaka/tools/domain/model/law/WorkerRegex.java:137 (20)"
+          ]
+        }
+      }
+    },
+    {
+      "repo": "orazaka-web-client",
+      "sha": "6ae7baf",
+      "ts": {
+        "files": 472,
+        "testFiles": 193,
+        "loc": 36993,
+        "rules": {
+          "@typescript-eslint/prefer-nullish-coalescing": 155,
+          "@typescript-eslint/no-unnecessary-condition": 115,
+          "@typescript-eslint/prefer-optional-chain": 6,
+          "max-depth": 7
+        },
+        "testRules": {
+          "complexity": 2562,
+          "sonarjs/cognitive-complexity": 155,
+          "@typescript-eslint/prefer-nullish-coalescing": 4,
+          "@typescript-eslint/no-unnecessary-condition": 7
+        },
+        "examples": {
+          "@typescript-eslint/prefer-nullish-coalescing": [
+            "next.config.ts:52",
+            "next.config.ts:53",
+            "src/proxy.ts:53",
+            "src/app/api/auth/register/route.ts:14",
+            "src/app/api/auth/register/route.ts:14"
+          ],
+          "@typescript-eslint/no-unnecessary-condition": [
+            "src/app/api/chat/stream/[conversationId]/route.ts:31",
+            "src/app/jobs/jobStats.utils.ts:41",
+            "src/app/jobs/jobStats.utils.ts:53",
+            "src/app/jobs/jobStats.utils.ts:92",
+            "src/app/jobs/jobStats.utils.ts:93"
+          ],
+          "@typescript-eslint/prefer-optional-chain": [
+            "src/core/auth/auth-options.ts:69",
+            "src/core/auth/auth-options.ts:71",
+            "src/features/studio/components/describeChoice.ts:30",
+            "src/features/chat-session/components/ToolMetricsCard.tsx:66",
+            "src/features/studio/components/RunForm.tsx:63"
+          ],
+          "max-depth": [
+            "src/core/hooks/useChatStreamClient.ts:75",
+            "src/core/hooks/useChatStreamClient.ts:77",
+            "src/core/hooks/useChatStreamClient.ts:86",
+            "src/core/hooks/useChatStreamClient.ts:88",
+            "src/core/hooks/useChatStreamClient.ts:97"
+          ]
+        },
+        "top": {
+          "cyclomatic": [
+            "src/features/jobs/utils/jobFacts.ts:130 (38)",
+            "src/features/studio/hooks/useInputSchema.ts:216 (29)",
+            "src/features/studio/components/RunInput.tsx:44 (28)"
+          ],
+          "cognitive": [
+            "src/core/hooks/useChatStreamClient.ts:30 (69)",
+            "src/features/jobs/utils/jobFacts.ts:130 (34)",
+            "src/features/studio/components/RunInput.tsx:44 (29)"
+          ]
+        },
+        "fatal": 30,
+        "cyclomatic": {
+          "count": 2695,
+          "mean": 2.32,
+          "p50": 1,
+          "p95": 7,
+          "max": 38,
+          "over": {
+            "10": 64,
+            "15": 23
+          }
+        },
+        "cognitive": {
+          "count": 868,
+          "mean": 2.65,
+          "p50": 1,
+          "p95": 8,
+          "max": 69,
+          "over": {
+            "15": 10,
+            "25": 4
+          }
+        },
+        "programs": 1
+      },
+      "java": null
+    },
+    {
+      "repo": "yomizaka",
+      "sha": "3722186",
+      "ts": {
+        "files": 673,
+        "testFiles": 307,
+        "loc": 33710,
+        "rules": {
+          "@typescript-eslint/prefer-nullish-coalescing": 18,
+          "@typescript-eslint/prefer-optional-chain": 4,
+          "@typescript-eslint/no-unnecessary-condition": 171
+        },
+        "testRules": {
+          "complexity": 4509,
+          "sonarjs/cognitive-complexity": 443,
+          "@typescript-eslint/no-unnecessary-condition": 31,
+          "@typescript-eslint/prefer-nullish-coalescing": 2,
+          "max-depth": 1
+        },
+        "examples": {
+          "@typescript-eslint/prefer-nullish-coalescing": [
+            "apps/desktop/src/App.tsx:144",
+            "apps/desktop/src/App.tsx:144",
+            "apps/desktop/src/components/Library.tsx:161",
+            "apps/desktop/src/components/Reports.tsx:31",
+            "apps/desktop/src/components/Reports.tsx:53"
+          ],
+          "@typescript-eslint/prefer-optional-chain": [
+            "apps/desktop/src/components/Library.tsx:32",
+            "apps/web/lib/extraction/isolated.ts:83",
+            "apps/web/components/admin/CouponsView.tsx:282",
+            "apps/web/components/admin/CouponsView.tsx:388"
+          ],
+          "@typescript-eslint/no-unnecessary-condition": [
+            "apps/desktop/src/lib/inbox.ts:50",
+            "apps/web/app/active-store.ts:57",
+            "apps/web/app/active-store.ts:59",
+            "apps/web/app/own-s3.ts:15",
+            "apps/web/app/api/admin/orazaka/route.ts:19"
+          ]
+        },
+        "top": {
+          "cyclomatic": [
+            "apps/web/components/console/LibraryView.tsx:43 (25)",
+            "apps/web/app/api/verify/route.ts:38 (23)",
+            "apps/desktop/src/components/Library.tsx:136 (22)"
+          ],
+          "cognitive": [
+            "apps/web/app/api/verify/route.ts:38 (15)",
+            "apps/web/lib/closing-note/readability.ts:24 (15)",
+            "apps/web/lib/images/deskew.ts:63 (15)"
+          ]
+        },
+        "fatal": 5,
+        "cyclomatic": {
+          "count": 4215,
+          "mean": 2.18,
+          "p50": 1,
+          "p95": 7,
+          "max": 25,
+          "over": {
+            "10": 89,
+            "15": 22
+          }
+        },
+        "cognitive": {
+          "count": 1291,
+          "mean": 2.81,
+          "p50": 2,
+          "p95": 9,
+          "max": 15,
+          "over": {
+            "15": 0,
+            "25": 0
+          }
+        },
+        "programs": 5
+      },
+      "java": null
+    },
+    {
+      "repo": "akinaza",
+      "sha": "8cd61e1",
+      "ts": {
+        "files": 662,
+        "testFiles": 305,
+        "loc": 31670,
+        "rules": {
+          "@typescript-eslint/prefer-nullish-coalescing": 69,
+          "@typescript-eslint/no-unnecessary-condition": 81,
+          "@typescript-eslint/prefer-optional-chain": 10,
+          "max-depth": 1
+        },
+        "testRules": {
+          "sonarjs/cognitive-complexity": 445,
+          "complexity": 4289,
+          "@typescript-eslint/prefer-nullish-coalescing": 2,
+          "@typescript-eslint/no-unnecessary-condition": 8
+        },
+        "examples": {
+          "@typescript-eslint/prefer-nullish-coalescing": [
+            "apps/mobile/src/domain/figures.ts:41",
+            "apps/mobile/app/[locale]/app/[shop]/clients.tsx:25",
+            "apps/mobile/src/ui/AppHeader.tsx:29",
+            "apps/web/app/api/shops/[slug]/slots/route.ts:18",
+            "apps/web/app/api/shops/[slug]/slots/route.ts:18"
+          ],
+          "@typescript-eslint/no-unnecessary-condition": [
+            "apps/web/app/api/walker/day/route.ts:15",
+            "apps/web/lib/accounts.ts:17",
+            "apps/web/lib/accounts.ts:18",
+            "apps/web/lib/accounts.ts:19",
+            "apps/web/lib/admin.ts:29"
+          ],
+          "@typescript-eslint/prefer-optional-chain": [
+            "apps/web/lib/access.ts:68",
+            "apps/web/lib/accounts.ts:18",
+            "apps/web/lib/mail.ts:94",
+            "apps/web/app/[locale]/s/[slug]/(public)/service/[id]/slots/page.tsx:26",
+            "apps/web/app/[locale]/s/[slug]/service/[id]/confirm/page.tsx:35"
+          ],
+          "max-depth": [
+            "packages/core/src/service-shop.ts:142"
+          ]
+        },
+        "top": {
+          "cyclomatic": [
+            "apps/web/lib/storefront.ts:177 (40)",
+            "apps/web/lib/host.ts:33 (31)",
+            "packages/db/src/service-shop.ts:145 (31)"
+          ],
+          "cognitive": [
+            "packages/core/src/service-shop.ts:124 (34)",
+            "apps/web/lib/host.ts:33 (29)",
+            "packages/db/src/service-shop.ts:145 (24)"
+          ]
+        },
+        "fatal": 2,
+        "cyclomatic": {
+          "count": 3974,
+          "mean": 2.12,
+          "p50": 1,
+          "p95": 7,
+          "max": 40,
+          "over": {
+            "10": 76,
+            "15": 20
+          }
+        },
+        "cognitive": {
+          "count": 1176,
+          "mean": 2.82,
+          "p50": 2,
+          "p95": 9,
+          "max": 34,
+          "over": {
+            "15": 7,
+            "25": 2
+          }
+        },
+        "programs": 5
+      },
+      "java": null
+    },
+    {
+      "repo": "krizaka-ts",
+      "sha": "3daeba9",
+      "ts": {
+        "files": 309,
+        "testFiles": 110,
+        "loc": 18066,
+        "rules": {
+          "@typescript-eslint/prefer-optional-chain": 3,
+          "@typescript-eslint/prefer-nullish-coalescing": 8,
+          "@typescript-eslint/no-unnecessary-condition": 6
+        },
+        "testRules": {
+          "complexity": 2483,
+          "sonarjs/cognitive-complexity": 189,
+          "@typescript-eslint/no-unnecessary-condition": 1,
+          "@typescript-eslint/prefer-nullish-coalescing": 1
+        },
+        "examples": {
+          "@typescript-eslint/prefer-optional-chain": [
+            "packages/api-keys/src/keys.ts:56",
+            "packages/notifications/src/memory.ts:54",
+            "packages/payments/src/catalogue.ts:53"
+          ],
+          "@typescript-eslint/prefer-nullish-coalescing": [
+            "packages/auth/src/roles.ts:50",
+            "packages/coupons/src/admin.ts:116",
+            "packages/coupons/src/memory.ts:120",
+            "packages/mail/src/mail.ts:84",
+            "packages/payments/src/catalogue.ts:98"
+          ],
+          "@typescript-eslint/no-unnecessary-condition": [
+            "packages/coupons/src/rules.ts:214",
+            "packages/org/src/defaults.ts:97",
+            "packages/organize/src/organize.ts:44",
+            "packages/outbox/src/rules.ts:30",
+            "site/lib/i18n.ts:30"
+          ]
+        },
+        "top": {
+          "cyclomatic": [
+            "packages/storage/src/resolve.ts:37 (28)",
+            "packages/coupons/src/rules.ts:225 (21)",
+            "packages/storage/src/dns-check.ts:8 (21)"
+          ],
+          "cognitive": [
+            "packages/organize/src/config.ts:86 (15)",
+            "packages/organize/src/views.ts:52 (15)",
+            "packages/organize/src/workspace-persistence.ts:135 (15)"
+          ]
+        },
+        "fatal": 1,
+        "cyclomatic": {
+          "count": 2149,
+          "mean": 2.3,
+          "p50": 1,
+          "p95": 7,
+          "max": 28,
+          "over": {
+            "10": 34,
+            "15": 13
+          }
+        },
+        "cognitive": {
+          "count": 762,
+          "mean": 2.54,
+          "p50": 1,
+          "p95": 8,
+          "max": 15,
+          "over": {
+            "15": 0,
+            "25": 0
+          }
+        },
+        "programs": 23
+      },
+      "java": null
+    },
+    {
+      "repo": "krizaka-ui",
+      "sha": "b1fcfa3",
+      "ts": {
+        "files": 2161,
+        "testFiles": 695,
+        "loc": 106530,
+        "rules": {
+          "@typescript-eslint/no-unnecessary-condition": 222,
+          "@typescript-eslint/prefer-nullish-coalescing": 191,
+          "@typescript-eslint/prefer-optional-chain": 7
+        },
+        "testRules": {
+          "complexity": 7095,
+          "@typescript-eslint/no-unnecessary-condition": 15,
+          "sonarjs/cognitive-complexity": 457,
+          "@typescript-eslint/prefer-nullish-coalescing": 5,
+          "max-depth": 3
+        },
+        "examples": {
+          "@typescript-eslint/no-unnecessary-condition": [
+            "apps/site/lib/changelog.ts:37",
+            "apps/site/lib/npm-downloads.ts:29",
+            "apps/site/lib/search-extra.ts:81",
+            "apps/site/lib/ui-catalog.ts:111",
+            "apps/site/lib/ui-catalog.ts:112"
+          ],
+          "@typescript-eslint/prefer-nullish-coalescing": [
+            "apps/site/app/components/I18nProvider.tsx:34",
+            "apps/site/app/components/SiteBar.tsx:38",
+            "apps/storybook/.storybook/test-runner.ts:141",
+            "apps/storybook/.storybook/test-runner.ts:174",
+            "packages/app-client/src/discovery.ts:32"
+          ],
+          "@typescript-eslint/prefer-optional-chain": [
+            "packages/charts/src/core/format.ts:101",
+            "packages/discovery/src/client.ts:169",
+            "packages/realtime/src/presence.ts:158",
+            "packages/ui/src/audio-player/audio-player.tsx:144",
+            "packages/ui/src/document-viewer/document-viewer.tsx:231"
+          ]
+        },
+        "top": {
+          "cyclomatic": [
+            "packages/ui/src/data-table/data-table.tsx:563 (132)",
+            "packages/ui/src/combobox/combobox.tsx:150 (66)",
+            "packages/ui/src/video-player/video-player.tsx:169 (52)"
+          ],
+          "cognitive": [
+            "packages/ui/src/data-table/data-table.tsx:563 (137)",
+            "packages/ui/src/native/avatar.tsx:44 (47)",
+            "packages/charts/src/cartesian/cartesian.tsx:217 (45)"
+          ]
+        },
+        "fatal": 54,
+        "cyclomatic": {
+          "count": 8485,
+          "mean": 2.53,
+          "p50": 1,
+          "p95": 8,
+          "max": 132,
+          "over": {
+            "10": 294,
+            "15": 122
+          }
+        },
+        "cognitive": {
+          "count": 2762,
+          "mean": 3.31,
+          "p50": 2,
+          "p95": 11,
+          "max": 137,
+          "over": {
+            "15": 58,
+            "25": 23
+          }
+        },
+        "programs": 24
+      },
+      "java": null
+    }
+  ]
+}

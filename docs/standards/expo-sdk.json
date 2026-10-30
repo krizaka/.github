@@ -1,0 +1,5 @@
+{
+  "_": "Minimum Expo SDK that builds with the Xcode the App Store requires (ITMS-90725, 2026-10-28: iOS 26 SDK, Xcode 26+). One place; scripts/check-expo-sdk.mjs reads it.",
+  "minimumSdk": 54,
+  "minimumXcode": 26
+}

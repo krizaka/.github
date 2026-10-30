@@ -204,7 +204,7 @@ test("the daily SEO check covers the www addresses and the dev hosts (--redirect
     assert.match(yml, new RegExp(`host: www\\.${p}\\.com,`), `www.${p}.com`);
     assert.match(yml, new RegExp(`host: dev\\.${p}\\.com, args: "--index off --redirects-to https://www\\.${p}\\.com"`), `dev.${p}.com`);
   }
-  for (const p of ["orochia", "yasakia", "yororis", "kachizaka"]) assert.doesNotMatch(yml, new RegExp(`\\.${p}\\.com`), `${p} is paused`);
+  assert.deepEqual([...yml.matchAll(/host: dev\.([a-z]+)\.com/g)].map((m) => m[1]).sort(), ["akinaza", "orazaka", "yomizaka"], "only the three products are checked");
   assert.doesNotMatch(yml, /^\s+- dev\./m, "no dev host is checked as an indexed site");
 });
 
@@ -448,4 +448,49 @@ test("maven.yml: sonar, sonar-light and an always-reporting gate, the release jo
   assert.match(gate.text, /needs: \[changes, verify, sonar, sonar-light\]/);
   assert.match(src, /sonar:\n\s+description:[^\n]*\n\s+required: false\n\s+default: false/);
   assert.match(src, /startsWith\(github\.ref, 'refs\/tags\/v'\)/);
+});
+
+// The reusable workflows all run the SAME repo-layout action (a stale pin once refused `.claude/` in every consumer).
+test("every reusable workflow pins actions/repo-layout to one and the same commit", () => {
+  const pins = new Set();
+  for (const name of [...WORKFLOWS.filter((w) => w !== "mobile-e2e"), "maven"]) {
+    for (const m of read(name).matchAll(/actions\/repo-layout@([0-9a-f]{40}) # main/g)) pins.add(m[1]);
+    assert.match(read(name), /actions\/repo-layout@[0-9a-f]{40} # main/, `${name} runs repo-layout`);
+  }
+  assert.equal(pins.size, 1, `one repo-layout pin, got ${[...pins].join(", ")}`);
+});
+
+// The build-pack actions the reusable workflows call by pin move together: a stale pin kept `npx playwright-core` (not found under pnpm) in every consumer.
+test("the build-pack actions are pinned to one commit across the reusable workflows", () => {
+  const pins = new Set();
+  for (const name of [...WORKFLOWS.filter((w) => w !== "mobile-e2e"), "maven"]) {
+    for (const m of read(name).matchAll(/krizaka\/\.github\/actions\/(?:setup|build|after-build|test|quality|detect)@([0-9a-f]{40}) # main/g)) pins.add(m[1]);
+  }
+  assert.ok(pins.size >= 1);
+  assert.equal(pins.size, 1, `one pin for the build pack, got ${[...pins].join(", ")}`);
+});
+
+test("node-ci runs the repository's format:check with the lint step, opt-in by `format-script` (krizaka/.github#427)", () => {
+  const src = read("node-ci");
+  assert.match(src, /\n {6}format-script:\n(?: {8}.*\n)*? {8}default: ""\n/);
+  const step = src.slice(src.indexOf("- name: Format (prettier --check)"));
+  assert.match(step, /if: \$\{\{ inputs\.format-script != '' && \(matrix\.task == 'all' \|\| matrix\.task == 'lint'\) \}\}/);
+  assert.match(step, /run: '"\$PM" run "\$SCRIPT"'/);
+  // The parallel plan still makes a lint leg when only the format script is set.
+  assert.match(src, /\{ \[ -n "\$LINT" \] \|\| \[ -n "\$FORMAT" \]; \} && tasks\+=\(lint\)/);
+});
+
+test("org CI throughput: the shared visual regression is gated by changes.yml and skips the merge queue; the security scan cancels superseded PR runs and skips the queue", () => {
+  const visual = read("visual-regression");
+  assert.match(visual, /\n {6}relevant:\n(?: {8}.*\n)*? {8}default: "\."\n/);
+  assert.match(visual, /\n {6}ignore:\n(?: {8}.*\n)*? {8}default: ""\n/);
+  assert.match(visual, /\n {6}on-merge-group:\n(?: {8}.*\n)*? {8}default: false\n/);
+  assert.match(visual, /uses: krizaka\/\.github\/\.github\/workflows\/changes\.yml@[0-9a-f]{40}/);
+  const job = jobs(visual).find((j) => j.id === "visual").text;
+  assert.match(job, /needs: changes/);
+  assert.match(job, /if: \$\{\{ !cancelled\(\) && \(inputs\.update \|\| \(needs\.changes\.outputs\.code != 'false' && \(github\.event_name != 'merge_group' \|\| inputs\.on-merge-group\)\)\) \}\}/);
+
+  const scan = read("security-scan");
+  assert.match(scan, /group: security-scan-\$\{\{ github\.repository \}\}-\$\{\{ github\.event\.pull_request\.number \|\| github\.ref \}\}\n {2}cancel-in-progress: \$\{\{ github\.event_name == 'pull_request' \}\}/);
+  for (const j of jobs(scan)) assert.match(j.text, /if: \$\{\{ github\.event_name != 'merge_group' \}\}/, `${j.id} skipped in the merge queue`);
 });

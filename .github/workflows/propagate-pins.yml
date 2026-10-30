@@ -1,0 +1,54 @@
+# A fix in a reusable workflow or composite action reaches every consumer without hand edits: after it lands on main,
+# one pull request per repository moves the `krizaka/.github/...@<sha> # main` pins to the new commit
+# (scripts/propagate-pins.mjs). Dependabot cannot do it: it only moves pins that follow a tag.
+name: Propagate workflow pins
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/*.yml"
+      - "actions/**"
+  workflow_dispatch:
+    inputs:
+      source:
+        description: "The repository whose pins move (.github, or orazaka for the component.yml pins of the orazaka-* repositories)"
+        default: ".github"
+      sha:
+        description: "The commit the pins move to (default: this ref's head; for orazaka, its main sha)"
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: propagate-pins
+  cancel-in-progress: false
+
+jobs:
+  propagate:
+    # The workflow that changed is the one that is propagated: skip this file's own edits.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - id: app
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: krizaka # zizmor: ignore[github-app] one pull request in every active repository of the org, by design
+          permission-contents: write
+          permission-pull-requests: write
+          permission-workflows: write
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Open one pull request per repository
+        run: node scripts/propagate-pins.mjs "${INPUT_SHA:-$GITHUB_SHA}" --source "${INPUT_SOURCE:-.github}"
+        env:
+          INPUT_SHA: ${{ inputs.sha }}
+          INPUT_SOURCE: ${{ inputs.source }}
+          GH_TOKEN: ${{ steps.app.outputs.token }}

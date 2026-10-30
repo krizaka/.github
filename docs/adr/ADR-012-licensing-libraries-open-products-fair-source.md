@@ -18,7 +18,7 @@ Every repository of the `krizaka` org is public and Apache-2.0, the products inc
 
 | Repository | Why it stays open |
 | :--- | :--- |
-| `krizaka-ui`, `krizaka-ts`, `krizaka-build`, `krizaka-platform-kit`, `krizaka-tauri-kit`, `krizaka-motion` | Adoption; Background IP of every services mandate |
+| `krizaka-ui`, `krizaka-ts`, `krizaka-build`, `krizaka-platform-kit`, `krizaka-tauri-kit`, `krizaka-lab` (formerly krizaka-motion) | Adoption; Background IP of every services mandate |
 | `krizaka-billing`, `krizaka-users`, `krizaka-notifications`, `krizaka-accounts` | Building blocks named in the services contract (ip-split.md) or shared by every product |
 | `orazaka-packs`, `orazaka-contracts`, `orazaka-cli`, `orazaka-ui-kit`, `orazaka-build`, `orazaka-edge` | The pack format, the API contracts, the CLI and the parent: what an integrator or a client needs to call Orazaka; `orazaka-packs` is Background IP |
 | `template-*`, `krizaka-com`, `krizaka-blog`, `krizaka-infra`, `.github` | Templates, sites and governance; their content is covered by the trademark policy |
