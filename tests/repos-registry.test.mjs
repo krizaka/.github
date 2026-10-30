@@ -58,7 +58,7 @@ test("kind: root files first, then topics, then the role", () => {
 test("the generator keeps a private repository of the standard, and reports drift field by field", () => {
   const std = new Map([
     ["akinaza", { role: "Main product repository", status: "Complies", renameTo: null, foldInto: null }],
-    ["krizaka-qa", { role: "Internal end-to-end scenarios (private)", status: "Complies", renameTo: null, foldInto: null }],
+    ["krizaka-internal", { role: "Private issues and notes", status: "Complies", renameTo: null, foldInto: null }],
   ]);
   const next = buildRegistry({
     repositories: [{ name: "akinaza", archived: false, visibility: "public", topics: ["nextjs"] }],
@@ -68,7 +68,7 @@ test("the generator keeps a private repository of the standard, and reports drif
   });
   assert.deepEqual(next.map((r) => [r.name, r.kind, r.deploy, r.archived, r.visibility]), [
     ["akinaza", "app", ["akinaza-dev"], false, "public"],
-    ["krizaka-qa", "none", [], null, "private"],
+    ["krizaka-internal", "none", [], null, "private"],
   ]);
   assert.deepEqual(drift(next, next), []);
   const archived = next.map((r) => (r.name === "akinaza" ? { ...r, archived: true } : r));

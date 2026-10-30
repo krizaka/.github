@@ -24,7 +24,7 @@ the product's address, mark and message keys. The org already learned that « ke
    - `/settings`: language, theme, notifications, about and sign-out rows.
 2. **A product keeps only what is its own**: its screens, its domain client types and its messages. It passes configuration,
    never overrides internals. Adapters (storage, push) are ports with a default; a vendor is configuration.
-3. **`krizaka/template-expo-app` only wires**: `app.config.js`, `eas.json` (development, preview, production), `.maestro/`,
+3. **`krizaka/template-expo-app` only wires** (repository deleted 2026-10-30, krizaka-internal#752: no app was made from it; backup bundle kept, recreated with the next Expo app): `app.config.js`, `eas.json` (development, preview, production), `.maestro/`,
    `app-links.json`, `.github/workflows/ci.yml` (thin over `expo-ci`), `scripts/init.mjs <slug> "<Name>"`, i18n skeleton. No logic.
    `check-app-links` is shipped as the package's `bin` (`krizaka-check-app-links`), the copies are deleted.
 4. **Where an app lives**: a product's mobile app lives in its monorepo (`apps/mobile`) per #72 (Yomizaka, Akinaza). Existing
