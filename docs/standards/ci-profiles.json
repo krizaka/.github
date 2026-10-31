@@ -1,0 +1,98 @@
+{
+  "_": "Repository profiles of the shared CI (ADR-018). A profile gives a repository its default set of workflows and its speed budgets; a repository may tune them (inputs) but a workflow that pushes it over budget is the workflow's bug. Read by scripts/ci-speed.mjs (the weekly speed report) and checked by tests/ci-speed.test.mjs (every active repository of repos.json has a profile).",
+  "budgets": {
+    "_": "Minutes of feedback, measured at the 90th percentile over seven days: first run started to last run finished for one head commit and one event.",
+    "pull_request": 10,
+    "merge_group": 15
+  },
+  "profiles": {
+    "library": {
+      "for": "A published package (npm, Maven Central, crates): its tests and its release.",
+      "workflows": ["ci-node | ci-java", "security-scan", "deps-automerge", "release-notes"],
+      "optional": ["ui-visual", "docs-site"]
+    },
+    "app-web": {
+      "for": "A web app deployed from main: build, image, visual and accessibility checks, films from its journeys.",
+      "workflows": ["ci-node", "ui-visual", "ui-a11y", "security-scan", "deps-automerge", "deploy-watch", "media-films"],
+      "optional": ["seo-post-deploy"]
+    },
+    "app-mobile": {
+      "for": "An Expo app: lint, types, tests side by side, Maestro journeys when the app's files changed, EAS on a tag.",
+      "workflows": ["ci-expo", "mobile-e2e", "security-scan", "deps-automerge"],
+      "optional": ["media-films"]
+    },
+    "app-desktop": {
+      "for": "A Tauri app: the check and the unsigned build on a pull request, signing on main or a tag only.",
+      "workflows": ["desktop-macos", "security-scan", "deps-automerge"],
+      "optional": ["media-films"]
+    },
+    "java-service": {
+      "for": "A Spring service: Maven verify, its image (buildpack), SonarCloud.",
+      "workflows": ["ci-java", "security-scan", "deps-automerge"],
+      "optional": ["release-notes"]
+    },
+    "worker": {
+      "for": "A Python or GPU worker: lint and tests side by side; the image only when its files changed.",
+      "workflows": ["ci-python", "security-scan", "deps-automerge"],
+      "optional": []
+    },
+    "site": {
+      "for": "A public site: build and SEO contract before the merge, the live checks after the deploy.",
+      "workflows": ["ci-node", "seo-post-deploy", "security-scan", "deps-automerge"],
+      "optional": ["ui-visual"]
+    },
+    "docs": {
+      "for": "A documentation site built from its repository: build, links, SEO.",
+      "workflows": ["docs-site", "seo-post-deploy"],
+      "optional": []
+    },
+    "infra": {
+      "for": "OpenTofu modules: fmt, validate, test; never apply from CI.",
+      "workflows": ["ci-auto", "security-scan", "deps-automerge"],
+      "optional": []
+    },
+    "org": {
+      "for": "The organisation's own tooling repositories.",
+      "workflows": ["security-scan", "deps-automerge"],
+      "optional": []
+    }
+  },
+  "repos": {
+    ".github": ["org"],
+    "akinaza": ["app-web", "app-mobile"],
+    "krizaka-accounts": ["java-service"],
+    "krizaka-billing": ["java-service"],
+    "krizaka-blog": ["site"],
+    "krizaka-build": ["library", "docs"],
+    "krizaka-com": ["site"],
+    "krizaka-infra": ["infra"],
+    "krizaka-lab": ["library"],
+    "krizaka-notifications": ["java-service"],
+    "krizaka-platform-kit": ["library"],
+    "krizaka-qa": ["org"],
+    "krizaka-tauri-kit": ["library"],
+    "krizaka-ts": ["library"],
+    "krizaka-ui": ["library", "docs"],
+    "krizaka-users": ["java-service"],
+    "orazaka": ["java-service"],
+    "orazaka-ai-engine": ["library"],
+    "orazaka-automation-service": ["java-service"],
+    "orazaka-build": ["library"],
+    "orazaka-cli": ["library"],
+    "orazaka-contracts": ["library"],
+    "orazaka-conversation-service": ["java-service"],
+    "orazaka-edge": ["java-service"],
+    "orazaka-job-service": ["java-service"],
+    "orazaka-knowledge-service": ["java-service"],
+    "orazaka-mobile-client": ["app-mobile"],
+    "orazaka-packs": ["worker"],
+    "orazaka-studio": ["java-service"],
+    "orazaka-ui-kit": ["library"],
+    "orazaka-web-client": ["app-web"],
+    "orazaka-worker-media": ["worker"],
+    "template-expo-app": ["app-mobile"],
+    "template-next-app": ["app-web"],
+    "template-tauri-app": ["app-desktop"],
+    "yomizaka": ["app-web", "app-mobile", "app-desktop"]
+  }
+}
