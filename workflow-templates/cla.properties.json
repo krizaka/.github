@@ -1,0 +1,6 @@
+{
+  "name": "Krizaka CLA",
+  "description": "The Contributor Licence Agreement check of a Krizaka product repository (ADR-012).",
+  "iconName": "octicon law",
+  "categories": ["Automation"]
+}
