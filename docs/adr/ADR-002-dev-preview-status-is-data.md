@@ -2,7 +2,7 @@
 
 - **Status**: Accepted
 - **Date**: 2026-10-16
-- **Scope**: every product (Orazaka, Orochia, Yomizaka, Yasakia, Yororis, Kachizaka, Akinaza) and krizaka.com
+- **Scope**: every product (Orazaka, a former product, Yomizaka, the former products, Akinaza) and krizaka.com
 - **Standard**: [docs/standards/dev-preview.md](../standards/dev-preview.md)
 
 ## Context
@@ -24,7 +24,7 @@ construction » by assertion. Nothing tied the words to what runs. Oussama's goa
 ## Consequences
 
 - A product loses the badge the day its evidence goes stale or a check fails: honest by construction.
-- Orochia (the reference) and Orazaka showed the badge before this ADR: a **time-boxed waiver** (until 2026-11-01, in
+- a former product (the reference) and Orazaka showed the badge before this ADR: a **time-boxed waiver** (until 2026-11-01, in
   `lib/dev-preview.ts`) lets them keep it while their gaps close; the test fails when it expires.
 - Cost: one JSON file per repository and a few HTTP calls at build.
 

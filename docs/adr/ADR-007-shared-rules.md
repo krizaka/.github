@@ -11,10 +11,10 @@
 The code rules of the organisation exist, and they work. They are spread across the repositories as copies. Measured on `main` of the 44 repositories on 2026-10-23:
 - **Ten repositories carry the same ast-grep setup.**
   - The `sgconfig.yml` files are 10 copies with 1 content.
-  - There are 149 rule files with 46 contents. **The rule bodies are the same; only their `files:`/`ignores:` globs differ**, because each repository's layout differs. Orochia also changes two message lines.
+  - There are 149 rule files with 46 contents. **The rule bodies are the same; only their `files:`/`ignores:` globs differ**, because each repository's layout differs. a former product also changes two message lines.
   - There are 139 rule tests with 17 contents.
   - `sg-ratchet.mjs` and `sg-fix.mjs` are in 10 copies each; krizaka-com's differs by one line, an eslint-disable comment.
-- **`check-seo-family.mjs`, « copied unchanged into each repository », has drifted.** Nine copies have 255 lines and four have 235, 34 lines apart: orazaka-web-client, yasakia, yomizaka and yororis.
+- **`check-seo-family.mjs`, « copied unchanged into each repository », has drifted.** Nine copies have 255 lines and four have 235, 34 lines apart: orazaka-web-client, a former product, yomizaka and a former product.
 - **About 8,400 lines are exact repeats** across these pieces, without counting the agent files.
 - **ESLint and dependency-cruiser are already shared** through `@krizaka/config` (krizaka-ui `packages/config`). It holds the flat configs, `krizakaStack()`, the dependency-cruiser boundary and the `krizaka-ratchet` bin. The 15 repositories that use it pin anywhere from `^0.1.0` to `^0.7.0`.
 - **Java has two rule libraries.**
@@ -80,6 +80,6 @@ The code rules of the organisation exist, and they work. They are spread across 
 - **One package carries more.** `@krizaka/config` gets ast-grep, its rules, and five bins. Its version spread (0.1 to 0.7 today) is the first thing the migration fixes: every pilot moves to the release that ships the rules.
 - **One generated folder per repository** (`.krizaka/ast-grep/`, git-ignored), rebuilt by `sync`. A stale copy fails `sync --check` in `lint`.
 - **A rule change reaches every repository through a version bump,** never through 10 copies. Renovate opens the PR, and a new rule asks for its baseline in that PR.
-- **Repositories without ast-grep get the rules by declaring a profile.** That covers the mobile apps, orazaka-ui-kit, orochia-design-system, orazaka-cli, krizaka-blog, krizaka-lab (formerly krizaka-motion) and yororis. They start at their current counts.
+- **Repositories without ast-grep get the rules by declaring a profile.** That covers the mobile apps, orazaka-ui-kit, a former repository, orazaka-cli, krizaka-blog, krizaka-lab (formerly krizaka-motion) and a former product. They start at their current counts.
 - **The Java move touches the governance tests of the Orazaka services.** Each one keeps its frozen store, so no violation appears or disappears.
 - **Not decided here:** moving `@krizaka/config` out of krizaka-ui (it stays); a shared Python rule set (not needed yet); the CI pack itself (#113).

@@ -1,13 +1,13 @@
 # ADR-008: Native video — server-signed Bunny Stream behind `@krizaka/ui/native`, the Bunny React Native SDK only after a trial
 
-- **Status:** proposed (2026-10-23), design only. The trial waits: Orochia, its first user, is paused (coordinator, 2026-10-23).
-- **Issue:** krizaka/orochia-mobile#88. Epic krizaka/.github#179 (native apps).
+- **Status:** proposed (2026-10-23), design only. The trial waits: a former product, its first user, is paused (coordinator, 2026-10-23).
+- **Issue:** a former product's issue. Epic krizaka/.github#179 (native apps).
 - **Deciders:** Oussama (suggested `@bunny.net/stream-react-native`), then the CTO.
 - **Numbering:** ADR-006 is #197 (open), ADR-007 is #217; this one takes ADR-008.
 
 ## Context
 
-Orochia's phone app plays and uploads creators' videos; Akinaza's shop walls will play reels (akinaza#234). Both are
+a former product's phone app plays and uploads creators' videos; Akinaza's shop walls will play reels (akinaza#234). Both are
 Expo apps (ADR-004). `@krizaka/ui/native` already ships a player: `native/video-player` and `native/vertical-video`, on
 `expo-video` (an optional peer), which plays MP4 and HLS from a URL with optional headers. The web keeps its own player.
 
@@ -59,7 +59,7 @@ private playback with an **embed view token signed by the server** (client-side 
      server-presigned credentials, with no library key in the app (v1.0.0 fails this point before any device is touched;
      the upload part of the trial waits for a release that passes it, the playback part may run alone).
    A failed point keeps `expo-video` and a JS TUS client behind the same port; nothing else changes.
-5. **Libraries per product and environment.** Orochia uses its own Stream library (`orochia-dev`, krizaka-com AGENTS §5.2);
+5. **Libraries per product and environment.** a former product uses its own Stream library (a retired export, krizaka-com AGENTS §5.2);
    Akinaza gets its own when its reels ship. Which library is configuration read by the backend, per environment, that the
    admin sees. The library **id** is not a secret, and the native adapter cannot do without it (`initialize`, a player's
    `source.libraryId`, the upload options all take it): the backend returns it with what it signs — `{ libraryId, videoId,

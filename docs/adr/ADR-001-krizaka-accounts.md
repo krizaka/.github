@@ -3,7 +3,7 @@
 - **Status**: Accepted (the runtime waits on Oussama's cost approval, see *Cost*)
 - **Date**: 2026-10-16
 - **Scope**: the sign-in standard of the family ([krizaka/.github#76](https://github.com/krizaka/.github/issues/76)):
-  every product but Orochia (Orazaka web/mobile/Mac, Yomizaka, Yasakia, Yororis, Kachizaka, Akinaza and their admin
+  every product but a former product (Orazaka web/mobile/Mac, Yomizaka, the former products, Akinaza and their admin
   consoles) and Krizaka's own accounts for the krizaka.com properties, whose first consumer is blog.krizaka.com.
   Amended 2026-10-16 (wider scope, account linking by verified e-mail, native PKCE, `SignInProviders`).
 - **Update 2026-10-30 (krizaka-internal#752)**: the `krizaka-accounts` repository held no code and was deleted; its design moved to `krizaka-users/docs/adr/ADR-001-accounts.md`, and the host is recreated (or added as a module of `krizaka-users`) when accounts.krizaka.com is approved.
@@ -15,7 +15,7 @@
 blog.krizaka.com is Krizaka's own voice, not a product. Readers should be able to share a post, save it, comment and
 get replies, so the people who come once come back. Signing in with GitHub, Google, Apple or Facebook creates a
 **Krizaka account**: one per person for the krizaka.com properties, separate from every product's users (Orazaka,
-Orochia… keep theirs; House of Brands, addendum 2026-10-15). Oussama asked for a dedicated, reusable module ("like
+a former product… keep theirs; House of Brands, addendum 2026-10-15). Oussama asked for a dedicated, reusable module ("like
 Passport, with a thin Krizaka layer"), on the existing PostgreSQL cluster `krizaka-dev-pg`, with its own database.
 
 What exists:
@@ -96,7 +96,7 @@ does not depend on the server, so swapping the server does not touch the blog's 
 
 One implementation, many deployments. **The code is shared, the identities are not** (House of Brands): each
 product runs krizaka-users (embedded or as its service) with **its own database and its own OAuth apps**; a person
-who uses Orazaka and the blog has two unrelated accounts. Orochia keeps its own flow (age gating).
+who uses Orazaka and the blog has two unrelated accounts. a former product keeps its own flow (age gating).
 
 1. **Providers, in this order everywhere**: Apple, Google, GitHub, Facebook — then e-mail (magic link or password)
    and passkeys where cheap. On a developer-facing surface (the blog, Krizaka UI/Java sites, Orazaka's console)
@@ -124,7 +124,7 @@ who uses Orazaka and the blog has two unrelated accounts. Orochia keeps its own 
    `https://<product's auth host>/api/v1/auth/web/<provider>/callback`. The click-by-click steps for each product's
    OAuth apps are in its wiring issue (label `dev-preview`, org project 4).
 8. **Where it runs for the TypeScript products.** Orazaka already runs krizaka-users (a JVM of its `core`). Yomizaka,
-   Yasakia, Kachizaka and Akinaza have hand-built Node auth on their own databases. Options measured against the
+   the former products and Akinaza have hand-built Node auth on their own databases. Options measured against the
    cost gate: a JVM per product (≈ 290 MiB each, $5/month × 4 = $20/month — refused without Oussama); a TypeScript port
    (two implementations of the same rules — refused); **one multi-tenant krizaka-users** (chosen): the
    accounts.krizaka.com service gains *tenants* — per tenant its own database (the product's existing database and
