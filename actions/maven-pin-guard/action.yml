@@ -1,0 +1,13 @@
+# Fail BEFORE the tag when the repository's pin of the org maven.yml predates the permissions fix (be08be83): the release
+# deploy would get a 403 after the tag exists, and a pushed tag is protected (dead). First step of release-please.yml.
+name: maven-pin-guard
+description: Refuse to release when a workflow pins a maven.yml that cannot write to GitHub Packages.
+author: Krizaka
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: node "${{ github.action_path }}/../../scripts/check-maven-pin.mjs" "${GITHUB_REPOSITORY#*/}"
+      env:
+        GH_TOKEN: ${{ github.token }}
