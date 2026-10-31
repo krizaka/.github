@@ -51,6 +51,30 @@ jobs:
       - name: Scan (values are redacted; the repository's own .gitleaks.toml is never read)
         run: gitleaks git --redact --no-banner -v --config .krizaka-guards/actions/security-tools/gitleaks.toml .
 
+  # No co-author trailer in any commit (founder 2026-10-31: a made-up trailer e-mail listed a stranger as a contributor).
+  # On a pull request: its own commits. In the merge queue: the squash commit itself, so a squash message cannot add one.
+  trailers:
+    name: commit trailers
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/.github
+          ref: ${{ inputs.guards-ref }}
+          path: .krizaka-guards
+          persist-credentials: false
+      - name: No Co-authored-by line in the commits
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+          HEAD: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
+        run: node .krizaka-guards/scripts/check-trailers.mjs "$BASE" "$HEAD"
+
   zizmor:
     name: zizmor (workflows)
     runs-on: ubuntu-latest
