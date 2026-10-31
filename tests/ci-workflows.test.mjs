@@ -439,10 +439,10 @@ for (const name of ["node-ci", "java-ci"]) {
 }
 
 // maven.yml (the Central-published JVM repositories) carries the same Sonar legs and an always-reporting gate as java-ci.yml.
-test("maven.yml: sonar, sonar-light and an always-reporting gate, the release job kept", () => {
+test("maven.yml: sonar, sonar-light and an always-reporting gate, the release jobs kept (one per registry)", () => {
   const src = read("maven");
   const ids = jobs(src).map((j) => j.id);
-  for (const id of ["changes", "verify", "sonar", "sonar-light", "gate", "release"]) assert.ok(ids.includes(id), `job ${id}`);
+  for (const id of ["changes", "verify", "sonar", "sonar-light", "gate", "registry", "release-github", "release-central"]) assert.ok(ids.includes(id), `job ${id}`);
   const gate = jobs(src).find((j) => j.id === "gate");
   assert.match(gate.text, /if: \$\{\{ always\(\) \}\}/);
   assert.match(gate.text, /needs: \[changes, verify, sonar, sonar-light\]/);

@@ -34,3 +34,11 @@
 `.github` at 0 open PRs (this ADR, the `maven.yml` release job) → `krizaka-build` (it holds `krizaka-parent`) →
 `krizaka-platform-kit` → `krizaka-users`, `krizaka-notifications`, `krizaka-billing` → the Orazaka services. One fan-out
 pull request per repository.
+
+## Registry as configuration (implemented)
+
+The registry is the `registry` input of the org `maven.yml`: `central` (the default until a repository moves), `github`, or a list (`"github,central"`). A
+release tag deploys once per value (`release-github` with `packages: write` and the workflow token; `release-central`
+signs and uploads to the Portal, behind the `maven-central` environment). `verify` parses the value on every pull request
+(an unknown value fails there) and dry-runs the GitHub deployment into a local folder, so each value's release path is
+exercised before a tag. Switching registry is therefore this input plus a release. Tests: `scripts/maven-registry.test.mjs`.
