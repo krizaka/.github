@@ -16,7 +16,9 @@ import { gunzipSync } from "node:zlib";
 import { problemsOf } from "./agents-md.mjs";
 
 const HERE = new URL("../", import.meta.url);
-export const CHECK_TYPES = ["workflow-calls", "workflow-matches", "workflow-forbids", "file-exists", "file-matches", "manifests-forbid", "no-mention", "published-no-mention", "all-of", "any-of", "agents-template", "required-check", "merged-result", "required-profile"];
+import { jobsWithoutTimeout, configWithoutTestTimeout, nodeTestWithoutTimeout } from "./check-timeouts.mjs";
+const TEST_CONFIG = /(^|\/)((playwright|vitest|jest)\.config\.[cm]?[jt]s|junit-platform\.properties)$/;
+export const CHECK_TYPES = ["workflow-calls", "workflow-matches", "workflow-forbids", "file-exists", "file-matches", "manifests-forbid", "no-mention", "published-no-mention", "all-of", "any-of", "agents-template", "required-check", "merged-result", "required-profile", "time-limits"];
 export const FIX_TYPES = ["copy", "append-section", "settings-hook", "agents-template", "manual"];
 const WORKFLOW_PATH = /^\.github\/workflows\/[^/]+\.ya?ml$/;
 const CALL = /uses:\s*krizaka\/(?:\.github|orazaka)\/\.github\/workflows\/([\w.-]+\.ya?ml)@/g;
@@ -70,6 +72,7 @@ function checkShape({ id, check = {} }) {
     "any-of": () => composite(check),
     "required-check": () => Boolean(check.context),
     "merged-result": () => true,
+    "time-limits": () => true,
     "required-profile": () => Boolean(check.byKind && Object.values(check.byKind).every((gs) => Array.isArray(gs) && gs.every((g) => g.name && g.pattern))),
   };
   return needs[check.type]?.() === false ? [`${id}: the ${check.type} check is incomplete`] : [];
@@ -182,6 +185,22 @@ const CHECKS = {
     if (!snap.requiredChecks) return { ok: true, why: "" };
     const required = await snap.requiredChecks();
     return verdict(required.includes(check.context), `« ${check.context} » is not a required check on main`);
+  },
+  // Time limits everywhere (krizaka-internal#2007): every workflow job has `timeout-minutes` (a job that only calls a reusable workflow is exempt),
+  // every test config has a per-test timeout, `node --test` scripts carry --test-timeout. A longer value is fine; none is not.
+  "time-limits": async (_check, snap) => {
+    for (const p of snap.paths) {
+      if (WORKFLOW_PATH.test(p)) {
+        const missing = jobsWithoutTimeout((await snap.read(p)) ?? "");
+        if (missing.length) return { ok: false, why: `${p}: job \`${missing[0].job}\` has no timeout-minutes` };
+      } else if (TEST_CONFIG.test(p)) {
+        const why = configWithoutTestTimeout(p, (await snap.read(p)) ?? "");
+        if (why) return { ok: false, why: `${p}: ${why}` };
+      } else if (/(^|\/)package\.json$/.test(p) && !/node_modules/.test(p) && nodeTestWithoutTimeout((await snap.read(p)) ?? "")) {
+        return { ok: false, why: `${p}: \`node --test\` without --test-timeout` };
+      }
+    }
+    return { ok: true, why: "" };
   },
   // The merged result is tested (krizaka-internal#2000): a merge queue, or branch protection that requires the branch up to date (`strict`).
   // `mergeGuard` is absent offline: nothing to prove.
