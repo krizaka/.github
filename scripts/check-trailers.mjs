@@ -31,7 +31,11 @@ export function parseLog(raw) {
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const [base, head] = process.argv.slice(2);
-  const raw = execFileSync("git", ["log", "--format=%H%x00%B%x1e", `${base}..${head}`], { encoding: "utf8" });
+  const raw = execFileSync("git", ["log", "--format=%H%x00%B%x1e", `${base}..${head}`], {
+    encoding: "utf8",
+    // Fixed system directories only, never a search path inherited from the caller (Sonar S4036).
+    env: { ...process.env, PATH: "/usr/bin:/bin:/usr/local/bin:/opt/homebrew/bin" },
+  });
   const problems = trailerProblems(parseLog(raw));
   for (const p of problems) console.log(`::error::${p}`);
   console.log(problems.length ? `${problems.length} commit(s) with a co-author trailer` : "no co-author trailer");
