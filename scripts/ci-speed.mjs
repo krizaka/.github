@@ -141,7 +141,7 @@ async function main() {
     if (batch.length < 100) break;
   }
   const rows = [];
-  for (const repo of repos.map((r) => r.name).sort()) {
+  for (const repo of repos.map((r) => r.name).sort((a, b) => a.localeCompare(b))) {
     const runs = [];
     for (const event of EVENTS) runs.push(...(await runsOf(org, repo, event, since)));
     rows.push(...measure(repo, runs, cfg));
