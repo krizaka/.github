@@ -24,7 +24,7 @@ test("workflowJobs reads the id, name and needs of each top-level job", () => {
 
 test("ciJobs lists every job of the shared workflows, a matrix name as « one check per matrix leg »", () => {
   const out = ciJobs();
-  for (const job of ["verify", "sonar", "sonar-light", "gate", "release"]) assert.match(out, new RegExp(`\`${job}\``));
+  for (const job of ["verify", "sonar", "sonar-light", "gate", "release-github", "release-central"]) assert.match(out, new RegExp(`\`${job}\``));
   assert.match(out, /one check per matrix leg/);
   assert.doesNotMatch(out, /\$\{\{/);
 });
