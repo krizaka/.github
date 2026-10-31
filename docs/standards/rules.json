@@ -418,6 +418,7 @@
       "applies": { "kinds": ["npm", "site", "app", "maven", "python", "rust", "iac"] },
       "check": { "type": "agents-template" },
       "fix": { "type": "agents-template" }
-    }
+    },
+    {"id": "fail-closed-sg", "title": "Fail-closed ast-grep rules in the sg ratchet: no-fail-open-secret, no-bare-skip, no-unchecked-sent-log, no-swallowed-catch-success (@krizaka/config ast-grep core; a check never passes without proof)", "issue": "krizaka/krizaka-internal#1972", "applies": {"when": [{"fileExists": "sg-ratchet.json"}]}, "check": {"type": "file-matches", "path": "sg-ratchet.json", "pattern": "no-fail-open-secret"}, "fix": {"type": "manual", "note": "bump @krizaka/config to the release with the fail-closed rules, add \"*.mjs\" to the Tsx languageGlobs of sgconfig.yml, then `npx krizaka-sg-ratchet --update`; fix the hits (a secret read as an empty string, a bare skip, a swallowed catch) rather than recording them where they are cheap"}}
   ]
 }
