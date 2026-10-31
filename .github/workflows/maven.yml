@@ -407,6 +407,11 @@ jobs:
     if: needs.registry.outputs.github == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # A tag push and a workflow_dispatch can both reach this job for the same tag: one at a time per tag, so the second one finds
+    # the version published and says so (step "Already published?") instead of failing 409 on a race.
+    concurrency:
+      group: release-github-${{ github.repository }}-${{ github.ref_name }}
+      cancel-in-progress: false
     # No `permissions:` on purpose (nor at the top of the file): a reusable workflow cannot ask for more than its caller grants, and asking for
     # `packages: write` here would stop every caller that stays on `central` (startup failure). A repository that
     # chooses `github` grants `packages: write` on its `maven` job (read is enough for pull requests).
@@ -443,8 +448,37 @@ jobs:
             echo "::error::a SNAPSHOT version is left after setting ${version}"; exit 1
           fi
 
+      # A check, not a silent pass: the root POM of this version is looked up on the registry. Absent: deploy. Present with the
+      # checksum of the POM built here: nothing to do, said in the log. Present with another checksum: fail (a published
+      # version is never replaced; release a new one).
+      - name: Already published?
+        id: published
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          group="$(./mvnw -B -q -ntp -N help:evaluate -Dexpression=project.groupId -DforceStdout)"
+          artifact="$(./mvnw -B -q -ntp -N help:evaluate -Dexpression=project.artifactId -DforceStdout)"
+          url="https://maven.pkg.github.com/${REPOSITORY}/${group//./\/}/${artifact}/${version}/${artifact}-${version}.pom"
+          code="$(curl -s -o /tmp/remote.pom.sha1 -w '%{http_code}' -u "x-access-token:${GITHUB_TOKEN}" "${url}.sha1")"
+          case "$code" in
+            404) echo "published=false" >> "$GITHUB_OUTPUT"; echo "${artifact} ${version} is not on the registry yet: deploying" ;;
+            200)
+              remote="$(cut -c1-40 /tmp/remote.pom.sha1)"
+              local_sum="$(sha1sum pom.xml | cut -c1-40)"
+              if [ "$remote" = "$local_sum" ]; then
+                echo "published=true" >> "$GITHUB_OUTPUT"
+                echo "already published, same checksum (${artifact} ${version}, sha1 ${local_sum}): nothing to deploy"
+              else
+                echo "::error::${artifact} ${version} is already published with another checksum (registry ${remote}, built here ${local_sum}); a published version is never replaced, release a new one"; exit 1
+              fi ;;
+            *) echo "::error::the registry answered HTTP ${code} for ${url}.sha1"; exit 1 ;;
+          esac
+
       # Sources and javadoc jars (profile release), no signature, no Central plugin (profile registry-central). Tests ran in `verify` on this commit.
       - name: Deploy
+        if: steps.published.outputs.published != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPOSITORY: ${{ github.repository }}
