@@ -16,7 +16,8 @@ exception: it is named after the product alone, with no role suffix.
 - **Shared repositories:** `krizaka-ui` (all design kits are packages there), `krizaka-ts`, `krizaka-build` (Java),
   `krizaka-com` (company site), `krizaka-blog`, `krizaka-infra` (IaC), `krizaka-lab` (the family lab) (no end-to-end repository: journeys live in each product, `e2e/journeys`); or
   `krizaka-<capability>` for a shared service. The current capabilities are `billing`,
-  `users`, `platform` (the Java cross-cutting blocks) and `desktop` (the shared Tauri crate).
+  `users`, `platform` (the Java cross-cutting blocks), `desktop` (the shared Tauri crate) and `composer` (Krizaka
+  Composer, the Krizaka fork of Puck published as `@krizaka/composer`: the visual page editor, akinaza ADR-010).
 - **Templates:** `template-<stack>-app`.
 
 This is a closed role vocabulary. A new product or shared capability must be added to this standard and the name checker
@@ -38,6 +39,7 @@ shape fits, but whose role needs discussion.
 | `krizaka-blog` | Shared blog | Complies |
 | `krizaka-build` | Shared Java build | Complies |
 | `krizaka-com` | Shared company site | Complies |
+| `krizaka-composer` | Shared visual page editor: the Krizaka fork of Puck (`@krizaka/composer`) | Complies |
 | `krizaka-infra` | Shared infrastructure as code | Complies |
 | `krizaka-lab` | The family lab: UI, motion, Java, AI and data experiments; publishes nothing (formerly krizaka-motion) | Complies |
 | `krizaka-platform-kit` | Java cross-cutting blocks | **Rename → `krizaka-platform`** |

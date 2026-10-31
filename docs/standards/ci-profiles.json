@@ -65,6 +65,7 @@
     "krizaka-blog": ["site"],
     "krizaka-build": ["library", "docs"],
     "krizaka-com": ["site"],
+    "krizaka-composer": ["library"],
     "krizaka-infra": ["infra"],
     "krizaka-lab": ["library"],
     "krizaka-notifications": ["java-service"],

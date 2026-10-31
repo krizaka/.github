@@ -76,6 +76,17 @@
       "status": "Complies"
     },
     {
+      "name": "krizaka-composer",
+      "owner": "krizaka",
+      "role": "Shared visual page editor: the Krizaka fork of Puck (`@krizaka/composer`)",
+      "team": "krizaka",
+      "kind": "npm",
+      "deploy": [],
+      "archived": false,
+      "visibility": "public",
+      "status": "Complies"
+    },
+    {
       "name": "krizaka-infra",
       "owner": "krizaka",
       "role": "Shared infrastructure as code",
