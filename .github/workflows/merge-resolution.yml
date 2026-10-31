@@ -1,0 +1,39 @@
+# Conflict-resolution guard (krizaka/krizaka-internal#2000): a PR that drops what main added meanwhile (> 50 lines) or deletes > 50 lines of a
+# generated folder fails unless its description has a `deletion-explained: <why>` line. Reusable: every repository calls it (workflow-templates/merge-resolution.yml).
+name: Merge resolution
+
+on:
+  workflow_call:
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    name: Merge resolution
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          path: repo
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/.github
+          persist-credentials: false
+          path: org
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: The PR does not drop what main added
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          OPENED_AT: ${{ github.event.pull_request.created_at }}
+          BASE_REF: ${{ github.event.pull_request.base.ref || 'main' }}
+        run: node org/scripts/merge-resolution-guard.mjs --repo-dir repo --base "origin/$BASE_REF" --opened-at "$OPENED_AT"

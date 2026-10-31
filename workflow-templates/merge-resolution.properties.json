@@ -1,0 +1,6 @@
+{
+  "name": "Merge resolution",
+  "description": "Fails a PR that silently drops what main added or deletes generated content.",
+  "iconName": "octicon git-merge",
+  "categories": ["Code Scanning"]
+}

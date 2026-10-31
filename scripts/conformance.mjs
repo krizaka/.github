@@ -16,7 +16,7 @@ import { gunzipSync } from "node:zlib";
 import { problemsOf } from "./agents-md.mjs";
 
 const HERE = new URL("../", import.meta.url);
-export const CHECK_TYPES = ["workflow-calls", "workflow-matches", "workflow-forbids", "file-exists", "file-matches", "manifests-forbid", "no-mention", "published-no-mention", "all-of", "any-of", "agents-template", "required-check"];
+export const CHECK_TYPES = ["workflow-calls", "workflow-matches", "workflow-forbids", "file-exists", "file-matches", "manifests-forbid", "no-mention", "published-no-mention", "all-of", "any-of", "agents-template", "required-check", "merged-result", "required-profile"];
 export const FIX_TYPES = ["copy", "append-section", "settings-hook", "agents-template", "manual"];
 const WORKFLOW_PATH = /^\.github\/workflows\/[^/]+\.ya?ml$/;
 const CALL = /uses:\s*krizaka\/(?:\.github|orazaka)\/\.github\/workflows\/([\w.-]+\.ya?ml)@/g;
@@ -69,6 +69,8 @@ function checkShape({ id, check = {} }) {
     "all-of": () => composite(check),
     "any-of": () => composite(check),
     "required-check": () => Boolean(check.context),
+    "merged-result": () => true,
+    "required-profile": () => Boolean(check.byKind && Object.values(check.byKind).every((gs) => Array.isArray(gs) && gs.every((g) => g.name && g.pattern))),
   };
   return needs[check.type]?.() === false ? [`${id}: the ${check.type} check is incomplete`] : [];
 }
@@ -83,7 +85,7 @@ export function scopeOf(repositories) {
 }
 
 /** A repository as the checks see it: its tracked paths and a reader of one file (null when absent). */
-export function snapshotOf(name, kind, paths, readFile, scan = null, published = null, requiredChecks = null) {
+export function snapshotOf(name, kind, paths, readFile, { scan = null, published = null, requiredChecks = null, mergeGuard = null } = {}) {
   const cache = new Map();
   const read = async (path) => {
     if (!paths.includes(path)) return null;
@@ -94,7 +96,7 @@ export function snapshotOf(name, kind, paths, readFile, scan = null, published =
     const texts = await Promise.all(paths.filter((p) => WORKFLOW_PATH.test(p)).map(read));
     return texts.filter(Boolean).join("\n");
   };
-  return { name, kind, paths, read, workflows, scan, published, requiredChecks };
+  return { name, kind, paths, read, workflows, scan, published, requiredChecks, mergeGuard };
 }
 
 /** Does the rule concern this repository? */
@@ -181,6 +183,21 @@ const CHECKS = {
     const required = await snap.requiredChecks();
     return verdict(required.includes(check.context), `« ${check.context} » is not a required check on main`);
   },
+  // The merged result is tested (krizaka-internal#2000): a merge queue, or branch protection that requires the branch up to date (`strict`).
+  // `mergeGuard` is absent offline: nothing to prove.
+  "merged-result": async (_check, snap) => {
+    if (!snap.mergeGuard) return { ok: true, why: "" };
+    return mergedResultVerdict(await snap.mergeGuard());
+  },
+  // The required checks on main match the repository profile (apps: CI gate, Sonar, security scan, + journeys / visual where the repo has them;
+  // libraries: CI gate, Sonar, security). Each group is a regex over the required contexts; `when` (a workflow it calls) scopes a group to repos that have the thing.
+  "required-profile": async (check, snap) => {
+    if (!snap.requiredChecks) return { ok: true, why: "" };
+    const groups = check.byKind[snap.kind] ?? [];
+    const required = await snap.requiredChecks();
+    const text = await snap.workflows();
+    return profileVerdict(groups, required, callsOf(text));
+  },
   "no-mention": async (check, snap) => {
     // `allow`: path prefixes whose text is history (a released chapter, a changelog). `scan` is absent offline: nothing to prove.
     if (!snap.scan) return { ok: true, why: "" };
@@ -202,6 +219,20 @@ const CHECKS = {
     (the names of the products that left the org, krizaka/.github#413). */
 export function patternOf(check) {
   return check.pattern ?? (check.patternBase64 ? Buffer.from(check.patternBase64, "base64").toString("utf8") : undefined);
+}
+
+/** `guard` = { mergeQueue, strict } as read from the rulesets and the branch protection of main. */
+export function mergedResultVerdict({ mergeQueue, strict }) {
+  return verdict(mergeQueue || strict, "main neither has a merge queue nor requires branches to be up to date (strict): a PR can land untested against the merged result");
+}
+
+/** The groups of the profile that no required context satisfies; a group with `when` only counts when the repository calls that workflow. */
+export function profileVerdict(groups, required, calls) {
+  const missing = groups
+    .filter((g) => !g.when || calls.has(g.when))
+    .filter((g) => !required.some((c) => new RegExp(g.pattern).test(c)))
+    .map((g) => g.name);
+  return verdict(missing.length === 0, `required checks on main lack: ${missing.join(", ")}`);
 }
 
 /** @returns {Promise<{ ok: boolean, why: string }>} */
@@ -330,7 +361,12 @@ export async function liveSnapshot({ name, kind }, org = "krizaka") {
     for (const c of classic?.checks ?? []) contexts.add(c.context);
     return [...contexts];
   };
-  return snapshotOf(name, kind, paths, raw, scan, published, requiredChecks);
+  const mergeGuard = async () => {
+    const rules = (await api(`/repos/${org}/${name}/rules/branches/main`)) ?? [];
+    const classic = await api(`/repos/${org}/${name}/branches/main/protection/required_status_checks`);
+    return { mergeQueue: rules.some((r) => r.type === "merge_queue"), strict: classic?.strict === true || rules.some((r) => r.type === "required_status_checks" && r.parameters?.strict_required_status_checks_policy === true) };
+  };
+  return snapshotOf(name, kind, paths, raw, { scan, published, requiredChecks, mergeGuard });
 }
 
 const flag = (argv, name) => (argv.includes(name) ? argv[argv.indexOf(name) + 1] : undefined);
