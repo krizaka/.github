@@ -29,3 +29,9 @@ paths = ['''packages/ui/src/qr-code/encode\.test\.ts''', '''packages/app-client/
 [[allowlists]]
 description = "krizaka-ts: fake API key of the video client unit test"
 paths = ['''packages/video/test/video\.test\.ts''']
+
+[[allowlists]]
+description = "krizaka-composer: the Puck fork keeps the upstream history; one upstream commit documents a placeholder Contentful token in a README (not a credential)"
+condition = "AND"
+commits = ["d94428819a958b4f566e5d0e8cd29b3bf1107881"]
+paths = ['''packages/field-contentful/README\.md''']
