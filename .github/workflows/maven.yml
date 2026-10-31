@@ -114,9 +114,8 @@ on:
         description: "success or failure: the gate's verdict."
         value: ${{ jobs.gate.outputs.result }}
 
-permissions:
-  contents: read
-
+# No workflow-level `permissions:`: it would cap `release-github` at read (the 403 on the 0.3.0 deploy). Every job below
+# but that one states `contents: read` itself; `release-github` takes what its caller grants.
 jobs:
   # A change no build can read (licence, templates) skips `verify` (reported « Skipped », which passes branch protection).
   # Fail-open; a tag, a schedule and a dispatch run in full.
@@ -130,6 +129,8 @@ jobs:
   verify:
     name: Verify (tests, javadoc, sources)
     needs: changes
+    permissions:
+      contents: read
     if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -239,6 +240,8 @@ jobs:
   duplication:
     name: Duplicate code
     needs: changes
+    permissions:
+      contents: read
     if: ${{ inputs.duplication && !cancelled() && needs.changes.outputs.code != 'false' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -404,7 +407,7 @@ jobs:
     if: needs.registry.outputs.github == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    # No `permissions:` on purpose: a reusable workflow cannot ask for more than its caller grants, and asking for
+    # No `permissions:` on purpose (nor at the top of the file): a reusable workflow cannot ask for more than its caller grants, and asking for
     # `packages: write` here would stop every caller that stays on `central` (startup failure). A repository that
     # chooses `github` grants `packages: write` on its `maven` job (read is enough for pull requests).
     steps:
@@ -450,6 +453,8 @@ jobs:
   release-central:
     name: Sign and upload to Maven Central
     needs: registry
+    permissions:
+      contents: read
     if: needs.registry.outputs.central == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 45
