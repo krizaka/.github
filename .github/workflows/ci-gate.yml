@@ -36,6 +36,7 @@ jobs:
       names: ${{ steps.scope.outputs.names }}
       roadmap: ${{ steps.scope.outputs.roadmap }}
       docs: ${{ steps.scope.outputs.docs }}
+      publicissues: ${{ steps.scope.outputs.publicissues }}
     steps:
       # The scope script of the BASE branch decides, so a pull request cannot narrow its own checks.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -111,6 +112,14 @@ jobs:
       contents: read
     uses: ./.github/workflows/docs-current.yml
 
+  publicissues:
+    name: Public issues conformance
+    needs: scope
+    if: ${{ !cancelled() && needs.scope.outputs.publicissues != 'false' }}
+    permissions:
+      contents: read
+    uses: ./.github/workflows/public-issues-conformance.yml
+
   security:
     name: Security scan
     if: ${{ !cancelled() }}
@@ -122,7 +131,7 @@ jobs:
 
   gate:
     name: CI gate
-    needs: [scope, security, lint, selftest, profile, registry, names, roadmap, docs]
+    needs: [scope, security, lint, selftest, profile, registry, names, roadmap, docs, publicissues]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
