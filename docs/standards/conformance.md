@@ -6,10 +6,13 @@ matrix lists as out of scope. There are no exceptions.
 
 - **Registry**: `docs/standards/rules.json`, one entry per rule (`id`, `issue`, `applies`, `check`, `fix`). A rule without its check
   or its fix fails `tests/conformance.test.mjs`. Checks: `workflow-calls`, `workflow-matches`, `workflow-forbids`, `file-exists`,
-  `file-matches`, `manifests-forbid {pattern}` (no manifest, workspace file, submodule list, POM or Gradle file names the pattern).
+  `file-matches`, `manifests-forbid {pattern}` (no manifest, workspace file, submodule list, POM or Gradle file names the pattern),
+  `agents-template` (AGENTS.md is rendered from [`agents-template.md`](agents-template.md) by `scripts/agents-md.mjs`: its marker, the five
+  headings, at most 80 lines, the krizaka-engineering skill linked, every relative link resolves).
 - **Matrix**: `node scripts/conformance.mjs` (repo x rule, green / red / n/a). Weekly and on every pull request that touches the rules
   (`.github/workflows/conformance.yml`); the 3-hour checkpoint prints it (`checkpoint-gen.sh`, « Conformance »).
 - **Fan-out**: `node scripts/conformance-fanout.mjs --matrix matrix.json [--rules a,b] [--repos x] [--apply]` opens one pull request per
-  red repository for the rules that have a template (`copy`, `append-section`, `settings-hook`); `manual` rules are listed, never guessed.
+  red repository for the rules that have a template (`copy`, `append-section`, `settings-hook`, `agents-template` — it renders AGENTS.md from the
+  repository's line of `repos.json` and its scripts, and moves the old AGENTS.md to `docs/agents.md`, never overwriting one); `manual` rules are listed, never guessed.
 - **Closing**: the issue of a rule closes when its column is green in every active repository. Report the matrix, not « done for most ».
 - **Adding a rule**: add the entry (and its template under `workflow-templates/` when it can be one), run the matrix, fan out, fix the rest.

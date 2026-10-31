@@ -13,10 +13,11 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { gunzipSync } from "node:zlib";
+import { problemsOf } from "./agents-md.mjs";
 
 const HERE = new URL("../", import.meta.url);
-export const CHECK_TYPES = ["workflow-calls", "workflow-matches", "workflow-forbids", "file-exists", "file-matches", "manifests-forbid", "no-mention", "published-no-mention", "all-of", "any-of"];
-export const FIX_TYPES = ["copy", "append-section", "settings-hook", "manual"];
+export const CHECK_TYPES = ["workflow-calls", "workflow-matches", "workflow-forbids", "file-exists", "file-matches", "manifests-forbid", "no-mention", "published-no-mention", "all-of", "any-of", "agents-template"];
+export const FIX_TYPES = ["copy", "append-section", "settings-hook", "agents-template", "manual"];
 const WORKFLOW_PATH = /^\.github\/workflows\/[^/]+\.ya?ml$/;
 const CALL = /uses:\s*krizaka\/(?:\.github|orazaka)\/\.github\/workflows\/([\w.-]+\.ya?ml)@/g;
 
@@ -166,6 +167,11 @@ const CHECKS = {
       results.push(result.why);
     }
     return { ok: false, why: results.join("; or ") };
+  },
+  // AGENTS.md rendered from docs/standards/agents-template.md: the marker, the headings, at most 80 lines, the skill linked, relative links resolve.
+  "agents-template": async (_check, snap) => {
+    const problems = problemsOf(await snap.read("AGENTS.md"), snap.paths);
+    return verdict(problems.length === 0, problems.join("; "));
   },
   "no-mention": async (check, snap) => {
     // `allow`: path prefixes whose text is history (a released chapter, a changelog). `scan` is absent offline: nothing to prove.

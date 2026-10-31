@@ -11,6 +11,7 @@
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { loadRules } from "./conformance.mjs";
+import { DETAILS_PATH, detailsOf, MARKER, render, TEMPLATE_PATH } from "./agents-md.mjs";
 
 const ROOT = new URL("../", import.meta.url);
 const read = (path) => readFileSync(new URL(path, ROOT), "utf8");
@@ -44,7 +45,7 @@ export function withHook(existing) {
 }
 
 /** The files a rule's fix writes in a repository: `[{ path, content }]`, or null when the fix is manual. */
-export function filesFor(rule, { sha, current = async () => null, readLocal = read }) {
+export function filesFor(rule, { sha, current = async () => null, readLocal = read, repo = null }) {
   return (async () => {
     const fix = rule.fix;
     if (fix.type === "copy") return [{ path: fix.to, content: pinTemplate(readLocal(fix.from), sha) }];
@@ -54,8 +55,30 @@ export function filesFor(rule, { sha, current = async () => null, readLocal = re
       return [{ path: fix.file, content: (before ?? STUB).trimEnd() + "\n\n" + section }];
     }
     if (fix.type === "settings-hook") return [{ path: fix.file, content: withHook(await current(fix.file)) }];
+    if (fix.type === "agents-template") return agentsFiles(repo, current, readLocal);
     return null;
   })();
+}
+
+/** The repository's line of repos.json. */
+const entryOf = (name, readLocal) => JSON.parse(readLocal("repos.json")).find((r) => r.name === name) ?? { name };
+
+/**
+ * AGENTS.md rendered from the template, and the old one kept as docs/agents.md (never overwritten: an existing detail page
+ * makes the fix manual, a person merges the two).
+ */
+async function agentsFiles(repo, current, readLocal) {
+  if (!repo) throw new Error("agents-template needs the repository name");
+  const before = await current("AGENTS.md");
+  const files = [{ path: "AGENTS.md", content: render(entryOf(repo, readLocal), { packageJson: await current("package.json"), template: readLocal(TEMPLATE_PATH) }) }];
+  const keeps = before && !before.includes(MARKER) && before.trim().split("\n").length > 3;
+  if (keeps) {
+    if (await current(DETAILS_PATH)) return null;
+    files.push({ path: DETAILS_PATH, content: detailsOf(repo, before) });
+  } else if (!(await current(DETAILS_PATH))) {
+    files.push({ path: DETAILS_PATH, content: `# ${repo} — detail for agents\n\nWhat an agent needs to know about this repository beyond AGENTS.md, by section.\n` });
+  }
+  return files;
 }
 
 /** What to do per red repository: `{ repo, rules: [id], manual: [id] }`. */
@@ -97,14 +120,16 @@ async function openPullRequest({ repo, rules }, all, sha) {
   await api("POST", `/repos/krizaka/${repo}/git/refs`, { ref: `refs/heads/${branch}`, sha: head.object.sha });
   for (const id of rules) {
     const rule = all.find((r) => r.id === id);
-    const [file] = await filesFor(rule, { sha, current: async (p) => (await fileAt(repo, p, branch))?.text ?? null });
-    const existing = await fileAt(repo, file.path, branch);
-    await api("PUT", `/repos/krizaka/${repo}/contents/${file.path}`, {
-      message: `chore: ${rule.id}, the org rule (krizaka/.github#393)\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`,
-      content: Buffer.from(file.content).toString("base64"),
-      branch,
-      ...(existing ? { sha: existing.sha } : {}),
-    });
+    const files = (await filesFor(rule, { sha, repo, current: async (p) => (await fileAt(repo, p, branch))?.text ?? null })) ?? [];
+    for (const file of files) {
+      const existing = await fileAt(repo, file.path, branch);
+      await api("PUT", `/repos/krizaka/${repo}/contents/${file.path}`, {
+        message: `chore: ${rule.id}, the org rule (krizaka/.github#393)\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`,
+        content: Buffer.from(file.content).toString("base64"),
+        branch,
+        ...(existing ? { sha: existing.sha } : {}),
+      });
+    }
   }
   const list = rules.map((id) => `- \`${id}\`: ${all.find((r) => r.id === id).title}`).join("\n");
   const pr = await api("POST", `/repos/krizaka/${repo}/pulls`, {
