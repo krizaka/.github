@@ -5,17 +5,28 @@
 import { execFileSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
 
-const TRAILER = /^\s*co-authored-by\s*:/im;
+/** The trailer's line when `line` is one (case-insensitive, leading blanks allowed), else null. Plain string work: no backtracking. */
+function trailerValue(line) {
+  const text = line.trimStart();
+  const colon = text.indexOf(":");
+  if (colon < 0 || text.slice(0, colon).trimEnd().toLowerCase() !== "co-authored-by") return null;
+  return text.slice(colon + 1);
+}
 
 /** commits: [{ sha, message }] → the offending ones, with the trailer's name only (the e-mail is never echoed). */
 export function trailerProblems(commits) {
-  return commits
-    .filter((c) => TRAILER.test(c.message))
-    .map((c) => {
-      const line = c.message.split("\n").find((l) => TRAILER.test(l)) ?? "";
-      const name = line.replace(/^\s*co-authored-by\s*:\s*/i, "").replace(/<[^>]*>/, "").trim();
-      return `${c.sha.slice(0, 7)} carries a co-author trailer (${name || "unnamed"}): reword it without the line`;
-    });
+  const problems = [];
+  for (const c of commits) {
+    for (const line of c.message.split("\n")) {
+      const value = trailerValue(line);
+      if (value === null) continue;
+      const angle = value.indexOf("<");
+      const name = (angle < 0 ? value : value.slice(0, angle)).trim();
+      problems.push(`${c.sha.slice(0, 7)} carries a co-author trailer (${name || "unnamed"}): reword it without the line`);
+      break;
+    }
+  }
+  return problems;
 }
 
 export function parseLog(raw) {
@@ -31,11 +42,7 @@ export function parseLog(raw) {
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const [base, head] = process.argv.slice(2);
-  const raw = execFileSync("git", ["log", "--format=%H%x00%B%x1e", `${base}..${head}`], {
-    encoding: "utf8",
-    // Fixed system directories only, never a search path inherited from the caller (Sonar S4036).
-    env: { ...process.env, PATH: "/usr/bin:/bin:/usr/local/bin:/opt/homebrew/bin" },
-  });
+  const raw = execFileSync("/usr/bin/git", ["log", "--format=%H%x00%B%x1e", `${base}..${head}`], { encoding: "utf8" });
   const problems = trailerProblems(parseLog(raw));
   for (const p of problems) console.log(`::error::${p}`);
   console.log(problems.length ? `${problems.length} commit(s) with a co-author trailer` : "no co-author trailer");
