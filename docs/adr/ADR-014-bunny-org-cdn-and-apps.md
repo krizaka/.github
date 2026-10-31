@@ -50,13 +50,13 @@ pr-assets/<repo>/<pr-or-topic>/[<sub>/]<file>       review evidence (scripts/pr-
 ```
 
 - `<site>`: `www` (krizaka.com), `blog`, `ui` (ui.krizaka.com), `java` (java.krizaka.com) and each product's dev site
-  (`orazaka`, `orochia`, `yasakia`, `yororis`, `yomizaka`, `kachizaka`, `akinaza`). `<kind>` says what the media are
+  (`orazaka`, retired exports, `yomizaka`, a retired export, `akinaza`). `<kind>` says what the media are
   for: `home`, `tour`, `gallery`, `gallery-video`, `video`, `cinema`, `compare`, `showcase`, `web`, `mobile`, `docs`,
   `personas`, `download`, `demo`, `demo-stories`, `films`, `landing`, `maps`, `shop`; the blog has `posts/<post>/` and
   `shared/`. The list is code (`SITE_KINDS`); a new kind is added there with its test.
 - `<app>`: one per product, only when the application itself reads or stores media of its own: `defaults` (its own
   default art, read at runtime — Akinaza's trades), `uploads` (what its users send), `generated` (what it produces).
-  An app with nothing of its own has no folder. Orochia keeps its own zone (`orochia-dev`, krizaka/orochia#153).
+  An app with nothing of its own has no folder. a former product keeps its own zone (a retired export, a former product's issue).
 - **Depth**: no object of `org/`, `sites/` or `apps/` sits under more than five folders; the audit refuses deeper.
 - **One writer per prefix**; `org/` only by the generators above, never a hand upload.
 - **A new write outside v2 fails**: every writer calls `assertWritable` (krizaka-com `scripts/bunny-layout.mjs`) before
@@ -71,20 +71,20 @@ pr-assets/<repo>/<pr-or-topic>/[<sub>/]<file>       review evidence (scripts/pr-
 | `brand/` | `org/v1/brand/` | krizaka-ui#817 (export-brand, @krizaka/email), krizaka-ts#200 |
 | `defaults/v1/` | `org/v1/defaults/` | krizaka-ts#200 (@krizaka/org), krizaka-ui#817 |
 | `people/defaults/v1/<brand>/` | `org/v1/defaults/tones/<brand>/` — the org offers them too, beside the illustrated `person/` set | krizaka-ts#200, krizaka-ui#817 |
-| `people/personas/` | deleted — the human-name mirror; `people/personas/ui/` kept until Yororis reads `sites/ui/personas/` | yororis#136 |
+| `people/personas/` | deleted — the human-name mirror; `people/personas/ui/` kept until a former product reads `sites/ui/personas/` | a former product's issue |
 | `products/` | deleted — the human-name mirror of `site/` | — |
 | `maps/v1/` | `org/v1/maps/` | krizaka-ui#817, akinaza#493 (its `/maps/v1` proxy) |
 | `discovery/` | `org/v1/discovery/` | krizaka-com#450, then @krizaka/discovery |
 | `ui/<area>/` | `sites/ui/<area>/` | krizaka-ui#817 |
 | `site/home/` | `sites/www/home/` | krizaka-com#450 |
 | `site/blog/<post>/` · `site/blog/shared/` | `sites/blog/posts/<post>/` · `sites/blog/shared/` | krizaka-blog#176 |
-| `site/products/<p>/<kind>/` | `sites/<p>/<kind>/` | each product's issue (akinaza#493, yomizaka#494, yasakia#182, kachizaka#121, yororis#136, orochia#425, orazaka-web-client#320) |
+| `site/products/<p>/<kind>/` | `sites/<p>/<kind>/` | each product's issue (akinaza#493, yomizaka#494, a former product's issue, a former product's issue, a former product's issue, a former product's issue, orazaka-web-client#320) |
 | `site/products/akinaza/defaults/` | `apps/akinaza/defaults/` — trade art the app shows at runtime | akinaza#493 |
 | `site/docs/<p>/` | `sites/<p>/docs/` | krizaka-com#450 (manifest), the product's issue |
 | `site/people/ui/` · `site/people/<p>/` | `sites/ui/personas/` · `sites/<p>/personas/` | krizaka-ui#817 · the product's issue |
 | `site/brand-films/<series>/` | `org/v1/films/<series>/` | krizaka-ui#817, krizaka-com#450 |
-| `site/brand-films/orochia/` | `sites/orochia/films/` | orochia#425 |
-| `site/products/yazakia/` | deleted (renamed product) | — |
+| a retired export | a retired export | a former product's issue |
+| a retired export | deleted (renamed product) | — |
 
 The map is code (`targetOf`, `SWITCH_ISSUES`); the cockpit's tree shows each legacy folder with its switch issue.
 
@@ -119,7 +119,7 @@ Published npm versions, store binaries and live sites name the old URLs, and has
 ### 4. Dormant Bunny resources
 
 Kept: anything referenced by a repository (deploy specs, Terraform, code) or costing nothing. Deleted only when it
-costs money **and** nothing references it, after its content is saved to the private vault. Orochia's Stream library is
+costs money **and** nothing references it, after its content is saved to the private vault. a former product's Stream library is
 the one video library. The inventory of 2026-10-28 found nothing to delete (every zone is referenced; all but
 `krizaka-assets` cost under a cent a month).
 

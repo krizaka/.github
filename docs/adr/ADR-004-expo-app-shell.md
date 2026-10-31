@@ -2,7 +2,7 @@
 
 - **Status**: Accepted
 - **Date**: 2026-10-22
-- **Scope**: every Krizaka Expo app (orazaka-mobile-client, orochia-mobile, yasakia-mobile, then Yomizaka and Akinaza)
+- **Scope**: every Krizaka Expo app (orazaka-mobile-client, former repositories, then Yomizaka and Akinaza)
 - **Issue**: [krizaka/.github#178](https://github.com/krizaka/.github/issues/178), epic #179. Builds on ADR-003 and #72, #75, #139.
 
 ## Context
@@ -29,7 +29,7 @@ the product's address, mark and message keys. The org already learned that « ke
    `check-app-links` is shipped as the package's `bin` (`krizaka-check-app-links`), the copies are deleted.
 4. **Where an app lives**: a product's mobile app lives in its monorepo (`apps/mobile`) per #72 (Yomizaka, Akinaza). Existing
    standalone repositories migrate to the package first; moving them is a separate decision.
-5. **Migration is proven, not assumed**: the first consumer (orochia-mobile or yasakia-mobile) moves to the package with its
+5. **Migration is proven, not assumed**: the first consumer (a former repository or a former repository) moves to the package with its
    own tests unchanged and green before the package is declared done.
 6. **The URL is the state**: every screen has an Expo Router route, with the same paths as the web where the web has them;
    `associatedDomains` and Android `autoVerify` are declared by the template.
@@ -38,7 +38,7 @@ the product's address, mark and message keys. The org already learned that « ke
 
 - *A template alone*: copies drift again; that is the problem. Rejected.
 - *One Expo monorepo of all apps*: couples release cadences and store identities of independent products. Rejected.
-- *Flutter or Kotlin Multiplatform*: loses the shared TypeScript domain and Krizaka UI native. Rejected (orochia-mobile, 2026-10).
+- *Flutter or Kotlin Multiplatform*: loses the shared TypeScript domain and Krizaka UI native. Rejected (a former repository, 2026-10).
 
 ## Consequences
 
@@ -55,7 +55,7 @@ is `krizaka-tauri-kit` v0.2.0 with `tauri-plugin-krizaka`, the bindings `@krizak
 |---|---|
 | ADR-004 and ADR-005 merged | Done |
 | `@krizaka/app-client` published | Done (`/react` 0.2.0: `createAuth`, `useSessionStatus`) |
-| A first app migrated with its tests unchanged | **Not as written**: orochia-mobile and yasakia-mobile are paused. Yomizaka's and Akinaza's apps were built on the package instead, with regression tests on the real query client. Proposal: accept those two as the proof and strike the paused apps from the criterion. Oussama to confirm. |
+| A first app migrated with its tests unchanged | **Not as written**: former repositories are paused. Yomizaka's and Akinaza's apps were built on the package instead, with regression tests on the real query client. Proposal: accept those two as the proof and strike the paused apps from the criterion. Oussama to confirm. |
 | `krizaka-tauri-kit` tested (traversal, symlink, never-grantable paths) | Done (33 tests) |
 | `template-expo-app`, `template-tauri-app` | Expo done (trial app green, `expo-doctor` 20/20); Tauri template waits for `@krizaka/app-desktop` 0.1.0 on npm |
 | Update `.github#139` | To do |

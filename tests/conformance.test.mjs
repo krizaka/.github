@@ -120,7 +120,7 @@ test("the email-verification rule: the two public e-mail forms, each with the fi
 });
 
 test("no-mention: a departed product named outside the allow list is red, history is allowed", async () => {
-  const check = { type: "no-mention", pattern: "orochia|yasakia", allow: ["CHANGELOG.md"], allowIn: { r: ["notes/"] } };
+  const check = { type: "no-mention", pattern: "acme|globex", allow: ["CHANGELOG.md"], allowIn: { r: ["notes/"] } };
   const withScan = (name, hits) => ({ ...snap(name, "app", { a: "" }), scan: async () => hits });
   assert.deepEqual(await runCheck(check, withScan("x", ["CHANGELOG.md"])), { ok: true, why: "" });
   assert.deepEqual(await runCheck(check, withScan("x", ["packages/ui/CHANGELOG.md"])), { ok: true, why: "" }, "a package changelog is history too");
@@ -132,7 +132,7 @@ test("no-mention: a departed product named outside the allow list is red, histor
 });
 
 test("published-no-mention: a package whose built files name a departed product is red, its changelog is history", async () => {
-  const check = { type: "published-no-mention", pattern: "orochia|kachizaka", allow: ["CHANGELOG.md"] };
+  const check = { type: "published-no-mention", pattern: "acme|initech", allow: ["CHANGELOG.md"] };
   const withPub = (hits) => ({ ...snap("x", "app", { a: "" }), published: async () => hits });
   assert.deepEqual(await runCheck(check, withPub(["@krizaka/ui@1.0.0:CHANGELOG.md"])), { ok: true, why: "" });
   const red = await runCheck(check, withPub(["@krizaka/charts@0.6.0:dist/index.js", "@krizaka/ui@1.0.0:CHANGELOG.md"]));
@@ -153,8 +153,8 @@ test("tarballMatches reads the text files of a GitHub tarball and skips the bina
     head[156] = 48;
     return Buffer.concat([head, body, Buffer.alloc((512 - (body.length % 512)) % 512)]);
   };
-  const tar = Buffer.concat([entry("top/a.md", Buffer.from("see Orochia")), entry("top/b.md", Buffer.from("clean")), entry("top/c.bin", Buffer.from([0, 1, 2])), Buffer.alloc(1024)]);
-  assert.deepEqual(tarballMatches(gzipSync(tar), /orochia/i), ["a.md"]);
+  const tar = Buffer.concat([entry("top/a.md", Buffer.from("see Acme")), entry("top/b.md", Buffer.from("clean")), entry("top/c.bin", Buffer.from([0, 1, 2])), Buffer.alloc(1024)]);
+  assert.deepEqual(tarballMatches(gzipSync(tar), /acme/i), ["a.md"]);
 });
 
 test("the lab-isolation rule: nothing outside the lab depends on the lab", async () => {
@@ -193,4 +193,16 @@ test("all-of must list real, non-nested checks", () => {
   const base = { id: "x", title: "t", issue: "krizaka/.github#1", fix: { type: "manual" } };
   assert.match(validateRules([{ ...base, check: { type: "all-of", checks: [] } }]).join(), /incomplete/);
   assert.match(validateRules([{ ...base, check: { type: "all-of", checks: [{ type: "all-of" }] } }]).join(), /incomplete/);
+});
+
+test("a check may store its pattern encoded, so the registry spells none of the words it refuses (krizaka/.github#413)", async () => {
+  const { patternOf } = await import("../scripts/conformance.mjs");
+  assert.equal(patternOf({ pattern: "a|b" }), "a|b");
+  assert.equal(patternOf({ patternBase64: Buffer.from("acme|globex").toString("base64") }), "acme|globex");
+  assert.equal(patternOf({}), undefined);
+  for (const id of ["no-departed-product", "no-departed-published"]) {
+    const rule = loadRules().find((r) => r.id === id);
+    assert.ok(rule.check.patternBase64 && !rule.check.pattern, id);
+    assert.ok(new RegExp(patternOf(rule.check), "i").test(Buffer.from(rule.check.patternBase64, "base64").toString()), id);
+  }
 });

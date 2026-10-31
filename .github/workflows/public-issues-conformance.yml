@@ -1,0 +1,49 @@
+# Conformance « no issue of ours in a public repository » (security lane, founder 2026-10-30: « vérifie qu'aucune issue ne
+# traîne en dehors du privé »). Counts, per public repository, the open issues opened by OUR identities (scripts/check-public-issues-ours.mjs).
+#   schedule/dispatch  daily: red when any count is above zero, and ONE tracking issue in krizaka-internal lists them (closed when clean).
+#   workflow_call      on a pull request touching the check (ci-gate.yml, suite `publicissues`): the unit tests, then the live count
+#                      without writing anything; red when any remains.
+# The logs are public: counts only, never a title.
+name: Public issues conformance
+
+on:
+  schedule:
+    - cron: "17 7 * * *"
+  workflow_dispatch:
+  workflow_call:
+
+permissions: {}
+
+concurrency:
+  group: public-issues-conformance-${{ github.event_name }}
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Public issues conformance
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - run: node --test tests/check-public-issues-ours.test.mjs
+      - id: app
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: krizaka-internal
+          permission-issues: write
+      - name: Count the open issues of ours in public repositories
+        run: node scripts/check-public-issues-ours.mjs
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token || github.token }}
+          CHECK_DRY_RUN: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && '0' || '1' }}

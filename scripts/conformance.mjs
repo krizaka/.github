@@ -64,7 +64,8 @@ function checkShape({ id, check = {} }) {
     "file-exists": () => Boolean(check.paths?.length),
     "file-matches": () => Boolean(check.path && check.pattern),
     "manifests-forbid": () => Boolean(check.pattern),
-    "no-mention": () => Boolean(check.pattern),
+    "no-mention": () => Boolean(patternOf(check)),
+    "published-no-mention": () => Boolean(patternOf(check)),
     "all-of": () => composite(check),
     "any-of": () => composite(check),
   };
@@ -177,7 +178,7 @@ const CHECKS = {
     // `allow`: path prefixes whose text is history (a released chapter, a changelog). `scan` is absent offline: nothing to prove.
     if (!snap.scan) return { ok: true, why: "" };
     const allowed = [...(check.allow ?? []), ...(check.allowIn?.[snap.name] ?? [])];
-    const hits = (await snap.scan(new RegExp(check.pattern, "i"))).filter((p) => !allowed.some((a) => p === a || p.startsWith(a) || p.endsWith(`/${a}`)));
+    const hits = (await snap.scan(new RegExp(patternOf(check), "i"))).filter((p) => !allowed.some((a) => p === a || p.startsWith(a) || p.endsWith(`/${a}`)));
     return verdict(hits.length === 0, `${hits.length} file(s) name a departed product, e.g. ${hits.slice(0, 3).join(", ")}`);
   },
   // What the repository PUBLISHES: the latest npm tarball of each of its public packages (built CSS/JS included), not its sources.
@@ -185,10 +186,16 @@ const CHECKS = {
   "published-no-mention": async (check, snap) => {
     if (!snap.published) return { ok: true, why: "" };
     const allowed = check.allow ?? [];
-    const hits = (await snap.published(new RegExp(check.pattern, "i"))).filter((h) => !allowed.some((a) => h.endsWith(`:${a}`) || h.includes(`:${a}`)));
+    const hits = (await snap.published(new RegExp(patternOf(check), "i"))).filter((h) => !allowed.some((a) => h.endsWith(`:${a}`) || h.includes(`:${a}`)));
     return verdict(hits.length === 0, `${hits.length} published file(s) name a departed product, e.g. ${hits.slice(0, 3).join(", ")}`);
   },
 };
+
+/** A check's pattern: `pattern`, or `patternBase64` when the words it looks for must not be spelled in the registry itself
+    (the names of the products that left the org, krizaka/.github#413). */
+export function patternOf(check) {
+  return check.pattern ?? (check.patternBase64 ? Buffer.from(check.patternBase64, "base64").toString("utf8") : undefined);
+}
 
 /** @returns {Promise<{ ok: boolean, why: string }>} */
 export async function runCheck(check, snap) {
