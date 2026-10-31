@@ -15,7 +15,7 @@ exception: it is named after the product alone, with no role suffix.
   `cli`, `contracts` or `build`.
 - **Shared repositories:** `krizaka-ui` (all design kits are packages there), `krizaka-ts`, `krizaka-build` (Java),
   `krizaka-com` (company site), `krizaka-blog`, `krizaka-infra` (IaC), `krizaka-lab` (the family lab) (no end-to-end repository: journeys live in each product, `e2e/journeys`); or
-  `krizaka-<capability>` for a shared service. The current capabilities are `accounts`, `billing`, `notifications`,
+  `krizaka-<capability>` for a shared service. The current capabilities are `billing`,
   `users`, `platform` (the Java cross-cutting blocks) and `desktop` (the shared Tauri crate).
 - **Templates:** `template-<stack>-app`.
 
@@ -34,14 +34,12 @@ shape fits, but whose role needs discussion.
 | Repository | Current role | Status |
 | :--- | :--- | :--- |
 | `akinaza` | Main product repository | Complies |
-| `krizaka-accounts` | Shared capability service | Complies |
 | `krizaka-billing` | Shared capability service | Complies |
 | `krizaka-blog` | Shared blog | Complies |
 | `krizaka-build` | Shared Java build | Complies |
 | `krizaka-com` | Shared company site | Complies |
 | `krizaka-infra` | Shared infrastructure as code | Complies |
 | `krizaka-lab` | The family lab: UI, motion, Java, AI and data experiments; publishes nothing (formerly krizaka-motion) | Complies |
-| `krizaka-notifications` | Shared capability service | Complies |
 | `krizaka-platform-kit` | Java cross-cutting blocks | **Rename → `krizaka-platform`** |
 | `krizaka-tauri-kit` | Shared Tauri crate | **Rename → `krizaka-desktop`** |
 | `krizaka-ts` | Shared TypeScript building blocks | Complies |
@@ -65,7 +63,6 @@ shape fits, but whose role needs discussion.
 | `orazaka-web-client` | Web app | **Rename → `orazaka-web`** |
 | `orazaka-worker-media` | Worker | Complies |
 | `template-next-app` | Template | Complies |
-| `template-tauri-app` | Template | Complies |
 | `yomizaka` | Main product repository | Complies |
 
 ## Check

@@ -26,17 +26,6 @@
       "status": "Complies"
     },
     {
-      "name": "krizaka-accounts",
-      "owner": "krizaka",
-      "role": "Shared capability service",
-      "team": "krizaka",
-      "kind": "none",
-      "deploy": [],
-      "archived": false,
-      "visibility": "public",
-      "status": "Complies"
-    },
-    {
       "name": "krizaka-billing",
       "owner": "krizaka",
       "role": "Shared capability service",
@@ -103,17 +92,6 @@
       "role": "The family lab (UI, motion, Java, AI, data experiments; publishes nothing)",
       "team": "krizaka",
       "kind": "npm",
-      "deploy": [],
-      "archived": false,
-      "visibility": "public",
-      "status": "Complies"
-    },
-    {
-      "name": "krizaka-notifications",
-      "owner": "krizaka",
-      "role": "Shared capability service",
-      "team": "krizaka",
-      "kind": "maven",
       "deploy": [],
       "archived": false,
       "visibility": "public",
@@ -375,17 +353,6 @@
     },
     {
       "name": "template-next-app",
-      "owner": "krizaka",
-      "role": "Template",
-      "team": "krizaka",
-      "kind": "app",
-      "deploy": [],
-      "archived": false,
-      "visibility": "public",
-      "status": "Complies"
-    },
-    {
-      "name": "template-tauri-app",
       "owner": "krizaka",
       "role": "Template",
       "team": "krizaka",

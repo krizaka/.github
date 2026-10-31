@@ -8,7 +8,7 @@
 import { pathToFileURL } from "node:url";
 
 export const FOCUS_REPOS = [
-  "krizaka-com", "krizaka-ui", "krizaka-ts", "krizaka-build", "krizaka-accounts", "yomizaka", "akinaza",
+  "krizaka-com", "krizaka-ui", "krizaka-ts", "krizaka-build", "yomizaka", "akinaza",
   "orazaka", "orazaka-web-client", ".github",
 ];
 export const REQUIRED_CHECKS = [
