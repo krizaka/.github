@@ -16,7 +16,7 @@ import { gunzipSync } from "node:zlib";
 import { problemsOf } from "./agents-md.mjs";
 
 const HERE = new URL("../", import.meta.url);
-export const CHECK_TYPES = ["workflow-calls", "workflow-matches", "workflow-forbids", "file-exists", "file-matches", "manifests-forbid", "no-mention", "published-no-mention", "all-of", "any-of", "agents-template"];
+export const CHECK_TYPES = ["workflow-calls", "workflow-matches", "workflow-forbids", "file-exists", "file-matches", "manifests-forbid", "no-mention", "published-no-mention", "all-of", "any-of", "agents-template", "required-check"];
 export const FIX_TYPES = ["copy", "append-section", "settings-hook", "agents-template", "manual"];
 const WORKFLOW_PATH = /^\.github\/workflows\/[^/]+\.ya?ml$/;
 const CALL = /uses:\s*krizaka\/(?:\.github|orazaka)\/\.github\/workflows\/([\w.-]+\.ya?ml)@/g;
@@ -68,6 +68,7 @@ function checkShape({ id, check = {} }) {
     "published-no-mention": () => Boolean(patternOf(check)),
     "all-of": () => composite(check),
     "any-of": () => composite(check),
+    "required-check": () => Boolean(check.context),
   };
   return needs[check.type]?.() === false ? [`${id}: the ${check.type} check is incomplete`] : [];
 }
@@ -82,7 +83,7 @@ export function scopeOf(repositories) {
 }
 
 /** A repository as the checks see it: its tracked paths and a reader of one file (null when absent). */
-export function snapshotOf(name, kind, paths, readFile, scan = null, published = null) {
+export function snapshotOf(name, kind, paths, readFile, scan = null, published = null, requiredChecks = null) {
   const cache = new Map();
   const read = async (path) => {
     if (!paths.includes(path)) return null;
@@ -93,7 +94,7 @@ export function snapshotOf(name, kind, paths, readFile, scan = null, published =
     const texts = await Promise.all(paths.filter((p) => WORKFLOW_PATH.test(p)).map(read));
     return texts.filter(Boolean).join("\n");
   };
-  return { name, kind, paths, read, workflows, scan, published };
+  return { name, kind, paths, read, workflows, scan, published, requiredChecks };
 }
 
 /** Does the rule concern this repository? */
@@ -173,6 +174,12 @@ const CHECKS = {
   "agents-template": async (_check, snap) => {
     const problems = problemsOf(await snap.read("AGENTS.md"), snap.paths);
     return verdict(problems.length === 0, problems.join("; "));
+  },
+  // The check is REQUIRED on main (ruleset or branch protection). `requiredChecks` is absent offline: nothing to prove.
+  "required-check": async (check, snap) => {
+    if (!snap.requiredChecks) return { ok: true, why: "" };
+    const required = await snap.requiredChecks();
+    return verdict(required.includes(check.context), `« ${check.context} » is not a required check on main`);
   },
   "no-mention": async (check, snap) => {
     // `allow`: path prefixes whose text is history (a released chapter, a changelog). `scan` is absent offline: nothing to prove.
@@ -313,7 +320,17 @@ export async function liveSnapshot({ name, kind }, org = "krizaka") {
     }
     return hits;
   };
-  return snapshotOf(name, kind, paths, raw, scan, published);
+  // Required status checks on main: the rulesets that apply to the branch, then classic branch protection.
+  const requiredChecks = async () => {
+    const contexts = new Set();
+    const rules = (await api(`/repos/${org}/${name}/rules/branches/main`)) ?? [];
+    for (const r of rules) if (r.type === "required_status_checks") for (const c of r.parameters?.required_status_checks ?? []) contexts.add(c.context);
+    const classic = await api(`/repos/${org}/${name}/branches/main/protection/required_status_checks`);
+    for (const c of classic?.contexts ?? []) contexts.add(c);
+    for (const c of classic?.checks ?? []) contexts.add(c.context);
+    return [...contexts];
+  };
+  return snapshotOf(name, kind, paths, raw, scan, published, requiredChecks);
 }
 
 const flag = (argv, name) => (argv.includes(name) ? argv[argv.indexOf(name) + 1] : undefined);

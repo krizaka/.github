@@ -1,0 +1,192 @@
+# The critical journeys against the DEPLOYED site (krizaka-internal#1939), dev and prod: a product calls it from a `workflow_run` of
+# its deploy (or a schedule) with the deployed URL. Demo personas only (the seed cast, never a real account), test-mode payments only
+# (a live key is refused). A missing credential FAILS the run: it never prints « nothing checked » and stays green. Red opens or
+# updates ONE issue per product, environment and lane on the calling repository (a comment when it is already open).
+#
+#   post-deploy-journeys:
+#     if: ${{ github.event.workflow_run.conclusion == 'success' }}
+#     uses: krizaka/.github/.github/workflows/post-deploy-journeys.yml@<sha> # main
+#     permissions: { contents: read, issues: write }
+#     with:
+#       product: akinaza
+#       lane: akinaza
+#       environment: dev                       # dev | prod
+#       site-url: https://dev.akinaza.com
+#       ref: ${{ github.event.workflow_run.head_sha }}
+#       personas: "lea.beaulieu@demo,camille.tremblay@demo"
+#     secrets:
+#       persona-password: ${{ secrets.JOURNEY_PERSONA_PASSWORD }}
+#       payments-test-key: ${{ secrets.JOURNEY_PAYMENTS_TEST_KEY }}    # only when needs-payments
+name: post-deploy-journeys
+
+on:
+  workflow_call:
+    inputs:
+      product:
+        description: "The product id (akinaza, yomizaka, orazaka)."
+        type: string
+        required: true
+      lane:
+        description: "The lane that owns the product (labels the issue)."
+        type: string
+        required: true
+      environment:
+        description: "dev or prod."
+        type: string
+        required: true
+      site-url:
+        description: "The deployed origin the journeys run against."
+        type: string
+        required: true
+      ref:
+        description: "The commit that was deployed (the journeys of that commit run)."
+        type: string
+        default: ""
+      version-url:
+        description: "Optional: a URL of the live site whose body carries `expect`; the run waits until the deploy serves it."
+        type: string
+        default: ""
+      expect:
+        type: string
+        default: ""
+      personas:
+        description: "Comma-separated logins of the seed cast the journeys use (demo accounts only)."
+        type: string
+        required: true
+      setup-command:
+        description: "Install the dependencies and the browser on the runner."
+        type: string
+        default: "npm ci && npx playwright install --with-deps chromium"
+      command:
+        type: string
+        default: "npx playwright test --project=critical --reporter=json,html"
+      working-directory:
+        type: string
+        default: "."
+      node-version:
+        type: string
+        default: "22"
+      needs-payments:
+        type: boolean
+        default: false
+      timeout-minutes:
+        type: number
+        default: 30
+    secrets:
+      persona-password:
+        description: "The seed cast's password on the deployed site. Required: a missing one fails the run."
+        required: false
+      payments-test-key:
+        description: "A test-mode payments key. Required when needs-payments."
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  journeys:
+    name: post-deploy journeys
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    permissions:
+      contents: read
+      issues: write
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    env:
+      PRODUCT: ${{ inputs.product }}
+      TARGET: ${{ inputs.environment }}
+      SITE: ${{ inputs.site-url }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref }}
+          persist-credentials: false
+
+      - name: Fetch the org scripts
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/.github
+          ref: main
+          sparse-checkout: scripts
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+          path: ${{ runner.temp }}/org-tools
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ inputs.node-version }}
+          package-manager-cache: false
+
+      - name: Preflight, a missing credential fails the run
+        env:
+          JOURNEYS_MODE: post-deploy
+          PERSONAS: ${{ inputs.personas }}
+          NEEDS_PAYMENTS: ${{ inputs.needs-payments }}
+          JOURNEY_PERSONA_PASSWORD: ${{ secrets.persona-password }}
+          JOURNEY_PAYMENTS_KEY: ${{ secrets.payments-test-key }}
+          TOOLS: ${{ runner.temp }}/org-tools
+        run: node "${TOOLS}/scripts/journeys.mjs" preflight 2>&1 | tee -a "${RUNNER_TEMP}/journeys.log"
+
+      - name: Wait until the deploy serves the commit
+        if: ${{ inputs.version-url != '' && inputs.expect != '' }}
+        env:
+          VERSION_URL: ${{ inputs.version-url }}
+          EXPECT: ${{ inputs.expect }}
+          TOOLS: ${{ runner.temp }}/org-tools
+        run: node "${TOOLS}/scripts/post-deploy.mjs" wait --version-url "${VERSION_URL}" --expect "${EXPECT}" 2>&1 | tee -a "${RUNNER_TEMP}/journeys.log"
+
+      - name: Set up the runner
+        env:
+          SETUP: ${{ inputs.setup-command }}
+        run: bash -euo pipefail -c "${SETUP}"
+
+      - name: Run the critical journeys
+        id: journeys
+        continue-on-error: true
+        env:
+          COMMAND: ${{ inputs.command }}
+          BASE_URL: ${{ inputs.site-url }}
+          PLAYWRIGHT_JSON_OUTPUT_NAME: journeys-report.json
+          JOURNEY_PERSONAS: ${{ inputs.personas }}
+          JOURNEY_PERSONA_PASSWORD: ${{ secrets.persona-password }}
+          JOURNEY_PAYMENTS_KEY: ${{ secrets.payments-test-key }}
+          CI: "true"
+        run: bash -uo pipefail -c "${COMMAND}"
+
+      - name: The verdict, from the report (nothing ran, skipped, flaky are red)
+        env:
+          TOOLS: ${{ runner.temp }}/org-tools
+        run: node "${TOOLS}/scripts/journeys.mjs" report --json journeys-report.json --out "${RUNNER_TEMP}/summary.md" 2>&1 | tee -a "${RUNNER_TEMP}/journeys.log"
+
+      - name: Upload the report and the films
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: post-deploy-journeys-${{ inputs.environment }}
+          path: |
+            ${{ inputs.working-directory }}/journeys-report.json
+            ${{ inputs.working-directory }}/playwright-report
+            ${{ inputs.working-directory }}/test-results
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Open or update the issue (one per product, environment and lane)
+        if: ${{ failure() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LANE: ${{ inputs.lane }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="Post-deploy journeys red: ${PRODUCT} ${TARGET}"
+          {
+            echo "The critical journeys failed against \`${SITE}\` (${TARGET}, lane ${LANE}): ${RUN_URL}"
+            echo
+            echo '```'
+            tail -c 5000 "${RUNNER_TEMP}/journeys.log" 2>/dev/null || echo "no log"
+            echo '```'
+          } > "${RUNNER_TEMP}/body.md"
+          n=$(gh api "repos/${GITHUB_REPOSITORY}/issues?state=open&per_page=100" --jq ".[] | select(.title == \"${title}\" and (.pull_request | not)) | .number" 2>/dev/null | head -1 || true)
+          if [ -n "${n}" ]; then gh api "repos/${GITHUB_REPOSITORY}/issues/${n}/comments" -F body=@"${RUNNER_TEMP}/body.md"
+          else gh api "repos/${GITHUB_REPOSITORY}/issues" -f title="${title}" -f "labels[]=lane:${LANE}" -F body=@"${RUNNER_TEMP}/body.md"; fi

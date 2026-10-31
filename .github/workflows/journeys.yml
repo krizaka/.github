@@ -1,0 +1,143 @@
+# The critical journeys of a product on its CI build (krizaka-internal#1939): one reusable workflow, one required check `journeys / gate`
+# on PR, merge_group and push to main. The product declares its journeys as a Playwright project named `critical`; this workflow
+# runs them as the seeded demo cast, checks the run could not pass by checking nothing, and uploads the report and the films.
+#
+#   journeys:                                  # the job id is the check's prefix: the required check is `journeys / gate`
+#     uses: krizaka/.github/.github/workflows/journeys.yml@<sha> # main
+#     permissions: { contents: read }
+#     with:
+#       setup-command: "npm ci && npx playwright install --with-deps chromium && npm run build && npm run seed:demo"
+#       personas: "lea.beaulieu@demo,camille.tremblay@demo"
+#       needs-payments: true                   # a payment journey: test-mode key only (payments-test-key), a live key is refused
+#
+# `gate` ALWAYS reports (a skipped required check ejects the merge queue) and is red when the run failed, was cancelled, or checked
+# nothing. Never skipped to get green. Known bugs are `test.fail()` with the issue linked in the test: listed in the summary, not hidden.
+# Films: Playwright's `video: "on"` for the critical project; the artifact `journeys-films` is what app-videos.yml reads.
+name: journeys
+
+on:
+  workflow_call:
+    inputs:
+      setup-command:
+        description: "Install, build and seed the demo cast on the runner (one shell command; runs before the journeys)."
+        type: string
+        required: true
+      personas:
+        description: "Comma-separated logins of the seed cast the journeys use (demo accounts only)."
+        type: string
+        required: true
+      command:
+        description: "The journeys. It must write the JSON report to journeys-report.json (PLAYWRIGHT_JSON_OUTPUT_NAME)."
+        type: string
+        default: "npx playwright test --project=critical --reporter=json,html"
+      working-directory:
+        type: string
+        default: "."
+      base-url:
+        description: "Where the CI build is served (the product's webServer starts it)."
+        type: string
+        default: "http://localhost:3000"
+      node-version:
+        type: string
+        default: "22"
+      needs-payments:
+        description: "The journeys pay: payments-test-key is then required and must be a test-mode key."
+        type: boolean
+        default: false
+      timeout-minutes:
+        type: number
+        default: 30
+    secrets:
+      payments-test-key:
+        description: "A test-mode payments key (refused when it is live). Required when needs-payments."
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    name: run
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Fetch the journeys script
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/.github
+          ref: main
+          sparse-checkout: scripts/journeys.mjs
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+          path: ${{ runner.temp }}/org-tools
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ inputs.node-version }}
+          package-manager-cache: false
+
+      - name: Preflight, a missing input fails the run
+        env:
+          JOURNEYS_MODE: ci
+          PERSONAS: ${{ inputs.personas }}
+          NEEDS_PAYMENTS: ${{ inputs.needs-payments }}
+          JOURNEY_PAYMENTS_KEY: ${{ secrets.payments-test-key }}
+          TOOLS: ${{ runner.temp }}/org-tools
+        run: node "${TOOLS}/scripts/journeys.mjs" preflight
+
+      - name: Set up the build and the demo cast
+        env:
+          SETUP: ${{ inputs.setup-command }}
+        run: bash -euo pipefail -c "${SETUP}"
+
+      - name: Run the critical journeys
+        env:
+          COMMAND: ${{ inputs.command }}
+          BASE_URL: ${{ inputs.base-url }}
+          PLAYWRIGHT_JSON_OUTPUT_NAME: journeys-report.json
+          JOURNEY_PERSONAS: ${{ inputs.personas }}
+          JOURNEY_PAYMENTS_KEY: ${{ secrets.payments-test-key }}
+          CI: "true"
+        run: bash -uo pipefail -c "${COMMAND}"
+        continue-on-error: true
+        id: journeys
+
+      - name: The verdict, from the report (nothing ran, skipped, flaky are red)
+        env:
+          TOOLS: ${{ runner.temp }}/org-tools
+        run: node "${TOOLS}/scripts/journeys.mjs" report --json journeys-report.json
+
+      - name: Upload the report and the films
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: journeys-films
+          path: |
+            ${{ inputs.working-directory }}/journeys-report.json
+            ${{ inputs.working-directory }}/playwright-report
+            ${{ inputs.working-directory }}/test-results
+          if-no-files-found: warn
+          retention-days: 14
+
+  gate:
+    name: gate
+    if: ${{ always() }}
+    needs: [run]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Green only when the journeys ran and passed
+        env:
+          RESULT: ${{ needs.run.result }}
+        run: |
+          echo "journeys: run=${RESULT}"
+          [ "${RESULT}" = success ] || { echo "::error::the critical journeys did not pass (${RESULT})"; exit 1; }
