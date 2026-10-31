@@ -449,7 +449,7 @@ jobs:
           fi
 
       # A check, not a silent pass: the root POM of this version is looked up on the registry. Absent: deploy. Present with the
-      # checksum of the POM built here: nothing to do, said in the log. Present with another checksum: fail (a published
+      # content of the POM built here: nothing to do, said in the log. Present with another checksum: fail (a published
       # version is never replaced; release a new one).
       - name: Already published?
         id: published
@@ -461,19 +461,19 @@ jobs:
           group="$(./mvnw -B -q -ntp -N help:evaluate -Dexpression=project.groupId -DforceStdout)"
           artifact="$(./mvnw -B -q -ntp -N help:evaluate -Dexpression=project.artifactId -DforceStdout)"
           url="https://maven.pkg.github.com/${REPOSITORY}/${group//./\/}/${artifact}/${version}/${artifact}-${version}.pom"
-          code="$(curl -s -o /tmp/remote.pom.sha1 -w '%{http_code}' -u "x-access-token:${GITHUB_TOKEN}" "${url}.sha1")"
+          code="$(curl -s -o "${RUNNER_TEMP}/remote.pom" -w '%{http_code}' -u "x-access-token:${GITHUB_TOKEN}" "${url}")"
           case "$code" in
             404) echo "published=false" >> "$GITHUB_OUTPUT"; echo "${artifact} ${version} is not on the registry yet: deploying" ;;
             200)
-              remote="$(cut -c1-40 /tmp/remote.pom.sha1)"
-              local_sum="$(sha1sum pom.xml | cut -c1-40)"
+              remote="$(sha256sum "${RUNNER_TEMP}/remote.pom" | cut -c1-64)"
+              local_sum="$(sha256sum pom.xml | cut -c1-64)"
               if [ "$remote" = "$local_sum" ]; then
                 echo "published=true" >> "$GITHUB_OUTPUT"
-                echo "already published, same checksum (${artifact} ${version}, sha1 ${local_sum}): nothing to deploy"
+                echo "already published, same checksum (${artifact} ${version}, sha256 ${local_sum}): nothing to deploy"
               else
                 echo "::error::${artifact} ${version} is already published with another checksum (registry ${remote}, built here ${local_sum}); a published version is never replaced, release a new one"; exit 1
               fi ;;
-            *) echo "::error::the registry answered HTTP ${code} for ${url}.sha1"; exit 1 ;;
+            *) echo "::error::the registry answered HTTP ${code} for ${url}"; exit 1 ;;
           esac
 
       # Sources and javadoc jars (profile release), no signature, no Central plugin (profile registry-central). Tests ran in `verify` on this commit.
