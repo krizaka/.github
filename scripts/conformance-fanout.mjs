@@ -124,7 +124,7 @@ async function openPullRequest({ repo, rules }, all, sha) {
     for (const file of files) {
       const existing = await fileAt(repo, file.path, branch);
       await api("PUT", `/repos/krizaka/${repo}/contents/${file.path}`, {
-        message: `chore: ${rule.id}, the org rule (krizaka/.github#393)\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`,
+        message: `chore: ${rule.id}, the org rule (krizaka/.github#393)`,
         content: Buffer.from(file.content).toString("base64"),
         branch,
         ...(existing ? { sha: existing.sha } : {}),
