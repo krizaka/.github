@@ -9,6 +9,9 @@ on:
     paths:
       - ".github/workflows/*.yml"
       - "actions/**"
+  # Safety net: the pins move once .github is at 0 open PRs, even when the push that emptied it ran earlier (idempotent).
+  schedule:
+    - cron: "17 * * * *"
   workflow_dispatch:
     inputs:
       source:
