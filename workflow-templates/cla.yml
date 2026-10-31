@@ -1,0 +1,21 @@
+# The CLA check of a Krizaka product repository (ADR-012 §4): external contributors sign the Krizaka CLA once from their PR.
+# Libraries (Apache-2.0) do not add this workflow: they use the DCO sign-off.
+name: CLA
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, closed]
+  issue_comment:
+    types: [created]
+
+permissions: {}
+
+jobs:
+  cla:
+    permissions:
+      actions: write
+      contents: read
+      pull-requests: write
+      statuses: write
+    uses: krizaka/.github/.github/workflows/cla.yml@main
+    secrets: inherit
