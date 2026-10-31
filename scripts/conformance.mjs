@@ -85,7 +85,7 @@ export function scopeOf(repositories) {
 }
 
 /** A repository as the checks see it: its tracked paths and a reader of one file (null when absent). */
-export function snapshotOf(name, kind, paths, readFile, scan = null, published = null, requiredChecks = null, mergeGuard = null) {
+export function snapshotOf(name, kind, paths, readFile, { scan = null, published = null, requiredChecks = null, mergeGuard = null } = {}) {
   const cache = new Map();
   const read = async (path) => {
     if (!paths.includes(path)) return null;
@@ -366,7 +366,7 @@ export async function liveSnapshot({ name, kind }, org = "krizaka") {
     const classic = await api(`/repos/${org}/${name}/branches/main/protection/required_status_checks`);
     return { mergeQueue: rules.some((r) => r.type === "merge_queue"), strict: classic?.strict === true || rules.some((r) => r.type === "required_status_checks" && r.parameters?.strict_required_status_checks_policy === true) };
   };
-  return snapshotOf(name, kind, paths, raw, scan, published, requiredChecks, mergeGuard);
+  return snapshotOf(name, kind, paths, raw, { scan, published, requiredChecks, mergeGuard });
 }
 
 const flag = (argv, name) => (argv.includes(name) ? argv[argv.indexOf(name) + 1] : undefined);

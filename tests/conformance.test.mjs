@@ -210,7 +210,7 @@ test("a check may store its pattern encoded, so the registry spells none of the 
 test("journeys: both callers and `journeys / gate` required on main; a missing one is red, offline proves nothing", async () => {
   const rule = loadRules().find((r) => r.id === "journeys");
   const files = { ".github/workflows/ci.yml": call("journeys.yml") + call("post-deploy-journeys.yml") };
-  const withChecks = (list) => snapshotOf("akinaza", "app", Object.keys(files), async (p) => files[p], null, null, async () => list);
+  const withChecks = (list) => snapshotOf("akinaza", "app", Object.keys(files), async (p) => files[p], { requiredChecks: async () => list });
   assert.equal((await runCheck(rule.check, withChecks(["journeys / gate"]))).ok, true);
   const red = await runCheck(rule.check, withChecks(["ci / CI gate"]));
   assert.equal(red.ok, false);
@@ -224,7 +224,7 @@ test("journeys: both callers and `journeys / gate` required on main; a missing o
 test("merged-result-tested: a merge queue or strict passes, neither fails, offline proves nothing", async () => {
   const rule = loadRules().find((r) => r.id === "merged-result-tested");
   const files = { "package.json": "{}" };
-  const guarded = (g) => snapshotOf("x", "npm", Object.keys(files), async (p) => files[p], null, null, null, async () => g);
+  const guarded = (g) => snapshotOf("x", "npm", Object.keys(files), async (p) => files[p], { mergeGuard: async () => g });
   assert.equal((await runCheck(rule.check, guarded({ mergeQueue: true, strict: false }))).ok, true);
   assert.equal((await runCheck(rule.check, guarded({ mergeQueue: false, strict: true }))).ok, true);
   const red = await runCheck(rule.check, guarded({ mergeQueue: false, strict: false }));
@@ -236,7 +236,7 @@ test("merged-result-tested: a merge queue or strict passes, neither fails, offli
 test("required-checks-profile: apps need journeys/visual only where they call them; a missing group is named", async () => {
   const rule = loadRules().find((r) => r.id === "required-checks-profile");
   const base = ["ci / CI gate", "SonarCloud Code Analysis", "Security scan / gitleaks (secrets)"];
-  const mk = (kind, files, req) => snapshotOf("x", kind, Object.keys(files), async (p) => files[p], null, null, async () => req);
+  const mk = (kind, files, req) => snapshotOf("x", kind, Object.keys(files), async (p) => files[p], { requiredChecks: async () => req });
   const none = { ".github/workflows/ci.yml": "on: push" };
   assert.equal((await runCheck(rule.check, mk("app", none, base))).ok, true);
   const withJ = { ".github/workflows/ci.yml": call("journeys.yml") + call("visual-regression.yml") };

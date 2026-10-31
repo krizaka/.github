@@ -28,7 +28,7 @@ export function parseDiff(text) {
 }
 
 const significant = (l) => l.trim().length >= TRIVIAL;
-export const explained = (body) => /^\s*deletion-explained:[ \t]*\S+/im.test(body ?? "");
+export const explained = (body) => /^[ \t]*deletion-explained:[ \t]*\S/im.test(body ?? "");
 
 /** @param prDiff base...head, @param mainDiff (last main commit before the PR was opened)..main */
 export function judge(prDiff, mainDiff, body, max = MAX_LINES) {
@@ -48,7 +48,7 @@ export function judge(prDiff, mainDiff, body, max = MAX_LINES) {
   return { ok: reasons.length === 0 || explained(body), dropped, generated, reasons, detail, explained: explained(body) };
 }
 
-const git = (dir, ...args) => execFileSync("git", ["-C", dir, ...args], { encoding: "utf8", maxBuffer: 256 * 1024 * 1024 });
+const git = (dir, ...args) => execFileSync("/usr/bin/git", ["-C", dir, ...args], { encoding: "utf8", maxBuffer: 256 * 1024 * 1024 });
 
 export function main(argv) {
   const flag = (n, d) => (argv.includes(n) ? argv[argv.indexOf(n) + 1] : d);
@@ -57,7 +57,12 @@ export function main(argv) {
   const max = Number(flag("--max", MAX_LINES));
   const openedAt = flag("--opened-at");
   const body = flag("--body-file") ? readFileSync(flag("--body-file"), "utf8") : (process.env.PR_BODY ?? "");
-  const branchPoint = flag("--branch-point") ? flag("--branch-point") : openedAt ? git(dir, "rev-list", "-1", `--before=${openedAt}`, base).trim() : git(dir, "merge-base", base, "HEAD").trim();
+  const branchPointOf = () => {
+    if (flag("--branch-point")) return flag("--branch-point");
+    if (openedAt) return git(dir, "rev-list", "-1", `--before=${openedAt}`, base).trim();
+    return git(dir, "merge-base", base, "HEAD").trim();
+  };
+  const branchPoint = branchPointOf();
   const prDiff = parseDiff(git(dir, "diff", "-U0", "--no-color", `${base}...HEAD`));
   const mainDiff = branchPoint ? parseDiff(git(dir, "diff", "-U0", "--no-color", branchPoint, base)) : {};
   const r = judge(prDiff, mainDiff, body, max);

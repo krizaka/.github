@@ -30,27 +30,37 @@ async function call(path, init = {}) {
   return res.status === 204 || res.status === 202 ? null : res.json().catch(() => null);
 }
 
-export async function main(argv) {
-  const dry = argv.includes("--dry-run");
+/** Every open PR of every live repository: [repo name, pull request]. */
+async function openPulls() {
   const repos = [];
   for (let page = 1; ; page++) {
     const batch = await call(`/orgs/krizaka/repos?type=all&per_page=100&page=${page}`);
     if (!batch?.length) break;
     repos.push(...batch.filter((r) => !r.archived && !r.disabled));
   }
+  const pulls = [];
   for (const { name } of repos) {
-    for (const pr of (await call(`/repos/krizaka/${name}/pulls?state=open&per_page=100`)) ?? []) {
-      const action = classify(pr);
-      if (action === "none") continue;
-      console.log(`${name}#${pr.number}: ${action}${dry ? " (dry run)" : ""}`);
-      if (dry) continue;
-      if (action === "close") {
-        await call(`/repos/krizaka/${name}/issues/${pr.number}/comments`, { method: "POST", body: JSON.stringify({ body: NOTE }) });
-        await call(`/repos/krizaka/${name}/pulls/${pr.number}`, { method: "PATCH", body: JSON.stringify({ state: "closed" }) });
-      } else {
-        await call(`/repos/krizaka/${name}/pulls/${pr.number}/update-branch`, { method: "PUT", body: "{}" }); // 422: already up to date or conflicted, nothing to do
-      }
-    }
+    for (const pr of (await call(`/repos/krizaka/${name}/pulls?state=open&per_page=100`)) ?? []) pulls.push([name, pr]);
+  }
+  return pulls;
+}
+
+async function apply(name, pr, action) {
+  if (action === "close") {
+    await call(`/repos/krizaka/${name}/issues/${pr.number}/comments`, { method: "POST", body: JSON.stringify({ body: NOTE }) });
+    await call(`/repos/krizaka/${name}/pulls/${pr.number}`, { method: "PATCH", body: JSON.stringify({ state: "closed" }) });
+  } else {
+    await call(`/repos/krizaka/${name}/pulls/${pr.number}/update-branch`, { method: "PUT", body: "{}" }); // 422: already up to date or conflicted, nothing to do
+  }
+}
+
+export async function main(argv) {
+  const dry = argv.includes("--dry-run");
+  for (const [name, pr] of await openPulls()) {
+    const action = classify(pr);
+    if (action === "none") continue;
+    console.log(`${name}#${pr.number}: ${action}${dry ? " (dry run)" : ""}`);
+    if (!dry) await apply(name, pr, action);
   }
   return 0;
 }

@@ -46,6 +46,7 @@ jobs:
           owner: krizaka
           repositories: ${{ steps.repos.outputs.list }}
           permission-contents: read
+          permission-administration: read
           permission-metadata: read
           permission-issues: write
       - name: The matrix
