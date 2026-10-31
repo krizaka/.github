@@ -28,7 +28,7 @@
 #   (to a local folder) on every pull request, so the release path is exercised before release day.
 #
 # Reading: when `github` is selected, the Krizaka building blocks' packages are added to the runner's Maven settings
-#   (`packages: read`); each package grants read access to the repositories that use it (package settings).
+#   (the caller's `maven` job grants `packages: read`, and `packages: write` to release); each package grants read access to the repositories that use it (package settings).
 #
 # Organisation secrets it reads (never stored in a repository):
 #   MAVEN_CENTRAL_USERNAME / MAVEN_CENTRAL_PASSWORD   Central Portal user token (server id `central`)
@@ -133,9 +133,6 @@ jobs:
     if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    permissions:
-      contents: read
-      packages: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -407,9 +404,9 @@ jobs:
     if: needs.registry.outputs.github == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    permissions:
-      contents: read
-      packages: write
+    # No `permissions:` on purpose: a reusable workflow cannot ask for more than its caller grants, and asking for
+    # `packages: write` here would stop every caller that stays on `central` (startup failure). A repository that
+    # chooses `github` grants `packages: write` on its `maven` job (read is enough for pull requests).
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:

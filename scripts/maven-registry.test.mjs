@@ -30,9 +30,9 @@ test("an empty or unknown registry fails, never publishes nowhere", () => {
   assert.match(bad.stdout, /unknown registry: nexus/);
 });
 
-test("one release job per registry; GitHub writes packages with the workflow token only", () => {
+test("one release job per registry; GitHub writes packages with the workflow token only, permissions come from the caller", () => {
   const github = workflow.split("  release-github:")[1].split("  release-central:")[0];
-  assert.match(github, /packages: write/);
+  assert.doesNotMatch(github, /^    permissions:/m, "inherits the caller's grant, so callers on central keep working");
   assert.doesNotMatch(github, /secrets\.MAVEN_/);
   assert.match(workflow.split("  release-central:")[1], /environment: maven-central/);
 });
