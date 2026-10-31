@@ -8,7 +8,7 @@
 #       with:
 #         upstreams: "krizaka-build krizaka-platform-kit"   # repositories built first, in order
 #         rewrite: true                                     # OpenRewrite dry run must find nothing to change
-#         registry: github                                  # github (default) | central | "github,central"
+#         registry: github                                  # github | central (default) | "github,central"
 #       secrets: inherit
 #
 # verify — on every push and pull request: the upstream Krizaka repositories are built from their
@@ -18,7 +18,7 @@
 #
 # release — on a v* tag only, once per registry of the `registry` input (the registry is configuration, ADR-019):
 #   the version is taken from the tag (v0.1.0 → 0.1.0) for this repository and for its Krizaka parent.
-#   `github` (the default): deployed unsigned to GitHub Packages (maven.pkg.github.com/<repository>) with the
+#   `github`: deployed unsigned to GitHub Packages (maven.pkg.github.com/<repository>) with the
 #   workflow's GITHUB_TOKEN (`packages: write`), sources and javadoc jars included — no secret to keep.
 #   `central`: every artifact is signed (OpenPGP, Bouncy Castle — no gpg binary) and uploaded to the Central Portal.
 #   The parent POM keeps autoPublish=false, so the deployment is validated and then WAITS in central.sonatype.com for a
@@ -88,9 +88,9 @@ on:
         type: string
 
       registry:
-        description: "Where a v* tag publishes: github (GitHub Packages, default), central (Maven Central), or both (\"github,central\"). ADR-019."
+        description: "Where a v* tag publishes: github (GitHub Packages), central (Maven Central, default until a repository moves), or both (\"github,central\"). ADR-019. `github` needs krizaka-parent with the registry-central profile."
         required: false
-        default: "github"
+        default: "central"
         type: string
 
     secrets:
@@ -201,7 +201,7 @@ jobs:
       # The release path of `github`, run for real but into a folder: the deployment a tag would do.
       - name: Dry-run the GitHub Packages deployment
         if: steps.registry.outputs.github == 'true'
-        run: ./mvnw -B -ntp deploy -DskipTests -DskipITs -Dkrizaka.quality.phase=none "-DaltDeploymentRepository=github::file://${RUNNER_TEMP}/registry-dry-run"
+        run: ./mvnw -B -ntp deploy -Prelease -Dgpg.skip -DskipTests -DskipITs -Dkrizaka.quality.phase=none "-DaltDeploymentRepository=github::file://${RUNNER_TEMP}/registry-dry-run"
 
       # The recipes live in krizaka-parent (one place, every repository inherits them). A change a recipe
       # would make is debt: apply it with `./mvnw rewrite:run`, run the tests, commit.
@@ -443,12 +443,12 @@ jobs:
             echo "::error::a SNAPSHOT version is left after setting ${version}"; exit 1
           fi
 
-      # No signature, no Central plugin (they belong to the central deployment). Tests ran in `verify` on this commit.
+      # Sources and javadoc jars (profile release), no signature, no Central plugin (profile registry-central). Tests ran in `verify` on this commit.
       - name: Deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPOSITORY: ${{ github.repository }}
-        run: ./mvnw -B -ntp deploy -DskipTests -DskipITs -Dkrizaka.quality.phase=none "-DaltDeploymentRepository=github::https://maven.pkg.github.com/${REPOSITORY}"
+        run: ./mvnw -B -ntp deploy -Prelease -Dgpg.skip -DskipTests -DskipITs -Dkrizaka.quality.phase=none "-DaltDeploymentRepository=github::https://maven.pkg.github.com/${REPOSITORY}"
 
   release-central:
     name: Sign and upload to Maven Central
@@ -491,4 +491,4 @@ jobs:
           MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
           MAVEN_GPG_KEY: ${{ secrets.MAVEN_GPG_KEY }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
-        run: ./mvnw -B -ntp deploy -Prelease -DskipTests -DskipITs
+        run: ./mvnw -B -ntp deploy -Prelease,registry-central -DskipTests -DskipITs
