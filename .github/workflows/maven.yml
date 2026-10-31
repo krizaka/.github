@@ -1,4 +1,4 @@
-# The pipeline of every Krizaka JVM repository published to Maven Central (com.krizaka).
+# The pipeline of every Krizaka JVM repository published to a Maven registry (com.krizaka; ADR-019).
 #
 # A repository's own .github/workflows/ci.yml calls it:
 #
@@ -8,6 +8,7 @@
 #       with:
 #         upstreams: "krizaka-build krizaka-platform-kit"   # repositories built first, in order
 #         rewrite: true                                     # OpenRewrite dry run must find nothing to change
+#         registry: github                                  # github (default) | central | "github,central"
 #       secrets: inherit
 #
 # verify — on every push and pull request: the upstream Krizaka repositories are built from their
@@ -15,14 +16,19 @@
 #   integration tests, formatting, AND the sources and javadoc jars Central requires. A javadoc
 #   error is found the day it is written, not on release day.
 #
-# release — on a v* tag only: the version is taken from the tag (v0.1.0 → 0.1.0) for this
-#   repository and for its Krizaka parent, every artifact is signed (OpenPGP, Bouncy Castle — no gpg
-#   binary) and uploaded to the Central Portal. The parent POM keeps autoPublish=false, so the
-#   deployment is validated and then WAITS in central.sonatype.com for a human to press Publish:
-#   a release on Central can never be deleted.
-#   Central validates a POM against its parent ON CENTRAL: tag krizaka-build first and publish
-#   it before tagging the repositories that inherit krizaka-parent, or their validation fails with
-#   "Project URL is not defined" and "Dependency version information is missing".
+# release — on a v* tag only, once per registry of the `registry` input (the registry is configuration, ADR-019):
+#   the version is taken from the tag (v0.1.0 → 0.1.0) for this repository and for its Krizaka parent.
+#   `github` (the default): deployed unsigned to GitHub Packages (maven.pkg.github.com/<repository>) with the
+#   workflow's GITHUB_TOKEN (`packages: write`), sources and javadoc jars included — no secret to keep.
+#   `central`: every artifact is signed (OpenPGP, Bouncy Castle — no gpg binary) and uploaded to the Central Portal.
+#   The parent POM keeps autoPublish=false, so the deployment is validated and then WAITS in central.sonatype.com for a
+#   human to press Publish: a release on Central can never be deleted. Central validates a POM against its parent ON
+#   CENTRAL: tag krizaka-build first and publish it before tagging the repositories that inherit krizaka-parent.
+#   Switching the registry = this input + a release; both at once is allowed. `verify` dry-runs the GitHub deployment
+#   (to a local folder) on every pull request, so the release path is exercised before release day.
+#
+# Reading: when `github` is selected, the Krizaka building blocks' packages are added to the runner's Maven settings
+#   (`packages: read`); each package grants read access to the repositories that use it (package settings).
 #
 # Organisation secrets it reads (never stored in a repository):
 #   MAVEN_CENTRAL_USERNAME / MAVEN_CENTRAL_PASSWORD   Central Portal user token (server id `central`)
@@ -81,6 +87,12 @@ on:
         default: '^\.changeset/|^(LICENSE|NOTICE|SECURITY|CODE_OF_CONDUCT|SUPPORT)(\.md)?$|^\.github/(ISSUE_TEMPLATE/|pull_request_template\.md$|FUNDING\.yml$|dependabot\.yml$)'
         type: string
 
+      registry:
+        description: "Where a v* tag publishes: github (GitHub Packages, default), central (Maven Central), or both (\"github,central\"). ADR-019."
+        required: false
+        default: "github"
+        type: string
+
     secrets:
       SONAR_TOKEN:
         description: "SonarCloud token (the org secret). Required when `sonar` is true; never printed."
@@ -121,10 +133,33 @@ jobs:
     if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    permissions:
+      contents: read
+      packages: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
+
+      # A typo in `registry` fails here, on the pull request, not on release day.
+      - name: Registry
+        id: registry
+        env:
+          REGISTRY: ${{ inputs.registry }}
+        run: |
+          # registry-parse:begin
+          registry="$(printf '%s' "$REGISTRY" | tr ',' ' ' | xargs)"
+          github=false; central=false
+          [ -n "$registry" ] || { echo "::error::registry is empty: use github, central, or a list of both"; exit 1; }
+          for name in $registry; do
+            case "$name" in
+              github) github=true ;;
+              central) central=true ;;
+              *) echo "::error::unknown registry: $name (known: github, central)"; exit 1 ;;
+            esac
+          done
+          { echo "github=$github"; echo "central=$central"; } >> "$GITHUB_OUTPUT"
+          # registry-parse:end
 
       # The repository's folders stay clean (docs/standards/repo-layout.md).
       - uses: krizaka/.github/actions/repo-layout@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
@@ -134,6 +169,13 @@ jobs:
           distribution: temurin
           java-version: ${{ inputs.java-version }}
           cache: maven
+
+      - name: Read the Krizaka building blocks from GitHub Packages
+        if: steps.registry.outputs.github == 'true'
+        uses: krizaka/.github/actions/maven-github-packages@1ee05b3da9c502b460f6f74a46b378a677b3d5a2 # main
+        with:
+          token: ${{ github.token }}
+          repositories: krizaka-build krizaka-platform-kit krizaka-users krizaka-notifications krizaka-billing
 
       - name: Build the upstream Krizaka repositories
         if: inputs.upstreams != ''
@@ -155,6 +197,11 @@ jobs:
         run: |
           # shellcheck disable=SC2086  # -T and its value are word-split on purpose
           ./mvnw -B -ntp ${THREADS:+-T $THREADS} verify -Prelease -Dgpg.skip
+
+      # The release path of `github`, run for real but into a folder: the deployment a tag would do.
+      - name: Dry-run the GitHub Packages deployment
+        if: steps.registry.outputs.github == 'true'
+        run: ./mvnw -B -ntp deploy -DskipTests -DskipITs -Dkrizaka.quality.phase=none "-DaltDeploymentRepository=github::file://${RUNNER_TEMP}/registry-dry-run"
 
       # The recipes live in krizaka-parent (one place, every repository inherits them). A change a recipe
       # would make is debt: apply it with `./mvnw rewrite:run`, run the tests, commit.
@@ -324,10 +371,89 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
           exit "$fail"
 
-  release:
-    name: Sign and upload to Maven Central
+  # Parse once; the release jobs read it.
+  registry:
+    name: Registry
     needs: verify
     if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    outputs:
+      github: ${{ steps.parse.outputs.github }}
+      central: ${{ steps.parse.outputs.central }}
+    steps:
+      - id: parse
+        env:
+          REGISTRY: ${{ inputs.registry }}
+        run: |
+          # registry-parse:copy-begin
+          registry="$(printf '%s' "$REGISTRY" | tr ',' ' ' | xargs)"
+          github=false; central=false
+          [ -n "$registry" ] || { echo "::error::registry is empty: use github, central, or a list of both"; exit 1; }
+          for name in $registry; do
+            case "$name" in
+              github) github=true ;;
+              central) central=true ;;
+              *) echo "::error::unknown registry: $name (known: github, central)"; exit 1 ;;
+            esac
+          done
+          { echo "github=$github"; echo "central=$central"; } >> "$GITHUB_OUTPUT"
+          # registry-parse:copy-end
+
+  release-github:
+    name: Deploy to GitHub Packages
+    needs: registry
+    if: needs.registry.outputs.github == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+        with:
+          distribution: temurin
+          java-version: ${{ inputs.java-version }}
+          cache: maven
+          server-id: github
+          server-username: GITHUB_ACTOR
+          server-password: GITHUB_TOKEN
+
+      - uses: krizaka/.github/actions/maven-github-packages@1ee05b3da9c502b460f6f74a46b378a677b3d5a2 # main
+        with:
+          token: ${{ github.token }}
+          repositories: krizaka-build krizaka-platform-kit krizaka-users krizaka-notifications krizaka-billing
+
+      - name: Version from the tag
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          snapshot="$(./mvnw -B -q -ntp help:evaluate -Dexpression=project.version -DforceStdout)"
+          # Every Krizaka JVM artifact is released at one version (krizaka-bom): the repository's own
+          # modules and the krizaka-parent it inherits all carry the same SNAPSHOT, so one literal
+          # substitution sets both. versions:set cannot: krizaka-build's root inherits its version
+          # from one of its own modules and the plugin refuses it.
+          find . -name pom.xml -not -path '*/target/*' -exec \
+            sed -i "s|<version>${snapshot}</version>|<version>${version}</version>|g" {} +
+          if grep -rq --include=pom.xml -e '-SNAPSHOT</version>' .; then
+            echo "::error::a SNAPSHOT version is left after setting ${version}"; exit 1
+          fi
+
+      # No signature, no Central plugin (they belong to the central deployment). Tests ran in `verify` on this commit.
+      - name: Deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+        run: ./mvnw -B -ntp deploy -DskipTests -DskipITs -Dkrizaka.quality.phase=none "-DaltDeploymentRepository=github::https://maven.pkg.github.com/${REPOSITORY}"
+
+  release-central:
+    name: Sign and upload to Maven Central
+    needs: registry
+    if: needs.registry.outputs.central == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     environment: maven-central
