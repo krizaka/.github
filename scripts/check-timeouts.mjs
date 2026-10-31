@@ -35,7 +35,7 @@ export function jobsWithoutTimeout(text) {
 /** A test config text without a per-test timeout, or null when it has one. */
 export function configWithoutTestTimeout(file, text) {
   const name = file.split("/").pop();
-  if (/^playwright\.config\./.test(name)) return /\btimeout\s*:/.test(text) ? null : "no `timeout` (per test)";
+  if (name.startsWith("playwright.config.")) return /\btimeout\s*:/.test(text) ? null : "no `timeout` (per test)";
   if (/^(vitest|jest)\.config\./.test(name)) return /\b(testTimeout|timeout)\s*:/.test(text) ? null : "no `testTimeout`";
   if (name === "junit-platform.properties")
     return /junit\.jupiter\.execution\.timeout\.default\s*=/.test(text) ? null : "no `junit.jupiter.execution.timeout.default`";
@@ -57,7 +57,9 @@ function walk(dir, files = []) {
   return files;
 }
 
-export function check(root) {
+const CONFIG_FILE = /(?:(?:playwright|vitest|jest)\.config\.|junit-platform\.properties$)/;
+
+function workflowProblems(root) {
   const problems = [];
   for (const dir of [".github/workflows", "workflow-templates"]) {
     const d = join(root, dir);
@@ -66,15 +68,22 @@ export function check(root) {
       for (const j of jobsWithoutTimeout(readFileSync(join(d, f), "utf8")))
         problems.push(`${dir}/${f}:${j.line} job \`${j.job}\` has no timeout-minutes`);
   }
-  for (const p of walk(root)) {
-    const rel = relative(root, p);
-    if (/(^|\/)(node_modules|fixtures)\//.test(rel)) continue;
-    const why = configWithoutTestTimeout(rel, existsSync(p) ? readFileSync(p, "utf8") : "");
-    if (why && /(playwright|vitest|jest)\.config\.|junit-platform\.properties$/.test(rel)) problems.push(`${rel}: ${why}`);
-    if (rel.endsWith("package.json") && nodeTestWithoutTimeout(readFileSync(p, "utf8")))
-      problems.push(`${rel}: \`node --test\` without --test-timeout`);
-  }
   return problems;
+}
+
+function fileProblems(root, p) {
+  const rel = relative(root, p);
+  if (/(^|\/)(node_modules|fixtures)\//.test(rel)) return [];
+  const problems = [];
+  const why = configWithoutTestTimeout(rel, existsSync(p) ? readFileSync(p, "utf8") : "");
+  if (why && CONFIG_FILE.test(rel)) problems.push(`${rel}: ${why}`);
+  if (rel.endsWith("package.json") && nodeTestWithoutTimeout(readFileSync(p, "utf8")))
+    problems.push(`${rel}: \`node --test\` without --test-timeout`);
+  return problems;
+}
+
+export function check(root) {
+  return [...workflowProblems(root), ...walk(root).flatMap((p) => fileProblems(root, p))];
 }
 
 if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
