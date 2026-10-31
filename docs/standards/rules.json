@@ -433,6 +433,199 @@
         ]
       },
       "fix": { "type": "manual", "note": "declare the `critical` Playwright project, call journeys.yml as the job `journeys` (check `journeys / gate`) and post-deploy-journeys.yml from the deploy's workflow_run for dev and prod; require `journeys / gate` on main and in the merge queue (docs/standards/journeys.md)" }
+    },
+    {
+      "id": "merged-result-tested",
+      "title": "Every repository tests the merged result: a merge queue on main, or branch protection that requires branches up to date (strict)",
+      "issue": "krizaka/krizaka-internal#2000",
+      "applies": {
+        "kinds": [
+          "npm",
+          "site",
+          "app",
+          "maven",
+          "python",
+          "rust",
+          "iac"
+        ]
+      },
+      "check": {
+        "type": "merged-result"
+      },
+      "fix": {
+        "type": "manual",
+        "note": "enable the merge queue (tools/mq-enable.sh <repo>) or set required_status_checks.strict=true on main (founder login: protection change)"
+      }
+    },
+    {
+      "id": "required-checks-profile",
+      "title": "The checks required on main match the repository profile: apps CI gate, Sonar, security scan, journeys gate where it has journeys, visual where it has UI; libraries CI gate, Sonar, security scan",
+      "issue": "krizaka/krizaka-internal#2000",
+      "applies": {
+        "kinds": [
+          "npm",
+          "site",
+          "app",
+          "maven",
+          "python",
+          "rust",
+          "iac"
+        ]
+      },
+      "check": {
+        "type": "required-profile",
+        "byKind": {
+          "app": [
+            {
+              "name": "CI gate",
+              "pattern": "CI gate|component / verify|Verify \\(tests|Lint, tests, build|Type-check, test, build|Typecheck, build, test|^workspace$|Lint · Typecheck"
+            },
+            {
+              "name": "Sonar",
+              "pattern": "^SonarCloud Code Analysis$"
+            },
+            {
+              "name": "security scan",
+              "pattern": "^Security scan / gitleaks"
+            },
+            {
+              "name": "journeys gate",
+              "pattern": "^journeys / gate$",
+              "when": "journeys.yml"
+            },
+            {
+              "name": "visual regression",
+              "pattern": "^visual / ",
+              "when": "visual-regression.yml"
+            }
+          ],
+          "site": [
+            {
+              "name": "CI gate",
+              "pattern": "CI gate|component / verify|Verify \\(tests|Lint, tests, build|Type-check, test, build|Typecheck, build, test|^workspace$|Lint · Typecheck"
+            },
+            {
+              "name": "Sonar",
+              "pattern": "^SonarCloud Code Analysis$"
+            },
+            {
+              "name": "security scan",
+              "pattern": "^Security scan / gitleaks"
+            },
+            {
+              "name": "journeys gate",
+              "pattern": "^journeys / gate$",
+              "when": "journeys.yml"
+            },
+            {
+              "name": "visual regression",
+              "pattern": "^visual / ",
+              "when": "visual-regression.yml"
+            }
+          ],
+          "npm": [
+            {
+              "name": "CI gate",
+              "pattern": "CI gate|component / verify|Verify \\(tests|Lint, tests, build|Type-check, test, build|Typecheck, build, test|^workspace$|Lint · Typecheck"
+            },
+            {
+              "name": "Sonar",
+              "pattern": "^SonarCloud Code Analysis$"
+            },
+            {
+              "name": "security scan",
+              "pattern": "^Security scan / gitleaks"
+            }
+          ],
+          "maven": [
+            {
+              "name": "CI gate",
+              "pattern": "CI gate|component / verify|Verify \\(tests|Lint, tests, build|Type-check, test, build|Typecheck, build, test|^workspace$|Lint · Typecheck"
+            },
+            {
+              "name": "Sonar",
+              "pattern": "^SonarCloud Code Analysis$"
+            },
+            {
+              "name": "security scan",
+              "pattern": "^Security scan / gitleaks"
+            }
+          ],
+          "python": [
+            {
+              "name": "CI gate",
+              "pattern": "CI gate|component / verify|Verify \\(tests|Lint, tests, build|Type-check, test, build|Typecheck, build, test|^workspace$|Lint · Typecheck"
+            },
+            {
+              "name": "Sonar",
+              "pattern": "^SonarCloud Code Analysis$"
+            },
+            {
+              "name": "security scan",
+              "pattern": "^Security scan / gitleaks"
+            }
+          ],
+          "rust": [
+            {
+              "name": "CI gate",
+              "pattern": "CI gate|component / verify|Verify \\(tests|Lint, tests, build|Type-check, test, build|Typecheck, build, test|^workspace$|Lint · Typecheck"
+            },
+            {
+              "name": "Sonar",
+              "pattern": "^SonarCloud Code Analysis$"
+            },
+            {
+              "name": "security scan",
+              "pattern": "^Security scan / gitleaks"
+            }
+          ],
+          "iac": [
+            {
+              "name": "CI gate",
+              "pattern": "CI gate|component / verify|Verify \\(tests|Lint, tests, build|Type-check, test, build|Typecheck, build, test|^workspace$|Lint · Typecheck"
+            },
+            {
+              "name": "Sonar",
+              "pattern": "^SonarCloud Code Analysis$"
+            },
+            {
+              "name": "security scan",
+              "pattern": "^Security scan / gitleaks"
+            }
+          ]
+        }
+      },
+      "fix": {
+        "type": "manual",
+        "note": "add the missing check to the required checks of main (only once it is green on main); a check red on main is fixed first, never required while red"
+      }
+    },
+    {
+      "id": "merge-resolution",
+      "title": "Conflict resolutions are checked: a PR that drops more than 50 lines main added meanwhile, or deletes generated content, fails without a `deletion-explained:` line",
+      "issue": "krizaka/krizaka-internal#2000",
+      "applies": {
+        "kinds": [
+          "npm",
+          "site",
+          "app",
+          "maven",
+          "python",
+          "rust",
+          "iac"
+        ]
+      },
+      "check": {
+        "type": "workflow-calls",
+        "workflows": [
+          "merge-resolution.yml"
+        ]
+      },
+      "fix": {
+        "type": "copy",
+        "from": "workflow-templates/merge-resolution.yml",
+        "to": ".github/workflows/merge-resolution.yml"
+      }
     }
   ]
 }

@@ -220,3 +220,31 @@ test("journeys: both callers and `journeys / gate` required on main; a missing o
   assert.equal((await runCheck(rule.check, snap("akinaza", "app", noPost))).ok, false);
   assert.deepEqual(rule.applies.onlyRepos, ["akinaza", "yomizaka", "orazaka-web-client"]);
 });
+
+test("merged-result-tested: a merge queue or strict passes, neither fails, offline proves nothing", async () => {
+  const rule = loadRules().find((r) => r.id === "merged-result-tested");
+  const files = { "package.json": "{}" };
+  const guarded = (g) => snapshotOf("x", "npm", Object.keys(files), async (p) => files[p], null, null, null, async () => g);
+  assert.equal((await runCheck(rule.check, guarded({ mergeQueue: true, strict: false }))).ok, true);
+  assert.equal((await runCheck(rule.check, guarded({ mergeQueue: false, strict: true }))).ok, true);
+  const red = await runCheck(rule.check, guarded({ mergeQueue: false, strict: false }));
+  assert.equal(red.ok, false);
+  assert.match(red.why, /merge queue/);
+  assert.equal((await runCheck(rule.check, snap("x", "npm", files))).ok, true);
+});
+
+test("required-checks-profile: apps need journeys/visual only where they call them; a missing group is named", async () => {
+  const rule = loadRules().find((r) => r.id === "required-checks-profile");
+  const base = ["ci / CI gate", "SonarCloud Code Analysis", "Security scan / gitleaks (secrets)"];
+  const mk = (kind, files, req) => snapshotOf("x", kind, Object.keys(files), async (p) => files[p], null, null, async () => req);
+  const none = { ".github/workflows/ci.yml": "on: push" };
+  assert.equal((await runCheck(rule.check, mk("app", none, base))).ok, true);
+  const withJ = { ".github/workflows/ci.yml": call("journeys.yml") + call("visual-regression.yml") };
+  const red = await runCheck(rule.check, mk("app", withJ, base));
+  assert.equal(red.ok, false);
+  assert.match(red.why, /journeys gate, visual regression/);
+  assert.equal((await runCheck(rule.check, mk("app", withJ, [...base, "journeys / gate", "visual / Visual regression"]))).ok, true);
+  const lib = await runCheck(rule.check, mk("maven", withJ, ["component / verify"]));
+  assert.match(lib.why, /Sonar, security scan/);
+  assert.equal((await runCheck(rule.check, snap("x", "app", withJ))).ok, true);
+});
