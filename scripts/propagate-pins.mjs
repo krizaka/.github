@@ -104,12 +104,27 @@ export function publishPinPr({ repo, branch, title, body, run = sh }) {
   return url;
 }
 
+/**
+ * Founder rule (2026-10-31): .github gives the rules, so nothing org-wide is applied until it has 0 open pull requests.
+ * The org workflow pins (source `.github`) wait for that; the last merge that empties .github starts the run again
+ * (push to main), and the scheduled run is the safety net. Returns the number of open PRs when the run must wait, else 0.
+ */
+export function openPrsToWait(source, run = sh) {
+  if (source !== ".github") return 0;
+  return Number(run("gh", ["api", "repos/krizaka/.github/pulls?state=open&per_page=100", "--jq", "length"]).trim() || 0);
+}
+
 function main(argv) {
   const sha = argv[0];
   if (!/^[0-9a-f]{40}$/.test(sha ?? "")) throw new Error("usage: propagate-pins.mjs <40-hex sha> [--repos a,b] [--dry-run]");
   const opt = (name) => (argv.includes(name) ? argv[argv.indexOf(name) + 1] : undefined);
   const dry = argv.includes("--dry-run");
   const source = opt("--source") ?? ".github";
+  const waiting = argv.includes("--no-wait") ? 0 : openPrsToWait(source);
+  if (waiting > 0) {
+    console.log(`krizaka/${source} has ${waiting} open pull request(s): the pins wait until it is at 0 (one pin PR per repository per settled ${source}).`);
+    return;
+  }
   const repos = (opt("--repos") ?? defaultRepos(source)).split(",").filter((r) => r && r !== source);
   const work = opt("--work") ?? mkdtempSync(join(tmpdir(), "pins-"));
   const label = source === ".github" ? "org workflow pins" : `${source} workflow pins`;
