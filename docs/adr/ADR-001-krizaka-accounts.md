@@ -6,6 +6,7 @@
   every product but Orochia (Orazaka web/mobile/Mac, Yomizaka, Yasakia, Yororis, Kachizaka, Akinaza and their admin
   consoles) and Krizaka's own accounts for the krizaka.com properties, whose first consumer is blog.krizaka.com.
   Amended 2026-10-16 (wider scope, account linking by verified e-mail, native PKCE, `SignInProviders`).
+- **Update 2026-10-30 (krizaka-internal#752)**: the `krizaka-accounts` repository held no code and was deleted; its design moved to `krizaka-users/docs/adr/ADR-001-accounts.md`, and the host is recreated (or added as a module of `krizaka-users`) when accounts.krizaka.com is approved.
 - **Repositories**: `krizaka-users` (the reusable block), `krizaka-accounts` (the Krizaka host, new), `krizaka-blog`
   (the first client), `krizaka-com` (privacy page)
 
