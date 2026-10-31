@@ -418,6 +418,21 @@
       "applies": { "kinds": ["npm", "site", "app", "maven", "python", "rust", "iac"] },
       "check": { "type": "agents-template" },
       "fix": { "type": "agents-template" }
+    },
+    {
+      "id": "journeys",
+      "title": "The product's critical journeys run on every PR and merge group (journeys / gate, required on main) and after every deploy, dev and prod (post-deploy-journeys)",
+      "issue": "krizaka/krizaka-internal#1939",
+      "applies": { "onlyRepos": ["akinaza", "yomizaka", "orazaka-web-client"] },
+      "check": {
+        "type": "all-of",
+        "checks": [
+          { "type": "workflow-calls", "workflows": ["journeys.yml"] },
+          { "type": "workflow-calls", "workflows": ["post-deploy-journeys.yml"] },
+          { "type": "required-check", "context": "journeys / gate" }
+        ]
+      },
+      "fix": { "type": "manual", "note": "declare the `critical` Playwright project, call journeys.yml as the job `journeys` (check `journeys / gate`) and post-deploy-journeys.yml from the deploy's workflow_run for dev and prod; require `journeys / gate` on main and in the merge queue (docs/standards/journeys.md)" }
     }
   ]
 }

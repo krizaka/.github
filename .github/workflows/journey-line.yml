@@ -1,0 +1,40 @@
+# The `Journey:` line of a pull request (krizaka-internal#1939): a feat/fix PR names the critical journey it adds or changes, or says
+# why none (`Journey: n/a — <reason>`). Reusable; the caller runs it on pull_request (opened, edited, synchronize, reopened).
+#
+#   journey-line:
+#     uses: krizaka/.github/.github/workflows/journey-line.yml@<sha> # main
+#     permissions: { contents: read }
+name: journey-line
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Journey line
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/.github
+          ref: main
+          sparse-checkout: scripts/journeys.mjs
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          package-manager-cache: false
+      - name: A feat/fix PR names its journey or says why none
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: node scripts/journeys.mjs pr-line

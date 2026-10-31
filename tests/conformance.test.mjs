@@ -206,3 +206,17 @@ test("a check may store its pattern encoded, so the registry spells none of the 
     assert.ok(new RegExp(patternOf(rule.check), "i").test(Buffer.from(rule.check.patternBase64, "base64").toString()), id);
   }
 });
+
+test("journeys: both callers and `journeys / gate` required on main; a missing one is red, offline proves nothing", async () => {
+  const rule = loadRules().find((r) => r.id === "journeys");
+  const files = { ".github/workflows/ci.yml": call("journeys.yml") + call("post-deploy-journeys.yml") };
+  const withChecks = (list) => snapshotOf("akinaza", "app", Object.keys(files), async (p) => files[p], null, null, async () => list);
+  assert.equal((await runCheck(rule.check, withChecks(["journeys / gate"]))).ok, true);
+  const red = await runCheck(rule.check, withChecks(["ci / CI gate"]));
+  assert.equal(red.ok, false);
+  assert.match(red.why, /journeys \/ gate/);
+  assert.equal((await runCheck(rule.check, snap("akinaza", "app", files))).ok, true);
+  const noPost = { ".github/workflows/ci.yml": call("journeys.yml") };
+  assert.equal((await runCheck(rule.check, snap("akinaza", "app", noPost))).ok, false);
+  assert.deepEqual(rule.applies.onlyRepos, ["akinaza", "yomizaka", "orazaka-web-client"]);
+});

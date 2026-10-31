@@ -2,6 +2,8 @@
 
 <!-- What does this change do, and why is it needed? Link the issue: Closes #… -->
 
+Journey: <the critical journey this PR adds or changes, or `n/a — reason` (required for feat and fix)>
+
 ## How it was verified
 
 - [ ] A guard that fails without this fix is added (and shown failing on `main`), or the reason there is none is written here — [a bug means a missing guard](https://github.com/krizaka/.github/blob/main/docs/standards/bug-means-missing-guard.md)
