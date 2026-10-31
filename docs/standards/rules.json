@@ -627,6 +627,13 @@
         "to": ".github/workflows/merge-resolution.yml"
       }
     },
-    {"id": "fail-closed-sg", "title": "Fail-closed ast-grep rules in the sg ratchet: no-fail-open-secret, no-bare-skip, no-unchecked-sent-log, no-swallowed-catch-success (@krizaka/config ast-grep core; a check never passes without proof)", "issue": "krizaka/krizaka-internal#1972", "applies": {"when": [{"fileExists": "sg-ratchet.json"}]}, "check": {"type": "file-matches", "path": "sg-ratchet.json", "pattern": "no-fail-open-secret"}, "fix": {"type": "manual", "note": "bump @krizaka/config to the release with the fail-closed rules, add \"*.mjs\" to the Tsx languageGlobs of sgconfig.yml, then `npx krizaka-sg-ratchet --update`; fix the hits (a secret read as an empty string, a bare skip, a swallowed catch) rather than recording them where they are cheap"}}
+    {"id": "fail-closed-sg", "title": "Fail-closed ast-grep rules in the sg ratchet: no-fail-open-secret, no-bare-skip, no-unchecked-sent-log, no-swallowed-catch-success (@krizaka/config ast-grep core; a check never passes without proof)", "issue": "krizaka/krizaka-internal#1972", "applies": {"when": [{"fileExists": "sg-ratchet.json"}]}, "check": {"type": "file-matches", "path": "sg-ratchet.json", "pattern": "no-fail-open-secret"}, "fix": {"type": "manual", "note": "bump @krizaka/config to the release with the fail-closed rules, add \"*.mjs\" to the Tsx languageGlobs of sgconfig.yml, then `npx krizaka-sg-ratchet --update`; fix the hits (a secret read as an empty string, a bare skip, a swallowed catch) rather than recording them where they are cheap"}},
+    {
+      "id": "time-limits",
+      "title": "Time limits everywhere: timeout-minutes on every workflow job, a per-test timeout (2 min default) in every test runner config - better to fail and calibrate than to run in the void",
+      "issue": "krizaka/krizaka-internal#2007",
+      "check": { "type": "time-limits" },
+      "fix": { "type": "manual", "note": "add `timeout-minutes` close to the measured duration to each job (PR < 10 min, merge_group < 15 min); set the runner's per-test timeout to 2 min (node --test-timeout=120000 --test-force-exit, Vitest/Jest testTimeout, Playwright timeout, JUnit junit.jupiter.execution.timeout.default = 2 m, Maestro per-flow, pytest-timeout); a longer value only with a comment giving the reason" }
+    }
   ]
 }
