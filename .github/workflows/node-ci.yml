@@ -372,14 +372,15 @@ jobs:
           SCRIPT: ${{ inputs.format-script }}
         run: '"$PM" run "$SCRIPT"'
 
-      # Turborepo's local cache (every leg but lint), then the tests (the test and build legs).
+      # Turborepo's local cache (every leg but lint), then the tests: the test leg only. The build leg ran them again from
+      # the build pack (2026-10-25) to 2026-10-30, nine minutes of akinaza's critical path (ADR-018, measured).
       - uses: krizaka/.github/actions/test@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
         with:
           working-directory: ${{ inputs.working-directory }}
           package-manager: ${{ inputs.package-manager }}
           turbo-cache: ${{ inputs.turbo-cache && matrix.task != 'lint' }}
           cache-scope: ${{ matrix.task }}
-          test-script: ${{ (matrix.task == 'all' || matrix.task == 'test' || matrix.task == 'build') && inputs.test-script || '' }}
+          test-script: ${{ (matrix.task == 'all' || matrix.task == 'test') && inputs.test-script || '' }}
 
       - uses: krizaka/.github/actions/build@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
         with:
