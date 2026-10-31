@@ -7,7 +7,7 @@
 ## 0. The five gaps that matter most
 
 1. **The rules do not look where the bug was.** The one clock rule (`no-ambient-clock`) is scoped to `packages/*/src` and `apps/*/lib`. yomizaka's UTC-day slices sit in `apps/web/components/console/`, which no rule scans. Scope is a per-repository copy of the rule file, so it drifted (6 versions of the same rule).
-2. **"Krizaka first" has no rule.** `krizakaStack()` carries 5 rules (fetch in an effect, TanStack, table or form, family switcher, route state) and is used by **2 of 11** repositories (krizaka-com, krizaka-ui). Nothing refuses `date-fns` (6 repositories, 77 files), `lucide-react` (orochia, 86 files), `new Intl.*Format` (10 repositories, 66 occurrences) or a local copy of a krizaka-ts capability.
+2. **"Krizaka first" has no rule.** `krizakaStack()` carries 5 rules (fetch in an effect, TanStack, table or form, family switcher, route state) and is used by **2 of 11** repositories (krizaka-com, krizaka-ui). Nothing refuses `date-fns` (6 repositories, 77 files), `lucide-react` (a former product, 86 files), `new Intl.*Format` (10 repositories, 66 occurrences) or a local copy of a krizaka-ts capability.
 3. **Our own messages point the wrong way.** Six ast-grep rules tell the developer « use date-fns » (`no-hand-ms-*`, `no-get-time-arithmetic`, `no-get-time-difference`), while krizaka-ui#609 wants `date-fns` refused in apps. The two must be reconciled before #609 lands.
 4. **Dependency-cruiser is nearly empty.** The shared preset holds **one** rule (`krizaka-no-direct-tanstack`, also an ESLint rule: the same rule in two tools). Only krizaka-com extends it. orazaka-web-client has 10 rules of its own and does **not** extend the preset, so it imports `@tanstack/*` in 23 files with no refusal. Nine repositories have no `.dependency-cruiser.cjs`.
 5. **The shared setup is still copies, and the ADR-007 move has not started.** `@krizaka/config` 0.7.0 has no `krizaka-rules` bin (only `krizaka-ratchet`). 4 pre-push hooks, 9 `sgconfig.yml`, 9 `sg-ratchet.mjs` (2 contents) and 12 `check-seo-family.mjs` (2 contents) are copies. Seven of the eleven TypeScript repositories have no `lint-ratchet.json`, and the pre-push hook exists in 4 of them.
@@ -26,17 +26,17 @@
 | krizaka-ts | `krizakaBase`, 8 packages (3 lines each); `site/` none | – | – | – | 13 | ✓ | – | ✓ (0) | ✓ |
 | yomizaka | web `krizakaNext` + `krizakaUi`; **mobile: bare typescript-eslint, no `@krizaka/config`** | – | – | – | 15 | ✓ | – | ✓ (102) | ✓ |
 | akinaza | web as yomizaka; **mobile bare** | – | – | – | 15 | ✓ | – | ✓ (79) | ✓ |
-| orochia | web `krizakaNext` + `krizakaUi`, ad-hoc overrides | – | – | – | 16 | ✓ | ✓ | – | – |
+| a former product | web `krizakaNext` + `krizakaUi`, ad-hoc overrides | – | – | – | 16 | ✓ | ✓ | – | – |
 | orazaka-web-client | own 141-line config (`eslint-config-next` + `krizakaUiRestrictedSyntax` + hand `no-restricted-imports`) | – | ✓ (10 own rules) | **no** | 15 | ✓ | ✓ | ✓ (131) | – |
-| yororis | web `krizakaNext`; no ast-grep | – | – | – | – | – | – | – | – |
-| kachizaka | web `krizakaNext` | – | – | – | 15 | ✓ | – | – | ✓ |
-| yasakia | web and site `krizakaNext` | – | – | – | 15 | ✓ | ✓ | – | – |
+| a former product | web `krizakaNext`; no ast-grep | – | – | – | – | – | – | – | – |
+| a former product | web `krizakaNext` | – | – | – | 15 | ✓ | – | – | ✓ |
+| a former product | web and site `krizakaNext` | – | – | – | 15 | ✓ | ✓ | – | – |
 | orazaka-build | Java | | | | | | | ✓ (0) | – |
 | krizaka-build | Java (+ `site/` Node) | | | | | | | – | – |
 | orazaka-ai-engine | Java | | | | | | | ✓ (215) | – |
 | .github | reusable workflows, `actions/dup-check`, charter | | | | | | | fixture only | – |
 
-`@krizaka/config` versions pinned: `^0.7.0` (ts packages, yomizaka, akinaza, orochia, yasakia, orazaka-web-client), `^0.6.0` (krizaka-com, yororis, kachizaka web), `^0.4.x` (krizaka-blog, krizaka-ts `site/`).
+`@krizaka/config` versions pinned: `^0.7.0` (ts packages, yomizaka, akinaza, the former products, orazaka-web-client), `^0.6.0` (krizaka-com, the former products web), `^0.4.x` (krizaka-blog, krizaka-ts `site/`).
 
 ### 1.2 ESLint (`@krizaka/config`, krizaka-ui `packages/config/eslint/`)
 
@@ -50,15 +50,15 @@
 - **Preset** (`packages/config/dependency-cruiser.cjs`, 31 lines): one forbidden rule, `krizaka-no-direct-tanstack`, plus resolver options. No layer rule, no cycle rule, no covered-domain rule.
 - **krizaka-com:** extends the preset, adds `no-circular`. Runs inside `npm run lint`.
 - **orazaka-web-client:** 10 own rules (`no-circular`, `no-flat-feature-modules`, `no-feature-cross-import`, `no-components-import-features`, `no-orphan-modules`, `no-types-import-implementation`, `no-direct-graphql-access`, `no-leaking-feature-constants`, `enforce-shared-isolation`, `no-auth-config-in-routing`), no `extends`. Runs in `build` and `validate`, **not in `lint`**, so the pre-push check and the lint step do not run it.
-- **Everyone else: none.** There is no cycle check in yomizaka, akinaza, kachizaka, orochia, yasakia, yororis, krizaka-ts, krizaka-ui.
+- **Everyone else: none.** There is no cycle check in yomizaka, akinaza, the former products, krizaka-ts, krizaka-ui.
 - **No ratchet for it.** `krizaka-ratchet` counts ESLint patterns by regex; dependency-cruiser's own baseline (`--ignore-known`) is not used.
 
 ### 1.4 ast-grep
 
-- 18 distinct rules over 9 repositories (krizaka-com 16, orochia 16, yomizaka 15, akinaza 15, kachizaka 15, yasakia 15, orazaka-web-client 15, krizaka-ui 14, krizaka-ts 13). Not present: krizaka-blog, yororis, krizaka-build `site/`, the three Java repositories (not applicable), the mobile apps.
+- 18 distinct rules over 9 repositories (krizaka-com 16, a former product 16, yomizaka 15, akinaza 15, a former product 15, a former product 15, orazaka-web-client 15, krizaka-ui 14, krizaka-ts 13). Not present: krizaka-blog, a former product, krizaka-build `site/`, the three Java repositories (not applicable), the mobile apps.
 - `sgconfig.yml`: 9 copies, **1 content** (hash `a5e674ed`). `sg-fix.mjs`: 9 copies.
 - Baselines (sum of `sg-ratchet.json`): `no-enum-string-compare` 323, `no-ambient-clock` 208, `no-unjustified-numeric-export` 112, `no-env-in-domain` 26, `no-get-time-arithmetic` 23, `no-get-time-difference` 7, `no-types-at-package-root` 4, `no-hand-ms-hours` 1, `no-hand-ms-minutes` 1, the rest 0.
-- Three rules exist in a single repository: `no-hand-made-tab-bar` (orochia), `no-hand-written-email` (krizaka-ui), `no-raw-inner-html` (krizaka-com). `no-hand-made-nav` and `no-hand-made-language-switch` are in 7 (not krizaka-ts, krizaka-ui; `no-hand-made-nav` has 2 contents, orochia's messages).
+- Three rules exist in a single repository: `no-hand-made-tab-bar` (a former product), `no-hand-written-email` (krizaka-ui), `no-raw-inner-html` (krizaka-com). `no-hand-made-nav` and `no-hand-made-language-switch` are in 7 (not krizaka-ts, krizaka-ui; `no-hand-made-nav` has 2 contents, a former product's messages).
 - **Drift measured by hash** (rule body with `files:`/`ignores:` removed vs the whole file):
 
 | Rule | Repositories | Distinct bodies | Distinct files |
@@ -67,7 +67,7 @@
 | `no-db-in-service-or-rules`, `no-get-time-*`, `no-hand-ms-*` | 9 | 1 | 2 |
 | `no-ts-enum`, `no-types-at-package-root` | 9 | 1 | 1 |
 
-  The bodies and messages are the same; **only the `files:` globs differ**. That is ADR-007's finding, confirmed. The cost is not the copying: it is that the scope is decided by hand in each repository, and nobody reviews it against the layout. Examples of `no-ambient-clock` scope: krizaka-com `lib/**`; orazaka-web-client `src/**`; yomizaka and krizaka-ts `packages/*/src/**` + `apps/*/lib/**`; yasakia adds `apps/web/lib`, `apps/site/lib`; orochia `packages/*/src` + `src/**` (its Next app lives in `apps/web`, so **orochia's `apps/web/lib` is not scanned**).
+  The bodies and messages are the same; **only the `files:` globs differ**. That is ADR-007's finding, confirmed. The cost is not the copying: it is that the scope is decided by hand in each repository, and nobody reviews it against the layout. Examples of `no-ambient-clock` scope: krizaka-com `lib/**`; orazaka-web-client `src/**`; yomizaka and krizaka-ts `packages/*/src/**` + `apps/*/lib/**`; a former product adds `apps/web/lib`, `apps/site/lib`; a former product `packages/*/src` + `src/**` (its Next app lives in `apps/web`, so **a former product's `apps/web/lib` is not scanned**).
 - `rule-tests/`: 5 contents over 9 repositories (the 5 repositories on the template share one).
 
 ### 1.5 The « identical in every repository » copies
@@ -75,7 +75,7 @@
 | File | Copies | Contents | Drift |
 |---|---|---|---|
 | `scripts/sg-ratchet.mjs` | 9 | 2 | krizaka-com `78fde236` (134 lines) vs 8 others `88096036` (135 lines): one `eslint-disable no-console` line. Harmless, but it shows the copy is edited by hand. |
-| `scripts/check-seo-family.mjs` | 12 | 2 | 8 copies `e2b74759` (255 lines): krizaka-com, krizaka-blog, krizaka-ts `site/`, krizaka-build `site/`, krizaka-ui `apps/site/`, orochia, akinaza, kachizaka. **4 copies `ecd54c0e` (235 lines): yomizaka, yasakia, orazaka-web-client, yororis.** Neither is a superset: the 255-line version adds the dev-host redirect audit (`auditDevRedirect`, `--redirects-to`); the 235-line version has a rule the 255 lacks (a site that is not indexed must not advertise a sitemap) and an `eslint-disable` header. |
+| `scripts/check-seo-family.mjs` | 12 | 2 | 8 copies `e2b74759` (255 lines): krizaka-com, krizaka-blog, krizaka-ts `site/`, krizaka-build `site/`, krizaka-ui `apps/site/`, a former product, akinaza, a former product. **4 copies `ecd54c0e` (235 lines): yomizaka, a former product, orazaka-web-client, a former product.** Neither is a superset: the 255-line version adds the dev-host redirect audit (`auditDevRedirect`, `--redirects-to`); the 235-line version has a rule the 255 lacks (a site that is not indexed must not advertise a sitemap) and an `eslint-disable` header. |
 | `.githooks/pre-push` | 4 | 1 (`0f4c2d26`) | none, but absent from the other 10 repositories. |
 | `sgconfig.yml` | 9 | 1 | none |
 | `scripts/sg-fix.mjs` | 9 | not compared | – |
@@ -85,7 +85,7 @@
 
 ### 1.6 Ratchets
 
-- `sg-ratchet.json`: 9 repositories. `lint-ratchet.json` (`krizaka-ratchet`): **4** (krizaka-com, orazaka-web-client, orochia, yasakia). `dup-ratchet.json` (jscpd, `actions/dup-check`): 8, 5 of them at a non-zero count (krizaka-ui 744, ai-engine 215, web-client 131, yomizaka 102, akinaza 79). Not in orochia, yasakia, kachizaka, krizaka-blog, yororis, krizaka-build.
+- `sg-ratchet.json`: 9 repositories. `lint-ratchet.json` (`krizaka-ratchet`): **4** (krizaka-com, orazaka-web-client, the former products). `dup-ratchet.json` (jscpd, `actions/dup-check`): 8, 5 of them at a non-zero count (krizaka-ui 744, ai-engine 215, web-client 131, yomizaka 102, akinaza 79). Not in the former products, krizaka-blog, a former product, krizaka-build.
 - Ratchet non-zero state that explains the next sections: orazaka-web-client `directTanstackImport` 24, `localTableOrForm` 5, `fetchInClientEffect` 4; krizaka-com `localTableOrForm` 2.
 - Java: the `FrozenRules` store (`archunit_store`) in the Orazaka modules; not inventoried per module here.
 
@@ -99,7 +99,7 @@
 
 ### 1.8 Pre-push hooks
 
-`.githooks/pre-push` (set by `prepare`) in krizaka-ts, yomizaka, akinaza, kachizaka: it syncs the lockfile, then runs `pnpm run check` (lint, typecheck, tests). Not in krizaka-com, krizaka-ui, orochia, yasakia, orazaka-web-client (npm repositories, so the hook would differ), yororis, krizaka-blog, the Java repositories. Consequence: the dependency-cruiser step is in the hook only through `lint` of krizaka-com (which has no hook).
+`.githooks/pre-push` (set by `prepare`) in krizaka-ts, yomizaka, akinaza, a former product: it syncs the lockfile, then runs `pnpm run check` (lint, typecheck, tests). Not in krizaka-com, krizaka-ui, the former products, orazaka-web-client (npm repositories, so the hook would differ), a former product, krizaka-blog, the Java repositories. Consequence: the dependency-cruiser step is in the hook only through `lint` of krizaka-com (which has no hook).
 
 ## 2. What the code-smell runs found, and which tool should have refused it
 
@@ -107,20 +107,20 @@ Source: issues and PRs whose title says refactor, duplication or code smell, org
 
 | Kind | Real examples | Tool that should refuse | Why it did not |
 |---|---|---|---|
-| **A. A local copy of a capability a Krizaka package owns** | rate limit copied: kachizaka#113, akinaza#272, yomizaka#260; auth: yomizaka#263, akinaza#274, kachizaka#114; audit yomizaka#259; db yomizaka#258, akinaza#270; mail akinaza#275; payments/credits yomizaka#261; privacy yomizaka#264; client-ip, password reset, rate limit kachizaka#83; bespoke `useApi` orazaka-mobile-client#29, orochia-mobile#45; local components orochia-mobile#71, #61, #48, orazaka-mobile-client#32; last local primitives orochia#66; keyring orazaka-ai-engine#38 | dependency-cruiser (a named list of local paths that must not exist or be imported) + ast-grep (the patterns) | No rule names the covered domains. `krizakaStack()` knows only TanStack, tables and forms, and 9 of 11 repositories do not run it. jscpd only compares inside one repository, so a copy in a product against a package in krizaka-ts is invisible. |
-| **B. A function written twice inside a repository** | 4x newsletter handlers krizaka-blog#78; confirm-email and verify-email pages yomizaka#180, #181; film.vtt routes krizaka-com#342, #343; walker routes akinaza#152, #153; legal pages and SSE proxy orazaka-web-client#243, #244; `broker.py` x3 orazaka-packs#95; `OutboxMessage` twice orazaka-contracts#20 | jscpd ratchet (`actions/dup-check`) | The ratchet exists in 8 repositories and **only goes down**: it never refuses the first copy when the baseline is above 0 and a PR also removes another. Missing in orochia, yasakia, kachizaka, krizaka-blog, yororis, krizaka-build. Cross-repository duplicates (the outbox, the keyring) are out of its reach. |
-| **C. Monoliths: long files, long functions, many parameters** | ShopSetup 486 lines akinaza#104; DocumentView 467 yomizaka#110; AccountView 286 yasakia#156; tables.tsx 790 orochia#372; MomentView 353 yororis#80; cartesian.tsx 503 krizaka-ui#426; translations 1,920 lines orazaka-web-client#190; icon.registry 713 orazaka-ui-kit#53; sign-up.tsx 417 orochia-mobile#46; 14-parameter constructor orazaka-job-service#50; 11-dependency service orazaka-studio#39 | ESLint (`max-lines`, `max-lines-per-function`, `complexity`, `max-depth`); ArchUnit for constructor size and dependency count | krizaka-ui#265 plans them and is still open. Nothing in `@krizaka/config` sets a limit, so the agent run was the first check. For Java, no rule bounds a constructor or the collaborators of a service. |
-| **D. Hard-coded values and strings** | the « code-health sweep » opened in 9 repositories: krizaka-ts#42, krizaka-ui#552, krizaka-blog#101, orazaka-web-client#268, yasakia#176, orochia#405, kachizaka#111, yororis#130, krizaka-com#370; magic numbers krizaka-com#380 | ast-grep `no-unjustified-numeric-export` (exists), `krizaka-i18n scan` (user-facing strings), ESLint `no-magic-numbers` | The ast-grep rule covers only **exported** numeric constants, and only under the domain globs. `krizaka-i18n scan` runs in 1 repository (yororis). No rule for inline magic numbers. |
+| **A. A local copy of a capability a Krizaka package owns** | rate limit copied: a former product's issue, akinaza#272, yomizaka#260; auth: yomizaka#263, akinaza#274, a former product's issue; audit yomizaka#259; db yomizaka#258, akinaza#270; mail akinaza#275; payments/credits yomizaka#261; privacy yomizaka#264; client-ip, password reset, rate limit a former product's issue; bespoke `useApi` orazaka-mobile-client#29, a former product's issue; local components a former product's issue, #61, #48, orazaka-mobile-client#32; last local primitives a former product's issue; keyring orazaka-ai-engine#38 | dependency-cruiser (a named list of local paths that must not exist or be imported) + ast-grep (the patterns) | No rule names the covered domains. `krizakaStack()` knows only TanStack, tables and forms, and 9 of 11 repositories do not run it. jscpd only compares inside one repository, so a copy in a product against a package in krizaka-ts is invisible. |
+| **B. A function written twice inside a repository** | 4x newsletter handlers krizaka-blog#78; confirm-email and verify-email pages yomizaka#180, #181; film.vtt routes krizaka-com#342, #343; walker routes akinaza#152, #153; legal pages and SSE proxy orazaka-web-client#243, #244; `broker.py` x3 orazaka-packs#95; `OutboxMessage` twice orazaka-contracts#20 | jscpd ratchet (`actions/dup-check`) | The ratchet exists in 8 repositories and **only goes down**: it never refuses the first copy when the baseline is above 0 and a PR also removes another. Missing in the former products, krizaka-blog, a former product, krizaka-build. Cross-repository duplicates (the outbox, the keyring) are out of its reach. |
+| **C. Monoliths: long files, long functions, many parameters** | ShopSetup 486 lines akinaza#104; DocumentView 467 yomizaka#110; AccountView 286 a former product's issue; tables.tsx 790 a former product's issue; MomentView 353 a former product's issue; cartesian.tsx 503 krizaka-ui#426; translations 1,920 lines orazaka-web-client#190; icon.registry 713 orazaka-ui-kit#53; sign-up.tsx 417 a former product's issue; 14-parameter constructor orazaka-job-service#50; 11-dependency service orazaka-studio#39 | ESLint (`max-lines`, `max-lines-per-function`, `complexity`, `max-depth`); ArchUnit for constructor size and dependency count | krizaka-ui#265 plans them and is still open. Nothing in `@krizaka/config` sets a limit, so the agent run was the first check. For Java, no rule bounds a constructor or the collaborators of a service. |
+| **D. Hard-coded values and strings** | the « code-health sweep » opened in 9 repositories: krizaka-ts#42, krizaka-ui#552, krizaka-blog#101, orazaka-web-client#268, a former product's issue, a former product's issue, a former product's issue, a former product's issue, krizaka-com#370; magic numbers krizaka-com#380 | ast-grep `no-unjustified-numeric-export` (exists), `krizaka-i18n scan` (user-facing strings), ESLint `no-magic-numbers` | The ast-grep rule covers only **exported** numeric constants, and only under the domain globs. `krizaka-i18n scan` runs in 1 repository (a former product). No rule for inline magic numbers. |
 | **E. Time handled by hand** | UTC day slice in yomizaka (yomizaka#309); a private week and local-date function in krizaka-ts `packages/brief/src/week.ts`; UTC days in jobs-per-day orazaka-web-client#205 (React #418); hand `n * 60 * 1000` | ast-grep (pattern) | See section 3. |
 | **F. Technology in names, wrong layer, wrong package** | `postgresAccounts`, `pgApiKeyStore` krizaka-ts#30; adapters under `application.service` krizaka-users#29; raw SQL in services krizaka-billing#31; eager container init orazaka-build#28, krizaka-build#63 | file-name check (a script), ArchUnit (layers, packages, static initialisers) | `check-file-names.mjs` exists in 1 repository. In Java, `ArchitectureRules.layersRule` is opt-in per module; the repositories named here have not wired it, and no rule forbids a static container field. |
-| **G. Dependencies that should not be there** | ghost dependencies orazaka-web-client#102; two test runners orazaka-cli#52; duplicate design system orochia#383, orochia-design-system#27 | dependency-cruiser (`no-unresolvable`, `not-to-dev-dep`) and `knip` | Planned in krizaka-ui#265 (phantom dependencies), not shipped. dependency-cruiser's usual rules (`not-to-unresolvable`, `no-orphans`) are absent from the preset. |
-| **H. Mobile style and structure** | 145 inline style literals orochia-mobile#79; handmade `useApi` | ESLint (`react-native/no-inline-styles`, a `krizaka/` rule) | The mobile apps lint with bare typescript-eslint. |
+| **G. Dependencies that should not be there** | ghost dependencies orazaka-web-client#102; two test runners orazaka-cli#52; duplicate design system a former product's issue, a former product's issue | dependency-cruiser (`no-unresolvable`, `not-to-dev-dep`) and `knip` | Planned in krizaka-ui#265 (phantom dependencies), not shipped. dependency-cruiser's usual rules (`not-to-unresolvable`, `no-orphans`) are absent from the preset. |
+| **H. Mobile style and structure** | 145 inline style literals a former product's issue; handmade `useApi` | ESLint (`react-native/no-inline-styles`, a `krizaka/` rule) | The mobile apps lint with bare typescript-eslint. |
 
 ## 3. The real case: the UTC day
 
 yomizaka computed « today » for the law's date with `new Date().toISOString().slice(0, 10)`, which is the UTC day: wrong every evening in Montréal (yomizaka#309). Meanwhile `@krizaka/intl` exists, and krizaka-ts `packages/brief/src/week.ts` carries its own `localParts()` (an `Intl.DateTimeFormat` + `formatToParts` for the local date), the same logic in private.
 
-**Where it lives (measured):** yomizaka `apps/web/components/console/DocumentView.tsx:46, 145, 312`, `components/console/start-check.ts:23`, `lib/analyses.ts:25`. The same slice appears in non-test code of **8 of the 10 product and site repositories, 37 occurrences** (krizaka-com 3, krizaka-blog 7, yomizaka 7, akinaza 7, orochia 7, kachizaka 4, orazaka-web-client 1, yasakia 1), and in krizaka-ui's examples and parts.
+**Where it lives (measured):** yomizaka `apps/web/components/console/DocumentView.tsx:46, 145, 312`, `components/console/start-check.ts:23`, `lib/analyses.ts:25`. The same slice appears in non-test code of **8 of the 10 product and site repositories, 37 occurrences** (krizaka-com 3, krizaka-blog 7, yomizaka 7, akinaza 7, a former product 7, a former product 4, orazaka-web-client 1, a former product 1), and in krizaka-ui's examples and parts.
 
 **Why no tool caught it:**
 
@@ -152,7 +152,7 @@ yomizaka computed « today » for the law's date with `new Date().toISOString().
 |---|---|---|
 | No direct `@tanstack/*` import | ESLint `krizaka/no-direct-tanstack-import` **and** dependency-cruiser `krizaka-no-direct-tanstack` **and** the `krizaka-ratchet` regex `directTanstackImport` | dependency-cruiser keeps it (an import edge); the ESLint rule is retired once the preset is adopted; the `krizaka-ratchet` counter is replaced by the dependency-cruiser known-violations file. |
 | Hand-written date arithmetic | ast-grep `no-hand-ms-*`, `no-get-time-*` (message: use date-fns) | stays in ast-grep; the **message** changes to the Krizaka home once krizaka-ui#609 decides date-fns's status. |
-| Palette and className rules | ESLint `krizakaUi()` **and** the `krizaka-ratchet` counters `palette`, `light`, `arbitraryVar`, `classNameTemplate` | ESLint only; the counters stay while a repository is above zero, then are removed (orochia and others have reached 0). |
+| Palette and className rules | ESLint `krizakaUi()` **and** the `krizaka-ratchet` counters `palette`, `light`, `arbitraryVar`, `classNameTemplate` | ESLint only; the counters stay while a repository is above zero, then are removed (a former product and others have reached 0). |
 
 ## 5. The new rules, first
 
@@ -201,10 +201,10 @@ Each issue is one pull request. Order matters: a rule that names a function wait
 | 6 | yomizaka | **Adopt**, fix the 7 UTC-day hits first (yomizaka#309), add `.dependency-cruiser.cjs`, the mobile app on `@krizaka/config` | No `toISOString().slice(0, 10)` left in non-test code; the new rules' baselines are recorded; the mobile lint uses `@krizaka/config`. |
 | 7 | akinaza | **Adopt** (same as yomizaka; 7 UTC-day hits) | same |
 | 8 | orazaka-web-client | **Adopt** and reconcile its 10 local layer rules with the preset (extend it); the 23 `@tanstack` files are baselined | The local config extends the preset; `depcruise` runs in `lint`; `directTanstackImport` moves from the regex counter to the known-violations file. |
-| 9 | orochia | **Adopt** (86 `lucide-react` files, 17 `date-fns`, scope hole at `apps/web/lib`); add jscpd | Baselines recorded; its scope comes from roles. |
-| 10 | kachizaka, yasakia | **Adopt**, one PR each; add jscpd to both | same |
+| 9 | a former product | **Adopt** (86 `lucide-react` files, 17 `date-fns`, scope hole at `apps/web/lib`); add jscpd | Baselines recorded; its scope comes from roles. |
+| 10 | the former products | **Adopt**, one PR each; add jscpd to both | same |
 | 11 | krizaka-ts | **Adopt**, and move `week.ts` to `localDay` (after 0); add `.dependency-cruiser.cjs` | `packages/brief/src/week.ts` has no `Intl.DateTimeFormat`; the new rules pass or are baselined. |
-| 12 | krizaka-blog, yororis | **Bring under the pack** at their current counts (blog: 7 UTC-day hits, no ESLint today); add `krizaka-i18n scan` to the blog | The lint scripts run the pack, the counts are recorded. |
+| 12 | krizaka-blog, a former product | **Bring under the pack** at their current counts (blog: 7 UTC-day hits, no ESLint today); add `krizaka-i18n scan` to the blog | The lint scripts run the pack, the counts are recorded. |
 | 13 | orazaka-build, orazaka-ai-engine | **Adopt the Java entry points** (ADR-007 row 7), the clock rule frozen in `FrozenRules` | `archunit_store` shows only the 23 known clock hits as new entries; no other change. |
 | 14 | .github | **Cross-repository duplicate report** (5.3, layer 3) and the **drift check**: a test that fails when a repository's `check-seo-family.mjs`, `sg-ratchet.mjs` or hook differs from the source, until issue 2 removes them | The weekly report lists, per product, clones against the package sources; the drift check names the 4 old `check-seo-family.mjs` copies. |
 | 15 | .github | **Charter and agent files last:** `AGENTS.template.md`, CONTRIBUTING §10 and each `AGENTS.md` « Static rules » section point to the generated table (ADR-007 point 6) | One table; no restated rule. |

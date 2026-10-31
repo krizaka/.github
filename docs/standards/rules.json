@@ -320,56 +320,29 @@
     },
     {
       "id": "no-departed-product",
-      "title": "No departed product is mentioned (Orochia, Yasakia/Yazakia, Yororis, Kachizaka left the org on 2026-10-29: the org holds Yomizaka, Akinaza, Orazaka and the platforms)",
+      "title": "No departed product is mentioned (the products that left the org on 2026-10-29: the org holds Yomizaka, Akinaza, Orazaka and the platforms)",
       "issue": "krizaka/.github#413",
       "check": {
         "type": "no-mention",
-        "pattern": "orochia|yasakia|yazakia|yororis|kachizaka",
-        "allow": [
-          "CHANGELOG.md",
-          "docs/adr/",
-          "orchestration/triage/",
-          "docs/standards/rules.json",
-          "tests/conformance.test.mjs",
-          "scripts/conformance.mjs",
-          "docs/quality-controls.md",
-          "docs/standards/rules.md"
-        ],
+        "patternBase64": "b3JvY2hpYXx5YXNha2lhfHlhemFraWF8eW9yb3Jpc3xrYWNoaXpha2E=",
+        "allow": [],
         "allowIn": {
-          "krizaka-com": [
-            "scripts/bunny-layout.mjs",
-            "tests/bunny-layout.test.mjs"
-          ],
-          "krizaka-blog": [
-            "content/",
-            "posts/",
-            "public/audits/"
-          ],
-          "krizaka-users": [
-            "krizaka-users-persistence/src/main/resources/db/migration/V4__organizations.sql"
-          ],
-          "krizaka-ts": [
-            "docs/design/"
-          ],
-          "krizaka-lab": [
-            "experiments/ui/parked-marks/",
-            "experiments/ui/parked-brands/"
-          ]
+          "krizaka-users": ["krizaka-users-persistence/src/main/resources/db/migration/V4__organizations.sql"]
         }
       },
       "fix": {
         "type": "manual",
-        "note": "remove the name (code, messages, docs, configs, workflows, manifests); an old address redirects to the home, never to a dead site. History stays only where the check's allow list says so (released chapters, changelogs, ADRs); the founder keeps the repositories in his own account"
+        "note": "remove the name (code, messages, docs, configs, workflows, manifests); an old address redirects to the home, never to a dead site. Changelogs, ADRs and chapters are rewritten in neutral words; only an applied migration's comment stays (its checksum). The founder keeps the repositories in his own account"
       }
     },
     {
       "id": "no-departed-published",
-      "title": "No published package carries a departed product (the latest npm tarball of every public package, built CSS/JS included, never names Orochia, Yasakia/Yazakia, Yororis or Kachizaka)",
+      "title": "No published package carries a departed product (the latest npm tarball of every public package, built CSS/JS included, never names one)",
       "issue": "krizaka/.github#413",
       "applies": { "when": [{ "pathEndsWith": "package.json" }] },
       "check": {
         "type": "published-no-mention",
-        "pattern": "orochia|yasakia|yazakia|yororis|kachizaka",
+        "patternBase64": "b3JvY2hpYXx5YXNha2lhfHlhemFraWF8eW9yb3Jpc3xrYWNoaXpha2E=",
         "allow": ["CHANGELOG.md"]
       },
       "fix": {

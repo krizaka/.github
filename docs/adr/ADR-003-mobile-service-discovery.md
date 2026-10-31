@@ -2,12 +2,12 @@
 
 - **Status**: Accepted
 - **Date**: 2026-10-21
-- **Scope**: every Krizaka mobile app (orochia-mobile, orazaka-mobile-client, yasakia-mobile, then the next ones) and krizaka.com
+- **Scope**: every Krizaka mobile app (a former repository, orazaka-mobile-client, a former repository, then the next ones) and krizaka.com
 - **Issue**: [krizaka/.github#120](https://github.com/krizaka/.github/issues/120), part of epic #119
 
 ## Context
 
-The mobile apps hard-code their backend (`https://dev.orochia.com`, `https://dev.orazaka.com/edge`, `https://dev.yasakia.com`),
+The mobile apps hard-code their backend (`a former repository `https://dev.orazaka.com/edge`, `a former repository),
 inlined at build time through `EXPO_PUBLIC_*`. The products just moved from `dev.<product>.com` to `www.<product>.com` (#119):
 every such move would force a new build and a store review, and the old build would break in the meantime. An address
 is operations data; it must change without a release.
@@ -31,11 +31,11 @@ is operations data; it must change without a release.
 4. **A shared client**, the package **`@krizaka/discovery`** (see below). At start-up it fetches (primary, then
    Bunny) with a 3 s timeout, validates the schema, the signature and every URL, then caches the signed document
    in the device's secure storage. It resolves in this order: **verified live** → **cached** (re-verified on load) →
-   **baked default** → **hard-coded legacy dev host**. `getService("orochia").apiBase` reads the result. A background
+   **baked default** → **hard-coded legacy dev host**. a retired export reads the result. A background
    refresh runs on foreground and on an interval. `minAppVersion` above the running version shows « please update »;
    `status: "maintenance"` shows the message; both only from a verified document (live or cached), never from a default.
 5. **Every app accepts only allow-listed hosts**, baked in: `https` only, no credentials or non-default port in the URL,
-   and a host equal to or under one of the app's suffixes (`krizaka.com` and the product's own domain, e.g. `orochia.com`).
+   and a host equal to or under one of the app's suffixes (`krizaka.com` and the product's own domain, e.g. a retired export).
    Shared multi-tenant suffixes (`b-cdn.net`, `ondigitalocean.app`) are never allowed: a media host is a name on a domain we own.
 
 ## Threat model

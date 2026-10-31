@@ -11,20 +11,20 @@ This is the standard behind [ADR-007](../adr/ADR-007-shared-rules.md) (krizaka/.
 
 | Piece | Files | Distinct | Kind | Where |
 |---|---|---|---|---|
-| `sgconfig.yml` | 10 | 1 | **copy** | akinaza, kachizaka, krizaka-com, krizaka-ts, krizaka-ui, orazaka-web-client, orochia, template-next-app, yasakia, yomizaka |
+| `sgconfig.yml` | 10 | 1 | **copy** | akinaza, a former product, krizaka-com, krizaka-ts, krizaka-ui, orazaka-web-client, a former product, template-next-app, a former product, yomizaka |
 | ast-grep `rules/*.yml` | 149 | 46 | **variant**: same bodies; `files:`/`ignores:` follow each layout | the same 10 |
 | `rule-tests/*-test.yml` | 139 | 17 | **copy** | the same 10 |
 | `scripts/sg-ratchet.mjs` | 10 | 2 | **copy** (krizaka-com +1 line) | the same 10 |
 | `scripts/sg-fix.mjs` | 10 | 2 | **copy** (krizaka-com +1 line) | the same 10 |
 | `sg-ratchet.test.mjs` | 11 | 3 | copy | the same 10 (krizaka-com has two) |
 | `sg-ratchet.json` | 10 | 10 | **truly local** (debt) | the same 10 |
-| `lint-ratchet.json` (`krizaka-ratchet`) | 6 | 6 | **truly local** | krizaka-com, orazaka-web-client, orochia, yasakia, orazaka-ui-kit, orochia-design-system |
+| `lint-ratchet.json` (`krizaka-ratchet`) | 6 | 6 | **truly local** | krizaka-com, orazaka-web-client, the former products, orazaka-ui-kit, a former repository |
 | `dup-ratchet.json` (jscpd) | 20 | 14 | **truly local** | 20 repositories |
-| `scripts/check-seo-family.mjs` | 13 | 2 | **drifted copy**: 255 lines in 9, 235 in 4; 34 lines differ | 255: akinaza, kachizaka, krizaka-blog, krizaka-build `site/`, krizaka-com, krizaka-ts `site/`, krizaka-ui `apps/site/`, orochia, template-next-app; 235: orazaka-web-client, yasakia, yomizaka, yororis `site/` |
+| `scripts/check-seo-family.mjs` | 13 | 2 | **drifted copy**: 255 lines in 9, 235 in 4; 34 lines differ | 255: akinaza, a former product, krizaka-blog, krizaka-build `site/`, krizaka-com, krizaka-ts `site/`, krizaka-ui `apps/site/`, a former product, template-next-app; 235: orazaka-web-client, a former product, yomizaka, a former product `site/` |
 | `scripts/check-file-names.mjs` | 1 | 1 | local today, generic by nature | krizaka-ts |
-| `.githooks/pre-push` | 4 | 1 | copy | akinaza, kachizaka, krizaka-ts, yomizaka |
+| `.githooks/pre-push` | 4 | 1 | copy | akinaza, a former product, krizaka-ts, yomizaka |
 | `eslint.config.*` | 26 | 16 | thin variants over `@krizaka/config` | 18 repositories |
-| `@krizaka/config` version | 15 | — | **drift** `^0.1.0` … `^0.7.0` | 0.7: akinaza, krizaka-ts, orazaka-web-client, orochia, yasakia, yomizaka · 0.6: kachizaka, krizaka-com, yororis · 0.4: krizaka-blog, krizaka-build, krizaka-ts `site/`, orazaka-ui-kit, template-next-app · 0.1: orochia-design-system |
+| `@krizaka/config` version | 15 | — | **drift** `^0.1.0` … `^0.7.0` | 0.7: akinaza, krizaka-ts, orazaka-web-client, the former products, yomizaka · 0.6: a former product, krizaka-com, a former product · 0.4: krizaka-blog, krizaka-build, krizaka-ts `site/`, orazaka-ui-kit, template-next-app · 0.1: a former repository |
 | `.dependency-cruiser.cjs` | 3 | 3 | variant over `@krizaka/config/dependency-cruiser` | krizaka-com, orazaka-cli, orazaka-web-client |
 | ArchUnit governance tests | 33 | 33 | local wiring of two libraries | krizaka-*: `CodeRules`/`ArchitectureRules` (krizaka-build `krizaka-test-support`); orazaka-*: `GovernanceRules` (orazaka-build `orazaka-test-support`, 1,181 lines, 17 rule names duplicated from `CodeRules`) |
 | `archunit_store/` (`FrozenRules`) | 6 | — | **truly local** (frozen debt) | orazaka-automation-service, orazaka-conversation-service, orazaka-job-service, krizaka-users (core, persistence), krizaka-platform-kit (notifications) |
@@ -38,12 +38,12 @@ This is the standard behind [ADR-007](../adr/ADR-007-shared-rules.md) (krizaka/.
 
 | Rule | Repos | Variants | What differs |
 |---|---|---|---|
-| `no-ambient-clock`, `no-env-in-domain`, `no-enum-string-compare`, `no-unjustified-numeric-export` | 10 | 6 | the `files:` globs; orochia's message (≤ 8 lines) |
-| `no-db-in-service-or-rules`, `no-get-time-arithmetic`, `no-get-time-difference`, `no-hand-ms-{days,hours,minutes,one-hour}` | 10 | 2 | orochia (2 lines) |
+| `no-ambient-clock`, `no-env-in-domain`, `no-enum-string-compare`, `no-unjustified-numeric-export` | 10 | 6 | the `files:` globs; a former product's message (≤ 8 lines) |
+| `no-db-in-service-or-rules`, `no-get-time-arithmetic`, `no-get-time-difference`, `no-hand-ms-{days,hours,minutes,one-hour}` | 10 | 2 | a former product (2 lines) |
 | `no-ts-enum`, `no-types-at-package-root` | 10 | 1 | — |
 | `no-hand-made-nav` | 8 | 2 | yomizaka (2 lines) |
 | `no-hand-made-language-switch` | 8 | 1 | — |
-| `no-hand-made-tab-bar` | 1 | 1 | local: orochia |
+| `no-hand-made-tab-bar` | 1 | 1 | local: a former product |
 | `no-hand-written-email` | 1 | 1 | local: krizaka-ui |
 | `no-raw-inner-html` | 1 | 1 | local: krizaka-com |
 
@@ -66,12 +66,12 @@ A repository declares one or more profiles. A monorepo declares one per folder: 
 
 | Profile | Repositories today | Rules |
 |---|---|---|
-| `ts-library` | krizaka-ts `packages/*`, krizaka-ui `packages/*`, orazaka-ui-kit, orochia-design-system, krizaka-lab, orazaka-cli, the products' `packages/*` | ESLint `krizakaBase` + `krizakaStack()` + `envNames`. dependency-cruiser boundary (no app import, no cycle). ast-grep: the time rules (`no-hand-ms-*`, `no-get-time-*`), `no-ambient-clock`, `no-env-in-domain`, `no-db-in-service-or-rules`, `no-ts-enum`, `no-enum-string-compare`, `no-types-at-package-root`, `no-unjustified-numeric-export`. File names by function. Ratchets: ast-grep, `krizaka-ratchet`, duplication. |
-| `next-app` (product or site) | yomizaka, akinaza, kachizaka, orochia, yasakia, yororis, orazaka-web-client `apps/web` or root, krizaka-com, template-next-app | `ts-library`, plus ESLint `krizakaNext` + `krizakaUi()` + `noLocaleTernary()`, plus ast-grep `no-hand-made-nav`, `no-hand-made-language-switch`, `no-raw-inner-html` (from krizaka-com) |
-| `site` (public docs or blog) | krizaka-ui `apps/site`, krizaka-ts `site/`, krizaka-build `site/`, krizaka-blog, yororis `site/` | `next-app`, plus the SEO family check (`krizaka-rules seo-family`) |
-| `expo-app` | orazaka-mobile-client, orochia-mobile, yasakia-mobile, yororis-mobile, the products' `apps/mobile` | `ts-library`, plus ESLint for React Native, plus `no-hand-made-tab-bar` (from orochia), plus the charter §6 rules as they become rules |
-| `tauri-app` | krizaka-tauri-kit (with `template/`) | its front end: `next-app` or `ts-library`; its Rust: `cargo fmt --check` and `clippy -D warnings` (`rust.yml:24-25`), unchanged |
-| `java-block` | krizaka-build, krizaka-platform-kit, krizaka-users, krizaka-billing (libraries), orazaka-contracts, orazaka-build | `krizaka-parent` (Spotless, OpenRewrite dry run, javadoc, enforcer); `KrizakaRules.buildingBlock(classes)` (`CodeRules` + `ArchitectureRules` + `ConfigBindingRules` + `SourceRules`) |
+| `ts-library` | krizaka-ts `packages/*`, krizaka-ui `packages/*`, orazaka-ui-kit, a former repository, krizaka-lab, orazaka-cli, the products' `packages/*` | ESLint `krizakaBase` + `krizakaStack()` + `envNames`. dependency-cruiser boundary (no app import, no cycle). ast-grep: the time rules (`no-hand-ms-*`, `no-get-time-*`), `no-ambient-clock`, `no-env-in-domain`, `no-db-in-service-or-rules`, `no-ts-enum`, `no-enum-string-compare`, `no-types-at-package-root`, `no-unjustified-numeric-export`. File names by function. Ratchets: ast-grep, `krizaka-ratchet`, duplication. |
+| `next-app` (product or site) | yomizaka, akinaza, the former products, orazaka-web-client `apps/web` or root, krizaka-com, template-next-app | `ts-library`, plus ESLint `krizakaNext` + `krizakaUi()` + `noLocaleTernary()`, plus ast-grep `no-hand-made-nav`, `no-hand-made-language-switch`, `no-raw-inner-html` (from krizaka-com) |
+| `site` (public docs or blog) | krizaka-ui `apps/site`, krizaka-ts `site/`, krizaka-build `site/`, krizaka-blog, a former product `site/` | `next-app`, plus the SEO family check (`krizaka-rules seo-family`) |
+| `expo-app` | orazaka-mobile-client, former repositories, the products' `apps/mobile` | `ts-library`, plus ESLint for React Native, plus `no-hand-made-tab-bar` (from a former product), plus the charter §6 rules as they become rules |
+| `tauri-app` | krizaka-tauri-kit, template-tauri-app | its front end: `next-app` or `ts-library`; its Rust: `cargo fmt --check` and `clippy -D warnings` (`rust.yml:24-25`), unchanged |
+| `java-block` | krizaka-build, krizaka-platform-kit, krizaka-users, krizaka-billing, krizaka-notifications (libraries), orazaka-contracts, orazaka-build | `krizaka-parent` (Spotless, OpenRewrite dry run, javadoc, enforcer); `KrizakaRules.buildingBlock(classes)` (`CodeRules` + `ArchitectureRules` + `ConfigBindingRules` + `SourceRules`) |
 | `java-service` | orazaka-ai-engine, orazaka-automation-service, orazaka-conversation-service, orazaka-edge, orazaka-job-service, orazaka-knowledge-service, orazaka-studio, and the `*-service` modules of users, billing, notifications | `java-block`, plus `KrizakaRules.service(classes)` (layers, `@Transactional` only on services, configuration only in config). Orazaka's own rules stay in `orazaka-test-support`. |
 | `python-worker` | orazaka-worker-media, orazaka-packs | `ruff check .` (through `python-ci.yml`) with the repository's `[tool.ruff]` |
 | `docs` | .github, krizaka-infra | markdown and workflow lint only (`lint-workflows.yml`) |
@@ -180,4 +180,4 @@ One tool per language: **Prettier** with `@krizaka/config/prettier` in every TS/
 | 5 | **akinaza** (pilot) | same as yomizaka | same |
 | 6 | **krizaka-platform-kit** (Java pilot) | nine governance tests → `KrizakaRules.buildingBlock` + local rules | same test results |
 | 7 | **orazaka-build + one service** (orazaka-edge) | `GovernanceRules` drops the 17 duplicates (delegates to `CodeRules`); `EdgeGovernanceTest` on `KrizakaRules.service` + Orazaka's rules | same results; `archunit_store/` unchanged |
-| 8+ | the rest, one PR each: kachizaka, orochia, yasakia, orazaka-web-client, template-next-app, krizaka-ts, krizaka-ui itself; then the repositories without ast-grep today (mobile, design systems, cli, blog, motion, yororis) at their current counts; then the Orazaka services; the AGENTS.template.md and CONTRIBUTING §10 change last | per row |
+| 8+ | the rest, one PR each: the former products, orazaka-web-client, template-next-app, krizaka-ts, krizaka-ui itself; then the repositories without ast-grep today (mobile, design systems, cli, blog, motion, a former product) at their current counts; then the Orazaka services; the AGENTS.template.md and CONTRIBUTING §10 change last | per row |
