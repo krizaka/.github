@@ -492,5 +492,7 @@ test("org CI throughput: the shared visual regression is gated by changes.yml an
 
   const scan = read("security-scan");
   assert.match(scan, /group: security-scan-\$\{\{ github\.repository \}\}-\$\{\{ github\.event\.pull_request\.number \|\| github\.ref \}\}\n {2}cancel-in-progress: \$\{\{ github\.event_name == 'pull_request' \}\}/);
-  for (const j of jobs(scan)) assert.match(j.text, /if: \$\{\{ github\.event_name != 'merge_group' \}\}/, `${j.id} skipped in the merge queue`);
+  // The trailers job is the one that runs in the queue on purpose: it checks the squash commit itself.
+  for (const j of jobs(scan).filter((x) => x.id !== "trailers")) assert.match(j.text, /if: \$\{\{ github\.event_name != 'merge_group' \}\}/, `${j.id} skipped in the merge queue`);
+  assert.match(jobs(scan).find((j) => j.id === "trailers").text, /github\.event_name == 'merge_group'/, "trailers also checked in the merge queue");
 });
