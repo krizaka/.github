@@ -90,7 +90,9 @@ const NO_JOURNEY = /^n\/a\s*[—–-]\s*(\S.{9,})$/i;
 /** The `Journey:` line of a PR: null when fine, else the problem. A feat/fix PR names its journey or says why none. */
 export function journeyProblem({ title = "", body = "", author = "", branch = "" }) {
   if (!TYPED.test(title) || author.startsWith("dependabot") || EXEMPT_BRANCH.test(branch)) return null;
-  const visible = body.replace(/<!--[\s\S]*?-->/g, "").split("\n");
+  let stripped = body;
+  for (let prev = ""; prev !== stripped; ) { prev = stripped; stripped = stripped.replace(/<!--[\s\S]*?-->/g, ""); }
+  const visible = stripped.replaceAll("<!--", "").split("\n");
   const found = visible.map((l) => l.trim()).find((l) => l.toLowerCase().startsWith("journey:"));
   const line = found === undefined ? null : [found, found.slice("journey:".length)];
   if (!line) return "the PR body has no `Journey:` line: name the journey it adds or changes, or write `Journey: n/a — <reason>`";

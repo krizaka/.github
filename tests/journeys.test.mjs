@@ -94,3 +94,8 @@ test("the workflows keep their contract: literal gate, preflight before the run,
 test("the PR template carries the Journey line", () => {
   assert.match(readFileSync(".github/pull_request_template.md", "utf8"), /^Journey:/m);
 });
+
+test("journeyProblem: a nested comment opener cannot hide a Journey line", () => {
+  const body = "<!<!-- x -->-- hidden\nJourney: n/a — nothing user visible here\n-->";
+  assert.equal(typeof journeyProblem({ title: "feat: x", body }), "string");
+});
