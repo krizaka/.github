@@ -78,7 +78,7 @@ jobs:
           sparse-checkout: scripts/journeys.mjs
           sparse-checkout-cone-mode: false
           persist-credentials: false
-          path: ${{ runner.temp }}/org-tools
+          path: ${{ github.workspace }}/.org-tools
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -91,7 +91,7 @@ jobs:
           PERSONAS: ${{ inputs.personas }}
           NEEDS_PAYMENTS: ${{ inputs.needs-payments }}
           JOURNEY_PAYMENTS_KEY: ${{ secrets.payments-test-key }}
-          TOOLS: ${{ runner.temp }}/org-tools
+          TOOLS: ${{ github.workspace }}/.org-tools
         run: node "${TOOLS}/scripts/journeys.mjs" preflight
 
       - name: Set up the build and the demo cast
@@ -113,7 +113,7 @@ jobs:
 
       - name: The verdict, from the report (nothing ran, skipped, flaky are red)
         env:
-          TOOLS: ${{ runner.temp }}/org-tools
+          TOOLS: ${{ github.workspace }}/.org-tools
         run: node "${TOOLS}/scripts/journeys.mjs" report --json journeys-report.json
 
       - name: Upload the report and the films
