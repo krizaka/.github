@@ -54,7 +54,8 @@ const arg = (argv, name) => (argv.includes(name) ? argv[argv.indexOf(name) + 1] 
 
 export function projectOf(file, properties) {
   if (file?.project) return file.project;
-  return properties?.match(/^\s*sonar\.projectKey\s*=\s*(\S+)/m)?.[1];
+  const line = (properties ?? "").split("\n").map((l) => l.trim()).find((l) => l.startsWith("sonar.projectKey"));
+  return line?.split("=")[1]?.trim() || undefined;
 }
 
 export async function main(argv, { get, read = readFileSync, write = writeFileSync, exists = existsSync, log = console.log } = {}) {
@@ -80,7 +81,8 @@ export async function main(argv, { get, read = readFileSync, write = writeFileSy
     return 1;
   }
   const better = KEYS.filter((k) => now[k] < (baseline[k] ?? 0));
-  log(better.length ? `sonar ratchet ok; lower the baseline with --update: ${better.map((k) => `${k} ${baseline[k]} -> ${now[k]}`).join(", ")}` : "sonar ratchet ok");
+  const lowerable = better.map((k) => `${k} ${baseline[k]} -> ${now[k]}`).join(", ");
+  log(better.length ? `sonar ratchet ok; lower the baseline with --update: ${lowerable}` : "sonar ratchet ok");
   return 0;
 }
 
