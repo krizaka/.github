@@ -112,7 +112,7 @@ async function fetchLatest(ecosystem, name, api) {
     const version = Object.keys(times).sort(compareVersions).at(-1);
     return version ? { version, publishedAt: times[version], times } : null;
   }
-  const res = await fetch(`https://registry.npmjs.org/${name.replace("/", "%2F")}`, { signal: AbortSignal.timeout(30000) });
+  const res = await fetch(`https://registry.npmjs.org/${name.replaceAll("/", "%2F")}`, { signal: AbortSignal.timeout(30000) });
   if (!res.ok) return null;
   const doc = await res.json();
   const version = doc["dist-tags"]?.latest;
