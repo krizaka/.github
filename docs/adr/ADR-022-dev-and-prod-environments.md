@@ -1,6 +1,6 @@
 # ADR-022 — Code-name hosts are dev, commercial hosts are prod, on one shared prod infrastructure rolled out one product at a time
 
-- **Status:** Proposed (the founder amends it on its pull request). Nothing is built, no cloud resource is created and no DNS changes
+- **Status:** Accepted by the founder on 2026-11-01. Nothing is built, no cloud resource is created and no DNS changes
   with this ADR.
 - **Date:** 2026-11-01
 - **Decision by:** the founder, 2026-11-01 (krizaka-internal#2126 and its comment; add-ons the same day: « on déploie la prod petit
