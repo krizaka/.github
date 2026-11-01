@@ -19,3 +19,10 @@ test("the Deploy step uses it as the server password, falling back to GITHUB_TOK
 test("the token is used by the Deploy step only", () => {
   assert.equal(src.split("secrets.MAVEN_PUBLISH_TOKEN").length - 1, 1);
 });
+
+test("deploy-modules: an input that limits the deploy to a -pl list and skips the root-POM check", () => {
+  assert.match(src, /\n {6}deploy-modules:\n(?: {8}.*\n)*? {8}type: string/);
+  assert.match(src, /- name: Already published\?\n {8}id: published\n {8}if: inputs\.deploy-modules == ''/);
+  assert.match(deployStep, /DEPLOY_MODULES: \$\{\{ inputs\.deploy-modules \}\}/);
+  assert.match(deployStep, /\$\{DEPLOY_MODULES:\+-pl "\$DEPLOY_MODULES"\} deploy/);
+});
