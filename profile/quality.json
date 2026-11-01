@@ -1,0 +1,17 @@
+{
+  "organization": "krizaka",
+  "sonarOrganization": "krizaka",
+  "groups": [
+    { "label": "Products", "repos": ["yomizaka", "akinaza", "orazaka", "orazaka-ai-engine", "orazaka-web-client", "orazaka-packs"] },
+    { "label": "Building blocks", "repos": ["krizaka-ui", "krizaka-ts", "krizaka-build"] },
+    { "label": "Sites", "repos": ["krizaka-com", "krizaka-blog"] }
+  ],
+  "metrics": [
+    ["Quality gate", "alert_status"],
+    ["Bugs", "bugs"],
+    ["Vulnerabilities", "vulnerabilities"],
+    ["Code smells", "code_smells"],
+    ["Duplicated lines", "duplicated_lines_density"],
+    ["Coverage", "coverage"]
+  ]
+}
