@@ -1,7 +1,7 @@
 // The rule registry and the conformance matrix (krizaka/.github#393).
 import test from "node:test";
 import assert from "node:assert/strict";
-import { appliesTo, evaluate, loadRules, render, runCheck, scopeOf, snapshotOf, summarise, validateRules } from "../scripts/conformance.mjs";
+import { appliesTo, evaluate, loadRules, patternOf, render, runCheck, scopeOf, snapshotOf, summarise, validateRules } from "../scripts/conformance.mjs";
 
 const snap = (name, kind, files) => snapshotOf(name, kind, Object.keys(files), async (p) => files[p]);
 const call = (w) => `jobs:\n  x:\n    uses: krizaka/.github/.github/workflows/${w}@${"a".repeat(40)} # main\n`;
@@ -205,6 +205,22 @@ test("a check may store its pattern encoded, so the registry spells none of the 
     assert.ok(rule.check.patternBase64 && !rule.check.pattern, id);
     assert.ok(new RegExp(patternOf(rule.check), "i").test(Buffer.from(rule.check.patternBase64, "base64").toString()), id);
   }
+});
+
+test("kachizaka is the managed storage's code name, not a departed product (krizaka-internal#2033)", () => {
+  for (const id of ["no-departed-product", "no-departed-published"]) {
+    const pattern = new RegExp(patternOf(loadRules().find((r) => r.id === id).check), "i");
+    assert.equal(pattern.test("kachizaka"), false, id);
+    assert.equal(pattern.test(Buffer.from("eW9yb3Jpcw==", "base64").toString()), true, id);
+  }
+});
+
+test("commercial-names: a repository that runs the code-name guard passes, one without it fails", async () => {
+  const rule = loadRules().find((r) => r.id === "commercial-names");
+  assert.equal(rule.issue, "krizaka/krizaka-internal#2036");
+  const pkg = (scripts) => snapshotOf("yomizaka", "app", ["package.json"], async () => JSON.stringify({ scripts }));
+  assert.equal((await runCheck(rule.check, pkg({ "lint:names": "krizaka-code-names .next/server/app messages" }))).ok, true);
+  assert.equal((await runCheck(rule.check, pkg({ lint: "eslint ." }))).ok, false);
 });
 
 test("journeys: both callers and `journeys / gate` required on main; a missing one is red, offline proves nothing", async () => {

@@ -320,11 +320,11 @@
     },
     {
       "id": "no-departed-product",
-      "title": "No departed product is mentioned (the products that left the org on 2026-10-29: the org holds Yomizaka, Akinaza, Orazaka and the platforms)",
+      "title": "No departed product is mentioned (the products that left the org on 2026-10-29: the org holds Yomizaka, Akinaza, Orazaka, Kachizaka — the managed storage's code name, recycled 2026-10-31 — and the platforms)",
       "issue": "krizaka/.github#413",
       "check": {
         "type": "no-mention",
-        "patternBase64": "b3JvY2hpYXx5YXNha2lhfHlhemFraWF8eW9yb3Jpc3xrYWNoaXpha2E=",
+        "patternBase64": "b3JvY2hpYXx5YXNha2lhfHlhemFraWF8eW9yb3Jpcw==",
         "allow": [],
         "allowIn": {
           "krizaka-users": ["krizaka-users-persistence/src/main/resources/db/migration/V4__organizations.sql"]
@@ -342,12 +342,23 @@
       "applies": { "when": [{ "pathEndsWith": "package.json" }] },
       "check": {
         "type": "published-no-mention",
-        "patternBase64": "b3JvY2hpYXx5YXNha2lhfHlhemFraWF8eW9yb3Jpc3xrYWNoaXpha2E=",
+        "patternBase64": "b3JvY2hpYXx5YXNha2lhfHlhemFraWF8eW9yb3Jpcw==",
         "allow": ["CHANGELOG.md"]
       },
       "fix": {
         "type": "manual",
         "note": "take the palette, mark or text out of the package source (the lab keeps what was moved) and release it; a consumer then bumps to the release. History stays only in CHANGELOG.md"
+      }
+    },
+    {
+      "id": "commercial-names",
+      "title": "A public surface shows the commercial name, never a code name (Verikora, Folioviv, Sovkora, Kridoc; the code names stay in repositories, packages, coordinates and the CLI)",
+      "issue": "krizaka/krizaka-internal#2036",
+      "applies": { "onlyRepos": [] },
+      "check": { "type": "file-matches", "path": "package.json", "pattern": "krizaka-code-names" },
+      "fix": {
+        "type": "manual",
+        "note": "run `krizaka-code-names` (bin of @krizaka/org, krizaka-ts#318) in CI over the built public HTML, the EN/FR catalogues, the email and receipt templates, stores/*.json and llms.txt (`--allow` for internal and developer pages); names come from `brandOf` / `displayName` of @krizaka/org. A repository joins onlyRepos when its product slice has landed (yomizaka, akinaza, the orazaka public repos, krizaka-com, krizaka-blog): report first, then required"
       }
     },
     {
