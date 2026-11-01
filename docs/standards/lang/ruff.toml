@@ -1,0 +1,30 @@
+# The Krizaka ruff baseline (krizaka-internal#2115). Read by python-quality.yml; a repository adds nothing here:
+# existing debt is counted in lang-ratchet.json, new code is clean. Never silence a rule to get green.
+line-length = 120
+target-version = "py312"
+
+[lint]
+select = [
+  "E", "F", "W", "I", "UP", "N",  # pycodestyle, pyflakes, isort, pyupgrade, naming
+  "B",    # bugbear: likely bugs
+  "S",    # bandit: security
+  "C4", "SIM", "PIE", "RET", "RUF", "PERF",
+  "T20",  # print( is a log line in disguise
+  "BLE",  # blind except
+  "TRY",  # exception handling
+  "PT",   # pytest style
+  "DTZ",  # naive datetimes (clock injected, not ambient)
+  "ASYNC",
+]
+ignore = [
+  "TRY003",  # long messages in exceptions: noise, not a defect
+  "S101",    # assert is allowed in tests only: see per-file-ignores
+]
+
+[lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106", "S311"]
+"**/test_*.py" = ["S101", "S105", "S106", "S311"]
+"**/conftest.py" = ["S101"]
+
+[format]
+quote-style = "double"

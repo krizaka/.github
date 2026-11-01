@@ -1,0 +1,114 @@
+# The quality guards of a Krizaka Rust crate, the Rust side of ESLint + depcruise / PMD + ArchUnit (reusable; krizaka-internal#2115).
+#
+#   on: { pull_request: {}, merge_group: {}, push: { branches: [main] } }   # merge_group: a required check must report in the queue
+#   jobs:
+#     rust:
+#       permissions: { contents: read }
+#       uses: krizaka/.github/.github/workflows/rust-quality.yml@<sha> # main
+#       with: { working-directory: apps/desktop/src-tauri }
+#
+# Steps: rustfmt --check · clippy (pedantic) counted per lint in lang-ratchet.json, which may only go down · cargo-deny
+# (advisories, licences, bans, sources: docs/standards/lang/deny.toml unless the crate has its own deny.toml) · tests under a timeout.
+# Permissions: contents: read; nothing else is asked.
+name: rust-quality
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        description: "Directory of the crate or workspace (holds Cargo.toml)."
+        type: string
+        default: "."
+      apt-packages:
+        description: "System libraries the crate links (Tauri 2 needs webkit2gtk); empty: none."
+        type: string
+        default: "libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libssl-dev"
+      shared-ref:
+        description: "Ref of krizaka/.github that holds the shared deny.toml and the ratchet script."
+        type: string
+        default: main
+      test-timeout-seconds:
+        description: "Whole `cargo test` run is killed after this."
+        type: number
+        default: 600
+      timeout-minutes:
+        description: "Timeout of the job."
+        type: number
+        default: 25
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    name: Rust guards
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/.github
+          ref: ${{ inputs.shared-ref }}
+          path: .kz-shared
+          persist-credentials: false
+
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+        with:
+          components: clippy, rustfmt
+
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ${{ inputs.working-directory }}/target
+          key: rust-guards-${{ runner.os }}-${{ hashFiles(format('{0}/Cargo.lock', inputs.working-directory)) }}
+          restore-keys: rust-guards-${{ runner.os }}-
+
+      - name: System libraries
+        if: ${{ inputs.apt-packages != '' }}
+        env:
+          PACKAGES: ${{ inputs.apt-packages }}
+        run: |
+          sudo apt-get update -qq
+          # shellcheck disable=SC2086  # packages are word-split on purpose
+          sudo apt-get install -y --no-install-recommends $PACKAGES
+
+      - name: rustfmt
+        working-directory: ${{ inputs.working-directory }}
+        run: cargo fmt --all -- --check
+
+      - name: clippy, counted per lint (the ratchet)
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          # pedantic on, minus the lints that flag style rather than defects; unwrap/expect/panic are what the ratchet is for.
+          cargo clippy --all-targets --message-format json -- \
+            -W clippy::pedantic -W clippy::unwrap_used -W clippy::expect_used -W clippy::panic \
+            -A clippy::module_name_repetitions -A clippy::missing_errors_doc -A clippy::missing_panics_doc \
+            -A clippy::must_use_candidate -A clippy::too_many_lines > "$RUNNER_TEMP/clippy.json"
+          node "$GITHUB_WORKSPACE/.kz-shared/scripts/lang-ratchet.mjs" clippy "$RUNNER_TEMP/clippy.json" --file lang-ratchet.json
+
+      - name: cargo-deny config
+        id: deny
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          if [ -f deny.toml ]; then echo "args=" >> "$GITHUB_OUTPUT"
+          else echo "args=--config $GITHUB_WORKSPACE/.kz-shared/docs/standards/lang/deny.toml" >> "$GITHUB_OUTPUT"; fi
+
+      - uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25 # v2
+        with:
+          manifest-path: ${{ inputs.working-directory }}/Cargo.toml
+          command: check
+          arguments: ${{ steps.deny.outputs.args }}
+
+      - name: tests
+        working-directory: ${{ inputs.working-directory }}
+        env:
+          LIMIT: ${{ inputs.test-timeout-seconds }}
+        run: timeout "$LIMIT" cargo test --all-targets
