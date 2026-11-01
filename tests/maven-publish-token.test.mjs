@@ -26,3 +26,9 @@ test("deploy-modules: an input that limits the deploy to a -pl list and skips th
   assert.match(deployStep, /DEPLOY_MODULES: \$\{\{ inputs\.deploy-modules \}\}/);
   assert.match(deployStep, /\$\{DEPLOY_MODULES:\+-pl "\$DEPLOY_MODULES"\} deploy/);
 });
+
+test("deploy-repository: a package is bound to its first repository, so the deploy URL can name another one", () => {
+  assert.match(src, /\n {6}deploy-repository:\n(?: {8}.*\n)*? {8}type: string/);
+  assert.match(deployStep, /DEPLOY_REPOSITORY: \$\{\{ inputs\.deploy-repository \}\}/);
+  assert.match(deployStep, /maven\.pkg\.github\.com\/\$\{DEPLOY_REPOSITORY:-\$REPOSITORY\}"/);
+});
