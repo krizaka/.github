@@ -9,6 +9,7 @@
 #
 # Steps: rustfmt --check · clippy (pedantic) counted per lint in lang-ratchet.json, which may only go down · cargo-deny
 # (advisories, licences, bans, sources: docs/standards/lang/deny.toml unless the crate has its own deny.toml) · tests under a timeout.
+# Inputs: runs-on (default ubuntu-latest; macos-latest for macOS-only tests), test (default true), prepare (a command run before the checks).
 # Permissions: contents: read; nothing else is asked.
 name: rust-quality
 
@@ -35,6 +36,18 @@ on:
         description: "Timeout of the job."
         type: number
         default: 25
+      runs-on:
+        description: "Runner label (ubuntu-latest, macos-latest...): a crate whose tests are OS-specific runs on its OS."
+        type: string
+        default: ubuntu-latest
+      test:
+        description: "Run `cargo test`. Turn off only with a written reason in the caller (the tests need hardware or a service the runner lacks), never to get green."
+        type: boolean
+        default: true
+      prepare:
+        description: "Shell command run in working-directory before the checks (build a sidecar or resources the crate's build.rs needs); empty: none."
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -42,7 +55,7 @@ permissions:
 jobs:
   rust:
     name: Rust guards
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs-on }}
     timeout-minutes: ${{ inputs.timeout-minutes }}
     permissions:
       contents: read
@@ -72,13 +85,20 @@ jobs:
           restore-keys: rust-guards-${{ runner.os }}-
 
       - name: System libraries
-        if: ${{ inputs.apt-packages != '' }}
+        if: ${{ inputs.apt-packages != '' && runner.os == 'Linux' }}
         env:
           PACKAGES: ${{ inputs.apt-packages }}
         run: |
           sudo apt-get update -qq
           # shellcheck disable=SC2086  # packages are word-split on purpose
           sudo apt-get install -y --no-install-recommends $PACKAGES
+
+      - name: prepare
+        if: ${{ inputs.prepare != '' }}
+        working-directory: ${{ inputs.working-directory }}
+        env:
+          PREPARE: ${{ inputs.prepare }}
+        run: bash -euo pipefail -c "$PREPARE"
 
       - name: rustfmt
         working-directory: ${{ inputs.working-directory }}
@@ -108,7 +128,10 @@ jobs:
           arguments: ${{ steps.deny.outputs.args }}
 
       - name: tests
+        if: ${{ inputs.test }}
         working-directory: ${{ inputs.working-directory }}
         env:
           LIMIT: ${{ inputs.test-timeout-seconds }}
-        run: timeout "$LIMIT" cargo test --all-targets
+        run: |
+          if command -v timeout >/dev/null; then T=timeout; else T=gtimeout; fi
+          "$T" "$LIMIT" cargo test --all-targets
