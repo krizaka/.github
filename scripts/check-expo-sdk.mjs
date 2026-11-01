@@ -11,7 +11,7 @@ export const POLICY = JSON.parse(readFileSync(join(here, "..", "docs", "standard
 
 /** The major of the `expo` dependency range ("~53.0.0" -> 53), or null when it cannot be read. */
 export function sdkOf(range) {
-  const m = /(\d+)\./.exec(String(range ?? ""));
+  const m = /(\d{1,9})\./.exec(String(range ?? ""));
   return m ? Number(m[1]) : null;
 }
 

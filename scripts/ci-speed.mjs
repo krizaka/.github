@@ -90,10 +90,12 @@ export function measure(repo, runs, cfg) {
 export function render(rows, { days }) {
   const sorted = [...rows].sort((a, b) => Number(b.over) - Number(a.over) || b.p90 - a.p90);
   const over = sorted.filter((r) => r.over);
+  const overNames = over.map((r) => `${r.repo} (${r.event})`).join(", ");
+  const overLine = over.length ? `**${over.length} over budget**: ${overNames}` : "Every repository is within its budget.";
   const lines = [
     `### CI speed, last ${days} days (budget at the 90th percentile)`,
     "",
-    over.length ? `**${over.length} over budget**: ${over.map((r) => `${r.repo} (${r.event})`).join(", ")}` : "Every repository is within its budget.",
+    overLine,
     "",
     "| Repository | Event | Commits | p50 (min) | p90 (min) | Budget | | Usually the slowest |",
     "| :--- | :--- | --: | --: | --: | --: | :-: | :--- |",
@@ -150,4 +152,11 @@ async function main() {
   if (argv.includes("--fail-over-budget") && rows.some((r) => r.over)) process.exit(1);
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) main().catch((e) => { console.error(e.message); process.exit(1); });
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  try {
+    await main();
+  } catch (e) {
+    console.error(e.message);
+    process.exit(1);
+  }
+}
