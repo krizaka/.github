@@ -39,6 +39,11 @@ name: maven
 on:
   workflow_call:
     inputs:
+      deploy-modules:
+        description: "GitHub Packages deploy only: a comma-separated -pl list of the modules to deploy (republish of a release whose deploy stopped half way). Set, the 'Already published?' check is skipped (it looks at the root POM, already there) and only these modules are deployed. Empty: the whole reactor."
+        required: false
+        default: ""
+        type: string
       upstreams:
         description: "Krizaka repositories to build first, in order (space-separated)"
         required: false
@@ -108,6 +113,9 @@ on:
         required: false
       MAVEN_GPG_PASSPHRASE:
         description: "Its passphrase (release only)."
+        required: false
+      MAVEN_PUBLISH_TOKEN:
+        description: "Optional token with write:packages used to deploy to GitHub Packages instead of GITHUB_TOKEN (packages first published by another repository refuse the GITHUB_TOKEN of this one, HTTP 422). Unset: GITHUB_TOKEN."
         required: false
     outputs:
       result:
@@ -453,6 +461,7 @@ jobs:
       # version is never replaced; release a new one).
       - name: Already published?
         id: published
+        if: inputs.deploy-modules == ''
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPOSITORY: ${{ github.repository }}
@@ -480,9 +489,11 @@ jobs:
       - name: Deploy
         if: steps.published.outputs.published != 'true'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEPLOY_MODULES: ${{ inputs.deploy-modules }}
+          # The settings.xml written by setup-java reads this variable as the server password.
+          GITHUB_TOKEN: ${{ secrets.MAVEN_PUBLISH_TOKEN || secrets.GITHUB_TOKEN }}
           REPOSITORY: ${{ github.repository }}
-        run: ./mvnw -B -ntp deploy -Prelease -Dgpg.skip -DskipTests -DskipITs -Dkrizaka.quality.phase=none "-DaltDeploymentRepository=github::https://maven.pkg.github.com/${REPOSITORY}"
+        run: ./mvnw -B -ntp ${DEPLOY_MODULES:+-pl "$DEPLOY_MODULES"} deploy -Prelease -Dgpg.skip -DskipTests -DskipITs -Dkrizaka.quality.phase=none "-DaltDeploymentRepository=github::https://maven.pkg.github.com/${REPOSITORY}"
 
   release-central:
     name: Sign and upload to Maven Central
