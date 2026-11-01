@@ -109,6 +109,9 @@ on:
       MAVEN_GPG_PASSPHRASE:
         description: "Its passphrase (release only)."
         required: false
+      MAVEN_PUBLISH_TOKEN:
+        description: "Optional token with write:packages used to deploy to GitHub Packages instead of GITHUB_TOKEN (packages first published by another repository refuse the GITHUB_TOKEN of this one, HTTP 422). Unset: GITHUB_TOKEN."
+        required: false
     outputs:
       result:
         description: "success or failure: the gate's verdict."
@@ -480,7 +483,8 @@ jobs:
       - name: Deploy
         if: steps.published.outputs.published != 'true'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # The settings.xml written by setup-java reads this variable as the server password.
+          GITHUB_TOKEN: ${{ secrets.MAVEN_PUBLISH_TOKEN || secrets.GITHUB_TOKEN }}
           REPOSITORY: ${{ github.repository }}
         run: ./mvnw -B -ntp deploy -Prelease -Dgpg.skip -DskipTests -DskipITs -Dkrizaka.quality.phase=none "-DaltDeploymentRepository=github::https://maven.pkg.github.com/${REPOSITORY}"
 
