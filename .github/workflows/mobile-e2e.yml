@@ -282,7 +282,7 @@ jobs:
       - name: Free disk space for the system image (the release build leaves ~33 MB on a hosted runner)
         run: |
           df -h / | tail -1
-          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost /usr/local/lib/android/sdk/ndk/*/toolchains/*/prebuilt/*/sysroot/usr/lib/*/ "$AGENT_TOOLSDIRECTORY/CodeQL" /usr/local/.ghcup /opt/hostedtoolcache/PyPy 2>/dev/null || true
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY/CodeQL" /usr/local/.ghcup /opt/hostedtoolcache/PyPy 2>/dev/null || true
           sudo docker image prune --all --force > /dev/null 2>&1 || true
           df -h / | tail -1
 
