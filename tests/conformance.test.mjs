@@ -285,3 +285,23 @@ test("release-propagation proves the bump landed, not only that the receiver exi
   const java = loadRules().find((r) => r.id === "maven-family-current");
   assert.deepEqual(java.check, { type: "versions-current", ecosystems: ["maven"], graceDays: 3 });
 });
+
+test("required-checks-report-in-queue: a required check's workflow runs on merge_group, and an app check needs a CI scan", async () => {
+  const rule = loadRules().find((r) => r.id === "required-checks-report-in-queue");
+  assert.ok(rule, "the rule is registered");
+  assert.deepEqual(validateRules([rule]), []);
+  const mk = (files, req) => snapshotOf("x", "app", Object.keys(files), async (p) => files[p], { requiredChecks: async () => req });
+  const req = ["workspace", "SonarCloud Code Analysis", "Security scan / gitleaks (secrets)"];
+  const ci = (queue, sonar) =>
+    `name: CI\non:\n  pull_request:\n${queue ? "  merge_group:\n" : ""}jobs:\n  workspace:\n    runs-on: x\n${sonar ? "  sonar:\n    steps:\n      - uses: krizaka/.github/actions/sonar-scan@" + "a".repeat(40) + "\n" : ""}`;
+  const sec = (queue) => `name: Security scan\non:\n  pull_request:\n${queue ? "  merge_group:\n" : ""}jobs:\n  gitleaks:\n    runs-on: x\n`;
+  const ok = await runCheck(rule.check, mk({ ".github/workflows/ci.yml": ci(true, true), ".github/workflows/security.yml": sec(true) }, req));
+  assert.equal(ok.ok, true, ok.why);
+  const noQueue = await runCheck(rule.check, mk({ ".github/workflows/ci.yml": ci(false, true), ".github/workflows/security.yml": sec(true) }, req));
+  assert.equal(noQueue.ok, false);
+  assert.match(noQueue.why, /ci\.yml.*merge_group/);
+  const noScan = await runCheck(rule.check, mk({ ".github/workflows/ci.yml": ci(true, false), ".github/workflows/security.yml": sec(true) }, req));
+  assert.equal(noScan.ok, false);
+  assert.match(noScan.why, /SonarCloud Code Analysis.*scan/);
+  assert.equal((await runCheck(rule.check, snap("x", "app", { ".github/workflows/ci.yml": ci(false, false) }))).ok, true);
+});

@@ -19,7 +19,7 @@ import { behind, latestOf, pinsOf, renderVersions, versionsVerdict } from "./con
 const HERE = new URL("../", import.meta.url);
 import { jobsWithoutTimeout, configWithoutTestTimeout, nodeTestWithoutTimeout } from "./check-timeouts.mjs";
 const TEST_CONFIG = /(^|\/)((playwright|vitest|jest)\.config\.[cm]?[jt]s|junit-platform\.properties)$/;
-export const CHECK_TYPES = ["workflow-calls", "workflow-matches", "workflow-forbids", "file-exists", "file-matches", "manifests-forbid", "no-mention", "published-no-mention", "all-of", "any-of", "agents-template", "required-check", "merged-result", "required-profile", "time-limits", "versions-current"];
+export const CHECK_TYPES = ["workflow-calls", "workflow-matches", "workflow-forbids", "file-exists", "file-matches", "manifests-forbid", "no-mention", "published-no-mention", "all-of", "any-of", "agents-template", "required-check", "merged-result", "queue-reports", "required-profile", "time-limits", "versions-current"];
 export const FIX_TYPES = ["copy", "append-section", "settings-hook", "agents-template", "manual"];
 const WORKFLOW_PATH = /^\.github\/workflows\/[^/]+\.ya?ml$/;
 const CALL = /uses:\s*krizaka\/(?:\.github|orazaka)\/\.github\/workflows\/([\w.-]+\.ya?ml)@/g;
@@ -73,6 +73,7 @@ function checkShape({ id, check = {} }) {
     "any-of": () => composite(check),
     "required-check": () => Boolean(check.context),
     "merged-result": () => true,
+    "queue-reports": () => true,
     "time-limits": () => true,
     "versions-current": () => !check.ecosystems || check.ecosystems.every((e) => ["npm", "maven"].includes(e)),
     "required-profile": () => Boolean(check.byKind && Object.values(check.byKind).every((gs) => Array.isArray(gs) && gs.every((g) => g.name && g.pattern))),
@@ -129,6 +130,26 @@ const MANIFEST = /(^|\/)(package\.json|pnpm-workspace\.yaml|\.gitmodules|pom\.xm
 const callsOf = (text) => new Set([...text.matchAll(CALL)].map((m) => m[1]));
 
 const verdict = (ok, why) => ({ ok, why: ok ? "" : why });
+
+const SONAR_APP_CHECK = /^SonarCloud Code Analysis$/;
+const triggersOf = (text) => (text.split(/^jobs:/m)[0].match(/^ {2}([a-z_]+):/gm) ?? []).map((t) => t.trim().replace(":", ""));
+const nameOf = (text) => text.match(/^name:\s*["']?([^"'\n#]+?)["']?\s*(?:#.*)?$/m)?.[1]?.trim().toLowerCase();
+const jobKeys = (text) => (text.split(/^jobs:/m)[1]?.match(/^ {2}([\w-]+):/gm) ?? []).map((k) => k.trim().replace(":", "").toLowerCase());
+
+/** Which workflow files produce a required check, and do they run in the queue? */
+export function queueReportsVerdict(required, workflows) {
+  const problems = [];
+  const heads = required.filter((c) => !SONAR_APP_CHECK.test(c)).map((c) => c.split(" / ")[0].trim().toLowerCase());
+  const scans = workflows.filter((w) => /sonar-scan@|^\s+sonar:\s*true/m.test(w.text));
+  for (const w of workflows) {
+    const triggers = triggersOf(w.text);
+    if (!triggers.includes("pull_request") || triggers.includes("merge_group")) continue;
+    const produces = heads.includes(nameOf(w.text)) || jobKeys(w.text).some((k) => heads.includes(k));
+    if (produces || scans.includes(w)) problems.push(`${w.path} produces a required check but has no merge_group trigger`);
+  }
+  if (required.some((c) => SONAR_APP_CHECK.test(c)) && scans.length === 0) problems.push("« SonarCloud Code Analysis » is required but no CI scan job (sonar-scan) exists: the app does not analyse a merge queue SHA");
+  return verdict(problems.length === 0, problems.join("; "));
+}
 
 /** One handler per check type: each returns { ok, why }. */
 const CHECKS = {
@@ -187,6 +208,13 @@ const CHECKS = {
     if (!snap.requiredChecks) return { ok: true, why: "" };
     const required = await snap.requiredChecks();
     return verdict(required.includes(check.context), `« ${check.context} » is not a required check on main`);
+  },
+  // Every required check reports in the merge queue (krizaka-internal#2000): the workflow that produces a required check triggers on
+  // `merge_group`, and « SonarCloud Code Analysis » (posted by the SonarCloud app, which never analyses a queue SHA) has a CI scan job.
+  // `requiredChecks` is absent offline: nothing to prove.
+  "queue-reports": async (_check, snap) => {
+    if (!snap.requiredChecks) return { ok: true, why: "" };
+    return queueReportsVerdict(await snap.requiredChecks(), await Promise.all(snap.paths.filter((p) => WORKFLOW_PATH.test(p)).map(async (p) => ({ path: p, text: (await snap.read(p)) ?? "" }))));
   },
   // Time limits everywhere (krizaka-internal#2007): every workflow job has `timeout-minutes` (a job that only calls a reusable workflow is exempt),
   // every test config has a per-test timeout, `node --test` scripts carry --test-timeout. A longer value is fine; none is not.
