@@ -29,6 +29,10 @@ on:
         description: "Newline-separated requirements files (relative to the repository root): installed (wheels only) and audited."
         type: string
         default: ""
+      install-requirements:
+        description: "Install the requirements before the checks. false: they are only audited (pip-audit --no-deps on pinned files), for projects whose requirements are unpinned or gigabytes large (torch, CUDA); pyright then counts the unresolved imports in the ratchet."
+        type: boolean
+        default: true
       pyright-paths:
         description: "What pyright checks (new typed code first); empty skips pyright."
         type: string
@@ -74,12 +78,13 @@ jobs:
       - name: Install the tools and the requirements (wheels only)
         env:
           REQUIREMENTS: ${{ inputs.requirements }}
+          INSTALL: ${{ inputs.install-requirements }}
           ROOT: ${{ github.workspace }}
         run: |
           pip install --only-binary :all: --require-hashes -r "$ROOT/.kz-shared/docs/standards/lang/python-tools.txt"
           args=()
           while IFS= read -r f; do [ -n "$f" ] && args+=(-r "$ROOT/$f"); done <<< "$REQUIREMENTS"
-          if [ "${#args[@]}" -gt 0 ]; then pip install --only-binary :all: "${args[@]}"; fi
+          if [ "${#args[@]}" -gt 0 ] && [ "$INSTALL" = "true" ]; then pip install --only-binary :all: "${args[@]}"; fi
 
       - name: ruff format
         working-directory: ${{ inputs.working-directory }}
