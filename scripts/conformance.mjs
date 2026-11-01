@@ -14,11 +14,12 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { gunzipSync } from "node:zlib";
 import { problemsOf } from "./agents-md.mjs";
+import { behind, latestOf, pinsOf, renderVersions, versionsVerdict } from "./conformance-versions.mjs";
 
 const HERE = new URL("../", import.meta.url);
 import { jobsWithoutTimeout, configWithoutTestTimeout, nodeTestWithoutTimeout } from "./check-timeouts.mjs";
 const TEST_CONFIG = /(^|\/)((playwright|vitest|jest)\.config\.[cm]?[jt]s|junit-platform\.properties)$/;
-export const CHECK_TYPES = ["workflow-calls", "workflow-matches", "workflow-forbids", "file-exists", "file-matches", "manifests-forbid", "no-mention", "published-no-mention", "all-of", "any-of", "agents-template", "required-check", "merged-result", "required-profile", "time-limits"];
+export const CHECK_TYPES = ["workflow-calls", "workflow-matches", "workflow-forbids", "file-exists", "file-matches", "manifests-forbid", "no-mention", "published-no-mention", "all-of", "any-of", "agents-template", "required-check", "merged-result", "required-profile", "time-limits", "versions-current"];
 export const FIX_TYPES = ["copy", "append-section", "settings-hook", "agents-template", "manual"];
 const WORKFLOW_PATH = /^\.github\/workflows\/[^/]+\.ya?ml$/;
 const CALL = /uses:\s*krizaka\/(?:\.github|orazaka)\/\.github\/workflows\/([\w.-]+\.ya?ml)@/g;
@@ -73,6 +74,7 @@ function checkShape({ id, check = {} }) {
     "required-check": () => Boolean(check.context),
     "merged-result": () => true,
     "time-limits": () => true,
+    "versions-current": () => !check.ecosystems || check.ecosystems.every((e) => ["npm", "maven"].includes(e)),
     "required-profile": () => Boolean(check.byKind && Object.values(check.byKind).every((gs) => Array.isArray(gs) && gs.every((g) => g.name && g.pattern))),
   };
   return needs[check.type]?.() === false ? [`${id}: the ${check.type} check is incomplete`] : [];
@@ -88,7 +90,7 @@ export function scopeOf(repositories) {
 }
 
 /** A repository as the checks see it: its tracked paths and a reader of one file (null when absent). */
-export function snapshotOf(name, kind, paths, readFile, { scan = null, published = null, requiredChecks = null, mergeGuard = null } = {}) {
+export function snapshotOf(name, kind, paths, readFile, { scan = null, published = null, requiredChecks = null, mergeGuard = null, latest = null, now = Date.now() } = {}) {
   const cache = new Map();
   const read = async (path) => {
     if (!paths.includes(path)) return null;
@@ -99,7 +101,7 @@ export function snapshotOf(name, kind, paths, readFile, { scan = null, published
     const texts = await Promise.all(paths.filter((p) => WORKFLOW_PATH.test(p)).map(read));
     return texts.filter(Boolean).join("\n");
   };
-  return { name, kind, paths, read, workflows, scan, published, requiredChecks, mergeGuard };
+  return { name, kind, paths, read, workflows, scan, published, requiredChecks, mergeGuard, latest, now };
 }
 
 /** Does the rule concern this repository? */
@@ -225,6 +227,12 @@ const CHECKS = {
     return verdict(hits.length === 0, `${hits.length} file(s) name a departed product, e.g. ${hits.slice(0, 3).join(", ")}`);
   },
   // What the repository PUBLISHES: the latest npm tarball of each of its public packages (built CSS/JS included), not its sources.
+  // A rule change reached the repository (krizaka-internal#879): no family pin older than a version out for `graceDays`.
+  // `latest` is absent offline: nothing to prove.
+  "versions-current": async (check, snap) => {
+    if (!snap.latest) return { ok: true, why: "" };
+    return versionsVerdict(await lateOf(snap, check));
+  },
   // `published` is absent offline: nothing to prove. `allow`: files that are history inside a package (its CHANGELOG).
   "published-no-mention": async (check, snap) => {
     if (!snap.published) return { ok: true, why: "" };
@@ -236,6 +244,24 @@ const CHECKS = {
 
 /** A check's pattern: `pattern`, or `patternBase64` when the words it looks for must not be spelled in the registry itself
     (the names of the products that left the org, krizaka/.github#413). */
+/** The family pins of a snapshot that are behind what is published. */
+export async function lateOf(snap, { ecosystems, graceDays = 7 } = {}) {
+  const pins = await pinsOf(snap, ecosystems);
+  const latest = {};
+  for (const pin of pins) latest[`${pin.ecosystem}:${pin.name}`] = await snap.latest(pin);
+  return behind(pins, latest, { now: snap.now, graceDays });
+}
+
+/** Per repository: what it pins and what is behind (the versions section of the matrix). */
+export async function versionsReport(snapshots) {
+  const out = {};
+  for (const snap of snapshots) {
+    if (!snap.latest) continue;
+    out[snap.name] = { pins: await pinsOf(snap), behind: await lateOf(snap) };
+  }
+  return out;
+}
+
 export function patternOf(check) {
   return check.pattern ?? (check.patternBase64 ? Buffer.from(check.patternBase64, "base64").toString("utf8") : undefined);
 }
@@ -385,7 +411,7 @@ export async function liveSnapshot({ name, kind }, org = "krizaka") {
     const classic = await api(`/repos/${org}/${name}/branches/main/protection/required_status_checks`);
     return { mergeQueue: rules.some((r) => r.type === "merge_queue"), strict: classic?.strict === true || rules.some((r) => r.type === "required_status_checks" && r.parameters?.strict_required_status_checks_policy === true) };
   };
-  return snapshotOf(name, kind, paths, raw, { scan, published, requiredChecks, mergeGuard });
+  return snapshotOf(name, kind, paths, raw, { scan, published, requiredChecks, mergeGuard, latest: (pin) => latestOf(pin, api) });
 }
 
 const flag = (argv, name) => (argv.includes(name) ? argv[argv.indexOf(name) + 1] : undefined);
@@ -424,9 +450,10 @@ export async function main(argv) {
   const lists = { "orchestration/release-consumers.json": consumersList() };
   const cells = await evaluate(picked, snapshots, lists);
   const summary = summarise(picked, cells);
-  console.log(render(picked, cells, summary, paused));
+  const versions = await versionsReport(snapshots);
+  console.log(`${render(picked, cells, summary, paused)}\n\n### Family versions\n\n${renderVersions(versions)}`);
   const jsonOut = flag(argv, "--json");
-  if (jsonOut) writeFileSync(jsonOut, JSON.stringify({ summary, cells, outOfScope: paused.map((r) => r.name) }, null, 2));
+  if (jsonOut) writeFileSync(jsonOut, JSON.stringify({ generatedAt: new Date().toISOString(), summary, cells, versions, outOfScope: paused.map((r) => r.name) }, null, 2));
   return argv.includes("--fail") && summary.some((s) => s.red > 0) ? 1 : 0;
 }
 

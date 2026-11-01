@@ -16,6 +16,8 @@ const SHARED_REPOSITORIES = new Set([
   "krizaka-platform",
   "krizaka-desktop",
   "krizaka-composer",
+  "krizaka-accounts",
+  "krizaka-agents",
 ]);
 const FORBIDDEN = /(?:^|-)(?:client|design-system|kit)(?:-|$)/;
 const SLUG = "[a-z0-9]+(?:-[a-z0-9]+)*";

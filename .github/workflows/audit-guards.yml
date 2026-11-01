@@ -12,6 +12,8 @@ on:
       - scripts/audit-guards.mjs
       - tests/audit-guards.test.mjs
       - .github/workflows/audit-guards.yml
+      - scripts/red-run-issue.mjs
+      - tests/red-run-issue.test.mjs
 
 permissions:
   contents: read
@@ -28,7 +30,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
-      - run: node --test --test-timeout=120000 --test-force-exit tests/audit-guards.test.mjs
+      - run: node --test --test-timeout=120000 --test-force-exit tests/audit-guards.test.mjs tests/red-run-issue.test.mjs
 
   audit:
     name: Org audit
@@ -53,6 +55,24 @@ jobs:
           permission-administration: read
           permission-contents: read
           permission-metadata: read
-      - run: node scripts/audit-guards.mjs # zizmor: ignore[github-app] the token is read-only (administration, contents, metadata)
+      - id: audit
+        run: node scripts/audit-guards.mjs 2>&1 | tee audit.log; exit "${PIPESTATUS[0]}" # zizmor: ignore[github-app] the token is read-only (administration, contents, metadata)
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
+      # Red three days with nobody told (krizaka-internal#883): a red scheduled run opens (or comments) one issue, green closes it.
+      - id: issues
+        if: ${{ always() && github.event_name == 'schedule' }}
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: krizaka
+          repositories: krizaka-internal
+          permission-issues: write
+      - name: The guard's issue
+        if: ${{ always() && github.event_name == 'schedule' && steps.issues.outputs.token != '' }}
+        env:
+          GH_TOKEN: ${{ steps.issues.outputs.token }}
+          STATE: ${{ steps.audit.outcome == 'success' && 'green' || 'red' }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node scripts/red-run-issue.mjs --guard audit-guards --state "$STATE" --run-url "$RUN_URL" --log audit.log
