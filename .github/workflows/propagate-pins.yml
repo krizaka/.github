@@ -48,6 +48,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
+          package-manager-cache: false # a release-triggered workflow must not restore a cache (zizmor cache-poisoning)
       - name: Open one pull request per repository
         run: node scripts/propagate-pins.mjs "${INPUT_SHA:-$GITHUB_SHA}" --source "${INPUT_SOURCE:-.github}"
         env:
