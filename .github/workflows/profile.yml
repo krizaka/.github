@@ -28,6 +28,11 @@ jobs:
         run: |
           v=$(npm view @krizaka/ui version)
           npm install --prefix .sites --no-save --ignore-scripts "@krizaka/ui@$v"
+      - name: Every repository of the quality table exists, is not archived and has a Sonar project
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: node scripts/profile-quality.mjs --verify
       - run: node scripts/profile-products.mjs
       - name: Open a pull request when the section changed
         env:
