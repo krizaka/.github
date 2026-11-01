@@ -251,7 +251,7 @@ jobs:
     name: Changed files
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/changes.yml@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
+    uses: krizaka/.github/.github/workflows/changes.yml@d701b569b15617609b890102bc0be9978759909c # main
     with:
       relevant: ${{ inputs.relevant }}
       ignore: ${{ inputs.ignore }}
@@ -261,7 +261,7 @@ jobs:
     if: ${{ inputs.container }}
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/changes.yml@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
+    uses: krizaka/.github/.github/workflows/changes.yml@d701b569b15617609b890102bc0be9978759909c # main
     with:
       # What can break an image build whatever the caller's `ignore` says: the Dockerfile and .dockerignore, the manifests and
       # lockfiles the install COPYs, the workspace definition. Any other path a COPY names is covered by `relevant: .` of the main gate
@@ -274,7 +274,7 @@ jobs:
     if: ${{ inputs.e2e-script != '' }}
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/changes.yml@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
+    uses: krizaka/.github/.github/workflows/changes.yml@d701b569b15617609b890102bc0be9978759909c # main
     with:
       relevant: ${{ inputs.e2e-relevant }}
       ignore: ${{ inputs.ignore }}
@@ -340,10 +340,10 @@ jobs:
           persist-credentials: false
 
       # The repository's folders stay clean (docs/standards/repo-layout.md): once per run, on the lint leg.
-      - uses: krizaka/.github/actions/repo-layout@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
+      - uses: krizaka/.github/actions/repo-layout@d701b569b15617609b890102bc0be9978759909c # main
         if: ${{ matrix.task == 'all' || matrix.task == 'lint' }}
 
-      - uses: krizaka/.github/actions/setup@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
+      - uses: krizaka/.github/actions/setup@d701b569b15617609b890102bc0be9978759909c # main
         with:
           stack: node
           working-directory: ${{ inputs.working-directory }}
@@ -355,7 +355,7 @@ jobs:
           postgres-image: ${{ (matrix.task == 'all' || matrix.task == 'test' || matrix.task == 'build') && inputs.postgres-image || '' }}
           postgres-name: ${{ inputs.postgres-name }}
 
-      - uses: krizaka/.github/actions/quality@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
+      - uses: krizaka/.github/actions/quality@d701b569b15617609b890102bc0be9978759909c # main
         with:
           working-directory: ${{ inputs.working-directory }}
           package-manager: ${{ inputs.package-manager }}
@@ -374,7 +374,7 @@ jobs:
 
       # Turborepo's local cache (every leg but lint), then the tests: the test leg only. The build leg ran them again from
       # the build pack (2026-10-25) to 2026-10-30, nine minutes of akinaza's critical path (ADR-018, measured).
-      - uses: krizaka/.github/actions/test@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
+      - uses: krizaka/.github/actions/test@d701b569b15617609b890102bc0be9978759909c # main
         with:
           working-directory: ${{ inputs.working-directory }}
           package-manager: ${{ inputs.package-manager }}
@@ -382,14 +382,14 @@ jobs:
           cache-scope: ${{ matrix.task }}
           test-script: ${{ (matrix.task == 'all' || matrix.task == 'test') && inputs.test-script || '' }}
 
-      - uses: krizaka/.github/actions/build@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
+      - uses: krizaka/.github/actions/build@d701b569b15617609b890102bc0be9978759909c # main
         with:
           working-directory: ${{ inputs.working-directory }}
           package-manager: ${{ inputs.package-manager }}
           next-cache-paths: ${{ (matrix.task == 'all' || matrix.task == 'build') && inputs.next-cache-paths || '' }}
           build-script: ${{ (matrix.task == 'all' || matrix.task == 'build') && inputs.build-script || '' }}
 
-      - uses: krizaka/.github/actions/after-build@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
+      - uses: krizaka/.github/actions/after-build@d701b569b15617609b890102bc0be9978759909c # main
         with:
           working-directory: ${{ inputs.working-directory }}
           package-manager: ${{ inputs.package-manager }}
@@ -455,7 +455,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: krizaka/.github/actions/setup@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
+      - uses: krizaka/.github/actions/setup@d701b569b15617609b890102bc0be9978759909c # main
         with:
           stack: node
           working-directory: ${{ inputs.working-directory }}
@@ -467,19 +467,19 @@ jobs:
           postgres-name: ${{ inputs.postgres-name }}
 
       # The Next.js cache only (no build here: the e2e script builds if it must).
-      - uses: krizaka/.github/actions/build@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
+      - uses: krizaka/.github/actions/build@d701b569b15617609b890102bc0be9978759909c # main
         with:
           working-directory: ${{ inputs.working-directory }}
           package-manager: ${{ inputs.package-manager }}
           next-cache-paths: ${{ inputs.next-cache-paths }}
 
-      - uses: krizaka/.github/actions/after-build@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
+      - uses: krizaka/.github/actions/after-build@d701b569b15617609b890102bc0be9978759909c # main
         with:
           working-directory: ${{ inputs.working-directory }}
           package-manager: ${{ inputs.package-manager }}
           playwright: ${{ inputs.e2e-browsers }}
 
-      - uses: krizaka/.github/actions/test@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
+      - uses: krizaka/.github/actions/test@d701b569b15617609b890102bc0be9978759909c # main
         with:
           working-directory: ${{ inputs.working-directory }}
           package-manager: ${{ inputs.package-manager }}
@@ -501,7 +501,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ inputs.node-version }}
-      - uses: krizaka/.github/actions/dup-check@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
+      - uses: krizaka/.github/actions/dup-check@d701b569b15617609b890102bc0be9978759909c # main
         with:
           paths: ${{ inputs.duplication-paths }}
           working-directory: ${{ inputs.working-directory }}
@@ -522,7 +522,7 @@ jobs:
 
       # buildx with the Actions cache (actions/build): layers are restored on every run and written on main only,
       # so a pull request never pays for the export. The image is loaded into the local daemon (never pushed) for the scan and the smoke script.
-      - uses: krizaka/.github/actions/build@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
+      - uses: krizaka/.github/actions/build@d701b569b15617609b890102bc0be9978759909c # main
         with:
           container: "true"
           container-context: ${{ inputs.container-context }}
@@ -557,7 +557,7 @@ jobs:
       # accepted exception in .licence-exceptions.json with a reason and an expiry. Report in the job summary.
       - name: Licence gate
         if: ${{ inputs.container-licence-gate }}
-        uses: krizaka/.github/actions/licence-check@7fc63ed79f731cbc0a11a045ef19036da0a3538f # main
+        uses: krizaka/.github/actions/licence-check@d701b569b15617609b890102bc0be9978759909c # main
         with:
           sbom: ${{ runner.temp }}/sbom.cdx.json
 
@@ -576,7 +576,7 @@ jobs:
           trivyignores: ${{ steps.allow.outputs.file }}
 
       # Node (and pnpm) only for a smoke script that needs them; a build-only job needs neither.
-      - uses: krizaka/.github/actions/setup@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
+      - uses: krizaka/.github/actions/setup@d701b569b15617609b890102bc0be9978759909c # main
         if: ${{ inputs.container-smoke != '' }}
         with:
           stack: node
@@ -585,7 +585,7 @@ jobs:
           node-version: ${{ inputs.node-version }}
           package-manager: ${{ inputs.package-manager }}
 
-      - uses: krizaka/.github/actions/after-build@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
+      - uses: krizaka/.github/actions/after-build@d701b569b15617609b890102bc0be9978759909c # main
         with:
           working-directory: ${{ inputs.working-directory }}
           package-manager: ${{ inputs.package-manager }}
