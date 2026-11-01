@@ -26,6 +26,39 @@
       "status": "Complies"
     },
     {
+      "name": "cla-signatures",
+      "owner": "krizaka",
+      "role": "Signatures of the CLA, written by the CLA workflow",
+      "team": "krizaka",
+      "kind": "none",
+      "deploy": [],
+      "archived": false,
+      "visibility": "private",
+      "status": "Paused (data only, no code: out of the matrix)"
+    },
+    {
+      "name": "krizaka-accounts",
+      "owner": "krizaka",
+      "role": "Shared accounts site (accounts.krizaka.com)",
+      "team": "krizaka",
+      "kind": "none",
+      "deploy": [],
+      "archived": false,
+      "visibility": "public",
+      "status": "Complies"
+    },
+    {
+      "name": "krizaka-agents",
+      "owner": "krizaka",
+      "role": "How the agents work: rules, scripts, skills (private)",
+      "team": "krizaka",
+      "kind": "npm",
+      "deploy": [],
+      "archived": false,
+      "visibility": "private",
+      "status": "Complies"
+    },
+    {
       "name": "krizaka-billing",
       "owner": "krizaka",
       "role": "Shared capability service",
@@ -98,15 +131,38 @@
       "status": "Complies"
     },
     {
+      "name": "krizaka-internal",
+      "owner": "krizaka",
+      "role": "Internal issues and notes (private)",
+      "team": "krizaka",
+      "kind": "none",
+      "deploy": [],
+      "archived": false,
+      "visibility": "private",
+      "status": "Paused (issues only, no code: out of the matrix)"
+    },
+    {
       "name": "krizaka-lab",
       "owner": "krizaka",
-      "role": "The family lab (UI, motion, Java, AI, data experiments; publishes nothing)",
+      "role": "The family lab: UI, motion, Java, AI and data experiments; publishes nothing (formerly krizaka-motion)",
       "team": "krizaka",
       "kind": "npm",
       "deploy": [],
       "archived": false,
       "visibility": "public",
       "status": "Complies"
+    },
+    {
+      "name": "krizaka-notifications",
+      "owner": "krizaka",
+      "role": "Shared capability service",
+      "team": "krizaka",
+      "kind": "maven",
+      "deploy": [],
+      "archived": false,
+      "visibility": "public",
+      "status": "Fold into krizaka-build (ADR-021), then archive",
+      "foldInto": "krizaka-build"
     },
     {
       "name": "krizaka-platform-kit",
@@ -119,6 +175,17 @@
       "visibility": "public",
       "status": "Rename → krizaka-platform",
       "renameTo": "krizaka-platform"
+    },
+    {
+      "name": "krizaka-skills",
+      "owner": "krizaka",
+      "role": "Former agents' skills, moved into `krizaka-agents`",
+      "team": "krizaka",
+      "kind": "npm",
+      "deploy": [],
+      "archived": true,
+      "visibility": "public",
+      "status": "Archive"
     },
     {
       "name": "krizaka-tauri-kit",
@@ -364,6 +431,17 @@
     },
     {
       "name": "template-next-app",
+      "owner": "krizaka",
+      "role": "Template",
+      "team": "krizaka",
+      "kind": "app",
+      "deploy": [],
+      "archived": false,
+      "visibility": "public",
+      "status": "Complies"
+    },
+    {
+      "name": "template-tauri-app",
       "owner": "krizaka",
       "role": "Template",
       "team": "krizaka",

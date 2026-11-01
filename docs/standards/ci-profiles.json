@@ -61,6 +61,7 @@
     ".github": ["org"],
     "akinaza": ["app-web", "app-mobile"],
     "krizaka-accounts": ["java-service"],
+    "krizaka-agents": ["org"],
     "krizaka-billing": ["java-service"],
     "krizaka-blog": ["site"],
     "krizaka-build": ["library", "docs"],

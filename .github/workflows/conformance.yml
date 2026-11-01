@@ -1,11 +1,13 @@
 # The conformance matrix (krizaka/.github#393): every rule of docs/standards/rules.json against every active repository.
-# Weekly, on a pull request that adds or changes a rule (a rule without its check fails), and by hand. The pull request run
-# validates the registry and prints the matrix; the weekly run reads the repositories with the agents' app and fails while a cell is red.
+# Daily (krizaka-internal#883), on a pull request that adds or changes a rule (a rule without its check fails), and by hand. The pull
+# request run validates the registry and prints the matrix; the daily run reads main of every repository with the agents' app,
+# publishes the matrix on the branch conformance-matrix (conformance/matrix.md, .json), opens one issue per red repository and
+# fails while a cell is red.
 name: Conformance
 
 on:
   schedule:
-    - cron: "0 6 * * 1"
+    - cron: "0 6 * * *"
   pull_request:
     paths:
       - docs/standards/rules.json
@@ -35,7 +37,7 @@ jobs:
       - name: The registry is valid and its tests pass
         run: |
           node scripts/conformance.mjs --validate
-          node --test tests/conformance.test.mjs tests/conformance-fanout.test.mjs tests/conformance-issues.test.mjs
+          node --test tests/conformance.test.mjs tests/conformance-versions.test.mjs tests/conformance-fanout.test.mjs tests/conformance-issues.test.mjs tests/red-run-issue.test.mjs
       - id: repos
         run: echo "list=$(node scripts/conformance.mjs --repo-list)" >> "$GITHUB_OUTPUT"
       - id: app
@@ -61,7 +63,24 @@ jobs:
           status=${PIPESTATUS[0]}
           { echo '### Conformance matrix'; cat matrix.md; } >> "$GITHUB_STEP_SUMMARY"
           exit "$status"
-      # Weekly (and by hand): one issue per red repository, refreshed while red, closed when green. Never on a pull request.
+      # Daily (and by hand): the matrix is published where the founder and the cockpit read it. A token of its own: contents
+      # write on krizaka/.github only, to the data branch conformance-matrix (never main).
+      - id: publish
+        if: ${{ always() && github.event_name != 'pull_request' }}
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: krizaka
+          repositories: .github
+          permission-contents: write
+      - name: Publish the matrix
+        if: ${{ always() && github.event_name != 'pull_request' && steps.publish.outputs.token != '' }}
+        env:
+          GH_TOKEN: ${{ steps.publish.outputs.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node scripts/conformance-publish.mjs matrix.md matrix.json
+      # Daily (and by hand): one issue per red repository, refreshed while red, closed when green. Never on a pull request.
       - name: One issue per red repository
         if: ${{ always() && github.event_name != 'pull_request' }}
         env:

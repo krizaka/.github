@@ -72,7 +72,8 @@ test("measure: over budget at the 90th percentile, with the workflow that is usu
 });
 
 test("every active repository of the registry has a profile, and every profile exists", () => {
-  const active = registry.filter((r) => !/^Archive/.test(r.status) && !r.archived).map((r) => r.name);
+  // Same scope as the conformance matrix (scopeOf): paused and archived repositories run no CI.
+  const active = registry.filter((r) => !/^(Archive|Paused)\b/.test(r.status) && !r.archived).map((r) => r.name);
   for (const name of active) assert.ok(profilesOf(name, cfg).length, `${name} has no CI profile in docs/standards/ci-profiles.json`);
   for (const [name, entry] of Object.entries(cfg.repos)) {
     for (const p of Array.isArray(entry) ? entry : entry.profiles) assert.ok(cfg.profiles[p], `${name}: unknown profile ${p}`);

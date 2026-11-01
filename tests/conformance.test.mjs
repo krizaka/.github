@@ -264,3 +264,24 @@ test("required-checks-profile: apps need journeys/visual only where they call th
   assert.match(lib.why, /Sonar, security scan/);
   assert.equal((await runCheck(rule.check, snap("x", "app", withJ))).ok, true);
 });
+
+test("versions-current: red when a family pin is older than a version out for longer than the grace", async () => {
+  const now = Date.parse("2026-11-01T00:00:00Z");
+  const files = { "package.json": JSON.stringify({ devDependencies: { "@krizaka/config": "^0.19.0" } }) };
+  const latest = async () => ({ version: "0.20.0", publishedAt: "2026-10-20T00:00:00Z" });
+  const live = snapshotOf("a", "app", Object.keys(files), async (p) => files[p], { latest, now });
+  const red = await runCheck({ type: "versions-current", ecosystems: ["npm"] }, live);
+  assert.equal(red.ok, false);
+  assert.match(red.why, /@krizaka\/config 0\.19\.0 < 0\.20\.0/);
+  const fresh = snapshotOf("a", "app", Object.keys(files), async (p) => files[p], { latest: async () => ({ version: "0.20.0", publishedAt: "2026-10-30T00:00:00Z" }), now });
+  assert.equal((await runCheck({ type: "versions-current" }, fresh)).ok, true);
+  assert.equal((await runCheck({ type: "versions-current" }, snap("a", "app", files))).ok, true); // offline: nothing to prove
+});
+
+test("release-propagation proves the bump landed, not only that the receiver exists", () => {
+  const rule = loadRules().find((r) => r.id === "release-propagation");
+  assert.equal(rule.check.type, "all-of");
+  assert.deepEqual(rule.check.checks.map((c) => c.type).sort(), ["versions-current", "workflow-calls"]);
+  const java = loadRules().find((r) => r.id === "maven-family-current");
+  assert.deepEqual(java.check, { type: "versions-current", ecosystems: ["maven"], graceDays: 3 });
+});

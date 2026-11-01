@@ -35,14 +35,20 @@ shape fits, but whose role needs discussion.
 | Repository | Current role | Status |
 | :--- | :--- | :--- |
 | `akinaza` | Main product repository | Complies |
+| `cla-signatures` | Signatures of the CLA, written by the CLA workflow | **Paused** (data only, no code: out of the matrix) |
+| `krizaka-accounts` | Shared accounts site (accounts.krizaka.com) | Complies |
+| `krizaka-agents` | How the agents work: rules, scripts, skills (private) | Complies |
 | `krizaka-billing` | Shared capability service | Complies |
 | `krizaka-blog` | Shared blog | Complies |
 | `krizaka-build` | Shared Java build | Complies |
 | `krizaka-com` | Shared company site | Complies |
 | `krizaka-composer` | Shared visual page editor: the Krizaka fork of Puck (`@krizaka/composer`) | Complies |
 | `krizaka-infra` | Shared infrastructure as code | Complies |
+| `krizaka-internal` | Internal issues and notes (private) | **Paused** (issues only, no code: out of the matrix) |
 | `krizaka-lab` | The family lab: UI, motion, Java, AI and data experiments; publishes nothing (formerly krizaka-motion) | Complies |
+| `krizaka-notifications` | Shared capability service | **Fold into `krizaka-build`** (ADR-021), then archive |
 | `krizaka-platform-kit` | Java cross-cutting blocks | **Rename → `krizaka-platform`** |
+| `krizaka-skills` | Former agents' skills, moved into `krizaka-agents` | **Archive** |
 | `krizaka-tauri-kit` | Shared Tauri crate | **Rename → `krizaka-desktop`** |
 | `krizaka-ts` | Shared TypeScript building blocks | Complies |
 | `krizaka-ui` | Shared design system | Complies |
@@ -65,6 +71,7 @@ shape fits, but whose role needs discussion.
 | `orazaka-web-client` | Web app | **Rename → `orazaka-web`** |
 | `orazaka-worker-media` | Worker | Complies |
 | `template-next-app` | Template | Complies |
+| `template-tauri-app` | Template | Complies |
 | `yomizaka` | Main product repository | Complies |
 
 ## Check

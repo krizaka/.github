@@ -208,7 +208,7 @@
     },
     {
       "id": "release-propagation",
-      "title": "A @krizaka release reaches the consumer in minutes (bump workflow)",
+      "title": "A @krizaka release reaches the consumer: the bump workflow exists and the bump landed (no @krizaka/* pin behind a version out for 3 days)",
       "issue": "krizaka/.github#388",
       "applies": {
         "when": [
@@ -218,15 +218,51 @@
         ]
       },
       "check": {
-        "type": "workflow-calls",
-        "workflows": [
-          "bump-krizaka.yml"
+        "type": "all-of",
+        "checks": [
+          {
+            "type": "workflow-calls",
+            "workflows": [
+              "bump-krizaka.yml"
+            ]
+          },
+          {
+            "type": "versions-current",
+            "ecosystems": [
+              "npm"
+            ],
+            "graceDays": 3
+          }
         ]
       },
       "fix": {
         "type": "copy",
         "from": "workflow-templates/bump-krizaka.yml",
         "to": ".github/workflows/bump-krizaka.yml"
+      }
+    },
+    {
+      "id": "maven-family-current",
+      "title": "The Java family is current: krizaka-parent and krizaka-bom are not behind a krizaka-build release out for 3 days",
+      "issue": "krizaka/.github#388",
+      "applies": {
+        "kinds": [
+          "maven"
+        ],
+        "notRepos": [
+          "krizaka-build"
+        ]
+      },
+      "check": {
+        "type": "versions-current",
+        "ecosystems": [
+          "maven"
+        ],
+        "graceDays": 3
+      },
+      "fix": {
+        "type": "manual",
+        "note": "Move krizaka-parent and krizaka-bom (orazaka-build: the krizaka.version property) to the latest krizaka-build release; the bump lands through the train."
       }
     },
     {
