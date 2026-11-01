@@ -135,7 +135,7 @@ jobs:
   changes:
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/changes.yml@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
+    uses: krizaka/.github/.github/workflows/changes.yml@d701b569b15617609b890102bc0be9978759909c # main
     with:
       ignore: ${{ inputs.ignore }}
 
@@ -173,7 +173,7 @@ jobs:
           # registry-parse:end
 
       # The repository's folders stay clean (docs/standards/repo-layout.md).
-      - uses: krizaka/.github/actions/repo-layout@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
+      - uses: krizaka/.github/actions/repo-layout@d701b569b15617609b890102bc0be9978759909c # main
 
       - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
         with:
@@ -183,7 +183,7 @@ jobs:
 
       - name: Read the Krizaka building blocks from GitHub Packages
         if: steps.registry.outputs.github == 'true'
-        uses: krizaka/.github/actions/maven-github-packages@1ee05b3da9c502b460f6f74a46b378a677b3d5a2 # main
+        uses: krizaka/.github/actions/maven-github-packages@d701b569b15617609b890102bc0be9978759909c # main
         with:
           token: ${{ github.token }}
           repositories: krizaka-build krizaka-platform-kit krizaka-users krizaka-notifications krizaka-billing
@@ -265,7 +265,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: "22"
-      - uses: krizaka/.github/actions/dup-check@8a90a66bec6c227af139b39c6c33ba58b400b59a # main
+      - uses: krizaka/.github/actions/dup-check@d701b569b15617609b890102bc0be9978759909c # main
 
   # A docs-only change skips the heavy jobs, yet the required « SonarCloud Code Analysis » must still be posted by the SonarCloud app:
   # a light scan (checkout, no build, no tests, no coverage) does it, and its quality gate is real on the changed files (.github#330).
@@ -442,7 +442,7 @@ jobs:
           server-username: GITHUB_ACTOR
           server-password: GITHUB_TOKEN
 
-      - uses: krizaka/.github/actions/maven-github-packages@1ee05b3da9c502b460f6f74a46b378a677b3d5a2 # main
+      - uses: krizaka/.github/actions/maven-github-packages@d701b569b15617609b890102bc0be9978759909c # main
         with:
           token: ${{ github.token }}
           repositories: krizaka-build krizaka-platform-kit krizaka-users krizaka-notifications krizaka-billing
