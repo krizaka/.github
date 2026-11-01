@@ -86,7 +86,7 @@ export function pinBranch(label) {
  */
 export function publishPinPr({ repo, branch, title, body, run = sh }) {
   const api = (...a) => run("gh", ["api", ...a]);
-  const open = JSON.parse(api(`repos/krizaka/${repo}/pulls?state=open&per_page=100`, "--jq", "[.[]|{number,url:.html_url,head:.head.ref}]") || "[]");
+  const open = JSON.parse(api(`repos/krizaka/${repo}/pulls?state=open&per_page=100`, "--jq", "[.[]|{number,url:.html_url,head:.head.ref,title}]") || "[]");
   const same = open.find((pr) => pr.head === branch);
   let url;
   let number;
@@ -97,7 +97,10 @@ export function publishPinPr({ repo, branch, title, body, run = sh }) {
     url = run("gh", ["pr", "create", "-R", `krizaka/${repo}`, "--head", branch, "--title", title, "--body", body]);
     number = Number(url.split("/").pop());
   }
-  for (const old of open.filter((pr) => pr.head.startsWith(`${branch}-`))) {
+  // Any other open pin PR is superseded: the sha-named branches of the old runs, and a pin PR (same title family) on any other head.
+  const family = title.replace(/@[0-9a-f]{8}$/, "@");
+  const older = open.filter((pr) => pr.number !== number && (pr.head.startsWith(`${branch}-`) || (pr.title ?? "").startsWith(family)));
+  for (const old of older) {
     api("-X", "POST", `repos/krizaka/${repo}/issues/${old.number}/comments`, "-f", `body=Superseded by #${number}`);
     api("-X", "PATCH", `repos/krizaka/${repo}/pulls/${old.number}`, "-f", "state=closed");
   }
