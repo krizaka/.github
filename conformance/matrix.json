@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-01T03:16:43.104Z",
+  "generatedAt": "2026-11-01T12:46:29.113Z",
   "summary": [
     {
       "id": "security-scan",
@@ -78,8 +78,8 @@
     },
     {
       "id": "no-departed-product",
-      "red": 0,
-      "green": 36
+      "red": 1,
+      "green": 35
     },
     {
       "id": "no-departed-published",
@@ -138,8 +138,8 @@
     },
     {
       "id": "merge-resolution",
-      "red": 6,
-      "green": 28
+      "red": 5,
+      "green": 29
     },
     {
       "id": "fail-closed-sg",
@@ -150,6 +150,11 @@
       "id": "time-limits",
       "red": 26,
       "green": 10
+    },
+    {
+      "id": "required-checks-report-in-queue",
+      "red": 22,
+      "green": 12
     }
   ],
   "cells": {
@@ -273,6 +278,10 @@
       "time-limits": {
         "status": "red",
         "why": "tests/fixtures/node-app/package.json: `node --test` without --test-timeout"
+      },
+      "required-checks-report-in-queue": {
+        "status": "n/a",
+        "why": ""
       }
     },
     "akinaza": {
@@ -314,7 +323,7 @@
       },
       "release-propagation": {
         "status": "red",
-        "why": "the bump never landed: @krizaka/app-client 0.1.0 < 0.3.0 (published 8 days ago), @krizaka/discovery 0.1.0 < 0.1.2 (published 5 days ago), @krizaka/i18n 0.2.1 < 0.2.7 (published 15 days ago), @krizaka/icons 0.7.0 < 0.9.1 (published 9 days ago), @krizaka/intl 0.3.0 < 0.4.1 (published 6 days ago), @krizaka/api-keys 0.1.0 < 0.3.1 (published 5 days ago), @krizaka/brief 0.1.0 < 0.1.1 (published 5 days ago), @krizaka/charts 0.6.1 < 0.8.0 (published 6 days ago), @krizaka/fonts 0.5.0 < 0.5.3 (published 6 days ago), @krizaka/org 0.3.1 < 0.6.0 (published 3 days ago), @krizaka/organize 0.4.0 < 0.5.1 (published 5 days ago), @krizaka/privacy 0.2.0 < 0.2.2 (published 3 days ago), @krizaka/settings 0.2.0 < 0.5.2 (published 5 days ago), @krizaka/webhooks 0.1.0 < 0.3.4 (published 9 days ago), @krizaka/db 0.3.0 < 0.3.1 (published 3 days ago)"
+        "why": "the bump never landed: @krizaka/app-client 0.1.0 < 0.3.0 (published 9 days ago), @krizaka/discovery 0.1.0 < 0.1.2 (published 6 days ago), @krizaka/i18n 0.2.1 < 0.2.7 (published 15 days ago), @krizaka/icons 0.7.0 < 0.9.1 (published 10 days ago), @krizaka/intl 0.3.0 < 0.4.1 (published 7 days ago), @krizaka/api-keys 0.1.0 < 0.3.1 (published 6 days ago), @krizaka/auth 0.12.0 < 0.13.1 (published 3 days ago), @krizaka/brief 0.1.0 < 0.1.1 (published 5 days ago), @krizaka/charts 0.6.1 < 0.8.0 (published 7 days ago), @krizaka/fonts 0.5.0 < 0.5.3 (published 6 days ago), @krizaka/org 0.3.1 < 0.6.0 (published 4 days ago), @krizaka/organize 0.4.0 < 0.5.1 (published 5 days ago), @krizaka/privacy 0.2.0 < 0.2.2 (published 3 days ago), @krizaka/settings 0.2.0 < 0.5.2 (published 6 days ago), @krizaka/webhooks 0.1.0 < 0.3.4 (published 9 days ago), @krizaka/db 0.3.0 < 0.3.1 (published 3 days ago)"
       },
       "maven-family-current": {
         "status": "n/a",
@@ -370,7 +379,7 @@
       },
       "agents-template": {
         "status": "red",
-        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 219 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 220 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
       },
       "journeys": {
         "status": "red",
@@ -395,6 +404,10 @@
       "time-limits": {
         "status": "red",
         "why": "apps/web/vitest.config.mts: no `testTimeout`"
+      },
+      "required-checks-report-in-queue": {
+        "status": "green",
+        "why": ""
       }
     },
     "krizaka-accounts": {
@@ -517,6 +530,10 @@
       "time-limits": {
         "status": "red",
         "why": ".github/workflows/scorecard.yml: job `analysis` has no timeout-minutes"
+      },
+      "required-checks-report-in-queue": {
+        "status": "n/a",
+        "why": ""
       }
     },
     "krizaka-agents": {
@@ -639,6 +656,10 @@
       "time-limits": {
         "status": "red",
         "why": "package.json: `node --test` without --test-timeout"
+      },
+      "required-checks-report-in-queue": {
+        "status": "green",
+        "why": ""
       }
     },
     "krizaka-billing": {
@@ -761,6 +782,10 @@
       "time-limits": {
         "status": "red",
         "why": ".github/workflows/ci.yml: job `maven-pin-guard` has no timeout-minutes"
+      },
+      "required-checks-report-in-queue": {
+        "status": "red",
+        "why": ".github/workflows/ci.yml produces a required check but has no merge_group trigger; « SonarCloud Code Analysis » is required but no CI scan job (sonar-scan) exists: the app does not analyse a merge queue SHA"
       }
     },
     "krizaka-blog": {
@@ -802,7 +827,7 @@
       },
       "release-propagation": {
         "status": "red",
-        "why": "the bump never landed: @krizaka/charts 0.6.1 < 0.8.0 (published 6 days ago), @krizaka/config 0.10.0 < 0.20.0 (published 4 days ago), @krizaka/email 0.1.1 < 0.5.0 (published 5 days ago), @krizaka/fonts 0.5.1 < 0.5.3 (published 5 days ago), @krizaka/i18n 0.2.3 < 0.2.7 (published 7 days ago), @krizaka/icons 0.9.0 < 0.9.1 (published 5 days ago), @krizaka/tailwind 3.60.0 < 3.79.0 (published 5 days ago), @krizaka/tokens 3.60.0 < 3.79.0 (published 5 days ago)"
+        "why": "the bump never landed: @krizaka/charts 0.6.1 < 0.8.0 (published 7 days ago), @krizaka/config 0.10.0 < 0.20.0 (published 4 days ago), @krizaka/email 0.1.1 < 0.5.0 (published 6 days ago), @krizaka/fonts 0.5.1 < 0.5.3 (published 6 days ago), @krizaka/i18n 0.2.3 < 0.2.7 (published 8 days ago), @krizaka/icons 0.9.0 < 0.9.1 (published 6 days ago), @krizaka/tailwind 3.60.0 < 3.79.0 (published 6 days ago), @krizaka/tokens 3.60.0 < 3.79.0 (published 6 days ago), @krizaka/ui 3.73.0 < 3.79.0 (published 3 days ago)"
       },
       "maven-family-current": {
         "status": "n/a",
@@ -883,6 +908,10 @@
       "time-limits": {
         "status": "red",
         "why": "package.json: `node --test` without --test-timeout"
+      },
+      "required-checks-report-in-queue": {
+        "status": "green",
+        "why": ""
       }
     },
     "krizaka-build": {
@@ -924,7 +953,7 @@
       },
       "release-propagation": {
         "status": "red",
-        "why": "the bump never landed: @krizaka/config 0.4.0 < 0.20.0 (published 17 days ago), @krizaka/fonts 0.5.1 < 0.5.3 (published 5 days ago), @krizaka/i18n 0.2.0 < 0.2.7 (published 17 days ago), @krizaka/icons 0.9.0 < 0.9.1 (published 5 days ago), @krizaka/tailwind 3.60.0 < 3.79.0 (published 5 days ago), @krizaka/tokens 3.60.0 < 3.79.0 (published 5 days ago), @krizaka/ui 3.60.0 < 3.79.0 (published 5 days ago)"
+        "why": "the bump never landed: @krizaka/config 0.4.0 < 0.20.0 (published 17 days ago), @krizaka/fonts 0.5.1 < 0.5.3 (published 6 days ago), @krizaka/i18n 0.2.0 < 0.2.7 (published 17 days ago), @krizaka/icons 0.9.0 < 0.9.1 (published 6 days ago), @krizaka/tailwind 3.60.0 < 3.79.0 (published 6 days ago), @krizaka/tokens 3.60.0 < 3.79.0 (published 6 days ago), @krizaka/ui 3.60.0 < 3.79.0 (published 6 days ago)"
       },
       "maven-family-current": {
         "status": "n/a",
@@ -947,8 +976,8 @@
         "why": ""
       },
       "no-departed-product": {
-        "status": "green",
-        "why": ""
+        "status": "red",
+        "why": "1 file(s) name a departed product, e.g. krizaka-users/krizaka-users-persistence/src/main/resources/db/migration/V4__organizations.sql"
       },
       "no-departed-published": {
         "status": "green",
@@ -1005,6 +1034,10 @@
       "time-limits": {
         "status": "red",
         "why": "site/package.json: `node --test` without --test-timeout"
+      },
+      "required-checks-report-in-queue": {
+        "status": "green",
+        "why": ""
       }
     },
     "krizaka-com": {
@@ -1046,7 +1079,7 @@
       },
       "release-propagation": {
         "status": "red",
-        "why": "the bump never landed: @krizaka/discovery 0.1.0 < 0.1.2 (published 5 days ago), @krizaka/i18n 0.2.3 < 0.2.7 (published 7 days ago), @krizaka/icons 0.9.0 < 0.9.1 (published 5 days ago)"
+        "why": "the bump never landed: @krizaka/discovery 0.1.0 < 0.1.2 (published 6 days ago), @krizaka/i18n 0.2.3 < 0.2.7 (published 8 days ago), @krizaka/icons 0.9.0 < 0.9.1 (published 6 days ago)"
       },
       "maven-family-current": {
         "status": "n/a",
@@ -1127,6 +1160,10 @@
       "time-limits": {
         "status": "red",
         "why": "package.json: `node --test` without --test-timeout"
+      },
+      "required-checks-report-in-queue": {
+        "status": "green",
+        "why": ""
       }
     },
     "krizaka-composer": {
@@ -1249,6 +1286,10 @@
       "time-limits": {
         "status": "red",
         "why": "packages/core/jest.config.ts: no `testTimeout`"
+      },
+      "required-checks-report-in-queue": {
+        "status": "red",
+        "why": "« SonarCloud Code Analysis » is required but no CI scan job (sonar-scan) exists: the app does not analyse a merge queue SHA"
       }
     },
     "krizaka-infra": {
@@ -1371,6 +1412,10 @@
       "time-limits": {
         "status": "red",
         "why": ".github/workflows/ci.yml: job `tofu` has no timeout-minutes"
+      },
+      "required-checks-report-in-queue": {
+        "status": "red",
+        "why": "« SonarCloud Code Analysis » is required but no CI scan job (sonar-scan) exists: the app does not analyse a merge queue SHA"
       }
     },
     "krizaka-lab": {
@@ -1412,7 +1457,7 @@
       },
       "release-propagation": {
         "status": "red",
-        "why": "the bump never landed: @krizaka/charts 0.6.0 < 0.8.0 (published 7 days ago), @krizaka/fonts 0.3.0 < 0.5.3 (published 9 days ago), @krizaka/i18n 0.2.3 < 0.2.7 (published 7 days ago), @krizaka/icons 0.7.0 < 0.9.1 (published 9 days ago), @krizaka/tailwind 3.43.0 < 3.79.0 (published 9 days ago), @krizaka/tokens 3.43.0 < 3.79.0 (published 9 days ago), @krizaka/ui 3.43.0 < 3.79.0 (published 9 days ago)"
+        "why": "the bump never landed: @krizaka/charts 0.6.0 < 0.8.0 (published 8 days ago), @krizaka/fonts 0.3.0 < 0.5.3 (published 10 days ago), @krizaka/i18n 0.2.3 < 0.2.7 (published 8 days ago), @krizaka/icons 0.7.0 < 0.9.1 (published 10 days ago), @krizaka/tailwind 3.43.0 < 3.79.0 (published 10 days ago), @krizaka/tokens 3.43.0 < 3.79.0 (published 10 days ago), @krizaka/ui 3.43.0 < 3.79.0 (published 10 days ago)"
       },
       "maven-family-current": {
         "status": "n/a",
@@ -1493,6 +1538,10 @@
       "time-limits": {
         "status": "red",
         "why": ".github/workflows/deploy-pages.yml: job `build` has no timeout-minutes"
+      },
+      "required-checks-report-in-queue": {
+        "status": "red",
+        "why": "« SonarCloud Code Analysis » is required but no CI scan job (sonar-scan) exists: the app does not analyse a merge queue SHA"
       }
     },
     "krizaka-notifications": {
@@ -1615,6 +1664,10 @@
       "time-limits": {
         "status": "red",
         "why": ".github/workflows/ci.yml: job `maven-pin-guard` has no timeout-minutes"
+      },
+      "required-checks-report-in-queue": {
+        "status": "red",
+        "why": ".github/workflows/ci.yml produces a required check but has no merge_group trigger; « SonarCloud Code Analysis » is required but no CI scan job (sonar-scan) exists: the app does not analyse a merge queue SHA"
       }
     },
     "krizaka-platform-kit": {
@@ -1737,6 +1790,10 @@
       "time-limits": {
         "status": "red",
         "why": ".github/workflows/commitlint.yml: job `pr-title` has no timeout-minutes"
+      },
+      "required-checks-report-in-queue": {
+        "status": "green",
+        "why": ""
       }
     },
     "krizaka-tauri-kit": {
@@ -1859,6 +1916,10 @@
       "time-limits": {
         "status": "red",
         "why": ".github/workflows/ci.yml: job `film` has no timeout-minutes"
+      },
+      "required-checks-report-in-queue": {
+        "status": "red",
+        "why": "« SonarCloud Code Analysis » is required but no CI scan job (sonar-scan) exists: the app does not analyse a merge queue SHA"
       }
     },
     "krizaka-ts": {
@@ -1900,7 +1961,7 @@
       },
       "release-propagation": {
         "status": "red",
-        "why": "the bump never landed: @krizaka/config 0.4.0 < 0.20.0 (published 17 days ago), @krizaka/fonts 0.5.1 < 0.5.3 (published 5 days ago), @krizaka/i18n 0.2.0 < 0.2.7 (published 17 days ago), @krizaka/icons 0.9.0 < 0.9.1 (published 5 days ago), @krizaka/tailwind 3.60.0 < 3.79.0 (published 5 days ago), @krizaka/tokens 3.60.0 < 3.79.0 (published 5 days ago), @krizaka/ui 3.60.0 < 3.79.0 (published 5 days ago)"
+        "why": "the bump never landed: @krizaka/config 0.4.0 < 0.20.0 (published 17 days ago), @krizaka/fonts 0.5.1 < 0.5.3 (published 6 days ago), @krizaka/i18n 0.2.0 < 0.2.7 (published 17 days ago), @krizaka/icons 0.9.0 < 0.9.1 (published 6 days ago), @krizaka/tailwind 3.60.0 < 3.79.0 (published 6 days ago), @krizaka/tokens 3.60.0 < 3.79.0 (published 6 days ago), @krizaka/ui 3.60.0 < 3.79.0 (published 6 days ago)"
       },
       "maven-family-current": {
         "status": "n/a",
@@ -1981,6 +2042,10 @@
       "time-limits": {
         "status": "red",
         "why": "packages/api-keys/vitest.config.ts: no `testTimeout`"
+      },
+      "required-checks-report-in-queue": {
+        "status": "green",
+        "why": ""
       }
     },
     "krizaka-ui": {
@@ -2103,6 +2168,10 @@
       "time-limits": {
         "status": "red",
         "why": "apps/site/package.json: `node --test` without --test-timeout"
+      },
+      "required-checks-report-in-queue": {
+        "status": "green",
+        "why": ""
       }
     },
     "krizaka-users": {
@@ -2225,6 +2294,10 @@
       "time-limits": {
         "status": "red",
         "why": ".github/workflows/commitlint.yml: job `pr-title` has no timeout-minutes"
+      },
+      "required-checks-report-in-queue": {
+        "status": "green",
+        "why": ""
       }
     },
     "orazaka": {
@@ -2347,6 +2420,10 @@
       "time-limits": {
         "status": "red",
         "why": "apps/desktop/package.json: `node --test` without --test-timeout"
+      },
+      "required-checks-report-in-queue": {
+        "status": "green",
+        "why": ""
       }
     },
     "orazaka-ai-engine": {
@@ -2469,6 +2546,10 @@
       "time-limits": {
         "status": "green",
         "why": ""
+      },
+      "required-checks-report-in-queue": {
+        "status": "red",
+        "why": ".github/workflows/ci.yml produces a required check but has no merge_group trigger"
       }
     },
     "orazaka-automation-service": {
@@ -2591,6 +2672,10 @@
       "time-limits": {
         "status": "green",
         "why": ""
+      },
+      "required-checks-report-in-queue": {
+        "status": "red",
+        "why": ".github/workflows/ci.yml produces a required check but has no merge_group trigger; « SonarCloud Code Analysis » is required but no CI scan job (sonar-scan) exists: the app does not analyse a merge queue SHA"
       }
     },
     "orazaka-build": {
@@ -2713,6 +2798,10 @@
       "time-limits": {
         "status": "green",
         "why": ""
+      },
+      "required-checks-report-in-queue": {
+        "status": "red",
+        "why": ".github/workflows/ci.yml produces a required check but has no merge_group trigger; « SonarCloud Code Analysis » is required but no CI scan job (sonar-scan) exists: the app does not analyse a merge queue SHA"
       }
     },
     "orazaka-cli": {
@@ -2835,6 +2924,10 @@
       "time-limits": {
         "status": "red",
         "why": "jest.config.js: no `testTimeout`"
+      },
+      "required-checks-report-in-queue": {
+        "status": "red",
+        "why": ".github/workflows/ci.yml produces a required check but has no merge_group trigger; « SonarCloud Code Analysis » is required but no CI scan job (sonar-scan) exists: the app does not analyse a merge queue SHA"
       }
     },
     "orazaka-contracts": {
@@ -2957,6 +3050,10 @@
       "time-limits": {
         "status": "green",
         "why": ""
+      },
+      "required-checks-report-in-queue": {
+        "status": "red",
+        "why": ".github/workflows/ci.yml produces a required check but has no merge_group trigger; « SonarCloud Code Analysis » is required but no CI scan job (sonar-scan) exists: the app does not analyse a merge queue SHA"
       }
     },
     "orazaka-conversation-service": {
@@ -3079,6 +3176,10 @@
       "time-limits": {
         "status": "green",
         "why": ""
+      },
+      "required-checks-report-in-queue": {
+        "status": "red",
+        "why": ".github/workflows/ci.yml produces a required check but has no merge_group trigger; « SonarCloud Code Analysis » is required but no CI scan job (sonar-scan) exists: the app does not analyse a merge queue SHA"
       }
     },
     "orazaka-edge": {
@@ -3201,6 +3302,10 @@
       "time-limits": {
         "status": "green",
         "why": ""
+      },
+      "required-checks-report-in-queue": {
+        "status": "red",
+        "why": ".github/workflows/ci.yml produces a required check but has no merge_group trigger; « SonarCloud Code Analysis » is required but no CI scan job (sonar-scan) exists: the app does not analyse a merge queue SHA"
       }
     },
     "orazaka-job-service": {
@@ -3323,6 +3428,10 @@
       "time-limits": {
         "status": "green",
         "why": ""
+      },
+      "required-checks-report-in-queue": {
+        "status": "red",
+        "why": ".github/workflows/ci.yml produces a required check but has no merge_group trigger; « SonarCloud Code Analysis » is required but no CI scan job (sonar-scan) exists: the app does not analyse a merge queue SHA"
       }
     },
     "orazaka-knowledge-service": {
@@ -3435,8 +3544,8 @@
         "why": ""
       },
       "merge-resolution": {
-        "status": "red",
-        "why": "calls none of merge-resolution.yml"
+        "status": "green",
+        "why": ""
       },
       "fail-closed-sg": {
         "status": "n/a",
@@ -3445,6 +3554,10 @@
       "time-limits": {
         "status": "green",
         "why": ""
+      },
+      "required-checks-report-in-queue": {
+        "status": "red",
+        "why": "« SonarCloud Code Analysis » is required but no CI scan job (sonar-scan) exists: the app does not analyse a merge queue SHA"
       }
     },
     "orazaka-mobile-client": {
@@ -3567,6 +3680,10 @@
       "time-limits": {
         "status": "red",
         "why": "jest.config.js: no `testTimeout`"
+      },
+      "required-checks-report-in-queue": {
+        "status": "red",
+        "why": ".github/workflows/ci.yml produces a required check but has no merge_group trigger; .github/workflows/mobile-e2e.yml produces a required check but has no merge_group trigger; « SonarCloud Code Analysis » is required but no CI scan job (sonar-scan) exists: the app does not analyse a merge queue SHA"
       }
     },
     "orazaka-packs": {
@@ -3689,6 +3806,10 @@
       "time-limits": {
         "status": "red",
         "why": "package.json: `node --test` without --test-timeout"
+      },
+      "required-checks-report-in-queue": {
+        "status": "red",
+        "why": ".github/workflows/ci.yml produces a required check but has no merge_group trigger"
       }
     },
     "orazaka-studio": {
@@ -3811,6 +3932,10 @@
       "time-limits": {
         "status": "green",
         "why": ""
+      },
+      "required-checks-report-in-queue": {
+        "status": "red",
+        "why": ".github/workflows/ci.yml produces a required check but has no merge_group trigger; « SonarCloud Code Analysis » is required but no CI scan job (sonar-scan) exists: the app does not analyse a merge queue SHA"
       }
     },
     "orazaka-ui-kit": {
@@ -3933,6 +4058,10 @@
       "time-limits": {
         "status": "red",
         "why": "orazaka-design-system/jest.config.mjs: no `testTimeout`"
+      },
+      "required-checks-report-in-queue": {
+        "status": "red",
+        "why": ".github/workflows/ci.yml produces a required check but has no merge_group trigger; « SonarCloud Code Analysis » is required but no CI scan job (sonar-scan) exists: the app does not analyse a merge queue SHA"
       }
     },
     "orazaka-web-client": {
@@ -3974,7 +4103,7 @@
       },
       "release-propagation": {
         "status": "red",
-        "why": "the bump never landed: @krizaka/auth 0.10.0 < 0.13.1 (published 3 days ago), @krizaka/charts 0.6.0 < 0.8.0 (published 7 days ago), @krizaka/fonts 0.5.0 < 0.5.3 (published 6 days ago), @krizaka/icons 0.9.0 < 0.9.1 (published 5 days ago), @krizaka/intl 0.4.0 < 0.4.1 (published 5 days ago), @krizaka/orazaka-shared 1.4.0 < 1.5.0 (published 9 days ago), @krizaka/page-audit 0.3.1 < 0.8.0 (published 3 days ago), @krizaka/tailwind 3.71.0 < 3.79.0 (published 3 days ago), @krizaka/tokens 3.71.0 < 3.79.0 (published 3 days ago), @krizaka/ui 3.71.0 < 3.79.0 (published 3 days ago)"
+        "why": "the bump never landed: @krizaka/auth 0.10.0 < 0.13.1 (published 3 days ago), @krizaka/charts 0.6.0 < 0.8.0 (published 8 days ago), @krizaka/fonts 0.5.0 < 0.5.3 (published 6 days ago), @krizaka/icons 0.9.0 < 0.9.1 (published 6 days ago), @krizaka/intl 0.4.0 < 0.4.1 (published 6 days ago), @krizaka/orazaka-shared 1.4.0 < 1.5.0 (published 9 days ago), @krizaka/page-audit 0.3.1 < 0.8.0 (published 4 days ago), @krizaka/tailwind 3.71.0 < 3.79.0 (published 3 days ago), @krizaka/tokens 3.71.0 < 3.79.0 (published 3 days ago), @krizaka/ui 3.71.0 < 3.79.0 (published 3 days ago)"
       },
       "maven-family-current": {
         "status": "n/a",
@@ -4055,6 +4184,10 @@
       "time-limits": {
         "status": "red",
         "why": "jest.config.ts: no `testTimeout`"
+      },
+      "required-checks-report-in-queue": {
+        "status": "red",
+        "why": ".github/workflows/ci.yml produces a required check but has no merge_group trigger; .github/workflows/security.yml produces a required check but has no merge_group trigger"
       }
     },
     "orazaka-worker-media": {
@@ -4177,6 +4310,10 @@
       "time-limits": {
         "status": "green",
         "why": ""
+      },
+      "required-checks-report-in-queue": {
+        "status": "red",
+        "why": ".github/workflows/ci.yml produces a required check but has no merge_group trigger; « SonarCloud Code Analysis » is required but no CI scan job (sonar-scan) exists: the app does not analyse a merge queue SHA"
       }
     },
     "template-next-app": {
@@ -4299,6 +4436,10 @@
       "time-limits": {
         "status": "red",
         "why": "apps/web/vitest.config.mts: no `testTimeout`"
+      },
+      "required-checks-report-in-queue": {
+        "status": "red",
+        "why": "« SonarCloud Code Analysis » is required but no CI scan job (sonar-scan) exists: the app does not analyse a merge queue SHA"
       }
     },
     "template-tauri-app": {
@@ -4421,6 +4562,10 @@
       "time-limits": {
         "status": "red",
         "why": ".github/workflows/scorecard.yml: job `analysis` has no timeout-minutes"
+      },
+      "required-checks-report-in-queue": {
+        "status": "green",
+        "why": ""
       }
     },
     "yomizaka": {
@@ -4462,7 +4607,7 @@
       },
       "release-propagation": {
         "status": "red",
-        "why": "the bump never landed: @krizaka/app-client 0.2.0 < 0.3.0 (published 6 days ago), @krizaka/app-desktop 0.1.0 < 0.1.2 (published 8 days ago), @krizaka/i18n 0.2.1 < 0.2.7 (published 15 days ago), @krizaka/icons 0.7.0 < 0.9.1 (published 9 days ago), @krizaka/tailwind 3.63.0 < 3.79.0 (published 5 days ago), @krizaka/tokens 3.63.0 < 3.79.0 (published 5 days ago), @krizaka/ui 3.64.0 < 3.79.0 (published 4 days ago), @krizaka/config 0.12.0 < 0.20.0 (published 4 days ago), @krizaka/discovery 0.1.0 < 0.1.2 (published 5 days ago), @krizaka/api-keys 0.3.0 < 0.3.1 (published 3 days ago), @krizaka/audit 0.1.3 < 0.1.5 (published 5 days ago), @krizaka/brief 0.1.0 < 0.1.1 (published 5 days ago), @krizaka/charts 0.6.2 < 0.8.0 (published 5 days ago), @krizaka/coupons 0.1.1 < 0.1.3 (published 3 days ago), @krizaka/credits 0.1.1 < 0.1.3 (published 3 days ago), @krizaka/db 0.3.0 < 0.3.1 (published 3 days ago), @krizaka/fonts 0.3.0 < 0.5.3 (published 9 days ago), @krizaka/intl 0.3.0 < 0.4.1 (published 6 days ago), @krizaka/org 0.3.1 < 0.6.0 (published 3 days ago), @krizaka/organize 0.1.0 < 0.5.1 (published 9 days ago), @krizaka/privacy 0.2.0 < 0.2.2 (published 3 days ago), @krizaka/rate-limit 0.1.0 < 0.2.1 (published 5 days ago), @krizaka/settings 0.5.0 < 0.5.2 (published 3 days ago), @krizaka/storage 0.6.0 < 0.11.0 (published 3 days ago), @krizaka/webhooks 0.3.0 < 0.3.4 (published 3 days ago)"
+        "why": "the bump never landed: @krizaka/app-client 0.2.0 < 0.3.0 (published 6 days ago), @krizaka/app-desktop 0.1.0 < 0.1.2 (published 9 days ago), @krizaka/i18n 0.2.1 < 0.2.7 (published 15 days ago), @krizaka/icons 0.7.0 < 0.9.1 (published 10 days ago), @krizaka/tailwind 3.63.0 < 3.79.0 (published 5 days ago), @krizaka/tokens 3.63.0 < 3.79.0 (published 5 days ago), @krizaka/ui 3.64.0 < 3.79.0 (published 5 days ago), @krizaka/config 0.12.0 < 0.20.0 (published 4 days ago), @krizaka/discovery 0.1.0 < 0.1.2 (published 6 days ago), @krizaka/api-keys 0.3.0 < 0.3.1 (published 3 days ago), @krizaka/audit 0.1.3 < 0.1.5 (published 5 days ago), @krizaka/auth 0.12.0 < 0.13.1 (published 3 days ago), @krizaka/brief 0.1.0 < 0.1.1 (published 5 days ago), @krizaka/charts 0.6.2 < 0.8.0 (published 6 days ago), @krizaka/coupons 0.1.1 < 0.1.3 (published 3 days ago), @krizaka/credits 0.1.1 < 0.1.3 (published 3 days ago), @krizaka/db 0.3.0 < 0.3.1 (published 3 days ago), @krizaka/email 0.3.0 < 0.5.0 (published 3 days ago), @krizaka/fonts 0.3.0 < 0.5.3 (published 10 days ago), @krizaka/intl 0.3.0 < 0.4.1 (published 7 days ago), @krizaka/org 0.3.1 < 0.6.0 (published 4 days ago), @krizaka/organize 0.1.0 < 0.5.1 (published 9 days ago), @krizaka/privacy 0.2.0 < 0.2.2 (published 3 days ago), @krizaka/rate-limit 0.1.0 < 0.2.1 (published 5 days ago), @krizaka/settings 0.5.0 < 0.5.2 (published 3 days ago), @krizaka/storage 0.6.0 < 0.11.0 (published 3 days ago), @krizaka/webhooks 0.3.0 < 0.3.4 (published 3 days ago)"
       },
       "maven-family-current": {
         "status": "n/a",
@@ -4543,6 +4688,10 @@
       "time-limits": {
         "status": "red",
         "why": "deploy/backup/vitest.config.mjs: no `testTimeout`"
+      },
+      "required-checks-report-in-queue": {
+        "status": "green",
+        "why": ""
       }
     }
   },
@@ -4705,7 +4854,7 @@
           "name": "@krizaka/app-client",
           "have": "0.1.0",
           "latest": "0.3.0",
-          "days": 8
+          "days": 9
         },
         {
           "ecosystem": "npm",
@@ -4719,7 +4868,21 @@
           "name": "@krizaka/icons",
           "have": "0.7.0",
           "latest": "0.9.1",
-          "days": 9
+          "days": 10
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/intl",
+          "have": "0.3.0",
+          "latest": "0.4.1",
+          "days": 7
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/charts",
+          "have": "0.6.1",
+          "latest": "0.8.0",
+          "days": 7
         },
         {
           "ecosystem": "npm",
@@ -4820,10 +4983,17 @@
       "behind": [
         {
           "ecosystem": "npm",
+          "name": "@krizaka/charts",
+          "have": "0.6.1",
+          "latest": "0.8.0",
+          "days": 7
+        },
+        {
+          "ecosystem": "npm",
           "name": "@krizaka/i18n",
           "have": "0.2.3",
           "latest": "0.2.7",
-          "days": 7
+          "days": 8
         }
       ]
     },
@@ -4872,7 +5042,7 @@
         {
           "ecosystem": "maven",
           "name": "krizaka-parent",
-          "have": "0.6.0"
+          "have": "0.7.1"
         }
       ],
       "behind": [
@@ -4966,7 +5136,7 @@
           "name": "@krizaka/i18n",
           "have": "0.2.3",
           "latest": "0.2.7",
-          "days": 7
+          "days": 8
         }
       ]
     },
@@ -5027,49 +5197,49 @@
           "name": "@krizaka/charts",
           "have": "0.6.0",
           "latest": "0.8.0",
-          "days": 7
+          "days": 8
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/fonts",
           "have": "0.3.0",
           "latest": "0.5.3",
-          "days": 9
+          "days": 10
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/i18n",
           "have": "0.2.3",
           "latest": "0.2.7",
-          "days": 7
+          "days": 8
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/icons",
           "have": "0.7.0",
           "latest": "0.9.1",
-          "days": 9
+          "days": 10
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/tailwind",
           "have": "3.43.0",
           "latest": "3.79.0",
-          "days": 9
+          "days": 10
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/tokens",
           "have": "3.43.0",
           "latest": "3.79.0",
-          "days": 9
+          "days": 10
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/ui",
           "have": "3.43.0",
           "latest": "3.79.0",
-          "days": 9
+          "days": 10
         }
       ]
     },
@@ -5152,14 +5322,14 @@
           "name": "@krizaka/app-client",
           "have": "0.1.0",
           "latest": "0.3.0",
-          "days": 8
+          "days": 9
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/app-desktop",
           "have": "0.1.0",
           "latest": "0.1.2",
-          "days": 8
+          "days": 9
         },
         {
           "ecosystem": "npm",
@@ -5173,7 +5343,7 @@
           "name": "@krizaka/icons",
           "have": "0.7.0",
           "latest": "0.9.1",
-          "days": 9
+          "days": 10
         },
         {
           "ecosystem": "npm",
@@ -5495,7 +5665,7 @@
           "name": "@krizaka/charts",
           "have": "0.6.0",
           "latest": "0.8.0",
-          "days": 7
+          "days": 8
         },
         {
           "ecosystem": "npm",
@@ -5516,6 +5686,13 @@
           "name": "@krizaka/intl",
           "have": "0.2.1",
           "latest": "0.4.1",
+          "days": 8
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/query",
+          "have": "0.2.1",
+          "latest": "0.3.0",
           "days": 7
         },
         {
@@ -5523,14 +5700,14 @@
           "name": "@krizaka/tokens",
           "have": "3.30.0",
           "latest": "3.79.0",
-          "days": 11
+          "days": 12
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/ui",
           "have": "3.30.0",
           "latest": "3.79.0",
-          "days": 11
+          "days": 12
         }
       ]
     },
@@ -5558,7 +5735,7 @@
         {
           "ecosystem": "npm",
           "name": "@krizaka/icons",
-          "have": "0.7.0"
+          "have": "0.9.0"
         },
         {
           "ecosystem": "npm",
@@ -5584,38 +5761,31 @@
       "behind": [
         {
           "ecosystem": "npm",
-          "name": "@krizaka/icons",
-          "have": "0.7.0",
-          "latest": "0.9.1",
-          "days": 9
-        },
-        {
-          "ecosystem": "npm",
           "name": "@krizaka/orazaka-shared",
           "have": "1.1.0",
           "latest": "1.5.0",
-          "days": 21
+          "days": 22
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/tailwind",
           "have": "3.28.0",
           "latest": "3.79.0",
-          "days": 11
+          "days": 12
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/tokens",
           "have": "3.28.0",
           "latest": "3.79.0",
-          "days": 11
+          "days": 12
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/ui",
           "have": "3.28.0",
           "latest": "3.79.0",
-          "days": 11
+          "days": 12
         }
       ]
     },
@@ -5703,7 +5873,7 @@
           "name": "@krizaka/charts",
           "have": "0.6.0",
           "latest": "0.8.0",
-          "days": 7
+          "days": 8
         },
         {
           "ecosystem": "npm",
@@ -5723,7 +5893,7 @@
         {
           "ecosystem": "npm",
           "name": "@krizaka/config",
-          "have": "0.7.0"
+          "have": "0.17.0"
         },
         {
           "ecosystem": "npm",
@@ -5733,7 +5903,7 @@
         {
           "ecosystem": "npm",
           "name": "@krizaka/i18n",
-          "have": "0.2.1"
+          "have": "0.2.4"
         },
         {
           "ecosystem": "npm",
@@ -5743,54 +5913,54 @@
         {
           "ecosystem": "npm",
           "name": "@krizaka/tailwind",
-          "have": "3.48.0"
+          "have": "3.54.0"
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/tokens",
-          "have": "3.48.0"
+          "have": "3.54.0"
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/ui",
-          "have": "3.48.0"
+          "have": "3.54.0"
         }
       ],
       "behind": [
         {
           "ecosystem": "npm",
-          "name": "@krizaka/config",
-          "have": "0.7.0",
-          "latest": "0.20.0",
+          "name": "@krizaka/fonts",
+          "have": "0.4.0",
+          "latest": "0.5.3",
           "days": 7
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/i18n",
-          "have": "0.2.1",
+          "have": "0.2.4",
           "latest": "0.2.7",
-          "days": 15
+          "days": 7
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/tailwind",
-          "have": "3.48.0",
+          "have": "3.54.0",
           "latest": "3.79.0",
-          "days": 8
+          "days": 7
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/tokens",
-          "have": "3.48.0",
+          "have": "3.54.0",
           "latest": "3.79.0",
-          "days": 8
+          "days": 7
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/ui",
-          "have": "3.48.0",
+          "have": "3.54.0",
           "latest": "3.79.0",
-          "days": 8
+          "days": 7
         }
       ]
     },
@@ -5843,14 +6013,14 @@
           "name": "@krizaka/app-client",
           "have": "0.1.0",
           "latest": "0.3.0",
-          "days": 8
+          "days": 9
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/app-desktop",
           "have": "0.1.0",
           "latest": "0.1.2",
-          "days": 8
+          "days": 9
         },
         {
           "ecosystem": "npm",
@@ -5864,7 +6034,7 @@
           "name": "@krizaka/icons",
           "have": "0.7.0",
           "latest": "0.9.1",
-          "days": 9
+          "days": 10
         },
         {
           "ecosystem": "npm",
@@ -6068,7 +6238,7 @@
           "name": "@krizaka/app-desktop",
           "have": "0.1.0",
           "latest": "0.1.2",
-          "days": 8
+          "days": 9
         },
         {
           "ecosystem": "npm",
@@ -6082,14 +6252,21 @@
           "name": "@krizaka/icons",
           "have": "0.7.0",
           "latest": "0.9.1",
-          "days": 9
+          "days": 10
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/fonts",
           "have": "0.3.0",
           "latest": "0.5.3",
-          "days": 9
+          "days": 10
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/intl",
+          "have": "0.3.0",
+          "latest": "0.4.1",
+          "days": 7
         },
         {
           "ecosystem": "npm",
