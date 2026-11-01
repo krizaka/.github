@@ -18,3 +18,7 @@ a rule is never silenced to get green.
 counts and records a new rule at its current count, never raises one. Conformance rules: `rust-guards`, `python-guards` (`rules.json`).
 A caller triggers on `pull_request`, `merge_group` and `push` so the required check reports in the queue. The shared configs are read from
 krizaka/.github at `shared-ref` (default `main`): one place to edit, every repository follows.
+
+Inputs of `rust-quality.yml` beyond the directory: `runs-on` (default `ubuntu-latest`; `macos-latest` for a crate whose tests are macOS-only),
+`test` (default `true`; `false` only with the reason written in the caller) and `prepare` (a command run in the working directory before the
+checks, e.g. building a sidecar the crate's `build.rs` needs).
