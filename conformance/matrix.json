@@ -1,0 +1,6110 @@
+{
+  "generatedAt": "2026-11-01T03:16:43.104Z",
+  "summary": [
+    {
+      "id": "security-scan",
+      "red": 0,
+      "green": 36
+    },
+    {
+      "id": "shared-ci",
+      "red": 1,
+      "green": 29
+    },
+    {
+      "id": "no-inline-sonar",
+      "red": 0,
+      "green": 35
+    },
+    {
+      "id": "scorecard",
+      "red": 1,
+      "green": 35
+    },
+    {
+      "id": "dependabot-config",
+      "red": 1,
+      "green": 35
+    },
+    {
+      "id": "dependabot-automerge",
+      "red": 2,
+      "green": 34
+    },
+    {
+      "id": "visual-regression",
+      "red": 2,
+      "green": 2
+    },
+    {
+      "id": "agents-anti-slop",
+      "red": 1,
+      "green": 35
+    },
+    {
+      "id": "edit-hook",
+      "red": 0,
+      "green": 36
+    },
+    {
+      "id": "release-propagation",
+      "red": 9,
+      "green": 0
+    },
+    {
+      "id": "maven-family-current",
+      "red": 0,
+      "green": 14
+    },
+    {
+      "id": "workspace-guard",
+      "red": 1,
+      "green": 6
+    },
+    {
+      "id": "expo-sdk-guard",
+      "red": 0,
+      "green": 2
+    },
+    {
+      "id": "turnstile-server-side",
+      "red": 0,
+      "green": 2
+    },
+    {
+      "id": "email-verification",
+      "red": 0,
+      "green": 2
+    },
+    {
+      "id": "no-departed-product",
+      "red": 0,
+      "green": 36
+    },
+    {
+      "id": "no-departed-published",
+      "red": 0,
+      "green": 20
+    },
+    {
+      "id": "commercial-names",
+      "red": 0,
+      "green": 0
+    },
+    {
+      "id": "lab-isolation",
+      "red": 0,
+      "green": 35
+    },
+    {
+      "id": "code-rules-ratchet",
+      "red": 0,
+      "green": 2
+    },
+    {
+      "id": "code-rules-sg",
+      "red": 0,
+      "green": 7
+    },
+    {
+      "id": "feature-surfaces",
+      "red": 7,
+      "green": 0
+    },
+    {
+      "id": "formatter",
+      "red": 3,
+      "green": 13
+    },
+    {
+      "id": "agents-template",
+      "red": 33,
+      "green": 1
+    },
+    {
+      "id": "journeys",
+      "red": 3,
+      "green": 0
+    },
+    {
+      "id": "merged-result-tested",
+      "red": 3,
+      "green": 31
+    },
+    {
+      "id": "required-checks-profile",
+      "red": 3,
+      "green": 31
+    },
+    {
+      "id": "merge-resolution",
+      "red": 6,
+      "green": 28
+    },
+    {
+      "id": "fail-closed-sg",
+      "red": 6,
+      "green": 1
+    },
+    {
+      "id": "time-limits",
+      "red": 26,
+      "green": 10
+    }
+  ],
+  "cells": {
+    ".github": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "n/a",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "red",
+        "why": "calls none of dependabot-automerge.yml"
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "n/a",
+        "why": ""
+      },
+      "maven-family-current": {
+        "status": "n/a",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "green",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "n/a",
+        "why": ""
+      },
+      "formatter": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "n/a",
+        "why": ""
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "n/a",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "n/a",
+        "why": ""
+      },
+      "fail-closed-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "time-limits": {
+        "status": "red",
+        "why": "tests/fixtures/node-app/package.json: `node --test` without --test-timeout"
+      }
+    },
+    "akinaza": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "green",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "green",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "red",
+        "why": "the bump never landed: @krizaka/app-client 0.1.0 < 0.3.0 (published 8 days ago), @krizaka/discovery 0.1.0 < 0.1.2 (published 5 days ago), @krizaka/i18n 0.2.1 < 0.2.7 (published 15 days ago), @krizaka/icons 0.7.0 < 0.9.1 (published 9 days ago), @krizaka/intl 0.3.0 < 0.4.1 (published 6 days ago), @krizaka/api-keys 0.1.0 < 0.3.1 (published 5 days ago), @krizaka/brief 0.1.0 < 0.1.1 (published 5 days ago), @krizaka/charts 0.6.1 < 0.8.0 (published 6 days ago), @krizaka/fonts 0.5.0 < 0.5.3 (published 6 days ago), @krizaka/org 0.3.1 < 0.6.0 (published 3 days ago), @krizaka/organize 0.4.0 < 0.5.1 (published 5 days ago), @krizaka/privacy 0.2.0 < 0.2.2 (published 3 days ago), @krizaka/settings 0.2.0 < 0.5.2 (published 5 days ago), @krizaka/webhooks 0.1.0 < 0.3.4 (published 9 days ago), @krizaka/db 0.3.0 < 0.3.1 (published 3 days ago)"
+      },
+      "maven-family-current": {
+        "status": "n/a",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "green",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "green",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "green",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "green",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "red",
+        "why": "no .github/ISSUE_TEMPLATE/feature_request.yml"
+      },
+      "formatter": {
+        "status": "red",
+        "why": "no prettier.config.js"
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 219 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "red",
+        "why": "calls none of post-deploy-journeys.yml"
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "green",
+        "why": ""
+      },
+      "fail-closed-sg": {
+        "status": "red",
+        "why": "sg-ratchet.json lacks no-fail-open-secret"
+      },
+      "time-limits": {
+        "status": "red",
+        "why": "apps/web/vitest.config.mts: no `testTimeout`"
+      }
+    },
+    "krizaka-accounts": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "n/a",
+        "why": ""
+      },
+      "maven-family-current": {
+        "status": "n/a",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "n/a",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "n/a",
+        "why": ""
+      },
+      "formatter": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "n/a",
+        "why": ""
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "n/a",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "n/a",
+        "why": ""
+      },
+      "fail-closed-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "time-limits": {
+        "status": "red",
+        "why": ".github/workflows/scorecard.yml: job `analysis` has no timeout-minutes"
+      }
+    },
+    "krizaka-agents": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "red",
+        "why": "calls none of node-ci.yml, krizaka-ci.yml, component.yml"
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "red",
+        "why": "no workflow matches ossf/scorecard-action"
+      },
+      "dependabot-config": {
+        "status": "red",
+        "why": "no .github/dependabot.yml"
+      },
+      "dependabot-automerge": {
+        "status": "red",
+        "why": "calls none of dependabot-automerge.yml"
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "red",
+        "why": "AGENTS.md lacks Anti-slop"
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "n/a",
+        "why": ""
+      },
+      "maven-family-current": {
+        "status": "n/a",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "green",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "n/a",
+        "why": ""
+      },
+      "formatter": {
+        "status": "green",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "red",
+        "why": "main neither has a merge queue nor requires branches to be up to date (strict): a PR can land untested against the merged result"
+      },
+      "required-checks-profile": {
+        "status": "red",
+        "why": "required checks on main lack: CI gate, Sonar"
+      },
+      "merge-resolution": {
+        "status": "red",
+        "why": "calls none of merge-resolution.yml"
+      },
+      "fail-closed-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "time-limits": {
+        "status": "red",
+        "why": "package.json: `node --test` without --test-timeout"
+      }
+    },
+    "krizaka-billing": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "green",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "n/a",
+        "why": ""
+      },
+      "maven-family-current": {
+        "status": "green",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "n/a",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "n/a",
+        "why": ""
+      },
+      "formatter": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 96 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "green",
+        "why": ""
+      },
+      "fail-closed-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "time-limits": {
+        "status": "red",
+        "why": ".github/workflows/ci.yml: job `maven-pin-guard` has no timeout-minutes"
+      }
+    },
+    "krizaka-blog": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "green",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "red",
+        "why": "the bump never landed: @krizaka/charts 0.6.1 < 0.8.0 (published 6 days ago), @krizaka/config 0.10.0 < 0.20.0 (published 4 days ago), @krizaka/email 0.1.1 < 0.5.0 (published 5 days ago), @krizaka/fonts 0.5.1 < 0.5.3 (published 5 days ago), @krizaka/i18n 0.2.3 < 0.2.7 (published 7 days ago), @krizaka/icons 0.9.0 < 0.9.1 (published 5 days ago), @krizaka/tailwind 3.60.0 < 3.79.0 (published 5 days ago), @krizaka/tokens 3.60.0 < 3.79.0 (published 5 days ago)"
+      },
+      "maven-family-current": {
+        "status": "n/a",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "green",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "green",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "n/a",
+        "why": ""
+      },
+      "formatter": {
+        "status": "green",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 242 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "green",
+        "why": ""
+      },
+      "fail-closed-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "time-limits": {
+        "status": "red",
+        "why": "package.json: `node --test` without --test-timeout"
+      }
+    },
+    "krizaka-build": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "green",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "red",
+        "why": "the bump never landed: @krizaka/config 0.4.0 < 0.20.0 (published 17 days ago), @krizaka/fonts 0.5.1 < 0.5.3 (published 5 days ago), @krizaka/i18n 0.2.0 < 0.2.7 (published 17 days ago), @krizaka/icons 0.9.0 < 0.9.1 (published 5 days ago), @krizaka/tailwind 3.60.0 < 3.79.0 (published 5 days ago), @krizaka/tokens 3.60.0 < 3.79.0 (published 5 days ago), @krizaka/ui 3.60.0 < 3.79.0 (published 5 days ago)"
+      },
+      "maven-family-current": {
+        "status": "n/a",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "green",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "n/a",
+        "why": ""
+      },
+      "formatter": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 170 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "green",
+        "why": ""
+      },
+      "fail-closed-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "time-limits": {
+        "status": "red",
+        "why": "site/package.json: `node --test` without --test-timeout"
+      }
+    },
+    "krizaka-com": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "green",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "red",
+        "why": "the bump never landed: @krizaka/discovery 0.1.0 < 0.1.2 (published 5 days ago), @krizaka/i18n 0.2.3 < 0.2.7 (published 7 days ago), @krizaka/icons 0.9.0 < 0.9.1 (published 5 days ago)"
+      },
+      "maven-family-current": {
+        "status": "n/a",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "green",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "green",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "green",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "n/a",
+        "why": ""
+      },
+      "formatter": {
+        "status": "green",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 481 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "green",
+        "why": ""
+      },
+      "fail-closed-sg": {
+        "status": "red",
+        "why": "sg-ratchet.json lacks no-fail-open-secret"
+      },
+      "time-limits": {
+        "status": "red",
+        "why": "package.json: `node --test` without --test-timeout"
+      }
+    },
+    "krizaka-composer": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "green",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "n/a",
+        "why": ""
+      },
+      "maven-family-current": {
+        "status": "n/a",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "red",
+        "why": "package.json lacks krizaka-workspace-guard|workspace-ranges"
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "green",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "n/a",
+        "why": ""
+      },
+      "formatter": {
+        "status": "red",
+        "why": "no prettier.config.js"
+      },
+      "agents-template": {
+        "status": "green",
+        "why": ""
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "red",
+        "why": "calls none of merge-resolution.yml"
+      },
+      "fail-closed-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "time-limits": {
+        "status": "red",
+        "why": "packages/core/jest.config.ts: no `testTimeout`"
+      }
+    },
+    "krizaka-infra": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "n/a",
+        "why": "exempt: OpenTofu stack pinned by .tool-versions that also runs tflint and checkov; krizaka-ci's iac flow (fmt, validate, test) runs neither, so moving would drop two checks."
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "n/a",
+        "why": ""
+      },
+      "maven-family-current": {
+        "status": "n/a",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "n/a",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "n/a",
+        "why": ""
+      },
+      "formatter": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "green",
+        "why": ""
+      },
+      "fail-closed-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "time-limits": {
+        "status": "red",
+        "why": ".github/workflows/ci.yml: job `tofu` has no timeout-minutes"
+      }
+    },
+    "krizaka-lab": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "green",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "red",
+        "why": "the bump never landed: @krizaka/charts 0.6.0 < 0.8.0 (published 7 days ago), @krizaka/fonts 0.3.0 < 0.5.3 (published 9 days ago), @krizaka/i18n 0.2.3 < 0.2.7 (published 7 days ago), @krizaka/icons 0.7.0 < 0.9.1 (published 9 days ago), @krizaka/tailwind 3.43.0 < 3.79.0 (published 9 days ago), @krizaka/tokens 3.43.0 < 3.79.0 (published 9 days ago), @krizaka/ui 3.43.0 < 3.79.0 (published 9 days ago)"
+      },
+      "maven-family-current": {
+        "status": "n/a",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "green",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "green",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "n/a",
+        "why": ""
+      },
+      "formatter": {
+        "status": "green",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 87 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "green",
+        "why": ""
+      },
+      "fail-closed-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "time-limits": {
+        "status": "red",
+        "why": ".github/workflows/deploy-pages.yml: job `build` has no timeout-minutes"
+      }
+    },
+    "krizaka-notifications": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "green",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "n/a",
+        "why": ""
+      },
+      "maven-family-current": {
+        "status": "green",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "n/a",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "n/a",
+        "why": ""
+      },
+      "formatter": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 97 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "red",
+        "why": "main neither has a merge queue nor requires branches to be up to date (strict): a PR can land untested against the merged result"
+      },
+      "required-checks-profile": {
+        "status": "red",
+        "why": "required checks on main lack: security scan"
+      },
+      "merge-resolution": {
+        "status": "red",
+        "why": "calls none of merge-resolution.yml"
+      },
+      "fail-closed-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "time-limits": {
+        "status": "red",
+        "why": ".github/workflows/ci.yml: job `maven-pin-guard` has no timeout-minutes"
+      }
+    },
+    "krizaka-platform-kit": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "green",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "n/a",
+        "why": ""
+      },
+      "maven-family-current": {
+        "status": "green",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "n/a",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "n/a",
+        "why": ""
+      },
+      "formatter": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 107 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "green",
+        "why": ""
+      },
+      "fail-closed-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "time-limits": {
+        "status": "red",
+        "why": ".github/workflows/commitlint.yml: job `pr-title` has no timeout-minutes"
+      }
+    },
+    "krizaka-tauri-kit": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "n/a",
+        "why": "exempt: A Rust-only library workspace on macOS (fmt, clippy, test, generated-permissions diff); no shared Rust workflow exists (tauri-macos.yml builds apps), and its own rust.yml already ends in the standard `CI gate`."
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "n/a",
+        "why": ""
+      },
+      "maven-family-current": {
+        "status": "n/a",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "green",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "n/a",
+        "why": ""
+      },
+      "formatter": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "green",
+        "why": ""
+      },
+      "fail-closed-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "time-limits": {
+        "status": "red",
+        "why": ".github/workflows/ci.yml: job `film` has no timeout-minutes"
+      }
+    },
+    "krizaka-ts": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "green",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "red",
+        "why": "the bump never landed: @krizaka/config 0.4.0 < 0.20.0 (published 17 days ago), @krizaka/fonts 0.5.1 < 0.5.3 (published 5 days ago), @krizaka/i18n 0.2.0 < 0.2.7 (published 17 days ago), @krizaka/icons 0.9.0 < 0.9.1 (published 5 days ago), @krizaka/tailwind 3.60.0 < 3.79.0 (published 5 days ago), @krizaka/tokens 3.60.0 < 3.79.0 (published 5 days ago), @krizaka/ui 3.60.0 < 3.79.0 (published 5 days ago)"
+      },
+      "maven-family-current": {
+        "status": "n/a",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "green",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "green",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "green",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "n/a",
+        "why": ""
+      },
+      "formatter": {
+        "status": "green",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "green",
+        "why": ""
+      },
+      "fail-closed-sg": {
+        "status": "green",
+        "why": ""
+      },
+      "time-limits": {
+        "status": "red",
+        "why": "packages/api-keys/vitest.config.ts: no `testTimeout`"
+      }
+    },
+    "krizaka-ui": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "n/a",
+        "why": "exempt: The component library's 20 KB CI (registries, size budgets, realtime adapters, docs-site crawl and layout shards) is specialised beyond node-ci's inputs; it already uses the shared changes.yml, sonar-scan and dup-check pieces and ends in `CI gate`."
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "red",
+        "why": "the bump never landed: @krizaka/config 0.9.1 < 0.20.0 (published 4 days ago), @krizaka/org 0.1.0 < 0.6.0 (published 5 days ago), @krizaka/organize 0.4.0 < 0.5.1 (published 5 days ago)"
+      },
+      "maven-family-current": {
+        "status": "n/a",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "green",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "green",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "green",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "n/a",
+        "why": ""
+      },
+      "formatter": {
+        "status": "red",
+        "why": "no prettier.config.js"
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 281 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "green",
+        "why": ""
+      },
+      "fail-closed-sg": {
+        "status": "red",
+        "why": "sg-ratchet.json lacks no-fail-open-secret"
+      },
+      "time-limits": {
+        "status": "red",
+        "why": "apps/site/package.json: `node --test` without --test-timeout"
+      }
+    },
+    "krizaka-users": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "green",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "n/a",
+        "why": ""
+      },
+      "maven-family-current": {
+        "status": "green",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "n/a",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "n/a",
+        "why": ""
+      },
+      "formatter": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 100 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "green",
+        "why": ""
+      },
+      "fail-closed-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "time-limits": {
+        "status": "red",
+        "why": ".github/workflows/commitlint.yml: job `pr-title` has no timeout-minutes"
+      }
+    },
+    "orazaka": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "n/a",
+        "why": "exempt: The Orazaka workspace root: its ci.yml IS the workspace flow (clone every repository, workspace.mjs ci) that component.yml and krizaka-ci's workspace mode derive from, so it cannot call itself."
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "n/a",
+        "why": ""
+      },
+      "maven-family-current": {
+        "status": "green",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "green",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "red",
+        "why": "no .github/ISSUE_TEMPLATE/feature_request.yml"
+      },
+      "formatter": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 433 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "green",
+        "why": ""
+      },
+      "fail-closed-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "time-limits": {
+        "status": "red",
+        "why": "apps/desktop/package.json: `node --test` without --test-timeout"
+      }
+    },
+    "orazaka-ai-engine": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "green",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "n/a",
+        "why": ""
+      },
+      "maven-family-current": {
+        "status": "green",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "n/a",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "n/a",
+        "why": ""
+      },
+      "formatter": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 102 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "green",
+        "why": ""
+      },
+      "fail-closed-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "time-limits": {
+        "status": "green",
+        "why": ""
+      }
+    },
+    "orazaka-automation-service": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "green",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "n/a",
+        "why": ""
+      },
+      "maven-family-current": {
+        "status": "green",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "n/a",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "n/a",
+        "why": ""
+      },
+      "formatter": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 83 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "green",
+        "why": ""
+      },
+      "fail-closed-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "time-limits": {
+        "status": "green",
+        "why": ""
+      }
+    },
+    "orazaka-build": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "green",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "n/a",
+        "why": ""
+      },
+      "maven-family-current": {
+        "status": "green",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "n/a",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "n/a",
+        "why": ""
+      },
+      "formatter": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 84 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "green",
+        "why": ""
+      },
+      "fail-closed-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "time-limits": {
+        "status": "green",
+        "why": ""
+      }
+    },
+    "orazaka-cli": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "green",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "n/a",
+        "why": ""
+      },
+      "maven-family-current": {
+        "status": "n/a",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "green",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "red",
+        "why": "no .github/ISSUE_TEMPLATE/feature_request.yml"
+      },
+      "formatter": {
+        "status": "green",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 95 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "green",
+        "why": ""
+      },
+      "fail-closed-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "time-limits": {
+        "status": "red",
+        "why": "jest.config.js: no `testTimeout`"
+      }
+    },
+    "orazaka-contracts": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "green",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "n/a",
+        "why": ""
+      },
+      "maven-family-current": {
+        "status": "green",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "n/a",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "red",
+        "why": "no .github/ISSUE_TEMPLATE/feature_request.yml"
+      },
+      "formatter": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 83 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "green",
+        "why": ""
+      },
+      "fail-closed-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "time-limits": {
+        "status": "green",
+        "why": ""
+      }
+    },
+    "orazaka-conversation-service": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "green",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "n/a",
+        "why": ""
+      },
+      "maven-family-current": {
+        "status": "green",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "n/a",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "n/a",
+        "why": ""
+      },
+      "formatter": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 83 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "green",
+        "why": ""
+      },
+      "fail-closed-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "time-limits": {
+        "status": "green",
+        "why": ""
+      }
+    },
+    "orazaka-edge": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "green",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "n/a",
+        "why": ""
+      },
+      "maven-family-current": {
+        "status": "green",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "n/a",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "n/a",
+        "why": ""
+      },
+      "formatter": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 83 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "green",
+        "why": ""
+      },
+      "fail-closed-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "time-limits": {
+        "status": "green",
+        "why": ""
+      }
+    },
+    "orazaka-job-service": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "green",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "n/a",
+        "why": ""
+      },
+      "maven-family-current": {
+        "status": "green",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "n/a",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "n/a",
+        "why": ""
+      },
+      "formatter": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 83 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "green",
+        "why": ""
+      },
+      "fail-closed-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "time-limits": {
+        "status": "green",
+        "why": ""
+      }
+    },
+    "orazaka-knowledge-service": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "green",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "n/a",
+        "why": ""
+      },
+      "maven-family-current": {
+        "status": "green",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "n/a",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "n/a",
+        "why": ""
+      },
+      "formatter": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 83 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "red",
+        "why": "calls none of merge-resolution.yml"
+      },
+      "fail-closed-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "time-limits": {
+        "status": "green",
+        "why": ""
+      }
+    },
+    "orazaka-mobile-client": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "green",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": "exempt: A React Native app: the shared workflow compares Playwright screenshots of web pages in a Linux container, which cannot render it; its journeys are Maestro flows (mobile-e2e.yml)."
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "n/a",
+        "why": ""
+      },
+      "maven-family-current": {
+        "status": "n/a",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": "exempt: Expo SDK 53 and no pinned Xcode image: the guard would fail until the move to the family's SDK, which krizaka/orazaka-mobile-client#96 (App Store rejects build 5) carries; the guard is added in that same change."
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "green",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "red",
+        "why": "no .github/ISSUE_TEMPLATE/feature_request.yml"
+      },
+      "formatter": {
+        "status": "green",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "green",
+        "why": ""
+      },
+      "fail-closed-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "time-limits": {
+        "status": "red",
+        "why": "jest.config.js: no `testTimeout`"
+      }
+    },
+    "orazaka-packs": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "green",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "n/a",
+        "why": ""
+      },
+      "maven-family-current": {
+        "status": "n/a",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "green",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "n/a",
+        "why": ""
+      },
+      "formatter": {
+        "status": "green",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "green",
+        "why": ""
+      },
+      "fail-closed-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "time-limits": {
+        "status": "red",
+        "why": "package.json: `node --test` without --test-timeout"
+      }
+    },
+    "orazaka-studio": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "green",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "n/a",
+        "why": ""
+      },
+      "maven-family-current": {
+        "status": "green",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "n/a",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "n/a",
+        "why": ""
+      },
+      "formatter": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 99 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "green",
+        "why": ""
+      },
+      "fail-closed-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "time-limits": {
+        "status": "green",
+        "why": ""
+      }
+    },
+    "orazaka-ui-kit": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "green",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "n/a",
+        "why": ""
+      },
+      "maven-family-current": {
+        "status": "n/a",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "green",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "n/a",
+        "why": ""
+      },
+      "formatter": {
+        "status": "green",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 102 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "green",
+        "why": ""
+      },
+      "fail-closed-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "time-limits": {
+        "status": "red",
+        "why": "orazaka-design-system/jest.config.mjs: no `testTimeout`"
+      }
+    },
+    "orazaka-web-client": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "green",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "red",
+        "why": "calls none of visual-regression.yml"
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "red",
+        "why": "the bump never landed: @krizaka/auth 0.10.0 < 0.13.1 (published 3 days ago), @krizaka/charts 0.6.0 < 0.8.0 (published 7 days ago), @krizaka/fonts 0.5.0 < 0.5.3 (published 6 days ago), @krizaka/icons 0.9.0 < 0.9.1 (published 5 days ago), @krizaka/intl 0.4.0 < 0.4.1 (published 5 days ago), @krizaka/orazaka-shared 1.4.0 < 1.5.0 (published 9 days ago), @krizaka/page-audit 0.3.1 < 0.8.0 (published 3 days ago), @krizaka/tailwind 3.71.0 < 3.79.0 (published 3 days ago), @krizaka/tokens 3.71.0 < 3.79.0 (published 3 days ago), @krizaka/ui 3.71.0 < 3.79.0 (published 3 days ago)"
+      },
+      "maven-family-current": {
+        "status": "n/a",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "green",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "green",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "red",
+        "why": "no .github/ISSUE_TEMPLATE/feature_request.yml"
+      },
+      "formatter": {
+        "status": "green",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 134 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "red",
+        "why": "calls none of journeys.yml"
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "green",
+        "why": ""
+      },
+      "fail-closed-sg": {
+        "status": "red",
+        "why": "sg-ratchet.json lacks no-fail-open-secret"
+      },
+      "time-limits": {
+        "status": "red",
+        "why": "jest.config.ts: no `testTimeout`"
+      }
+    },
+    "orazaka-worker-media": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "green",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "n/a",
+        "why": ""
+      },
+      "maven-family-current": {
+        "status": "n/a",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "n/a",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "n/a",
+        "why": ""
+      },
+      "formatter": {
+        "status": "n/a",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "green",
+        "why": ""
+      },
+      "fail-closed-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "time-limits": {
+        "status": "green",
+        "why": ""
+      }
+    },
+    "template-next-app": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "green",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "n/a",
+        "why": "exempt: A template has no journeys of its own (they are written per app, docs/standards/visual-regression.md); an app made from it adds the workflow with its first journey."
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "n/a",
+        "why": ""
+      },
+      "maven-family-current": {
+        "status": "n/a",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "green",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "green",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "green",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "n/a",
+        "why": ""
+      },
+      "formatter": {
+        "status": "green",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "green",
+        "why": ""
+      },
+      "fail-closed-sg": {
+        "status": "red",
+        "why": "sg-ratchet.json lacks no-fail-open-secret"
+      },
+      "time-limits": {
+        "status": "red",
+        "why": "apps/web/vitest.config.mts: no `testTimeout`"
+      }
+    },
+    "template-tauri-app": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "green",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "red",
+        "why": "calls none of visual-regression.yml"
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "n/a",
+        "why": ""
+      },
+      "maven-family-current": {
+        "status": "n/a",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "n/a",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "green",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "n/a",
+        "why": ""
+      },
+      "formatter": {
+        "status": "green",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "n/a",
+        "why": ""
+      },
+      "merged-result-tested": {
+        "status": "red",
+        "why": "main neither has a merge queue nor requires branches to be up to date (strict): a PR can land untested against the merged result"
+      },
+      "required-checks-profile": {
+        "status": "red",
+        "why": "required checks on main lack: CI gate, Sonar, security scan"
+      },
+      "merge-resolution": {
+        "status": "red",
+        "why": "calls none of merge-resolution.yml"
+      },
+      "fail-closed-sg": {
+        "status": "n/a",
+        "why": ""
+      },
+      "time-limits": {
+        "status": "red",
+        "why": ".github/workflows/scorecard.yml: job `analysis` has no timeout-minutes"
+      }
+    },
+    "yomizaka": {
+      "security-scan": {
+        "status": "green",
+        "why": ""
+      },
+      "shared-ci": {
+        "status": "green",
+        "why": ""
+      },
+      "no-inline-sonar": {
+        "status": "green",
+        "why": ""
+      },
+      "scorecard": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-config": {
+        "status": "green",
+        "why": ""
+      },
+      "dependabot-automerge": {
+        "status": "green",
+        "why": ""
+      },
+      "visual-regression": {
+        "status": "green",
+        "why": ""
+      },
+      "agents-anti-slop": {
+        "status": "green",
+        "why": ""
+      },
+      "edit-hook": {
+        "status": "green",
+        "why": ""
+      },
+      "release-propagation": {
+        "status": "red",
+        "why": "the bump never landed: @krizaka/app-client 0.2.0 < 0.3.0 (published 6 days ago), @krizaka/app-desktop 0.1.0 < 0.1.2 (published 8 days ago), @krizaka/i18n 0.2.1 < 0.2.7 (published 15 days ago), @krizaka/icons 0.7.0 < 0.9.1 (published 9 days ago), @krizaka/tailwind 3.63.0 < 3.79.0 (published 5 days ago), @krizaka/tokens 3.63.0 < 3.79.0 (published 5 days ago), @krizaka/ui 3.64.0 < 3.79.0 (published 4 days ago), @krizaka/config 0.12.0 < 0.20.0 (published 4 days ago), @krizaka/discovery 0.1.0 < 0.1.2 (published 5 days ago), @krizaka/api-keys 0.3.0 < 0.3.1 (published 3 days ago), @krizaka/audit 0.1.3 < 0.1.5 (published 5 days ago), @krizaka/brief 0.1.0 < 0.1.1 (published 5 days ago), @krizaka/charts 0.6.2 < 0.8.0 (published 5 days ago), @krizaka/coupons 0.1.1 < 0.1.3 (published 3 days ago), @krizaka/credits 0.1.1 < 0.1.3 (published 3 days ago), @krizaka/db 0.3.0 < 0.3.1 (published 3 days ago), @krizaka/fonts 0.3.0 < 0.5.3 (published 9 days ago), @krizaka/intl 0.3.0 < 0.4.1 (published 6 days ago), @krizaka/org 0.3.1 < 0.6.0 (published 3 days ago), @krizaka/organize 0.1.0 < 0.5.1 (published 9 days ago), @krizaka/privacy 0.2.0 < 0.2.2 (published 3 days ago), @krizaka/rate-limit 0.1.0 < 0.2.1 (published 5 days ago), @krizaka/settings 0.5.0 < 0.5.2 (published 3 days ago), @krizaka/storage 0.6.0 < 0.11.0 (published 3 days ago), @krizaka/webhooks 0.3.0 < 0.3.4 (published 3 days ago)"
+      },
+      "maven-family-current": {
+        "status": "n/a",
+        "why": ""
+      },
+      "workspace-guard": {
+        "status": "green",
+        "why": ""
+      },
+      "expo-sdk-guard": {
+        "status": "green",
+        "why": ""
+      },
+      "turnstile-server-side": {
+        "status": "n/a",
+        "why": ""
+      },
+      "email-verification": {
+        "status": "n/a",
+        "why": ""
+      },
+      "no-departed-product": {
+        "status": "green",
+        "why": ""
+      },
+      "no-departed-published": {
+        "status": "green",
+        "why": ""
+      },
+      "commercial-names": {
+        "status": "n/a",
+        "why": ""
+      },
+      "lab-isolation": {
+        "status": "green",
+        "why": ""
+      },
+      "code-rules-ratchet": {
+        "status": "n/a",
+        "why": ""
+      },
+      "code-rules-sg": {
+        "status": "green",
+        "why": ""
+      },
+      "feature-surfaces": {
+        "status": "red",
+        "why": "no .github/ISSUE_TEMPLATE/feature_request.yml"
+      },
+      "formatter": {
+        "status": "green",
+        "why": ""
+      },
+      "agents-template": {
+        "status": "red",
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 222 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+      },
+      "journeys": {
+        "status": "red",
+        "why": "calls none of journeys.yml"
+      },
+      "merged-result-tested": {
+        "status": "green",
+        "why": ""
+      },
+      "required-checks-profile": {
+        "status": "green",
+        "why": ""
+      },
+      "merge-resolution": {
+        "status": "red",
+        "why": "calls none of merge-resolution.yml"
+      },
+      "fail-closed-sg": {
+        "status": "red",
+        "why": "sg-ratchet.json lacks no-fail-open-secret"
+      },
+      "time-limits": {
+        "status": "red",
+        "why": "deploy/backup/vitest.config.mjs: no `testTimeout`"
+      }
+    }
+  },
+  "versions": {
+    ".github": {
+      "pins": [],
+      "behind": []
+    },
+    "akinaza": {
+      "pins": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/app-client",
+          "have": "0.1.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/config",
+          "have": "0.17.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/discovery",
+          "have": "0.1.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/i18n",
+          "have": "0.2.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/icons",
+          "have": "0.7.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/intl",
+          "have": "0.3.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/query",
+          "have": "0.2.2"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tokens",
+          "have": "3.76.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/ui",
+          "have": "3.76.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/api-keys",
+          "have": "0.1.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/auth",
+          "have": "0.12.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/brief",
+          "have": "0.1.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/charts",
+          "have": "0.6.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/email",
+          "have": "0.5.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/email-verification",
+          "have": "0.1.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/fonts",
+          "have": "0.5.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/org",
+          "have": "0.3.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/organize",
+          "have": "0.4.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/payments",
+          "have": "0.7.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/privacy",
+          "have": "0.2.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/rate-limit",
+          "have": "0.2.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/realtime",
+          "have": "0.2.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/settings",
+          "have": "0.2.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/storage",
+          "have": "0.8.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tailwind",
+          "have": "3.76.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/webhooks",
+          "have": "0.1.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/a11y-audit",
+          "have": "0.2.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/page-audit",
+          "have": "0.5.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/db",
+          "have": "0.3.0"
+        }
+      ],
+      "behind": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/app-client",
+          "have": "0.1.0",
+          "latest": "0.3.0",
+          "days": 8
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/i18n",
+          "have": "0.2.1",
+          "latest": "0.2.7",
+          "days": 15
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/icons",
+          "have": "0.7.0",
+          "latest": "0.9.1",
+          "days": 9
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/webhooks",
+          "have": "0.1.0",
+          "latest": "0.3.4",
+          "days": 9
+        }
+      ]
+    },
+    "krizaka-accounts": {
+      "pins": [],
+      "behind": []
+    },
+    "krizaka-agents": {
+      "pins": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/config",
+          "have": "0.18.0"
+        }
+      ],
+      "behind": []
+    },
+    "krizaka-billing": {
+      "pins": [
+        {
+          "ecosystem": "maven",
+          "name": "krizaka-parent",
+          "have": "0.3.4"
+        }
+      ],
+      "behind": []
+    },
+    "krizaka-blog": {
+      "pins": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/charts",
+          "have": "0.6.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/config",
+          "have": "0.10.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/email",
+          "have": "0.1.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/fonts",
+          "have": "0.5.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/i18n",
+          "have": "0.2.3"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/icons",
+          "have": "0.9.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/org",
+          "have": "0.6.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/query",
+          "have": "0.2.2"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/rate-limit",
+          "have": "0.2.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tailwind",
+          "have": "3.60.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tokens",
+          "have": "3.60.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/ui",
+          "have": "3.73.0"
+        }
+      ],
+      "behind": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/i18n",
+          "have": "0.2.3",
+          "latest": "0.2.7",
+          "days": 7
+        }
+      ]
+    },
+    "krizaka-build": {
+      "pins": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/config",
+          "have": "0.4.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/fonts",
+          "have": "0.5.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/i18n",
+          "have": "0.2.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/icons",
+          "have": "0.9.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/query",
+          "have": "0.2.2"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tailwind",
+          "have": "3.60.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tokens",
+          "have": "3.60.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/ui",
+          "have": "3.60.0"
+        },
+        {
+          "ecosystem": "maven",
+          "name": "krizaka-parent",
+          "have": "0.6.0"
+        }
+      ],
+      "behind": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/config",
+          "have": "0.4.0",
+          "latest": "0.20.0",
+          "days": 17
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/i18n",
+          "have": "0.2.0",
+          "latest": "0.2.7",
+          "days": 17
+        }
+      ]
+    },
+    "krizaka-com": {
+      "pins": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/a11y-audit",
+          "have": "0.2.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/charts",
+          "have": "0.8.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/config",
+          "have": "0.17.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/discovery",
+          "have": "0.1.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/email-verification",
+          "have": "0.1.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/fonts",
+          "have": "0.5.3"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/i18n",
+          "have": "0.2.3"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/icons",
+          "have": "0.9.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/query",
+          "have": "0.2.2"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/rate-limit",
+          "have": "0.2.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tailwind",
+          "have": "3.74.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tokens",
+          "have": "3.74.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/ui",
+          "have": "3.74.0"
+        }
+      ],
+      "behind": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/i18n",
+          "have": "0.2.3",
+          "latest": "0.2.7",
+          "days": 7
+        }
+      ]
+    },
+    "krizaka-composer": {
+      "pins": [],
+      "behind": []
+    },
+    "krizaka-infra": {
+      "pins": [],
+      "behind": []
+    },
+    "krizaka-lab": {
+      "pins": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/charts",
+          "have": "0.6.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/config",
+          "have": "0.17.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/fonts",
+          "have": "0.3.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/i18n",
+          "have": "0.2.3"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/icons",
+          "have": "0.7.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tailwind",
+          "have": "3.43.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tokens",
+          "have": "3.43.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/ui",
+          "have": "3.43.0"
+        }
+      ],
+      "behind": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/charts",
+          "have": "0.6.0",
+          "latest": "0.8.0",
+          "days": 7
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/fonts",
+          "have": "0.3.0",
+          "latest": "0.5.3",
+          "days": 9
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/i18n",
+          "have": "0.2.3",
+          "latest": "0.2.7",
+          "days": 7
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/icons",
+          "have": "0.7.0",
+          "latest": "0.9.1",
+          "days": 9
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tailwind",
+          "have": "3.43.0",
+          "latest": "3.79.0",
+          "days": 9
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tokens",
+          "have": "3.43.0",
+          "latest": "3.79.0",
+          "days": 9
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/ui",
+          "have": "3.43.0",
+          "latest": "3.79.0",
+          "days": 9
+        }
+      ]
+    },
+    "krizaka-notifications": {
+      "pins": [
+        {
+          "ecosystem": "maven",
+          "name": "krizaka-bom",
+          "have": "0.3.5"
+        },
+        {
+          "ecosystem": "maven",
+          "name": "krizaka-parent",
+          "have": "0.3.4"
+        }
+      ],
+      "behind": []
+    },
+    "krizaka-platform-kit": {
+      "pins": [
+        {
+          "ecosystem": "maven",
+          "name": "krizaka-bom",
+          "have": "0.3.5"
+        },
+        {
+          "ecosystem": "maven",
+          "name": "krizaka-parent",
+          "have": "0.3.5"
+        }
+      ],
+      "behind": []
+    },
+    "krizaka-tauri-kit": {
+      "pins": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/app-client",
+          "have": "0.1.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/app-desktop",
+          "have": "0.1.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/config",
+          "have": "0.17.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/i18n",
+          "have": "0.2.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/icons",
+          "have": "0.7.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tailwind",
+          "have": "3.46.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tokens",
+          "have": "3.46.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/ui",
+          "have": "3.46.0"
+        }
+      ],
+      "behind": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/app-client",
+          "have": "0.1.0",
+          "latest": "0.3.0",
+          "days": 8
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/app-desktop",
+          "have": "0.1.0",
+          "latest": "0.1.2",
+          "days": 8
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/i18n",
+          "have": "0.2.1",
+          "latest": "0.2.7",
+          "days": 15
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/icons",
+          "have": "0.7.0",
+          "latest": "0.9.1",
+          "days": 9
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tailwind",
+          "have": "3.46.0",
+          "latest": "3.79.0",
+          "days": 9
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tokens",
+          "have": "3.46.0",
+          "latest": "3.79.0",
+          "days": 9
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/ui",
+          "have": "3.46.0",
+          "latest": "3.79.0",
+          "days": 9
+        }
+      ]
+    },
+    "krizaka-ts": {
+      "pins": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/intl",
+          "have": "0.4.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/a11y-audit",
+          "have": "0.2.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/config",
+          "have": "0.4.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/fonts",
+          "have": "0.5.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/i18n",
+          "have": "0.2.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/icons",
+          "have": "0.9.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/query",
+          "have": "0.2.2"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tailwind",
+          "have": "3.60.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tokens",
+          "have": "3.60.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/ui",
+          "have": "3.60.0"
+        }
+      ],
+      "behind": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/config",
+          "have": "0.4.0",
+          "latest": "0.20.0",
+          "days": 17
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/i18n",
+          "have": "0.2.0",
+          "latest": "0.2.7",
+          "days": 17
+        }
+      ]
+    },
+    "krizaka-ui": {
+      "pins": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/config",
+          "have": "0.9.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/org",
+          "have": "0.1.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/organize",
+          "have": "0.4.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/query",
+          "have": "0.3.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tailwind",
+          "have": "3.79.0"
+        }
+      ],
+      "behind": []
+    },
+    "krizaka-users": {
+      "pins": [
+        {
+          "ecosystem": "maven",
+          "name": "krizaka-bom",
+          "have": "0.3.3"
+        },
+        {
+          "ecosystem": "maven",
+          "name": "krizaka-parent",
+          "have": "0.3.3"
+        }
+      ],
+      "behind": []
+    },
+    "orazaka": {
+      "pins": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/i18n",
+          "have": "0.2.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/icons",
+          "have": "0.4.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/orazaka-design-system",
+          "have": "3.4.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/query",
+          "have": "0.2.2"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tailwind",
+          "have": "3.44.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tokens",
+          "have": "3.44.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/ui",
+          "have": "3.44.0"
+        }
+      ],
+      "behind": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/i18n",
+          "have": "0.2.1",
+          "latest": "0.2.7",
+          "days": 15
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/icons",
+          "have": "0.4.0",
+          "latest": "0.9.1",
+          "days": 18
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tailwind",
+          "have": "3.44.0",
+          "latest": "3.79.0",
+          "days": 9
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tokens",
+          "have": "3.44.0",
+          "latest": "3.79.0",
+          "days": 9
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/ui",
+          "have": "3.44.0",
+          "latest": "3.79.0",
+          "days": 9
+        }
+      ]
+    },
+    "orazaka-ai-engine": {
+      "pins": [],
+      "behind": []
+    },
+    "orazaka-automation-service": {
+      "pins": [],
+      "behind": []
+    },
+    "orazaka-build": {
+      "pins": [],
+      "behind": []
+    },
+    "orazaka-cli": {
+      "pins": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/orazaka-cli",
+          "have": "1.1.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/config",
+          "have": "0.18.0"
+        }
+      ],
+      "behind": []
+    },
+    "orazaka-contracts": {
+      "pins": [],
+      "behind": []
+    },
+    "orazaka-conversation-service": {
+      "pins": [],
+      "behind": []
+    },
+    "orazaka-edge": {
+      "pins": [],
+      "behind": []
+    },
+    "orazaka-job-service": {
+      "pins": [],
+      "behind": []
+    },
+    "orazaka-knowledge-service": {
+      "pins": [],
+      "behind": []
+    },
+    "orazaka-mobile-client": {
+      "pins": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/charts",
+          "have": "0.6.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/config",
+          "have": "0.18.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/discovery",
+          "have": "0.1.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/i18n",
+          "have": "0.2.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/icons",
+          "have": "0.5.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/intl",
+          "have": "0.2.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/orazaka-shared",
+          "have": "1.5.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/query",
+          "have": "0.2.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tokens",
+          "have": "3.30.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/ui",
+          "have": "3.30.0"
+        }
+      ],
+      "behind": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/charts",
+          "have": "0.6.0",
+          "latest": "0.8.0",
+          "days": 7
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/i18n",
+          "have": "0.2.1",
+          "latest": "0.2.7",
+          "days": 15
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/icons",
+          "have": "0.5.1",
+          "latest": "0.9.1",
+          "days": 14
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/intl",
+          "have": "0.2.1",
+          "latest": "0.4.1",
+          "days": 7
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tokens",
+          "have": "3.30.0",
+          "latest": "3.79.0",
+          "days": 11
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/ui",
+          "have": "3.30.0",
+          "latest": "3.79.0",
+          "days": 11
+        }
+      ]
+    },
+    "orazaka-packs": {
+      "pins": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/config",
+          "have": "0.18.0"
+        }
+      ],
+      "behind": []
+    },
+    "orazaka-studio": {
+      "pins": [],
+      "behind": []
+    },
+    "orazaka-ui-kit": {
+      "pins": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/config",
+          "have": "0.17.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/icons",
+          "have": "0.7.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/orazaka-shared",
+          "have": "1.1.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tailwind",
+          "have": "3.28.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tokens",
+          "have": "3.28.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/ui",
+          "have": "3.28.0"
+        }
+      ],
+      "behind": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/icons",
+          "have": "0.7.0",
+          "latest": "0.9.1",
+          "days": 9
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/orazaka-shared",
+          "have": "1.1.0",
+          "latest": "1.5.0",
+          "days": 21
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tailwind",
+          "have": "3.28.0",
+          "latest": "3.79.0",
+          "days": 11
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tokens",
+          "have": "3.28.0",
+          "latest": "3.79.0",
+          "days": 11
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/ui",
+          "have": "3.28.0",
+          "latest": "3.79.0",
+          "days": 11
+        }
+      ]
+    },
+    "orazaka-web-client": {
+      "pins": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/a11y-audit",
+          "have": "0.2.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/auth",
+          "have": "0.10.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/charts",
+          "have": "0.6.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/config",
+          "have": "0.17.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/fonts",
+          "have": "0.5.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/icons",
+          "have": "0.9.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/intl",
+          "have": "0.4.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/orazaka-design-system",
+          "have": "3.4.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/orazaka-shared",
+          "have": "1.4.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/page-audit",
+          "have": "0.3.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/query",
+          "have": "0.2.2"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/settings",
+          "have": "0.5.2"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tailwind",
+          "have": "3.71.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tokens",
+          "have": "3.71.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/ui",
+          "have": "3.71.0"
+        }
+      ],
+      "behind": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/charts",
+          "have": "0.6.0",
+          "latest": "0.8.0",
+          "days": 7
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/orazaka-shared",
+          "have": "1.4.0",
+          "latest": "1.5.0",
+          "days": 9
+        }
+      ]
+    },
+    "orazaka-worker-media": {
+      "pins": [],
+      "behind": []
+    },
+    "template-next-app": {
+      "pins": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/config",
+          "have": "0.7.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/fonts",
+          "have": "0.4.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/i18n",
+          "have": "0.2.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/icons",
+          "have": "0.9.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tailwind",
+          "have": "3.48.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tokens",
+          "have": "3.48.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/ui",
+          "have": "3.48.0"
+        }
+      ],
+      "behind": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/config",
+          "have": "0.7.0",
+          "latest": "0.20.0",
+          "days": 7
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/i18n",
+          "have": "0.2.1",
+          "latest": "0.2.7",
+          "days": 15
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tailwind",
+          "have": "3.48.0",
+          "latest": "3.79.0",
+          "days": 8
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tokens",
+          "have": "3.48.0",
+          "latest": "3.79.0",
+          "days": 8
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/ui",
+          "have": "3.48.0",
+          "latest": "3.79.0",
+          "days": 8
+        }
+      ]
+    },
+    "template-tauri-app": {
+      "pins": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/app-client",
+          "have": "0.1.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/app-desktop",
+          "have": "0.1.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/config",
+          "have": "0.17.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/i18n",
+          "have": "0.2.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/icons",
+          "have": "0.7.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tailwind",
+          "have": "3.46.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tokens",
+          "have": "3.46.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/ui",
+          "have": "3.46.0"
+        }
+      ],
+      "behind": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/app-client",
+          "have": "0.1.0",
+          "latest": "0.3.0",
+          "days": 8
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/app-desktop",
+          "have": "0.1.0",
+          "latest": "0.1.2",
+          "days": 8
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/i18n",
+          "have": "0.2.1",
+          "latest": "0.2.7",
+          "days": 15
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/icons",
+          "have": "0.7.0",
+          "latest": "0.9.1",
+          "days": 9
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tailwind",
+          "have": "3.46.0",
+          "latest": "3.79.0",
+          "days": 9
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tokens",
+          "have": "3.46.0",
+          "latest": "3.79.0",
+          "days": 9
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/ui",
+          "have": "3.46.0",
+          "latest": "3.79.0",
+          "days": 9
+        }
+      ]
+    },
+    "yomizaka": {
+      "pins": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/app-client",
+          "have": "0.2.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/app-desktop",
+          "have": "0.1.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/i18n",
+          "have": "0.2.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/icons",
+          "have": "0.7.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/query",
+          "have": "0.2.2"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tailwind",
+          "have": "3.63.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/tokens",
+          "have": "3.63.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/ui",
+          "have": "3.64.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/app-config",
+          "have": "0.2.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/config",
+          "have": "0.12.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/discovery",
+          "have": "0.1.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/api-keys",
+          "have": "0.3.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/audit",
+          "have": "0.1.3"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/auth",
+          "have": "0.12.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/brief",
+          "have": "0.1.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/charts",
+          "have": "0.6.2"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/coupons",
+          "have": "0.1.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/credits",
+          "have": "0.1.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/db",
+          "have": "0.3.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/email",
+          "have": "0.3.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/fonts",
+          "have": "0.3.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/intl",
+          "have": "0.3.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/orazaka-client",
+          "have": "0.2.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/org",
+          "have": "0.3.1"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/organize",
+          "have": "0.1.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/payments",
+          "have": "0.5.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/privacy",
+          "have": "0.2.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/rate-limit",
+          "have": "0.1.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/settings",
+          "have": "0.5.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/storage",
+          "have": "0.6.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/time",
+          "have": "0.1.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/webhooks",
+          "have": "0.3.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/a11y-audit",
+          "have": "0.2.0"
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/page-audit",
+          "have": "0.6.0"
+        }
+      ],
+      "behind": [
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/app-desktop",
+          "have": "0.1.0",
+          "latest": "0.1.2",
+          "days": 8
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/i18n",
+          "have": "0.2.1",
+          "latest": "0.2.7",
+          "days": 15
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/icons",
+          "have": "0.7.0",
+          "latest": "0.9.1",
+          "days": 9
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/fonts",
+          "have": "0.3.0",
+          "latest": "0.5.3",
+          "days": 9
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/organize",
+          "have": "0.1.0",
+          "latest": "0.5.1",
+          "days": 9
+        }
+      ]
+    }
+  },
+  "outOfScope": [
+    "cla-signatures",
+    "krizaka-internal",
+    "krizaka-skills",
+    "orazaka-web-admin"
+  ]
+}
