@@ -1,0 +1,128 @@
+# The quality guards of a Krizaka Python project, the Python side of ESLint + depcruise / PMD + ArchUnit (reusable; krizaka-internal#2115).
+# Tests stay in python-ci.yml (`pytest -n auto --timeout=120`, pytest-timeout in extra-packages); this one is the static side.
+#
+#   on: { pull_request: {}, merge_group: {}, push: { branches: [main] } }   # merge_group: a required check must report in the queue
+#   jobs:
+#     python:
+#       permissions: { contents: read }
+#       uses: krizaka/.github/.github/workflows/python-quality.yml@<sha> # main
+#       with: { working-directory: ., requirements: requirements.txt, paths: src }
+#
+# Steps: ruff format --check · ruff check (docs/standards/lang/ruff.toml, bugbear + bandit) counted per rule in lang-ratchet.json, which
+# may only go down · pyright counted the same way (pyright-paths; empty skips) · import-linter when the project declares contracts
+# (the layer rules, our ArchUnit) · pip-audit on the requirements · deptry when there is a pyproject.toml.
+# Permissions: contents: read; nothing else is asked.
+name: python-quality
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        description: "Directory the commands run in (relative to the repository root)."
+        type: string
+        default: "."
+      paths:
+        description: "What ruff checks, relative to the working directory."
+        type: string
+        default: "."
+      requirements:
+        description: "Newline-separated requirements files (relative to the repository root): installed (wheels only) and audited."
+        type: string
+        default: ""
+      pyright-paths:
+        description: "What pyright checks (new typed code first); empty skips pyright."
+        type: string
+        default: ""
+      python-version:
+        type: string
+        default: "3.12"
+      shared-ref:
+        description: "Ref of krizaka/.github that holds the shared ruff.toml and the ratchet script."
+        type: string
+        default: main
+      timeout-minutes:
+        description: "Timeout of the job."
+        type: number
+        default: 15
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    name: Python guards
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/.github
+          ref: ${{ inputs.shared-ref }}
+          path: .kz-shared
+          persist-credentials: false
+
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Install the tools and the requirements (wheels only)
+        env:
+          REQUIREMENTS: ${{ inputs.requirements }}
+          ROOT: ${{ github.workspace }}
+        run: |
+          pip install --only-binary :all: --require-hashes -r "$ROOT/.kz-shared/docs/standards/lang/python-tools.txt"
+          args=()
+          while IFS= read -r f; do [ -n "$f" ] && args+=(-r "$ROOT/$f"); done <<< "$REQUIREMENTS"
+          if [ "${#args[@]}" -gt 0 ]; then pip install --only-binary :all: "${args[@]}"; fi
+
+      - name: ruff format
+        working-directory: ${{ inputs.working-directory }}
+        env:
+          PATHS: ${{ inputs.paths }}
+        run: |
+          # shellcheck disable=SC2086  # paths are word-split on purpose
+          ruff format --check --config "$GITHUB_WORKSPACE/.kz-shared/docs/standards/lang/ruff.toml" $PATHS
+
+      - name: ruff check, counted per rule (the ratchet)
+        working-directory: ${{ inputs.working-directory }}
+        env:
+          PATHS: ${{ inputs.paths }}
+        run: |
+          # shellcheck disable=SC2086  # paths are word-split on purpose
+          ruff check --config "$GITHUB_WORKSPACE/.kz-shared/docs/standards/lang/ruff.toml" --output-format json --exit-zero $PATHS > "$RUNNER_TEMP/ruff.json"
+          node "$GITHUB_WORKSPACE/.kz-shared/scripts/lang-ratchet.mjs" ruff "$RUNNER_TEMP/ruff.json" --file lang-ratchet.json
+
+      - name: pyright, counted per rule (the ratchet)
+        if: ${{ inputs.pyright-paths != '' }}
+        working-directory: ${{ inputs.working-directory }}
+        env:
+          PATHS: ${{ inputs.pyright-paths }}
+        run: |
+          # shellcheck disable=SC2086  # paths are word-split on purpose
+          pyright --outputjson $PATHS > "$RUNNER_TEMP/pyright.json" || true
+          node "$GITHUB_WORKSPACE/.kz-shared/scripts/lang-ratchet.mjs" pyright "$RUNNER_TEMP/pyright.json" --file lang-ratchet.json
+
+      - name: import-linter (layer contracts)
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          if [ -f .importlinter ] || grep -qs '^\[tool.importlinter\]' pyproject.toml; then lint-imports
+          else echo "::notice::no import-linter contract declared: nothing to check (add .importlinter to state the layers)"; fi
+
+      - name: pip-audit
+        if: ${{ inputs.requirements != '' }}
+        env:
+          REQUIREMENTS: ${{ inputs.requirements }}
+          ROOT: ${{ github.workspace }}
+        run: |
+          while IFS= read -r f; do [ -n "$f" ] && pip-audit --disable-pip --no-deps -r "$ROOT/$f"; done <<< "$REQUIREMENTS"
+
+      - name: deptry (declared against imported dependencies)
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          if [ -f pyproject.toml ]; then deptry .; else echo "::notice::no pyproject.toml: deptry skipped"; fi

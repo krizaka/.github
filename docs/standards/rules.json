@@ -704,6 +704,22 @@
         "type": "manual",
         "note": "add `merge_group:` to the workflow that produces the required check; add the sonar-scan job (org action, SONAR_TOKEN) to ci.yml so « SonarCloud Code Analysis » is posted on the queue SHA"
       }
+    },
+    {
+      "id": "rust-guards",
+      "title": "Rust is tool-checked, not reviewed: rustfmt, clippy (pedantic, ratcheted per lint in lang-ratchet.json), cargo-deny (advisories, licences, bans) and timed tests through rust-quality.yml",
+      "issue": "krizaka/krizaka-internal#2115",
+      "applies": { "when": [{ "pathEndsWith": "Cargo.toml" }] },
+      "check": { "type": "workflow-calls", "workflows": ["rust-quality.yml"] },
+      "fix": { "type": "manual", "note": "call krizaka/.github rust-quality.yml (working-directory: the crate; triggers pull_request, merge_group, push), then record today's clippy debt with `node lang-ratchet.mjs clippy <report> --update`; the debt only goes down" }
+    },
+    {
+      "id": "python-guards",
+      "title": "Python is tool-checked, not reviewed: ruff (bugbear, bandit), pyright, import-linter, pip-audit, deptry (ratcheted per rule in lang-ratchet.json) through python-quality.yml; pytest runs with pytest-timeout",
+      "issue": "krizaka/krizaka-internal#2115",
+      "applies": { "notRepos": [".github"], "when": [{ "pathEndsWith": "requirements.txt" }] },
+      "check": { "type": "workflow-calls", "workflows": ["python-quality.yml"] },
+      "fix": { "type": "manual", "note": "call krizaka/.github python-quality.yml (requirements, paths, pyright-paths; triggers pull_request, merge_group, push), then record today's ruff debt with `node lang-ratchet.mjs ruff <report> --update`; add pytest-timeout to extra-packages and `--timeout=120` to the test command" }
     }
   ]
 }
