@@ -1,7 +1,7 @@
 # The critical journeys against the DEPLOYED site (krizaka-internal#1939), dev and prod: a product calls it from a `workflow_run` of
 # its deploy (or a schedule) with the deployed URL. Demo personas only (the seed cast, never a real account), test-mode payments only
 # (a live key is refused). A missing credential FAILS the run: it never prints « nothing checked » and stays green. Red opens or
-# updates ONE issue per product, environment and lane on the calling repository (a comment when it is already open).
+# updates ONE issue per product, environment and lane in krizaka-internal (a comment when it is already open).
 #
 #   post-deploy-journeys:
 #     if: ${{ github.event.workflow_run.conclusion == 'success' }}
@@ -79,6 +79,9 @@ on:
       payments-test-key:
         description: "A test-mode payments key. Required when needs-payments."
         required: false
+      RELEASE_APP_PRIVATE_KEY:
+        description: "The org app key that files the failure in krizaka-internal."
+        required: false
 
 permissions:
   contents: read
@@ -90,7 +93,6 @@ jobs:
     timeout-minutes: ${{ inputs.timeout-minutes }}
     permissions:
       contents: read
-      issues: write
     defaults:
       run:
         working-directory: ${{ inputs.working-directory }}
@@ -172,14 +174,24 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-      - name: Open or update the issue (one per product, environment and lane)
+      - id: alert-app
+        if: ${{ failure() }}
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: krizaka-internal
+          permission-issues: write
+
+      - name: Open or update the internal issue (one per product, environment and lane; never a public one)
         if: ${{ failure() }}
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.alert-app.outputs.token }}
           LANE: ${{ inputs.lane }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          title="Post-deploy journeys red: ${PRODUCT} ${TARGET}"
+          title="${GITHUB_REPOSITORY#*/} · fix(journeys): post-deploy journeys red: ${PRODUCT} ${TARGET}"
           {
             echo "The critical journeys failed against \`${SITE}\` (${TARGET}, lane ${LANE}): ${RUN_URL}"
             echo
@@ -187,6 +199,6 @@ jobs:
             tail -c 5000 "${RUNNER_TEMP}/journeys.log" 2>/dev/null || echo "no log"
             echo '```'
           } > "${RUNNER_TEMP}/body.md"
-          n=$(gh api "repos/${GITHUB_REPOSITORY}/issues?state=open&per_page=100" --jq ".[] | select(.title == \"${title}\" and (.pull_request | not)) | .number" 2>/dev/null | head -1 || true)
-          if [ -n "${n}" ]; then gh api "repos/${GITHUB_REPOSITORY}/issues/${n}/comments" -F body=@"${RUNNER_TEMP}/body.md"
-          else gh api "repos/${GITHUB_REPOSITORY}/issues" -f title="${title}" -f "labels[]=lane:${LANE}" -F body=@"${RUNNER_TEMP}/body.md"; fi
+          n=$(gh api "repos/krizaka/krizaka-internal/issues?state=open&per_page=100" --jq ".[] | select(.title == \"${title}\" and (.pull_request | not)) | .number" 2>/dev/null | head -1 || true)
+          if [ -n "${n}" ]; then gh api "repos/krizaka/krizaka-internal/issues/${n}/comments" -F body=@"${RUNNER_TEMP}/body.md"
+          else gh api "repos/krizaka/krizaka-internal/issues" -f title="${title}" -f "labels[]=repo:${GITHUB_REPOSITORY#*/}" -f "labels[]=lane:${LANE}" -f "labels[]=type:fix" -F body=@"${RUNNER_TEMP}/body.md"; fi
