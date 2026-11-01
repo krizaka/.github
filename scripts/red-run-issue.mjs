@@ -19,7 +19,9 @@ export function plan({ state, open }) {
 /** The issue body (or comment): the run, then the last lines of its log. */
 export function bodyOf({ guard, runUrl, log = "" }) {
   const tail = log.trim().split("\n").slice(-40).join("\n");
-  return `The scheduled run of \`${guard}\` is red: ${runUrl}\n\n${tail ? `\`\`\`\n${tail}\n\`\`\`\n\n` : ""}Fix the guard's finding (or the guard), then the next green run closes this issue by itself.\n`;
+  const fence = "```";
+  const excerpt = tail ? [fence, tail, fence, "", ""].join("\n") : "";
+  return `The scheduled run of \`${guard}\` is red: ${runUrl}\n\n${excerpt}Fix the guard's finding (or the guard), then the next green run closes this issue by itself.\n`;
 }
 
 async function gh(path, init = {}) {
@@ -50,7 +52,8 @@ export async function main(argv) {
   const open = found.items.find((i) => i.title === title);
   const step = plan({ state, open });
   const body = bodyOf({ guard, runUrl, log: logFile && existsSync(logFile) ? readFileSync(logFile, "utf8") : "" });
-  console.log(`${guard} ${state}: ${step.action}${step.number ? ` #${step.number}` : ""} in ${repo}`);
+  const target = step.number ? `${step.action} #${step.number}` : step.action;
+  console.log(`${guard} ${state}: ${target} in ${repo}`);
   if (argv.includes("--dry-run") || step.action === "none") return 0;
   if (step.action === "open") await gh(`/repos/${repo}/issues`, { method: "POST", body: JSON.stringify({ title, body }) });
   if (step.action === "comment") await gh(`/repos/${repo}/issues/${step.number}/comments`, { method: "POST", body: JSON.stringify({ body }) });

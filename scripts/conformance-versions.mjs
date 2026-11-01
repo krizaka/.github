@@ -60,7 +60,7 @@ function overdueSince(have, { version, publishedAt, times = {} }) {
   const newer = Object.entries(times)
     .filter(([v]) => SIMPLE.test(v) && compareVersions(v, have) > 0 && compareVersions(v, version) <= 0)
     .map(([, at]) => at)
-    .sort();
+    .sort((a, b) => Number(a > b) - Number(a < b));
   return newer[0] ?? publishedAt;
 }
 
@@ -108,7 +108,7 @@ async function fetchLatest(ecosystem, name, api) {
   if (ecosystem === "maven") {
     // krizaka-parent and krizaka-bom are released together by krizaka-build (one version, ADR-021).
     const releases = ((await api("/repos/krizaka/krizaka-build/releases?per_page=50")) ?? []).filter((r) => !r.draft && !r.prerelease);
-    const times = Object.fromEntries(releases.map((r) => [/(\d+\.\d+\.\d+)$/.exec(r.tag_name)?.[1], r.published_at]).filter(([v]) => v));
+    const times = Object.fromEntries(releases.map((r) => [String(r.tag_name).replace(/^\D+/, ""), r.published_at]).filter(([v]) => SIMPLE.test(v)));
     const version = Object.keys(times).sort(compareVersions).at(-1);
     return version ? { version, publishedAt: times[version], times } : null;
   }
