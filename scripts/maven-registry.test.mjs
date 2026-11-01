@@ -33,7 +33,10 @@ test("an empty or unknown registry fails, never publishes nowhere", () => {
 test("one release job per registry; GitHub writes packages with the workflow token only, permissions come from the caller", () => {
   const github = workflow.split("  release-github:")[1].split("  release-central:")[0];
   assert.doesNotMatch(github, /^    permissions:/m, "inherits the caller's grant, so callers on central keep working");
-  assert.doesNotMatch(github, /secrets\.MAVEN_/);
+  // #483: the one allowed exception is the optional write:packages token, falling back on the workflow token (HTTP 422 on a package first published by another repository).
+  const withoutOptionalToken = github.replace("${{ secrets.MAVEN_PUBLISH_TOKEN || secrets.GITHUB_TOKEN }}", "");
+  assert.doesNotMatch(withoutOptionalToken, /secrets\.MAVEN_/, "no Maven secret other than the optional MAVEN_PUBLISH_TOKEN fallback");
+  assert.match(github, /secrets\.MAVEN_PUBLISH_TOKEN \|\| secrets\.GITHUB_TOKEN/, "the token falls back on the workflow token");
   assert.match(workflow.split("  release-central:")[1], /environment: maven-central/);
 });
 
