@@ -496,3 +496,13 @@ test("org CI throughput: the shared visual regression is gated by changes.yml an
   for (const j of jobs(scan).filter((x) => x.id !== "trailers")) assert.match(j.text, /if: \$\{\{ github\.event_name != 'merge_group' \}\}/, `${j.id} skipped in the merge queue`);
   assert.match(jobs(scan).find((j) => j.id === "trailers").text, /github\.event_name == 'merge_group'/, "trailers also checked in the merge queue");
 });
+
+test("java-ci: the workspace flow resolves a released krizaka-parent from GitHub Packages (a parent is read before the pom's own repositories)", () => {
+  const src = read("java-ci");
+  assert.match(src, /maven-packages-registry:\n(?: {8}.*\n)*? {8}default: "https:\/\/maven\.pkg\.github\.com\/krizaka\/krizaka-build"/);
+  const step = src.slice(src.indexOf("- name: Maven settings, released parents from GitHub Packages"));
+  assert.match(step, /if: \$\{\{ inputs\.workspace-component != '' && inputs\.maven-packages-registry != '' \}\}/);
+  assert.match(step, /<id>github<\/id>/, "the repository id is the server id setup-java writes credentials for");
+  assert.ok(src.indexOf("actions/setup-java@") < src.indexOf("- name: Maven settings, released parents"), "after setup-java writes settings.xml");
+  assert.ok(src.indexOf("- name: Maven settings, released parents") < src.indexOf("node scripts/workspace.mjs ci"), "before the workspace build");
+});
