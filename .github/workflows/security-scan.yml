@@ -73,7 +73,13 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
           HEAD: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
-        run: node .krizaka-guards/scripts/check-trailers.mjs "$BASE" "$HEAD"
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" = merge_group ]; then
+            node .krizaka-guards/scripts/check-trailers.mjs --squash "$BASE" "$HEAD"
+          else
+            node .krizaka-guards/scripts/check-trailers.mjs "$BASE" "$HEAD"
+          fi
       - name: No workflow or script writes that trailer
         run: node .krizaka-guards/scripts/check-trailers.mjs --sources .github scripts tools
 

@@ -31,3 +31,11 @@ test("a comment or a step name may mention it, and the checker itself is skipped
     ];
     assert.deepEqual(sourceProblems(f), []);
 });
+
+test("the merge queue's squash message may carry GitHub's own noreply trailers, never a made-up e-mail", () => {
+  const ok = [{ sha: "dddddddddd", message: "feat: x (#1)\n\nCo-authored-by: krizaka-agents[bot] <krizaka-agents[bot]@users.noreply.github.com>\n" }];
+  assert.equal(trailerProblems(ok, { allowNoreply: true }).length, 0);
+  assert.equal(trailerProblems(ok).length, 1, "a pull request's own commits stay strict");
+  const bad = [{ sha: "eeeeeeeeee", message: "feat: y\n\nCo-authored-by: Claude <noreply@anthropic.com>\n" }];
+  assert.equal(trailerProblems(bad, { allowNoreply: true }).length, 1);
+});

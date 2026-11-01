@@ -1,7 +1,7 @@
 // No co-author trailer in any commit (founder 2026-10-31): a made-up e-mail in a `Co-authored-by:` line made GitHub list a
 // stranger as an akinaza contributor. The krizaka-agents app is the only author; no AI, bot or human trailer.
 // Run by security-scan.yml on pull requests (the PR's commits) and in the merge queue (the squash commit itself).
-//   node scripts/check-trailers.mjs <base-sha> <head-sha>
+//   node scripts/check-trailers.mjs [--squash] <base-sha> <head-sha>   (--squash: merge queue, GitHub's own noreply trailers pass)
 // It also refuses the WRITERS of the trailer: a workflow or script whose commit command carries the literal (2026-10-31, our own
 // workflows wrote it and the check above then rejected their commits).
 //   node scripts/check-trailers.mjs --sources <dir-or-file>...
@@ -19,12 +19,15 @@ function trailerValue(line) {
 }
 
 /** commits: [{ sha, message }] → the offending ones, with the trailer's name only (the e-mail is never echoed). */
-export function trailerProblems(commits) {
+export function trailerProblems(commits, { allowNoreply = false } = {}) {
   const problems = [];
   for (const c of commits) {
     for (const line of c.message.split("\n")) {
       const value = trailerValue(line);
       if (value === null) continue;
+      // The merge queue's squash message: GitHub itself appends one trailer per extra author of the PR (a squash setting cannot
+      // turn it off, tested 2026-10-31). Those carry the account's noreply address; a made-up e-mail is still refused.
+      if (allowNoreply && /<[^<>\s]+@users\.noreply\.github\.com>\s*$/i.test(value)) continue;
       const angle = value.indexOf("<");
       const name = (angle < 0 ? value : value.slice(0, angle)).trim();
       problems.push(`${c.sha.slice(0, 7)} carries a co-author trailer (${name || "unnamed"}): reword it without the line`);
@@ -84,9 +87,10 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     console.log(problems.length ? `${problems.length} writer(s) of a co-author trailer` : "no writer of a co-author trailer");
     process.exit(problems.length ? 1 : 0);
   }
-  const [base, head] = args;
+  const squash = args[0] === "--squash";
+  const [base, head] = squash ? args.slice(1) : args;
   const raw = execFileSync("/usr/bin/git", ["log", "--format=%H%x00%B%x1e", `${base}..${head}`], { encoding: "utf8" });
-  const problems = trailerProblems(parseLog(raw));
+  const problems = trailerProblems(parseLog(raw), { allowNoreply: squash });
   for (const p of problems) console.log(`::error::${p}`);
   console.log(problems.length ? `${problems.length} commit(s) with a co-author trailer` : "no co-author trailer");
   process.exit(problems.length ? 1 : 0);
