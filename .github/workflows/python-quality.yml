@@ -76,7 +76,7 @@ jobs:
           REQUIREMENTS: ${{ inputs.requirements }}
           ROOT: ${{ github.workspace }}
         run: |
-          pip install --only-binary :all: ruff pyright import-linter pip-audit deptry
+          pip install --only-binary :all: --require-hashes -r "$ROOT/.kz-shared/docs/standards/lang/python-tools.txt"
           args=()
           while IFS= read -r f; do [ -n "$f" ] && args+=(-r "$ROOT/$f"); done <<< "$REQUIREMENTS"
           if [ "${#args[@]}" -gt 0 ]; then pip install --only-binary :all: "${args[@]}"; fi
