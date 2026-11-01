@@ -121,7 +121,19 @@ jobs:
           if [ -f deny.toml ]; then echo "args=" >> "$GITHUB_OUTPUT"
           else echo "args=--config $GITHUB_WORKSPACE/.kz-shared/docs/standards/lang/deny.toml" >> "$GITHUB_OUTPUT"; fi
 
+      # The action is a container: Linux only. Other runners (macos-latest for OS-specific crates) run the same check from the binary.
+      - name: cargo-deny (binary, non-Linux runners)
+        if: ${{ runner.os != 'Linux' }}
+        working-directory: ${{ inputs.working-directory }}
+        env:
+          DENY_ARGS: ${{ steps.deny.outputs.args }}
+        run: |
+          cargo install cargo-deny --locked --version 0.18.5
+          # shellcheck disable=SC2086 -- DENY_ARGS is `--config <path>` or empty, split on purpose
+          cargo deny --manifest-path Cargo.toml check $DENY_ARGS
+
       - uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25 # v2
+        if: ${{ runner.os == 'Linux' }}
         with:
           manifest-path: ${{ inputs.working-directory }}/Cargo.toml
           command: check
