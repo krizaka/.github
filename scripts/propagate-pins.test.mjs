@@ -94,3 +94,23 @@ test("the org pins wait while .github has open pull requests, and only then", ()
   // another source (orazaka) has its own rule: it never waits on .github
   assert.equal(openPrsToWait("orazaka", () => assert.fail("no API call")), 0);
 });
+
+test("any other open pin PR of the repository is closed as superseded, whatever its head", () => {
+  const { run, calls } = fakeRun([
+    { number: 5, url: "u5", head: "deps/org-workflow-pins", title: "ci(deps): the org workflow pins move to krizaka/.github@aaaaaaaa" },
+    { number: 6, url: "u6", head: "chore/pins-by-hand", title: "ci(deps): the org workflow pins move to krizaka/.github@cccccccc" },
+  ]);
+  publishPinPr({ ...input, title: "ci(deps): the org workflow pins move to krizaka/.github@bbbbbbbb", run });
+  assert.ok(calls.some((c) => c.includes("repos/krizaka/r/issues/6/comments") && c.includes("body=Superseded by #5")));
+  assert.ok(!calls.some((c) => c.includes("repos/krizaka/r/issues/5/comments")), "the standing PR is never closed");
+});
+
+test("guard: the workflow cannot open a second pin PR in a repository (no push trigger, one serial run, a stable branch)", () => {
+  const yml = readFileSync(new URL("../.github/workflows/propagate-pins.yml", import.meta.url), "utf8");
+  const on = yml.slice(yml.indexOf("\non:"), yml.indexOf("\npermissions:"));
+  assert.ok(!/^\s{2}push:/m.test(on), "pins move hourly or on a release, not on every merge");
+  assert.match(on, /schedule:/);
+  assert.match(yml, /concurrency:\s*\n\s+group: propagate-pins\s*\n\s+cancel-in-progress: false/, "runs are serial");
+  const src = readFileSync(new URL("./propagate-pins.mjs", import.meta.url), "utf8");
+  assert.ok(!/pinBranch\([^)]*sha/i.test(src) && !/branch\s*=\s*`[^`]*\$\{sha/.test(src), "the branch never carries a sha");
+});

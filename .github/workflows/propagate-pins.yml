@@ -4,12 +4,11 @@
 name: Propagate workflow pins
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/*.yml"
-      - "actions/**"
-  # Safety net: the pins move once .github is at 0 open PRs, even when the push that emptied it ran earlier (idempotent).
+  # Throttle (2026-11-01): pins move at most once an hour (the schedule is the debounce) or on a published .github release,
+  # never on every merge to main. One standing PR per repository (branch deps/org-workflow-pins) is force-updated in place.
+  # Simple and trusted: no Renovate/Dependabot, which cannot move a pin that follows a branch.
+  release:
+    types: [published]
   schedule:
     - cron: "17 * * * *"
   workflow_dispatch:
