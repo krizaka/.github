@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      issues: write
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -55,14 +55,24 @@ jobs:
           HOST: ${{ matrix.host }}
           ARGS: ${{ matrix.args }}
 
-      - name: Open or update the issue on failure
+      - id: alert-app
+        if: steps.seo.outputs.code != '0'
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: krizaka-internal
+          permission-issues: write
+
+      - name: Open or update the internal issue on failure (never a public one)
         if: steps.seo.outputs.code != '0'
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.alert-app.outputs.token }}
           HOST: ${{ matrix.host }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          title="SEO family check failing: ${HOST}"
+          title=".github · fix(seo): SEO family check failing: ${HOST}"
           {
             echo "The daily check of \`${HOST}\` failed (${RUN_URL})."
             echo
@@ -72,9 +82,9 @@ jobs:
             head -c 6000 seo.log
             echo '```'
           } > body.md
-          n=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"$title\" in:title" --json number -q '.[0].number')
-          if [ -n "$n" ]; then gh issue comment "$n" --repo "$GITHUB_REPOSITORY" --body-file body.md
-          else gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body-file body.md; fi
+          n=$(gh issue list --repo krizaka/krizaka-internal --state open --search "\"$title\" in:title" --json number -q '.[0].number')
+          if [ -n "$n" ]; then gh issue comment "$n" --repo krizaka/krizaka-internal --body-file body.md
+          else gh api repos/krizaka/krizaka-internal/issues -f title="$title" -f "labels[]=repo:.github" -f "labels[]=lane:platform" -f "labels[]=type:fix" -F body=@body.md; fi
 
       - name: Fail the job
         if: steps.seo.outputs.code != '0'
