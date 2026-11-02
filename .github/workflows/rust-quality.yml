@@ -121,8 +121,12 @@ jobs:
         env:
           LIMIT: ${{ inputs.test-timeout-seconds }}
         run: |
-          if command -v timeout >/dev/null; then T=timeout; else T=gtimeout; fi
-          "$T" "$LIMIT" cargo test --all-targets
+          # GNU timeout where there is one (Linux), otherwise perl's alarm (macOS runners have no GNU coreutils).
+          if command -v timeout >/dev/null; then
+            timeout "$LIMIT" cargo test --all-targets
+          else
+            perl -e 'alarm shift; exec @ARGV' "$LIMIT" cargo test --all-targets
+          fi
 
   # cargo-deny reads Cargo.lock and deny.toml only (no build) and its action is a container action, which runs on Linux
   # only: its own job on ubuntu-latest, whatever `runs-on` the crate's fmt/clippy/tests need.
