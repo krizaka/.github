@@ -70,6 +70,7 @@ jobs:
     if: ${{ !cancelled() && needs.scope.outputs.selftest != 'false' }}
     permissions:
       contents: read
+      packages: read # java-ci's verify reads the released krizaka-parent family from GitHub Packages (krizaka-internal#2268)
     uses: ./.github/workflows/selftest-ci.yml
 
   profile:
