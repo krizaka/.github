@@ -1,6 +1,6 @@
-# The open-PR cap (krizaka/.github#436): at most 5 open pull requests per repository.
+# The open-PR cap (krizaka/.github#436): at most 3 open (founder 2026-11-02, was 5) pull requests per repository.
 #   - `check` (reusable, required on every product repository as « PR cap »): a NEW PR fails when the others already fill the cap;
-#     Dependabot security, the pin PR and release PRs are exempt (scripts/pr-cap.mjs).
+#     Dependabot security, the pin PR, release PRs and fix-main PRs are exempt (scripts/pr-cap.mjs).
 #   - `report` (scheduled): counts every non-archived repository and keeps ONE tracking issue naming the repositories over the cap.
 name: PR cap
 

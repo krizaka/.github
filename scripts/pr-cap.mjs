@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 // The open-PR cap, checked instead of remembered (krizaka/.github#436; AGENT-RULES « Open PRs before new work »):
-// at most 5 open pull requests per repository, Dependabot included. A pile of PRs means the order or the direction was wrong.
+// at most 3 open pull requests per repository, Dependabot included (founder 2026-11-02, was 5). A pile of PRs means the order or the direction was wrong.
 //
 //   node scripts/pr-cap.mjs check  --repo krizaka/<name> --pr <n>   a NEW PR fails when its repository is already at the cap
 //   node scripts/pr-cap.mjs report [--org krizaka] [--issue <n>]    counts every non-archived repository, writes the tracking issue
 //
 // Exempt from the `check` (they land the backlog, so they must never be blocked by it): Dependabot security updates, the one
-// pin PR of a repository (`deps/<label>` branch of propagate-pins), the release PRs (« Version Packages », release-please).
+// pin PR of a repository (`deps/<label>` branch of propagate-pins), the release PRs (« Version Packages », release-please), and a fix-main PR (`fix(main): …` title or `fix-main` label: it unblocks the others, krizaka-internal#2226).
 // They still count in the cap. The pure rules are exported and tested (tests/pr-cap.test.mjs); the network part is below.
 import { pathToFileURL } from "node:url";
 
-// @fixed: the org rule, founder 2026-10-30 (AGENT-RULES « Open PRs before new work »)
-export const CAP = 5;
-export const TRACKING_TITLE = "Open-PR cap: repositories over 5 open PRs";
+// @fixed: the org rule, founder 2026-11-02 (was 5 on 2026-10-30; AGENT-RULES « Open PRs before new work »)
+export const CAP = 3;
+export const TRACKING_TITLE = "Open-PR cap: repositories over 3 open PRs";
 
 const RELEASE_BRANCH = /^(changeset-release\/|release-please--)/;
 const PIN_BRANCH = /^deps\/[^/]+$/;
@@ -23,6 +23,7 @@ export function exemptReason(pr) {
   const labels = (pr.labels ?? []).map((l) => l.name);
   const ref = pr.head?.ref ?? "";
   if (pr.user?.login === "dependabot[bot]" && labels.includes("security")) return "Dependabot security update";
+  if (/^fix\(main\)/.test(pr.title ?? "") || labels.includes("fix-main")) return "fix-main PR";
   if (PIN_BRANCH.test(ref)) return "the repository's pin PR";
   if (RELEASE_BRANCH.test(ref) || /^Version Packages\b/.test(pr.title ?? "")) return "release PR";
   return null;
@@ -56,7 +57,7 @@ export function trackingBody(byRepo, now = Date.now(), cap = CAP) {
   const oldest = (o) => o.oldest.map((p) => `#${p.number} (${daysOpen(p, now)} d${p.draft ? ", draft" : ""})`).join(", ");
   const lines = over.length
     ? [
-        `Repositories over the cap of ${cap} open PRs (founder, 2026-10-30): the lane merges first, nobody opens a new PR there.`,
+        `Repositories over the cap of ${cap} open PRs (founder, 2026-11-02): the lane merges first, nobody opens a new PR there.`,
         "",
         "| Repository | Open | Oldest PRs (days open) |",
         "| :--- | ---: | :--- |",
