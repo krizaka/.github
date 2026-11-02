@@ -1,0 +1,46 @@
+{
+  "$comment": "The one data file of the org profile's generated block (scripts/profile-readme.mjs): names, status, hosts and where each fact is read. No host is typed in the script. Products are shown under their commercial names (ADR-022); the code name is the repository and the dev host. `status` is `development` until the founder opens a product: the script refuses « Available » for it. `prod.host` is linked only once its /api/healthz answers.",
+  "organization": "krizaka",
+  "healthPath": "/api/healthz",
+  "order": ["orazaka", "yomizaka", "akinaza"],
+  "products": {
+    "orazaka": {
+      "name": "Sovkora",
+      "knowhow": "The engine",
+      "proof": "Every request crosses a deterministic pipeline to the best local model: your documents, your models, your network — nothing leaves.",
+      "status": "development",
+      "repo": "orazaka",
+      "dev": { "host": "www.orazaka.com" },
+      "prod": { "host": "www.sovkora.com" },
+      "npm": { "repos": ["orazaka", "orazaka-web-client", "orazaka-packs"] },
+      "java": { "repo": "orazaka-build", "file": "orazaka-parent/pom.xml", "property": "krizaka.version", "package": "com.krizaka.krizaka-bom", "label": "com.krizaka:krizaka-bom" }
+    },
+    "yomizaka": {
+      "name": "Verikora",
+      "knowhow": "Reading documents",
+      "proof": "A lease checked rule by rule against the law in force on a date, a PDF examined for signs of editing: every finding quotes its passage, every check is a traced engine run.",
+      "status": "development",
+      "repo": "yomizaka",
+      "dev": { "host": "www.yomizaka.com" },
+      "prod": { "host": "www.verikora.com" },
+      "npm": { "repos": ["yomizaka"] }
+    },
+    "akinaza": {
+      "name": "Folioviv",
+      "knowhow": "Running a shop, for less",
+      "proof": "Bookings, bilingual invoices with GST and QST to the cent and a ledger the database keeps balanced, for independent Québec shops; the GST/QST return is prepared, and the merchant files it.",
+      "status": "development",
+      "repo": "akinaza",
+      "dev": { "host": "www.akinaza.com" },
+      "prod": { "host": "www.folioviv.com" },
+      "npm": { "repos": ["akinaza"] }
+    }
+  },
+  "statuses": { "development": "In development" },
+  "stack": [
+    { "name": "Krizaka UI", "url": "https://ui.krizaka.com", "about": "components, tokens, icons and charts, web and React Native", "packages": [{ "registry": "npm", "name": "@krizaka/ui" }] },
+    { "name": "Krizaka Java", "url": "https://java.krizaka.com", "about": "Spring Boot building blocks, published to GitHub Packages", "packages": [{ "registry": "github-maven", "name": "com.krizaka.krizaka-bom", "label": "com.krizaka:krizaka-bom" }] },
+    { "name": "Krizaka TS", "url": "https://ts.krizaka.com/", "about": "TypeScript backend building blocks on npm: accounts and roles, settings, API keys, webhooks, organizing, the weekly brief", "packages": [{ "registry": "npm", "name": "@krizaka/auth" }, { "registry": "npm", "name": "@krizaka/brief" }] },
+    { "name": "Krizaka Lab", "url": "https://lab.krizaka.com/", "about": "the family's lab for UI, motion, Java, AI and data experiments; nothing here is a product (motion.krizaka.com redirects here)", "packages": [{ "registry": "npm", "name": "@krizaka/ui", "label": "@krizaka/ui/motion" }] }
+  ]
+}
