@@ -24,3 +24,12 @@ test("prepare goes through an env variable, never interpolated into the script",
 test("apt packages are installed on Linux runners only", () => {
   assert.match(wf, /inputs\.apt-packages != '' && runner\.os == 'Linux'/);
 });
+
+test("cargo-deny (a container action) runs in its own job on ubuntu-latest, whatever runs-on says", () => {
+  const [rustJob, denyJob] = wf.split(/\n  deny:\n/);
+  assert.ok(denyJob, "a deny job exists");
+  assert.match(denyJob, /runs-on: ubuntu-latest/);
+  assert.match(denyJob, /cargo-deny-action@/);
+  assert.doesNotMatch(rustJob, /cargo-deny-action@/);
+  assert.match(denyJob, /timeout-minutes: \$\{\{ inputs\.timeout-minutes \}\}/);
+});
