@@ -60,7 +60,8 @@ async function main() {
   const next = replaceBlock(current, renderQuality(config));
   const args = process.argv.slice(2);
   if (args.includes("--verify")) {
-    const sonarAuth = `Basic ${Buffer.from(`${process.env.SONAR_TOKEN}:`).toString("base64")}`;
+    const sonarCredentials = Buffer.from(`${process.env.SONAR_TOKEN}:`).toString("base64");
+    const sonarAuth = `Basic ${sonarCredentials}`;
     const fetchJson = async (url) => {
       const headers = url.includes("sonarcloud") ? { Authorization: sonarAuth } : { Authorization: `Bearer ${process.env.GH_TOKEN}`, "User-Agent": "krizaka" };
       const r = await fetch(url, { headers });

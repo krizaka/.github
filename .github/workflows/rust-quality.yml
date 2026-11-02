@@ -7,7 +7,7 @@
 #       uses: krizaka/.github/.github/workflows/rust-quality.yml@<sha> # main
 #       with: { working-directory: apps/desktop/src-tauri }
 #
-# Steps: rustfmt --check · clippy (pedantic) counted per lint in lang-ratchet.json, which may only go down · cargo-deny
+# Jobs: `rust` (runs-on input) and `deny` (always ubuntu-latest). Steps: rustfmt --check · clippy (pedantic) counted per lint in lang-ratchet.json, which may only go down · cargo-deny
 # (advisories, licences, bans, sources: docs/standards/lang/deny.toml unless the crate has its own deny.toml) · tests under a timeout.
 # Inputs: runs-on (default ubuntu-latest; macos-latest for macOS-only tests), test (default true), prepare (a command run before the checks).
 # Permissions: contents: read; nothing else is asked.
@@ -114,6 +114,35 @@ jobs:
             -A clippy::must_use_candidate -A clippy::too_many_lines > "$RUNNER_TEMP/clippy.json"
           node "$GITHUB_WORKSPACE/.kz-shared/scripts/lang-ratchet.mjs" clippy "$RUNNER_TEMP/clippy.json" --file lang-ratchet.json
 
+      - name: tests
+        if: ${{ inputs.test }}
+        working-directory: ${{ inputs.working-directory }}
+        env:
+          LIMIT: ${{ inputs.test-timeout-seconds }}
+        run: |
+          if command -v timeout >/dev/null; then T=timeout; else T=gtimeout; fi
+          "$T" "$LIMIT" cargo test --all-targets
+
+  # cargo-deny reads Cargo.lock and deny.toml only (no build) and its action is a container action, which runs on Linux
+  # only: its own job on ubuntu-latest, whatever `runs-on` the crate's fmt/clippy/tests need.
+  deny:
+    name: Rust licences and advisories
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/.github
+          ref: ${{ inputs.shared-ref }}
+          path: .kz-shared
+          persist-credentials: false
+
       - name: cargo-deny config
         id: deny
         working-directory: ${{ inputs.working-directory }}
@@ -126,12 +155,3 @@ jobs:
           manifest-path: ${{ inputs.working-directory }}/Cargo.toml
           command: check
           arguments: ${{ steps.deny.outputs.args }}
-
-      - name: tests
-        if: ${{ inputs.test }}
-        working-directory: ${{ inputs.working-directory }}
-        env:
-          LIMIT: ${{ inputs.test-timeout-seconds }}
-        run: |
-          if command -v timeout >/dev/null; then T=timeout; else T=gtimeout; fi
-          "$T" "$LIMIT" cargo test --all-targets

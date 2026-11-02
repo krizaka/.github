@@ -57,7 +57,16 @@ export function kindOf({ name, files = [], topics = [], role = "", deploy = [] }
 }
 
 /** The default order of a sort, written out. */
-const byCodePoint = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+const byCodePoint = (a, b) => {
+  if (a < b) return -1;
+  return a > b ? 1 : 0;
+};
+
+/** The visibility the API reports, "private" when the repository is not read. */
+const visibilityOf = (api) => {
+  if (!api) return "private";
+  return api.visibility ?? (api.private ? "private" : "public");
+};
 
 /**
  * The registry, sorted by name. `repositories`: what the API lists ({ name, archived, private|visibility, topics });
@@ -82,7 +91,7 @@ export function buildRegistry({ repositories, files = {}, standard, apps }) {
       kind: kindOf({ name, files: files[name] ?? [], topics: api?.topics ?? [], role: role ?? "", deploy }),
       deploy,
       archived: api ? Boolean(api.archived) : null,
-      visibility: api ? (api.visibility ?? (api.private ? "private" : "public")) : "private",
+      visibility: visibilityOf(api),
       status: std?.status ?? (name === ".github" ? "Reserved" : "Not in the standard"),
       ...(std?.renameTo ? { renameTo: std.renameTo } : {}),
       ...(std?.foldInto ? { foldInto: std.foldInto } : {}),
@@ -148,7 +157,11 @@ async function main(argv) {
   if (lines.length) console.log(`::warning::repos.json drifts from the org (${lines.length} difference(s))`);
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main(process.argv.slice(2)).catch((error) => {
-  console.error(error.message);
-  process.exit(1);
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  try {
+    await main(process.argv.slice(2));
+  } catch (error) {
+    console.error(error.message);
+    process.exit(1);
+  }
+}
