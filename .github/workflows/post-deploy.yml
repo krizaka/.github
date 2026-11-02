@@ -43,6 +43,10 @@ on:
         description: "How long the deploy may take before the check is red"
         type: string
         default: "25"
+    secrets:
+      RELEASE_APP_PRIVATE_KEY:
+        description: "The org app key that files the failure in krizaka-internal."
+        required: false
 
 permissions:
   contents: read
@@ -54,7 +58,6 @@ jobs:
     timeout-minutes: 40
     permissions:
       contents: read
-      issues: write
     env:
       SITE: ${{ inputs.site-url }}
     steps:
@@ -117,13 +120,23 @@ jobs:
           read -r -a extra <<< "${ARGS}"
           node seo/scripts/check-seo-family.mjs --base "${SITE}" --host "${SITE}" "${extra[@]}" 2>&1 | tee -a deploy.log
 
-      - name: Open or update the issue on this repository
+      - id: alert-app
+        if: ${{ failure() }}
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: krizaka-internal
+          permission-issues: write
+
+      - name: Open or update the internal issue (never one in this public repository)
         if: ${{ failure() }}
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.alert-app.outputs.token }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          title="Post-deploy check failing: ${SITE#https://}"
+          title="${GITHUB_REPOSITORY#*/} · fix(deploy): post-deploy check failing: ${SITE#https://}"
           {
             echo "The check after the deploy of \`${SITE}\` failed (${RUN_URL})."
             echo
@@ -131,6 +144,6 @@ jobs:
             tail -c 6000 deploy.log 2>/dev/null || echo "no log"
             echo '```'
           } > body.md
-          n=$(gh api "repos/${GITHUB_REPOSITORY}/issues?state=open&per_page=100" --jq ".[] | select(.title == \"${title}\" and (.pull_request | not)) | .number" 2>/dev/null | head -1 || true)
-          if [ -n "${n}" ]; then gh api "repos/${GITHUB_REPOSITORY}/issues/${n}/comments" -F body=@body.md
-          else gh api "repos/${GITHUB_REPOSITORY}/issues" -f title="${title}" -F body=@body.md; fi
+          n=$(gh api "repos/krizaka/krizaka-internal/issues?state=open&per_page=100" --jq ".[] | select(.title == \"${title}\" and (.pull_request | not)) | .number" 2>/dev/null | head -1 || true)
+          if [ -n "${n}" ]; then gh api "repos/krizaka/krizaka-internal/issues/${n}/comments" -F body=@body.md
+          else gh api "repos/krizaka/krizaka-internal/issues" -f title="${title}" -f "labels[]=repo:${GITHUB_REPOSITORY#*/}" -f "labels[]=type:fix" -F body=@body.md; fi
