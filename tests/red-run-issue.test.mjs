@@ -2,7 +2,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { bodyOf, plan, titleOf } from "../scripts/red-run-issue.mjs";
+import { bodyOf, labelsOf, plan, titleFor, titleOf } from "../scripts/red-run-issue.mjs";
 import { BRANCH, pageOf } from "../scripts/conformance-publish.mjs";
 
 test("red opens the guard's issue, or comments when it is already open", () => {
@@ -36,4 +36,20 @@ test("the scheduled guards are wired: audit-guards opens its issue, the matrix r
   const conf = readFileSync(new URL("../.github/workflows/conformance.yml", import.meta.url), "utf8");
   assert.match(conf, /cron: "0 6 \* \* \*"/);
   assert.match(conf, /conformance-publish\.mjs/);
+});
+
+test("any alert can name its own title, labels and body (the product repositories open theirs in krizaka-internal)", () => {
+  assert.equal(titleFor({ title: "orazaka · fix(ci): main is red" }), "orazaka · fix(ci): main is red");
+  assert.equal(titleFor({ guard: "audit-guards" }), titleOf("audit-guards"));
+  assert.deepEqual(labelsOf("repo:orazaka, type:fix,"), ["repo:orazaka", "type:fix"]);
+  assert.deepEqual(labelsOf(), []);
+});
+
+test("actions/alert-issue files the alert in krizaka-internal with the app token, never the job's GITHUB_TOKEN", () => {
+  const action = readFileSync(new URL("../actions/alert-issue/action.yml", import.meta.url), "utf8");
+  assert.match(action, /create-github-app-token@[0-9a-f]{40}/);
+  assert.match(action, /repositories: krizaka-internal/);
+  assert.match(action, /permission-issues: write/);
+  assert.match(action, /red-run-issue\.mjs/);
+  assert.doesNotMatch(action, /github\.token|secrets\.GITHUB_TOKEN/);
 });
