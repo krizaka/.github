@@ -111,7 +111,7 @@ const KRIZAKA_RUST = /^(krizaka-[\w-]+|[\w-]*-krizaka(-[\w-]+)?)$/;
 export function parseCargoDeps(text) {
   const found = [];
   for (const line of text.split("\n")) {
-    const m = /^\s*([\w-]+)\s*=\s*(.+)$/.exec(line);
+    const m = /^\s*([\w-]+)\s*=\s*(\S.*)$/.exec(line);
     if (!m || !KRIZAKA_RUST.test(m[1])) continue;
     const value = m[2];
     const raw = /\btag\s*=\s*"v?([^"]+)"/.exec(value)?.[1] ?? /\bversion\s*=\s*"([^"]+)"/.exec(value)?.[1] ?? /^"([^"]+)"/.exec(value.trim())?.[1];
@@ -254,14 +254,15 @@ function moduleLines(org, modules) {
   return lines.length ? lines.join("<br>") : "—";
 }
 
-const cell = (text) => text.replaceAll("|", "\\|");
+const cell = (text) => text.replaceAll("|", String.raw`\|`);
 
 /** One tier: its components, one line each: name · language · repository · its Krizaka modules. */
 function renderTier(data, tier, components) {
   const rows = ["| Component | Language | Repository | Krizaka modules (used) |", "| :--- | :--- | :--- | :--- |"];
   for (const c of components) {
     const langs = c.languages.length ? c.languages.map(languageBadge).join(" ") : "—";
-    const repo = `[${c.repo}](https://github.com/${data.organization}/${c.repo}${c.path ? `/tree/HEAD/${c.path}` : ""})`;
+    const tree = c.path ? `/tree/HEAD/${c.path}` : "";
+    const repo = `[${c.repo}](https://github.com/${data.organization}/${c.repo}${tree})`;
     rows.push(`| ${cell(c.label)} | ${langs} | ${repo} | ${cell(moduleLines(data.organization, c.modules))} |`);
   }
   return `**${tier.label}**\n\n${rows.join("\n")}`;
@@ -416,7 +417,7 @@ export function makeReader(fetchImpl = fetch, token = "") {
 /** The Krizaka modules of one component by ecosystem, each with its latest published version; a module that is not published
  *  (the repository's own workspace package, a path crate) is left out. */
 async function readModules(files, ctx) {
-  const { org, reader, bomVersion } = ctx;
+  const { bomVersion } = ctx;
   const json = (text) => {
     try {
       return JSON.parse(text);
