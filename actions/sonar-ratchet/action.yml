@@ -1,0 +1,35 @@
+# The overall Sonar counts may only go down (security lane, founder 2026-11-01). Call it in the SonarCloud job, AFTER the scan:
+#
+#   - uses: krizaka/.github/actions/sonar-ratchet@<sha> # main
+#     with:
+#       token: ${{ secrets.SONAR_TOKEN }}
+#
+# It reads `sonar-ratchet.json` at the repository root (project key + the counts of bugs, vulnerabilities, hotspots and smells per
+# severity) and fails when a count of the default branch, plus the pull request's own new issues, is above it. First time in a repository:
+# `node sonar-ratchet.mjs --update` with SONAR_TOKEN set, commit the file. After a fix: the same command lowers it, never raises it.
+# A merge-group run has no pull request: it compares the default branch alone. Needs only Node (on every runner).
+name: sonar-ratchet
+description: Fail when a repository's overall SonarCloud counts rise above its committed baseline.
+author: Krizaka
+
+inputs:
+  token:
+    description: "The SONAR_TOKEN secret (the org secret). Never printed."
+    required: true
+  working-directory:
+    description: "Directory holding sonar-ratchet.json."
+    default: "."
+
+runs:
+  using: composite
+  steps:
+    - name: Sonar ratchet
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        SONAR_TOKEN: ${{ inputs.token }}
+        PR: ${{ github.event.pull_request.number }}
+        ACTION_PATH: ${{ github.action_path }}
+      run: |
+        if [ ! -f sonar-ratchet.json ]; then echo "::error::sonar-ratchet.json is missing: run node \$ACTION_PATH/sonar-ratchet.mjs --update once and commit it"; exit 1; fi
+        node "$ACTION_PATH/sonar-ratchet.mjs" ${PR:+--pull-request "$PR"}
