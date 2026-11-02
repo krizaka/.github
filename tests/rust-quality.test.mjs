@@ -33,3 +33,8 @@ test("cargo-deny (a container action) runs in its own job on ubuntu-latest, what
   assert.doesNotMatch(rustJob, /cargo-deny-action@/);
   assert.match(denyJob, /timeout-minutes: \$\{\{ inputs\.timeout-minutes \}\}/);
 });
+
+test("rust-quality bounds the tests with a timeout that exists on a macOS runner", () => {
+  assert.doesNotMatch(wf, /gtimeout/, "macOS runners ship neither timeout nor gtimeout");
+  assert.match(wf, /perl -e 'alarm shift; exec @ARGV' "\$LIMIT" cargo test --all-targets/);
+});

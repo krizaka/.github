@@ -190,7 +190,7 @@ jobs:
 
       # A repository of the workspace may name a released krizaka-parent (e.g. 0.7.1) while krizaka-build's default branch has moved on
       # (0.8.0): Maven reads a parent before any repository declared in the pom, and Central holds only the first releases. The
-      # registry goes in settings.xml (server `github`, written by setup-java above), so the released parent resolves from GitHub Packages.
+      # registry goes in settings.xml (server `github`, written by setup-java above), so the released parent resolves from GitHub Packages; the plugins' own dependencies (krizaka-quality for PMD) come from the same registry.
       - name: Maven settings, released parents from GitHub Packages
         if: ${{ inputs.workspace-component != '' && inputs.maven-packages-registry != '' }}
         env:
@@ -202,7 +202,9 @@ jobs:
           xml = p.read_text()
           block = (
               "<profiles><profile><id>krizaka-packages</id><repositories><repository><id>github</id>"
-              f"<url>{os.environ['REGISTRY']}</url><snapshots><enabled>false</enabled></snapshots></repository></repositories></profile></profiles>"
+              f"<url>{os.environ['REGISTRY']}</url><snapshots><enabled>false</enabled></snapshots></repository></repositories>"
+              "<pluginRepositories><pluginRepository><id>github</id>"
+              f"<url>{os.environ['REGISTRY']}</url><snapshots><enabled>false</enabled></snapshots></pluginRepository></pluginRepositories></profile></profiles>"
               "<activeProfiles><activeProfile>krizaka-packages</activeProfile></activeProfiles>"
           )
           assert "krizaka-packages" not in xml and "</settings>" in xml

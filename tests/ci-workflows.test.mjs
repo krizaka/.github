@@ -503,6 +503,7 @@ test("java-ci: the workspace flow resolves a released krizaka-parent from GitHub
   const step = src.slice(src.indexOf("- name: Maven settings, released parents from GitHub Packages"));
   assert.match(step, /if: \$\{\{ inputs\.workspace-component != '' && inputs\.maven-packages-registry != '' \}\}/);
   assert.match(step, /<id>github<\/id>/, "the repository id is the server id setup-java writes credentials for");
+  assert.match(step, /<pluginRepositories><pluginRepository><id>github<\/id>/, "the plugins' dependencies (krizaka-quality) resolve from the same registry");
   assert.ok(src.indexOf("actions/setup-java@") < src.indexOf("- name: Maven settings, released parents"), "after setup-java writes settings.xml");
   assert.ok(src.indexOf("- name: Maven settings, released parents") < src.indexOf("node scripts/workspace.mjs ci"), "before the workspace build");
 });
