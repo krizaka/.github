@@ -46,6 +46,7 @@ export function surfacesBlock(products, product) {
   const value = Object.values(chosen)
     .map((p) => (product ? checklist(p.surfaces) : `${p.title}\n${checklist(p.surfaces)}`))
     .join("\n\n");
+  const description = product ? HOW : `${HOW} Keep the block of your product, delete the others.`;
   const indented = value
     .split("\n")
     .map((l) => (l ? `        ${l}` : ""))
@@ -56,7 +57,7 @@ export function surfacesBlock(products, product) {
     "    id: surfaces",
     "    attributes:",
     "      label: Surfaces",
-    `      description: ${JSON.stringify(product ? HOW : `${HOW} Keep the block of your product, delete the others.`)}`,
+    `      description: ${JSON.stringify(description)}`,
     "      value: |",
     indented,
     "    validations:",
@@ -69,7 +70,7 @@ export function surfacesBlock(products, product) {
 export function withSurfaces(base, products, product) {
   const block = surfacesBlock(products, product);
   const re = new RegExp(`${escapeRe(BEGIN)}[\\s\\S]*?${escapeRe(END)}`);
-  return re.test(base) ? base.replace(re, () => block) : `${base.replace(/\s*$/, "")}\n${block}\n`;
+  return re.test(base) ? base.replace(re, () => block) : `${base.trimEnd()}\n${block}\n`;
 }
 
 /** The checklist lines of the « Surfaces » section of an issue body (a `###` or `##` heading up to the next heading). */
@@ -84,7 +85,9 @@ export function surfacesSection(body = "") {
     .filter((l) => /^[-*]\s*\[[ xX]\]/.test(l));
 }
 
-const PR_REF = /(?:^|[\s(])(?:[\w.-]+\/[\w.-]+)?#\d+\b|github\.com\/[\w.-]+\/[\w.-]+\/pull\/\d+/;
+const SHORT_PR_REF = /(?:^|[\s(])(?:[\w.-]+\/[\w.-]+)?#\d+\b/;
+const URL_PR_REF = /github\.com\/[\w.-]+\/[\w.-]+\/pull\/\d+/;
+const PR_REF = { test: (text) => SHORT_PR_REF.test(text) || URL_PR_REF.test(text) };
 const NA = /\bn\/a\b\s*[—–:-]+\s*\S.{2,}/i;
 
 /** What is wrong with the surfaces of an issue of this product: an empty list means done on every surface. */
@@ -194,8 +197,10 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     console.error("usage: surfaces.mjs write | verify | check --repo <o/r> --issue <n> | sweep [--hours 3]");
     process.exit(2);
   }
-  Promise.resolve(run(rest)).catch((e) => {
+  try {
+    await run(rest);
+  } catch (e) {
     console.error(e.message);
     process.exit(1);
-  });
+  }
 }

@@ -32,7 +32,7 @@ export function blockOf(text, name) {
 export function withBlock(text, name, body) {
   if (blockOf(text, name) === null) throw new Error(`gen:${name} markers are missing`);
   const re = new RegExp(`(<!-- gen:${name}:start -->\\n)[\\s\\S]*?(<!-- gen:${name}:end -->)`);
-  return text.replace(re, (_, start, end) => `${start}${body.replace(/\n*$/, "\n")}${end}`);
+  return text.replace(re, (_, start, end) => `${start}${body.trimEnd()}\n${end}`);
 }
 
 const cell = (value) => String(value).replace(/\\/g, "\\\\").replace(/\|/g, "\\|").replace(/\n/g, " ");
@@ -54,9 +54,9 @@ export function workflowJobs(src) {
       continue;
     }
     if (!current) continue;
-    const name = /^ {4}name:\s*(.+?)\s*$/.exec(line);
-    if (name && !current.name) current.name = name[1].replace(/^["']|["']$/g, "");
-    const needs = /^ {4}needs:\s*(.+?)\s*$/.exec(line);
+    const name = /^ {4}name:[ \t]*(\S.*)$/.exec(line);
+    if (name && !current.name) current.name = name[1].trimEnd().replace(/^["']|["']$/g, "");
+    const needs = /^ {4}needs:[ \t]*(\S.*)$/.exec(line);
     if (needs) current.needs = needs[1].replace(/^\[|\]$/g, "").split(",").map((n) => n.trim()).filter(Boolean);
   }
   return jobs;
@@ -130,7 +130,10 @@ export function protection(repos, api = ghApi) {
   return out.length ? out : null;
 }
 
-const yn = (v) => (v === null ? "?" : v ? "yes" : "no");
+const yn = (v) => {
+  if (v === null) return "?";
+  return v ? "yes" : "no";
+};
 
 export function requiredChecks(data) {
   const rows = data.map((d) => [`\`${d.repo}\``, d.checks.length ? d.checks.map((c) => `\`${c}\``).join(", ") : "—", yn(d.strict), yn(d.queue)]);
@@ -152,16 +155,17 @@ export function npmLatest(name, fetchJson) {
 }
 
 export function npmVersions(rows) {
-  return `${table(["Package", "Latest"], rows.map((r) => [`\`${r.name}\``, r.version]))}\n`;
+  const body = rows.map((r) => [`\`${r.name}\``, r.version]);
+  return `${table(["Package", "Latest"], body)}\n`;
 }
 
 /** What `@krizaka/config` ships, read from its latest package.json: the bins and the sub-path exports. */
 export function configExports(pkg) {
   const bins = Object.keys(pkg.bin ?? {}).sort((a, b) => a.localeCompare(b));
   const exports = Object.keys(pkg.exports ?? {}).filter((k) => k !== "./package.json").sort((a, b) => a.localeCompare(b));
-  return [
-    `\`@krizaka/config\` ${pkg.version} ships ${bins.length} command${bins.length === 1 ? "" : "s"} (${bins.map((b) => `\`${b}\``).join(", ") || "none"}) and ${exports.length} entry point${exports.length === 1 ? "" : "s"}: ${exports.map((e) => `\`${e}\``).join(", ") || "none"}.`,
-  ].join("\n") + "\n";
+  const plural = (n) => (n === 1 ? "" : "s");
+  const ticks = (names) => names.map((n) => `\`${n}\``).join(", ") || "none";
+  return `\`@krizaka/config\` ${pkg.version} ships ${bins.length} command${plural(bins.length)} (${ticks(bins)}) and ${exports.length} entry point${plural(exports.length)}: ${ticks(exports)}.\n`;
 }
 
 function fetchJsonSync(url) {
@@ -197,8 +201,14 @@ export function remoteContext(api = ghApi, fetchJson = fetchJsonSync, repos = re
   let prot;
   const cache = new Map();
   return {
-    protection: () => (prot === undefined ? (prot = protection(repos(), api)) : prot),
-    npm: (name) => (cache.has(name) ? cache.get(name) : (cache.set(name, npmLatest(name, fetchJson)), cache.get(name))),
+    protection: () => {
+      prot ??= protection(repos(), api);
+      return prot;
+    },
+    npm: (name) => {
+      if (!cache.has(name)) cache.set(name, npmLatest(name, fetchJson));
+      return cache.get(name);
+    },
   };
 }
 

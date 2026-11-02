@@ -16,7 +16,14 @@ export const REPORT_LABEL = "scan-report";
 /** Title patterns per category (strong signals), then body patterns that need `min` hits. */
 export const RULES = {
   security: {
-    title: /bug\(security\)|^security\b|(?<!\d )vulnerab|\bCVE\b|\bleak|exposed|unauthenticated|not verified server|faille|\bsecrets?\b|bypass|static analysis findings \(\d+ bugs?, [1-9]\d* vulnerab/i,
+    title: new RegExp(
+      [
+        String.raw`bug\(security\)|^security\b|(?<!\d )vulnerab|\bCVE\b|\bleak`,
+        String.raw`exposed|unauthenticated|not verified server|faille|\bsecrets?\b|bypass`,
+        String.raw`static analysis findings \(\d+ bugs?, [1-9]\d* vulnerab`,
+      ].join("|"),
+      "i",
+    ),
     body: /vulnerab|exploit|bypass|unauthenticated|not verified|\bIDOR\b|\bSSRF\b|\bXSS\b|\bCSRF\b|to rotate|was exposed/gi,
     min: 3,
   },
