@@ -39,7 +39,7 @@ const SELFTEST = [
 export const SUITES = {
   lint: [".github/workflows/**", "actions/**", "deploy/**", "scripts/**", "tests/**", "repos.json"],
   selftest: SELFTEST,
-  profile: ["scripts/profile-products.mjs", "tests/**", "profile/**", ".github/workflows/profile-check.yml"],
+  profile: ["scripts/profile-readme.mjs", "tests/**", "profile/**", ".github/workflows/profile-check.yml"],
   registry: [
     "repos.json",
     "docs/standards/repositories.md",
