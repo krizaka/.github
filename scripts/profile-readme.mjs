@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 // Regenerates the generated block of profile/README.md (between `<!-- generated:start -->` and `<!-- generated:end -->`):
-// the products, with their status, the @krizaka/* dependencies each one uses (version used against the latest), the dev and
-// prod environments (a health check each), and the open stack's latest versions. Dependency-free, like check-seo-family.mjs.
+// the products, with their status, their COMPONENTS (each repository or app of the product, with its language and the Krizaka
+// modules it uses by ecosystem: npm @krizaka/*, Maven com.krizaka:*, Rust krizaka-* crates, Python krizaka packages, version used
+// against the latest), the dev and prod environments (a health check each), and the open stack's latest versions.
+// Dependency-free, like check-seo-family.mjs.
 //
-// Everything is read when it runs, nothing is typed: the products' repositories (package.json, the Java BOM property) through
-// the GitHub API, the latest versions from npm and GitHub Packages, the hosts from profile/products.json, the health of each
+// Everything is read when it runs, nothing is typed: the components' repositories (package.json, pom.xml, Cargo.toml, requirements,
+// the Java BOM property) and their languages through the GitHub API, the latest versions from npm, GitHub Packages, the git tags of
+// the Rust kit and PyPI, the component list and hosts from profile/products.json, the health of each
 // host from its /api/healthz. A prod host that does not answer is « not open yet » (no link) until it does; then the link
 // appears by itself. Nothing else of the README is touched.
 //
@@ -78,6 +81,97 @@ export function pomProperty(xml, property) {
   return m ? m[1] : null;
 }
 
+
+/** The highest version per name of several `{ name, used }` lists, sorted by name. */
+export function mergeHighest(lists) {
+  const used = new Map();
+  for (const { name, used: v } of lists.flat()) if (!used.has(name) || compareVersions(v, used.get(name)) > 0) used.set(name, v);
+  return [...used].sort(([a], [b]) => a.localeCompare(b)).map(([name, version]) => ({ name, used: version }));
+}
+
+/** The `com.krizaka:*` modules a pom depends on; a module without a `<version>` is managed by the BOM, so it uses `bomVersion`. */
+export function parseMavenDeps(xml, bomVersion) {
+  const found = [];
+  for (const m of xml.matchAll(/<dependency>([\s\S]*?)<\/dependency>/g)) {
+    const group = /<groupId>\s*([^<\s]+)\s*<\/groupId>/.exec(m[1])?.[1];
+    const name = /<artifactId>\s*([^<\s]+)\s*<\/artifactId>/.exec(m[1])?.[1];
+    if (group !== "com.krizaka" || !name) continue;
+    const raw = /<version>\s*([^<\s]+)\s*<\/version>/.exec(m[1])?.[1];
+    const prop = /^\$\{([^}]+)\}$/.exec(raw ?? "")?.[1];
+    const used = prop ? pomProperty(xml, prop) : (raw ?? bomVersion);
+    if (used && VERSION.test(used) && !used.endsWith("SNAPSHOT")) found.push({ name, used });
+  }
+  return mergeHighest([found]);
+}
+
+const KRIZAKA_RUST = /^(krizaka-[\w-]+|[\w-]*-krizaka(-[\w-]+)?)$/;
+
+/** The `krizaka-*` crates of a Cargo.toml with the version used (the git tag when there is one, else the version) and the
+ *  repository their git source points at (where the latest tag is read). A path-only crate is the workspace's own. */
+export function parseCargoDeps(text) {
+  const found = [];
+  for (const line of text.split("\n")) {
+    const m = /^\s*([\w-]+)\s*=\s*(\S.*)$/.exec(line);
+    if (!m || !KRIZAKA_RUST.test(m[1])) continue;
+    const value = m[2];
+    const raw = /\btag\s*=\s*"v?([^"]+)"/.exec(value)?.[1] ?? /\bversion\s*=\s*"([^"]+)"/.exec(value)?.[1] ?? /^"([^"]+)"/.exec(value.trim())?.[1];
+    const used = versionOf(raw);
+    const repo = /\bgit\s*=\s*"https:\/\/github\.com\/([^"/]+\/[^"/.]+)/.exec(value)?.[1] ?? null;
+    if (used) found.push({ name: m[1], used, repo });
+  }
+  return found;
+}
+
+/** The krizaka packages pinned in a requirements file or a pyproject (`krizaka-x==1.2.3`, `>=`, `~=`). */
+export function parsePythonDeps(text) {
+  const found = [];
+  for (const m of text.matchAll(/(?:^|["'\s])((?:krizaka|orazaka)[\w.-]*)\s*(?:==|>=|~=|\^)\s*(\d+\.\d+\.\d+[\w.+-]*)/gim)) found.push({ name: m[1].toLowerCase().replaceAll("_", "-"), used: m[2] });
+  return mergeHighest([found]);
+}
+
+// ---------------------------------------------------------------------------------------------------------------- languages
+
+/** What is not a programming language of a component (markup, styles, config, shell glue). */
+const NOT_A_LANGUAGE = new Set(["CSS", "SCSS", "HTML", "Dockerfile", "Shell", "Makefile", "HCL", "PLpgSQL", "MDX", "Batchfile", "Nix"]);
+const LANGUAGE_BY_EXTENSION = { ts: "TypeScript", tsx: "TypeScript", js: "JavaScript", jsx: "JavaScript", mjs: "JavaScript", cjs: "JavaScript", rs: "Rust", java: "Java", kt: "Kotlin", py: "Python", swift: "Swift" };
+// The usual colours of the languages (GitHub linguist); an unknown language is grey.
+const LANGUAGE_COLORS = { TypeScript: "3178c6", JavaScript: "f1e05a", Rust: "dea584", Java: "b07219", Python: "3572a5", Kotlin: "a97bff", Swift: "f05138" };
+const SECOND_LANGUAGE_SHARE = 0.1;
+
+/** Bytes per language of the files under `prefix` in a git tree (a monorepo's app has no languages API of its own). */
+export function treeLanguageBytes(tree, prefix = "") {
+  const bytes = {};
+  const base = prefix ? `${prefix.replace(/\/$/, "")}/` : "";
+  for (const t of tree) {
+    if (t.type !== "blob" || !t.path.startsWith(base) || /(^|\/)(node_modules|\.venv|target|dist)\//.test(t.path)) continue;
+    const language = LANGUAGE_BY_EXTENSION[t.path.split(".").pop()];
+    if (language) bytes[language] = (bytes[language] ?? 0) + (t.size ?? 0);
+  }
+  return bytes;
+}
+
+/** The main language of a component, and the second when it is a real part of it (at least a tenth of the first). */
+export function mainLanguages(bytes) {
+  const ranked = Object.entries(bytes).filter(([name, n]) => !NOT_A_LANGUAGE.has(name) && n > 0).sort(([, a], [, b]) => b - a);
+  if (!ranked.length) return [];
+  const [[first, top], second] = ranked;
+  return second && second[1] >= top * SECOND_LANGUAGE_SHARE ? [first, second[0]] : [first];
+}
+
+export const languageBadge = (name) => `![${name}](https://img.shields.io/badge/${encodeURIComponent(name).replaceAll("-", "--")}-${LANGUAGE_COLORS[name] ?? "lightgrey"})`;
+
+/** The manifests of a git tree under a path, by ecosystem. */
+export function manifestPaths(tree, prefix = "") {
+  const base = prefix ? `${prefix.replace(/\/$/, "")}/` : "";
+  const kinds = { npm: /(^|\/)package\.json$/, maven: /(^|\/)pom\.xml$/, rust: /(^|\/)Cargo\.toml$/, python: /(^|\/)(requirements[\w.-]*\.(txt|in)|pyproject\.toml)$/ };
+  const out = { npm: [], maven: [], rust: [], python: [] };
+  for (const t of tree) {
+    if (t.type !== "blob" || !t.path.startsWith(base) || /(^|\/)(node_modules|\.venv|target|dist)\//.test(t.path)) continue;
+    for (const [kind, re] of Object.entries(kinds)) if (re.test(t.path)) out[kind].push(t.path);
+  }
+  return out;
+}
+
 // ---------------------------------------------------------------------------------------------------------------- health
 
 /** An environment is up only when its health endpoint answers 200 with `{ "status": "ok" }` (a parked or wildcard host does not). */
@@ -109,15 +203,11 @@ export function statusLabel(data, product) {
 
 const npmUrl = (name) => `https://www.npmjs.com/package/${name}`;
 
-function depsDetails(deps) {
-  const summary = `@krizaka/* it uses (${deps.length}): green is the latest, orange has a newer one`;
-  return `<details><summary>${summary}</summary>\n\n${deps.join(" ")}\n\n</details>`;
-}
-
-/** One dependency: the version used, green when it is the latest, orange when behind, grey when the latest is unknown. */
-export function depBadge({ name, used, latest }) {
+/** One module: the version used, green when it is the latest, orange when behind, grey when the latest is unknown. */
+export function depBadge({ name, used, latest }, { label, url } = {}) {
+  const shown = label ?? name.replace("@krizaka/", "");
   const alt = `${name} ${used}${latestNote(used, latest)}`;
-  return link(img(alt, name.replace("@krizaka/", ""), used, freshnessColor(used, latest)), npmUrl(name));
+  return link(img(alt, shown, used, freshnessColor(used, latest)), url ?? npmUrl(name));
 }
 
 /** green: the latest; orange: behind; grey: the latest is unknown. */
@@ -148,18 +238,50 @@ const markUrl = (id, theme, v) => {
   return `${MARKS_CDN}/${id}/mark-${theme}.svg${query}`;
 };
 
+const ECOSYSTEMS = [
+  { id: "npm", label: "npm", url: (org, m) => npmUrl(m.name), shown: (m) => m.name.replace("@krizaka/", "") },
+  { id: "maven", label: "Maven", url: (org, m) => `https://github.com/orgs/${org}/packages/maven/package/com.krizaka.${m.name}`, shown: (m) => m.name },
+  { id: "rust", label: "Rust", url: (org, m) => (m.repo ? `https://github.com/${m.repo}` : undefined), shown: (m) => m.name },
+  { id: "python", label: "Python", url: (org, m) => `https://pypi.org/project/${m.name}/`, shown: (m) => m.name },
+];
+
+function moduleLines(org, modules) {
+  const lines = [];
+  for (const eco of ECOSYSTEMS) {
+    const list = modules?.[eco.id] ?? [];
+    if (list.length) lines.push(`<sub>${eco.label} (${list.length})</sub> ${list.map((m) => depBadge(m, { label: eco.shown(m), url: eco.url(org, m) })).join(" ")}`);
+  }
+  return lines.length ? lines.join("<br>") : "—";
+}
+
+const cell = (text) => text.replaceAll("|", String.raw`\|`);
+
+/** One tier: its components, one line each: name · language · repository · its Krizaka modules. */
+function renderTier(data, tier, components) {
+  const rows = ["| Component | Language | Repository | Krizaka modules (used) |", "| :--- | :--- | :--- | :--- |"];
+  for (const c of components) {
+    const langs = c.languages.length ? c.languages.map(languageBadge).join(" ") : "—";
+    const tree = c.path ? `/tree/HEAD/${c.path}` : "";
+    const repo = `[${c.repo}](https://github.com/${data.organization}/${c.repo}${tree})`;
+    rows.push(`| ${cell(c.label)} | ${langs} | ${repo} | ${cell(moduleLines(data.organization, c.modules))} |`);
+  }
+  return `**${tier.label}**\n\n${rows.join("\n")}`;
+}
+
+/** The components of a product grouped by tier, in the order of `data.tiers`; a tier no component has is left out. */
+export function renderComponents(data, components) {
+  const known = new Set(data.tiers.map((t) => t.id));
+  for (const c of components) if (!known.has(c.tier)) throw new Error(`${c.label}: tier « ${c.tier} » is not in profile/products.json tiers`);
+  const groups = data.tiers.map((t) => [t, components.filter((c) => c.tier === t.id)]).filter(([, list]) => list.length);
+  const summary = `Components (${components.length}): clients, backend-for-frontend, services, workers · green is the latest, orange has a newer one`;
+  return `<details><summary>${summary}</summary>\n\n${groups.map(([t, list]) => renderTier(data, t, list)).join("\n\n")}\n\n</details>`;
+}
+
 export function renderProduct(data, p, { marks = {} } = {}) {
   const mark = `<picture><source media="(prefers-color-scheme: dark)" srcset="${markUrl(p.id, "dark", marks.dark)}"><img src="${markUrl(p.id, "light", marks.light)}" alt="${p.name}" width="48"></picture>`;
   const links = [`[Repository](https://github.com/${data.organization}/${p.repo})`, envBadge("dev", p.dev), envBadge("prod", p.prod)];
   const lines = [`**${p.name}** · ${p.knowhow} &nbsp;<sup>${statusLabel(data, p)}</sup> · <sup>sign-up closed</sup><br>${p.proof}<br>${links.join(" · ")}`];
-  const deps = p.deps.map(depBadge);
-  if (p.java) {
-    const j = p.java;
-    const note = j.latest && j.latest !== j.used ? ` (latest ${j.latest})` : "";
-    const alt = `${j.label} ${j.used ?? "unknown"}${note}`;
-    deps.push(link(img(alt, j.label, j.used ?? "unknown", j.used ? freshnessColor(j.used, j.latest) : "lightgrey"), `https://github.com/orgs/${data.organization}/packages/maven/package/${j.package}`));
-  }
-  if (deps.length) lines.push(depsDetails(deps));
+  if (p.components?.length) lines.push(renderComponents(data, p.components));
   return `<tr><td valign="top" width="64">${mark}</td><td valign="top">\n\n${lines.join("\n\n")}\n\n</td></tr>`;
 }
 
@@ -210,6 +332,7 @@ export function makeReader(fetchImpl = fetch, token = "") {
       return { status: 0, text: "" };
     }
   };
+  const trees = new Map();
   const gh = (url, extra = {}) => get(url, { Accept: "application/vnd.github+json", ...(token ? { Authorization: `Bearer ${token}` } : {}), ...extra });
   const ghJson = async (url) => {
     const r = await gh(url);
@@ -248,6 +371,30 @@ export function makeReader(fetchImpl = fetch, token = "") {
         return {};
       }
     },
+    /** The git tree of a repository (cached): `[{ path, type, size }]`. */
+    async repoTree(org, repo) {
+      const key = `${org}/${repo}`;
+      if (!trees.has(key)) trees.set(key, ((await ghJson(`https://api.github.com/repos/${org}/${repo}/git/trees/HEAD?recursive=1`))?.tree ?? []));
+      return trees.get(key);
+    },
+    async repoLanguages(org, repo) {
+      return (await ghJson(`https://api.github.com/repos/${org}/${repo}/languages`)) ?? {};
+    },
+    /** The highest stable tag of a repository (`v0.3.0` → `0.3.0`), or null. */
+    async gitTagLatest(slug) {
+      const tags = await ghJson(`https://api.github.com/repos/${slug}/tags?per_page=100`);
+      return Array.isArray(tags) ? latestStable(tags.map((t) => t.name.replace(/^v/, ""))) : null;
+    },
+    /** `{ version }`, `{ missing: true }` or `{}` like npmLatest. */
+    async pypiLatest(name) {
+      const r = await get(`https://pypi.org/pypi/${name}/json`);
+      if (r.status === 404) return { missing: true };
+      try {
+        return r.status === 200 ? { version: JSON.parse(r.text).info.version } : {};
+      } catch {
+        return {};
+      }
+    },
     async githubMavenLatest(org, pkg) {
       const versions = await ghJson(`https://api.github.com/orgs/${org}/packages/maven/${pkg}/versions?per_page=100`);
       return Array.isArray(versions) ? latestStable(versions.map((v) => v.name)) : null;
@@ -267,24 +414,60 @@ export function makeReader(fetchImpl = fetch, token = "") {
   };
 }
 
-/** The `@krizaka/*` dependencies a product uses, each with its latest published version (workspace-only ones are left out). */
-async function readDeps(def, org, reader, latestOf) {
-  const manifests = [];
-  for (const repo of def.npm?.repos ?? [def.repo]) manifests.push(...(await reader.repoPackageJsons(org, repo)));
-  const deps = [];
-  for (const d of collectKrizakaDeps(manifests)) {
-    const latest = await latestOf(d.name);
-    if (latest.missing) continue; // not published to npm: the repository's own workspace package
-    deps.push({ ...d, latest: latest.version ?? null });
+/** The Krizaka modules of one component by ecosystem, each with its latest published version; a module that is not published
+ *  (the repository's own workspace package, a path crate) is left out. */
+async function readModules(files, ctx) {
+  const { bomVersion } = ctx;
+  const json = (text) => {
+    try {
+      return JSON.parse(text);
+    } catch {
+      return null;
+    }
+  };
+  const npm = collectKrizakaDeps(files.npm.map(json).filter(Boolean));
+  const maven = mergeHighest(files.maven.map((x) => parseMavenDeps(x, bomVersion)));
+  const rustAll = files.rust.flatMap(parseCargoDeps);
+  const rust = [...new Map(rustAll.map((d) => [d.name, d])).values()].sort((a, b) => a.name.localeCompare(b.name));
+  const python = mergeHighest(files.python.map(parsePythonDeps));
+  const out = { npm: [], maven: [], rust: [], python: [] };
+  for (const d of npm) {
+    const latest = await ctx.latestOf(d.name);
+    if (!latest.missing) out.npm.push({ ...d, latest: latest.version ?? null });
   }
-  return deps;
+  for (const d of maven) out.maven.push({ ...d, latest: await ctx.mavenLatestOf(`com.krizaka.${d.name}`) });
+  for (const d of rust) out.rust.push({ ...d, latest: d.repo ? await ctx.tagLatestOf(d.repo) : null });
+  for (const d of python) {
+    const latest = await ctx.pypiLatestOf(d.name);
+    if (!latest.missing) out.python.push({ ...d, latest: latest.version ?? null });
+  }
+  return out;
 }
 
-async function readJava(def, org, reader) {
-  if (!def.java) return null;
-  const pom = await reader.repoFile(org, def.java.repo, def.java.file);
-  const used = pom ? pomProperty(pom, def.java.property) : null;
-  return { label: def.java.label, package: def.java.package, used, latest: await reader.githubMavenLatest(org, def.java.package) };
+/** One component of a product: its tier, its languages (languages API for a whole repository, the git tree under a path),
+ *  and its Krizaka modules, all read from its repository. */
+export async function readComponent(def, ctx) {
+  const { org, reader } = ctx;
+  const tree = await reader.repoTree(org, def.repo);
+  const bytes = def.path ? treeLanguageBytes(tree, def.path) : await reader.repoLanguages(org, def.repo);
+  const paths = manifestPaths(tree, def.path ?? "");
+  const files = { npm: [], maven: [], rust: [], python: [] };
+  for (const kind of Object.keys(files)) {
+    for (const path of paths[kind].slice(0, MAX_MANIFESTS)) {
+      const text = await reader.repoFile(org, def.repo, path);
+      if (text) files[kind].push(text);
+    }
+  }
+  return { ...def, languages: mainLanguages(bytes), modules: await readModules(files, ctx) };
+}
+
+const MAX_MANIFESTS = 40;
+
+async function readBom(def, org, reader) {
+  if (!def.bom) return null;
+  const pom = await reader.repoFile(org, def.bom.repo, def.bom.file);
+  const used = pom ? pomProperty(pom, def.bom.property) : null;
+  return { used };
 }
 
 async function readStackRow(row, org, reader, latestOf) {
@@ -304,16 +487,25 @@ export async function readModel(data, reader) {
     if (!latestCache.has(name)) latestCache.set(name, await reader.npmLatest(name));
     return latestCache.get(name);
   };
+  const cached = (fn) => {
+    const m = new Map();
+    return async (k) => (m.has(k) ? m.get(k) : m.set(k, await fn(k)).get(k));
+  };
+  const mavenLatestOf = cached((pkg) => reader.githubMavenLatest(org, pkg));
+  const tagLatestOf = cached((slug) => reader.gitTagLatest(slug));
+  const pypiLatestOf = cached((name) => reader.pypiLatest(name));
   const health = async (e) => ({ host: e.host, ...(await reader.health(e.host, data.healthPath)) });
   const products = [];
   const marks = {};
   for (const id of data.order) {
     const def = data.products[id];
-    const deps = await readDeps(def, org, reader, latestOf);
-    const java = await readJava(def, org, reader);
+    const bom = await readBom(def, org, reader);
+    const ctx = { org, reader, latestOf, bomVersion: bom?.used ?? null, mavenLatestOf, tagLatestOf, pypiLatestOf };
+    const components = [];
+    for (const c of def.components ?? []) components.push(await readComponent(c, ctx));
     const dev = await health(def.dev);
     const prod = await health(def.prod);
-    products.push({ id, ...def, deps, java, dev, prod });
+    products.push({ id, ...def, components, bom, dev, prod });
     marks[id] = { dark: await reader.markHash(id, "dark"), light: await reader.markHash(id, "light") };
   }
   const stack = [];
