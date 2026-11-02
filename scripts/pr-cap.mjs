@@ -23,7 +23,7 @@ export function exemptReason(pr) {
   const labels = (pr.labels ?? []).map((l) => l.name);
   const ref = pr.head?.ref ?? "";
   if (pr.user?.login === "dependabot[bot]" && labels.includes("security")) return "Dependabot security update";
-  if (/^fix\(main\)/.test(pr.title ?? "") || labels.includes("fix-main")) return "fix-main PR";
+  if ((pr.title ?? "").startsWith("fix(main)") || labels.includes("fix-main")) return "fix-main PR";
   if (PIN_BRANCH.test(ref)) return "the repository's pin PR";
   if (RELEASE_BRANCH.test(ref) || /^Version Packages\b/.test(pr.title ?? "")) return "release PR";
   return null;
