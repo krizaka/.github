@@ -3,12 +3,20 @@
 // One issue per guard, found by its exact title: red opens it or comments on it, green closes it.
 //
 //   node scripts/red-run-issue.mjs --guard audit-guards --state red|green --run-url <url> [--log file] [--repo krizaka/krizaka-internal] [--dry-run]
+//   node scripts/red-run-issue.mjs --title "<repo> · fix(ci): main is red" --labels repo:orazaka,type:fix --body-file body.md --state red --run-url <url>
+//     (any alert, not only a guard: an exact title, a body written by the caller, labels on open; the action `actions/alert-issue` wraps it)
 //
 // GH_TOKEN: the agents' app token with issues: write on the target repository.
 import { existsSync, readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 
 export const titleOf = (guard) => `.github · fix(guards): the scheduled guard ${guard} is red`;
+
+/** The issue's exact title: the caller's own, or the guard's standard one. */
+export const titleFor = ({ guard, title }) => title || titleOf(guard);
+
+/** `a,b` -> ["a", "b"]; nothing -> []. */
+export const labelsOf = (csv = "") => csv.split(",").map((l) => l.trim()).filter(Boolean);
 
 /** What to do with the guard's issue: open, comment, close or nothing. */
 export function plan({ state, open }) {
@@ -42,20 +50,26 @@ export async function main(argv) {
   const repo = flag(argv, "--repo", "krizaka/krizaka-internal");
   const runUrl = flag(argv, "--run-url", "");
   const logFile = flag(argv, "--log");
-  if (!guard || !["red", "green"].includes(state)) {
-    console.error("usage: red-run-issue.mjs --guard <name> --state red|green --run-url <url> [--log file] [--repo owner/name] [--dry-run]");
+  const ownTitle = flag(argv, "--title");
+  const bodyFile = flag(argv, "--body-file");
+  const labels = labelsOf(flag(argv, "--labels", ""));
+  if ((!guard && !ownTitle) || !["red", "green"].includes(state)) {
+    console.error("usage: red-run-issue.mjs (--guard <name> | --title <t> [--body-file f] [--labels a,b]) --state red|green --run-url <url> [--log file] [--repo owner/name] [--dry-run]");
     return 2;
   }
-  const title = titleOf(guard);
+  const title = titleFor({ guard, title: ownTitle });
   const q = encodeURIComponent(`repo:${repo} is:issue is:open in:title "${title}"`);
   const found = await gh(`/search/issues?q=${q}`);
   const open = found.items.find((i) => i.title === title);
   const step = plan({ state, open });
-  const body = bodyOf({ guard, runUrl, log: logFile && existsSync(logFile) ? readFileSync(logFile, "utf8") : "" });
+  const body =
+    bodyFile && existsSync(bodyFile)
+      ? readFileSync(bodyFile, "utf8")
+      : bodyOf({ guard: guard ?? title, runUrl, log: logFile && existsSync(logFile) ? readFileSync(logFile, "utf8") : "" });
   const target = step.number ? `${step.action} #${step.number}` : step.action;
   console.log(`${guard} ${state}: ${target} in ${repo}`);
   if (argv.includes("--dry-run") || step.action === "none") return 0;
-  if (step.action === "open") await gh(`/repos/${repo}/issues`, { method: "POST", body: JSON.stringify({ title, body }) });
+  if (step.action === "open") await gh(`/repos/${repo}/issues`, { method: "POST", body: JSON.stringify({ title, body, ...(labels.length ? { labels } : {}) }) });
   if (step.action === "comment") await gh(`/repos/${repo}/issues/${step.number}/comments`, { method: "POST", body: JSON.stringify({ body }) });
   if (step.action === "close") {
     await gh(`/repos/${repo}/issues/${step.number}/comments`, { method: "POST", body: JSON.stringify({ body: `Green again: ${runUrl}` }) });

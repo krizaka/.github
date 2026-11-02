@@ -1,0 +1,64 @@
+# An alert of ours (main red, journey red, DNS drift, post-deploy red...) is filed in the private krizaka/krizaka-internal, never in the
+# public repository that ran it (krizaka-internal#2267, #2023). One issue per exact title: red opens it or comments on it, green closes it.
+#
+#   - if: failure()
+#     uses: krizaka/.github/actions/alert-issue@<sha> # main
+#     with:
+#       app-id: ${{ vars.RELEASE_APP_ID }}
+#       private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}   # an org secret: a reusable workflow receives it with `secrets: inherit`
+#       title: "orazaka · fix(ci): main is red"               # `<repo> · <type>(<scope>): …`
+#       body-file: body.md                                     # what the issue (or the comment) says; link the run
+#       labels: repo:orazaka,type:fix
+#
+# The token is the agents' app token on krizaka-internal only (issues: write), minted here: the job's GITHUB_TOKEN cannot write there,
+# and is never used for an issue (tests/no-self-issues.test.mjs, the conformance rule no-self-issues). The token is never printed.
+name: alert-issue
+description: File an alert in krizaka/krizaka-internal (open, comment or close), with the app token.
+author: Krizaka
+
+inputs:
+  app-id:
+    description: "vars.RELEASE_APP_ID (the org app)."
+    required: true
+  private-key:
+    description: "secrets.RELEASE_APP_PRIVATE_KEY (the org secret). Never printed."
+    required: true
+  title:
+    description: "The exact title of the issue; it is how the open one is found."
+    required: true
+  body-file:
+    description: "A file holding the issue body (or the comment on the open one)."
+    required: true
+  labels:
+    description: "Comma-separated labels set when the issue is opened (repo:<name>,type:fix)."
+    default: ""
+  state:
+    description: "red opens or comments; green closes the open issue."
+    default: red
+  run-url:
+    description: "The run the alert is about."
+    default: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+runs:
+  using: composite
+  steps:
+    - id: app
+      uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+      with:
+        app-id: ${{ inputs.app-id }}
+        private-key: ${{ inputs.private-key }}
+        owner: ${{ github.repository_owner }}
+        repositories: krizaka-internal
+        permission-issues: write
+
+    - name: File the alert in krizaka-internal
+      shell: bash
+      env:
+        GH_TOKEN: ${{ steps.app.outputs.token }}
+        TITLE: ${{ inputs.title }}
+        BODY_FILE: ${{ inputs.body-file }}
+        LABELS: ${{ inputs.labels }}
+        STATE: ${{ inputs.state }}
+        RUN_URL: ${{ inputs.run-url }}
+        ACTION_PATH: ${{ github.action_path }}
+      run: node "${ACTION_PATH}/../../scripts/red-run-issue.mjs" --title "${TITLE}" --body-file "${BODY_FILE}" --labels "${LABELS}" --state "${STATE}" --run-url "${RUN_URL}"
