@@ -127,8 +127,10 @@ export async function run(argv, { fetchImpl = fetch, token = process.env.GITHUB_
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  run(process.argv.slice(2)).then((text) => process.stdout.write(text), (error) => {
+  try {
+    process.stdout.write(await run(process.argv.slice(2)));
+  } catch (error) {
     console.error(error.message);
     process.exit(1);
-  });
+  }
 }

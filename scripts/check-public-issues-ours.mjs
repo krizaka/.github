@@ -33,14 +33,16 @@ export const total = (found) => Object.values(found).reduce((n, list) => n + lis
 /** The log line: counts only. */
 export function summary(repoCount, found) {
   const per = Object.entries(found).map(([r, l]) => `${r}=${l.length}`).join(" ");
-  return `public repos: ${repoCount}, open issues of ours in public repos: ${total(found)}${per ? ` (${per})` : ""}`;
+  const detail = per ? ` (${per})` : "";
+  return `public repos: ${repoCount}, open issues of ours in public repos: ${total(found)}${detail}`;
 }
 
 /** The tracking issue's body (private repo, so numbers may be listed). */
 export function renderReport(found, now = new Date()) {
   const head = `Open issues opened by our identities in **public** repositories (rule: every issue of ours lives in krizaka-internal). Move each with \`gh issue transfer <n> krizaka/${INTERNAL} -R krizaka/<repo>\` (tools/issue-migrate.py renames, labels and restores the board card). Updated ${now.toISOString().slice(0, 10)} by krizaka/.github « Public issues conformance ».`;
   if (!total(found)) return `${head}\n\nNone: every public repository is clean.`;
-  const rows = Object.entries(found).map(([r, l]) => `- \`${r}\` (${l.length}): ${l.map((n) => `https://github.com/${ORG}/${r}/issues/${n}`).join(" ")}`);
+  const links = (r, l) => l.map((n) => `https://github.com/${ORG}/${r}/issues/${n}`).join(" ");
+  const rows = Object.entries(found).map(([r, l]) => `- \`${r}\` (${l.length}): ${links(r, l)}`);
   return `${head}\n\n**${total(found)} issue(s) in ${rows.length} repo(s):**\n\n${rows.join("\n")}`;
 }
 

@@ -133,14 +133,17 @@ const verdict = (ok, why) => ({ ok, why: ok ? "" : why });
 
 const SONAR_APP_CHECK = /^SonarCloud Code Analysis$/;
 const triggersOf = (text) => (text.split(/^jobs:/m)[0].match(/^ {2}([a-z_]+):/gm) ?? []).map((t) => t.trim().replace(":", ""));
-const nameOf = (text) => text.match(/^name:\s*["']?([^"'\n#]+?)["']?\s*(?:#.*)?$/m)?.[1]?.trim().toLowerCase();
+const nameOf = (text) => {
+  const raw = /^name:[ \t]*["']?([^"'\n#]*)/m.exec(text)?.[1];
+  return raw?.trim().toLowerCase() || undefined;
+};
 const jobKeys = (text) => (text.split(/^jobs:/m)[1]?.match(/^ {2}([\w-]+):/gm) ?? []).map((k) => k.trim().replace(":", "").toLowerCase());
 
 /** Which workflow files produce a required check, and do they run in the queue? */
 export function queueReportsVerdict(required, workflows) {
   const problems = [];
   const heads = required.filter((c) => !SONAR_APP_CHECK.test(c)).map((c) => c.split(" / ")[0].trim().toLowerCase());
-  const scans = workflows.filter((w) => /sonar-scan@|^\s+sonar:\s*true/m.test(w.text));
+  const scans = workflows.filter((w) => /sonar-scan@|^[ \t]+sonar:[ \t]*true/m.test(w.text));
   for (const w of workflows) {
     const triggers = triggersOf(w.text);
     if (!triggers.includes("pull_request") || triggers.includes("merge_group")) continue;
@@ -377,9 +380,9 @@ export function tarballMatches(gz, re) {
   while (off + 512 <= tar.length) {
     const head = tar.subarray(off, off + 512);
     if (head[0] === 0) break;
-    const name = head.subarray(0, 100).toString("utf8").replace(/\0.*$/, "");
-    const prefix = head.subarray(345, 500).toString("utf8").replace(/\0.*$/, "");
-    const size = parseInt(head.subarray(124, 136).toString("utf8").replace(/\0.*$/, "").trim() || "0", 8);
+    const name = head.subarray(0, 100).toString("utf8").split("\0", 1)[0];
+    const prefix = head.subarray(345, 500).toString("utf8").split("\0", 1)[0];
+    const size = parseInt(head.subarray(124, 136).toString("utf8").split("\0", 1)[0].trim() || "0", 8);
     const type = String.fromCharCode(head[156] || 48);
     const body = tar.subarray(off + 512, off + 512 + size);
     if (type === "0" && size < 2_000_000 && !body.includes(0)) {

@@ -110,8 +110,10 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     console.error("usage: pr-cap.mjs check --repo <org/repo> --pr <n> | report [--org krizaka] [--issue <n>]");
     process.exit(2);
   }
-  run(rest).catch((e) => {
+  try {
+    await run(rest);
+  } catch (e) {
     console.error(e.message);
     process.exit(1);
-  });
+  }
 }

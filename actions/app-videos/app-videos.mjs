@@ -121,7 +121,8 @@ export function merge(manifest, entry) {
 
 export function writeManifest(file, manifest) {
   mkdirSync(dirname(resolve(file)), { recursive: true });
-  writeFileSync(file, `${JSON.stringify({ product: manifest.product, cdn: `https://${DEFAULT_CDN}`, videos: manifest.videos }, null, 2)}\n`);
+  const cdn = `https://${DEFAULT_CDN}`;
+  writeFileSync(file, `${JSON.stringify({ product: manifest.product, cdn, videos: manifest.videos }, null, 2)}\n`);
 }
 
 /** The paths (from the zone root) the manifest names. */
