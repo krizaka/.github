@@ -25,11 +25,11 @@ const BLUE = "3e76a8";
 
 // ---------------------------------------------------------------------------------------------------------------- versions
 
-const VERSION = /(\d+)\.(\d+)\.(\d+)([\w.+-]*)/;
+const VERSION = /(\d{1,9})\.(\d{1,9})\.(\d{1,9})([\w.+-]*)/;
 
 /** The first version of a range (`^0.12.0` → `0.12.0`); a non-semver spec (`workspace:*`, `catalog:`) gives null. */
 export function versionOf(spec) {
-  const m = /^[\s^~>=<v]*(\d+\.\d+\.\d+[\w.+-]*)\s*$/.exec(String(spec ?? "").split("||")[0].trim().split(/\s+/)[0] ?? "");
+  const m = /^[^\d]{0,4}(\d{1,9}\.\d{1,9}\.\d{1,9}[\w.+-]*)$/.exec(String(spec ?? "").split("||")[0].trim().split(/\s+/)[0] ?? "");
   return m ? m[1] : null;
 }
 
@@ -37,8 +37,15 @@ export function compareVersions(a, b) {
   const pa = VERSION.exec(a);
   const pb = VERSION.exec(b);
   for (let i = 1; i <= 3; i++) if (Number(pa[i]) !== Number(pb[i])) return Number(pa[i]) - Number(pb[i]);
-  if (pa[4] === pb[4]) return 0;
-  return pa[4] === "" ? 1 : pb[4] === "" ? -1 : pa[4] < pb[4] ? -1 : 1;
+  return comparePreRelease(pa[4], pb[4]);
+}
+
+/** A release outranks any pre-release tag; two tags compare as text. */
+function comparePreRelease(a, b) {
+  if (a === b) return 0;
+  if (a === "") return 1;
+  if (b === "") return -1;
+  return a < b ? -1 : 1;
 }
 
 /** The highest stable version of a list (no `-SNAPSHOT`, no pre-release tag), or null. */
@@ -66,7 +73,8 @@ export function collectKrizakaDeps(manifests) {
 
 /** The text of a `<property>x.y.z</property>` of a pom, or null. */
 export function pomProperty(xml, property) {
-  const m = new RegExp(`<${property.replaceAll(".", "\\.")}>\\s*([^<\\s]+)\\s*</${property.replaceAll(".", "\\.")}>`).exec(xml);
+  const name = property.replaceAll(".", String.raw`\.`);
+  const m = new RegExp(String.raw`<${name}>\s*([^<\s]+)\s*</${name}>`).exec(xml);
   return m ? m[1] : null;
 }
 
@@ -101,23 +109,44 @@ export function statusLabel(data, product) {
 
 const npmUrl = (name) => `https://www.npmjs.com/package/${name}`;
 
+function depsDetails(deps) {
+  const summary = `@krizaka/* it uses (${deps.length}): green is the latest, orange has a newer one`;
+  return `<details><summary>${summary}</summary>\n\n${deps.join(" ")}\n\n</details>`;
+}
+
 /** One dependency: the version used, green when it is the latest, orange when behind, grey when the latest is unknown. */
 export function depBadge({ name, used, latest }) {
-  const color = !latest ? "lightgrey" : used === latest ? "brightgreen" : "orange";
-  const alt = `${name} ${used}${latest && latest !== used ? ` (latest ${latest})` : latest ? " (latest)" : ""}`;
-  return link(img(alt, name.replace("@krizaka/", ""), used, color), npmUrl(name));
+  const alt = `${name} ${used}${latestNote(used, latest)}`;
+  return link(img(alt, name.replace("@krizaka/", ""), used, freshnessColor(used, latest)), npmUrl(name));
+}
+
+/** green: the latest; orange: behind; grey: the latest is unknown. */
+function freshnessColor(used, latest) {
+  if (!latest) return "lightgrey";
+  return used === latest ? "brightgreen" : "orange";
+}
+
+function latestNote(used, latest) {
+  if (!latest) return "";
+  return latest === used ? " (latest)" : ` (latest ${latest})`;
 }
 
 export function envBadge(kind, env) {
   const name = kind === "dev" ? "Dev" : "Prod";
   if (!env.up) {
     // A prod host that does not answer is not an outage: the product is not open yet (ADR-022), so no link to a dead host.
-    return kind === "prod" ? img("Prod: not open yet", "prod", "not open yet", "lightgrey") : link(img(`${name}: down`, kind, "down", "red"), `https://${env.host}`);
+    if (kind === "prod") return img("Prod: not open yet", "prod", "not open yet", "lightgrey");
+    const down = img(`${name}: down`, kind, "down", "red");
+    return link(down, `https://${env.host}`);
   }
-  return link(img(`${name}: up ${env.version}`, kind, env.version ? `up · ${env.version}` : "up", "brightgreen"), `https://${env.host}`);
+  const label = env.version ? `up · ${env.version}` : "up";
+  return link(img(`${name}: up ${env.version}`, kind, label, "brightgreen"), `https://${env.host}`);
 }
 
-const markUrl = (id, theme, v) => `${MARKS_CDN}/${id}/mark-${theme}.svg${v ? `?v=${v}` : ""}`;
+const markUrl = (id, theme, v) => {
+  const query = v ? `?v=${v}` : "";
+  return `${MARKS_CDN}/${id}/mark-${theme}.svg${query}`;
+};
 
 export function renderProduct(data, p, { marks = {} } = {}) {
   const mark = `<picture><source media="(prefers-color-scheme: dark)" srcset="${markUrl(p.id, "dark", marks.dark)}"><img src="${markUrl(p.id, "light", marks.light)}" alt="${p.name}" width="48"></picture>`;
@@ -126,11 +155,11 @@ export function renderProduct(data, p, { marks = {} } = {}) {
   const deps = p.deps.map(depBadge);
   if (p.java) {
     const j = p.java;
-    const color = !j.latest ? "lightgrey" : j.used === j.latest ? "brightgreen" : "orange";
-    const alt = `${j.label} ${j.used ?? "unknown"}${j.latest && j.latest !== j.used ? ` (latest ${j.latest})` : ""}`;
-    deps.push(link(img(alt, j.label, j.used ?? "unknown", j.used ? color : "lightgrey"), `https://github.com/orgs/${data.organization}/packages/maven/package/${j.package}`));
+    const note = j.latest && j.latest !== j.used ? ` (latest ${j.latest})` : "";
+    const alt = `${j.label} ${j.used ?? "unknown"}${note}`;
+    deps.push(link(img(alt, j.label, j.used ?? "unknown", j.used ? freshnessColor(j.used, j.latest) : "lightgrey"), `https://github.com/orgs/${data.organization}/packages/maven/package/${j.package}`));
   }
-  if (deps.length) lines.push(`<details><summary>@krizaka/* it uses (${deps.length}): green is the latest, orange has a newer one</summary>\n\n${deps.join(" ")}\n\n</details>`);
+  if (deps.length) lines.push(depsDetails(deps));
   return `<tr><td valign="top" width="64">${mark}</td><td valign="top">\n\n${lines.join("\n\n")}\n\n</td></tr>`;
 }
 
@@ -211,7 +240,7 @@ export function makeReader(fetchImpl = fetch, token = "") {
     },
     /** `{ version }`, `{ missing: true }` (404: not published) or `{}` (could not be read). */
     async npmLatest(name) {
-      const r = await get(`https://registry.npmjs.org/${name.replace("/", "%2f")}/latest`);
+      const r = await get(`https://registry.npmjs.org/${name.replaceAll("/", "%2f")}/latest`);
       if (r.status === 404) return { missing: true };
       try {
         return r.status === 200 ? { version: JSON.parse(r.text).version } : {};
@@ -238,6 +267,35 @@ export function makeReader(fetchImpl = fetch, token = "") {
   };
 }
 
+/** The `@krizaka/*` dependencies a product uses, each with its latest published version (workspace-only ones are left out). */
+async function readDeps(def, org, reader, latestOf) {
+  const manifests = [];
+  for (const repo of def.npm?.repos ?? [def.repo]) manifests.push(...(await reader.repoPackageJsons(org, repo)));
+  const deps = [];
+  for (const d of collectKrizakaDeps(manifests)) {
+    const latest = await latestOf(d.name);
+    if (latest.missing) continue; // not published to npm: the repository's own workspace package
+    deps.push({ ...d, latest: latest.version ?? null });
+  }
+  return deps;
+}
+
+async function readJava(def, org, reader) {
+  if (!def.java) return null;
+  const pom = await reader.repoFile(org, def.java.repo, def.java.file);
+  const used = pom ? pomProperty(pom, def.java.property) : null;
+  return { label: def.java.label, package: def.java.package, used, latest: await reader.githubMavenLatest(org, def.java.package) };
+}
+
+async function readStackRow(row, org, reader, latestOf) {
+  const packages = [];
+  for (const pkg of row.packages) {
+    const latest = pkg.registry === "npm" ? (await latestOf(pkg.name)).version ?? null : await reader.githubMavenLatest(org, pkg.name);
+    packages.push({ ...pkg, latest });
+  }
+  return { ...row, packages };
+}
+
 /** Reads everything the block shows. */
 export async function readModel(data, reader) {
   const org = data.organization;
@@ -246,38 +304,20 @@ export async function readModel(data, reader) {
     if (!latestCache.has(name)) latestCache.set(name, await reader.npmLatest(name));
     return latestCache.get(name);
   };
+  const health = async (e) => ({ host: e.host, ...(await reader.health(e.host, data.healthPath)) });
   const products = [];
   const marks = {};
   for (const id of data.order) {
     const def = data.products[id];
-    const manifests = [];
-    for (const repo of def.npm?.repos ?? [def.repo]) manifests.push(...(await reader.repoPackageJsons(org, repo)));
-    const deps = [];
-    for (const d of collectKrizakaDeps(manifests)) {
-      const latest = await latestOf(d.name);
-      if (latest.missing) continue; // not published to npm: the repository's own workspace package
-      deps.push({ ...d, latest: latest.version ?? null });
-    }
-    let java = null;
-    if (def.java) {
-      const pom = await reader.repoFile(org, def.java.repo, def.java.file);
-      java = { label: def.java.label, package: def.java.package, used: pom ? pomProperty(pom, def.java.property) : null, latest: await reader.githubMavenLatest(org, def.java.package) };
-    }
-    const env = async (e) => ({ host: e.host, ...(await reader.health(e.host, data.healthPath)) });
-    const dev = await env(def.dev);
-    const prod = await env(def.prod);
+    const deps = await readDeps(def, org, reader, latestOf);
+    const java = await readJava(def, org, reader);
+    const dev = await health(def.dev);
+    const prod = await health(def.prod);
     products.push({ id, ...def, deps, java, dev, prod });
     marks[id] = { dark: await reader.markHash(id, "dark"), light: await reader.markHash(id, "light") };
   }
   const stack = [];
-  for (const row of data.stack) {
-    const packages = [];
-    for (const pkg of row.packages) {
-      const latest = pkg.registry === "npm" ? (await latestOf(pkg.name)).version ?? null : await reader.githubMavenLatest(org, pkg.name);
-      packages.push({ ...pkg, latest });
-    }
-    stack.push({ ...row, packages });
-  }
+  for (const row of data.stack) stack.push(await readStackRow(row, org, reader, latestOf));
   return { products, stack, marks };
 }
 
