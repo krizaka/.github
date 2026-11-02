@@ -49,6 +49,10 @@ on:
         description: "An Orazaka repository name (orazaka.workspace.json): verify it inside the workspace instead of alone."
         type: string
         default: ""
+      maven-packages-registry:
+        description: "Workspace flow: the GitHub Packages Maven registry that serves a RELEASED com.krizaka parent (`relativePath` empty) the cloned krizaka-build is no longer at, since a parent is resolved before the repositories of the pom that names it. Empty: none."
+        type: string
+        default: "https://maven.pkg.github.com/krizaka/krizaka-build"
       rewrite:
         description: "Fail when an OpenRewrite recipe of krizaka-parent would change code (rewrite:dryRun)."
         type: boolean
@@ -183,6 +187,27 @@ jobs:
           server-id: github
           server-username: GITHUB_ACTOR
           server-password: GITHUB_TOKEN
+
+      # A repository of the workspace may name a released krizaka-parent (e.g. 0.7.1) while krizaka-build's default branch has moved on
+      # (0.8.0): Maven reads a parent before any repository declared in the pom, and Central holds only the first releases. The
+      # registry goes in settings.xml (server `github`, written by setup-java above), so the released parent resolves from GitHub Packages.
+      - name: Maven settings, released parents from GitHub Packages
+        if: ${{ inputs.workspace-component != '' && inputs.maven-packages-registry != '' }}
+        env:
+          REGISTRY: ${{ inputs.maven-packages-registry }}
+        run: |
+          python3 - <<'PY'
+          import os, pathlib
+          p = pathlib.Path.home() / ".m2" / "settings.xml"
+          xml = p.read_text()
+          block = (
+              "<profiles><profile><id>krizaka-packages</id><repositories><repository><id>github</id>"
+              f"<url>{os.environ['REGISTRY']}</url><snapshots><enabled>false</enabled></snapshots></repository></repositories></profile></profiles>"
+              "<activeProfiles><activeProfile>krizaka-packages</activeProfile></activeProfiles>"
+          )
+          assert "krizaka-packages" not in xml and "</settings>" in xml
+          p.write_text(xml.replace("</settings>", block + "</settings>"))
+          PY
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         if: ${{ inputs.workspace-component != '' }}
