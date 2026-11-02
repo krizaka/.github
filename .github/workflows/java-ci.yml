@@ -4,6 +4,9 @@
 #
 #   jobs:
 #     ci:
+#       permissions:
+#         contents: read
+#         packages: read   # the released krizaka-parent family comes from GitHub Packages
 #       uses: krizaka/.github/.github/workflows/java-ci.yml@<sha> # v1.0.0
 #       with:
 #         workspace-component: orazaka-knowledge-service   # an Orazaka service: verified inside the workspace
@@ -126,6 +129,9 @@ jobs:
     timeout-minutes: ${{ inputs.timeout-minutes }}
     permissions:
       contents: read
+      # settings.xml reads the released krizaka-parent family from GitHub Packages with GITHUB_TOKEN (krizaka-internal#2268):
+      # without packages: read every request answers 401. The caller's job must grant it too.
+      packages: read
     env:
       COMPONENT: ${{ inputs.workspace-component }}
     steps:
