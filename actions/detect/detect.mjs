@@ -96,7 +96,10 @@ function walk(dir, depth, base = dir, out = []) {
 }
 
 /** The default order of a sort (UTF-16 code units), written out. */
-const byCodePoint = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+const byCodePoint = (a, b) => {
+  if (a < b) return -1;
+  return a > b ? 1 : 0;
+};
 const has = (dir, name) => existsSync(join(dir, name));
 const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
 const lines = (list) => list.filter(Boolean).join("\n");
@@ -461,7 +464,8 @@ async function main(argv = process.argv.slice(2)) {
   const base = arg(argv, "--base", "") || ".";
   if (base.startsWith("/") || base.split("/").includes("..")) throw new Error("--base must stay inside the checkout");
   const plan = detect({ root, base, repository, manifest, timeout: Number(arg(argv, "--timeout", "0")) });
-  console.log(`stack: ${plan.stack}${plan.component ? ` (component ${plan.component})` : ""}`);
+  const component = plan.component ? ` (component ${plan.component})` : "";
+  console.log(`stack: ${plan.stack}${component}`);
   console.log(JSON.stringify(plan, null, 2));
   if (argv.includes("--github-output") && process.env.GITHUB_OUTPUT) {
     const out = { stack: plan.stack, plan: JSON.stringify(plan), ignore: plan.ignore, relevant: plan.relevant, timeout: String(plan.timeout) };
@@ -470,8 +474,10 @@ async function main(argv = process.argv.slice(2)) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  main().catch((error) => {
+  try {
+    await main();
+  } catch (error) {
     console.log(`::error::${error.message}`);
     process.exit(1);
-  });
+  }
 }

@@ -39,7 +39,8 @@ export function bodyOf(repo, reds, rules) {
   const lines = reds.map(({ id, why }) => {
     const rule = byId.get(id);
     const link = rule?.issue ? ` (${rule.issue})` : "";
-    return `- [ ] \`${id}\`: ${rule?.title ?? id}${link}${why ? `. ${why}` : ""}`;
+    const reason = why ? `. ${why}` : "";
+    return `- [ ] \`${id}\`: ${rule?.title ?? id}${link}${reason}`;
   });
   return `${MARKER}\nThe weekly conformance run found these org rules red in \`${repo}\`. The fix is in \`fix\` of each rule in [rules.json](${RULES_URL}); the run closes this issue by itself when the repository is green.\n\n${lines.join("\n")}\n`;
 }

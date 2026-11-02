@@ -43,7 +43,7 @@ export function render(entry, { packageJson = null, template = readTemplate() } 
 
 /** What the old AGENTS.md said, kept as the repository's detail page. */
 export function detailsOf(name, oldAgents) {
-  const body = oldAgents.replace(/^#\s+.*\n+/, "");
+  const body = oldAgents.replace(/^#[ \t]+[^\n]*\n+/, "");
   return `# ${name} — detail for agents\n\nMoved here from AGENTS.md when it took the org template (krizaka/.github \`docs/standards/agents-template.md\`). AGENTS.md is the short contract; this page is the repository's own detail, read by section.\n\n${body.trimEnd()}\n`;
 }
 
