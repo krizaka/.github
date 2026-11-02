@@ -3,7 +3,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -506,4 +506,27 @@ test("java-ci: the workspace flow resolves a released krizaka-parent from GitHub
   assert.match(step, /<pluginRepositories><pluginRepository><id>github<\/id>/, "the plugins' dependencies (krizaka-quality) resolve from the same registry");
   assert.ok(src.indexOf("actions/setup-java@") < src.indexOf("- name: Maven settings, released parents"), "after setup-java writes settings.xml");
   assert.ok(src.indexOf("- name: Maven settings, released parents") < src.indexOf("node scripts/workspace.mjs ci"), "before the workspace build");
+});
+
+// krizaka-internal#2268: java-ci's verify reads the released krizaka-parent family from GitHub Packages with GITHUB_TOKEN. Without
+// packages: read every request is 401; and a called workflow cannot hold more than its caller grants (the run is a startup_failure).
+test("java-ci's verify reads GitHub Packages, and every job that calls java-ci, directly or through a local workflow, grants it", () => {
+  const PACKAGES = /^ {6}packages: read\b/m;
+  assert.match(jobs(read("java-ci")).find((j) => j.id === "verify").text, PACKAGES);
+  const all = readdirSync(new URL("../.github/workflows/", import.meta.url)).filter((f) => f.endsWith(".yml")).map((f) => f.slice(0, -4));
+  const needs = new Set(["java-ci"]);
+  for (let grew = true; grew; ) {
+    grew = false;
+    for (const wf of all) {
+      if (needs.has(wf)) continue;
+      if ([...needs].some((n) => read(wf).includes(`uses: ./.github/workflows/${n}.yml`))) needs.add(wf), (grew = true);
+    }
+  }
+  const callers = [];
+  for (const wf of all)
+    for (const j of jobs(read(wf)))
+      for (const n of needs)
+        if (j.text.includes(`uses: ./.github/workflows/${n}.yml`)) callers.push([`${wf}/${j.id} -> ${n}`, j.text]);
+  assert.ok(callers.length >= 3, "the self-test calls java-ci, and the gate calls the self-test");
+  for (const [name, text] of callers) assert.match(text, PACKAGES, `${name} grants packages: read`);
 });
