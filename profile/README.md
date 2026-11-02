@@ -24,7 +24,7 @@ Each product stands on its own; each proves one skill. Claims are cheap — ever
 <table>
 <tr><td valign="top" width="64"><picture><source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/orazaka/mark-dark.svg?v=5adc3bcf5f"><img src="https://krizaka-assets.b-cdn.net/brand/orazaka/mark-light.svg?v=5adc3bcf5f" alt="Orazaka" width="48"></picture></td><td valign="top">
 
-**Orazaka** · The engine &nbsp;<sup>Available</sup><br>Every request crosses a deterministic pipeline to the best local model: your documents, your models, your network — nothing leaves.<br>[www.orazaka.com](https://www.orazaka.com) · [Repository](https://github.com/krizaka/orazaka)
+**Orazaka** · The engine &nbsp;<sup>In development</sup><br>Every request crosses a deterministic pipeline to the best local model: your documents, your models, your network — nothing leaves.<br>[www.orazaka.com](https://www.orazaka.com) · [Repository](https://github.com/krizaka/orazaka)
 
 </td></tr>
 <tr><td valign="top" width="64"><picture><source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/yomizaka/mark-dark.svg?v=c4fbf96eee"><img src="https://krizaka-assets.b-cdn.net/brand/yomizaka/mark-light.svg?v=c4fbf96eee" alt="Yomizaka" width="48"></picture></td><td valign="top">
