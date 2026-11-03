@@ -7,6 +7,7 @@
     { "app": "krizaka-java-site", "repo": "krizaka/krizaka-build", "spec": ".do/app.yaml" },
     { "app": "akinaza-dev", "repo": "krizaka/akinaza", "spec": "deploy/digitalocean/app.yaml" },
     { "app": "yomizaka-dev", "repo": "krizaka/yomizaka", "spec": "deploy/digitalocean/dev.app.yaml" },
-    { "app": "orazaka-dev", "repo": "krizaka/orazaka", "spec": "infra/deploy/orazaka-dev.app.yaml" }
+    { "app": "orazaka-dev", "repo": "krizaka/orazaka", "spec": "infra/deploy/orazaka-dev.app.yaml" },
+    { "app": "kachizaka", "repo": "krizaka/kachizaka", "spec": ".do/app.yaml" }
   ]
 }

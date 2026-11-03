@@ -60,7 +60,7 @@
   "repos": {
     ".github": ["org"],
     "akinaza": ["app-web", "app-mobile"],
-    "kachizaka": ["site"],
+    "kachizaka": ["app-web"],
     "krizaka-accounts": ["java-service"],
     "krizaka-agents": ["org"],
     "krizaka-billing": ["java-service"],

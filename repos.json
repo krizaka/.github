@@ -39,10 +39,12 @@
     {
       "name": "kachizaka",
       "owner": "krizaka",
-      "role": "Kridoc (code name kachizaka): its coming-soon site (www.kridoc.com) while the product is in design",
+      "role": "Kridoc (code name kachizaka): product repository, a web app (www.kridoc.com) whose coming-soon page is its stable face while the product is in design; mobile and macOS apps follow",
       "team": "krizaka",
-      "kind": "site",
-      "deploy": [],
+      "kind": "app",
+      "deploy": [
+        "kachizaka"
+      ],
       "archived": false,
       "visibility": "public",
       "status": "Complies"
