@@ -9,6 +9,7 @@
 #       title: "orazaka · fix(ci): main is red"               # `<repo> · <type>(<scope>): …`
 #       body-file: body.md                                     # what the issue (or the comment) says; link the run
 #       labels: repo:orazaka,type:fix
+#       alert-key: main-red/orazaka                            # ONE issue per key whatever the title does (ADR-001, krizaka-internal#2282); `state: green` closes it with the run as proof
 #
 # The token is the agents' app token on krizaka-internal only (issues: write), minted here: the job's GITHUB_TOKEN cannot write there,
 # and is never used for an issue (tests/no-self-issues.test.mjs, the conformance rule no-self-issues). The token is never printed.
@@ -31,6 +32,9 @@ inputs:
     required: true
   labels:
     description: "Comma-separated labels set when the issue is opened (repo:<name>,type:fix)."
+    default: ""
+  alert-key:
+    description: "The alert's identity (e.g. main-red/orazaka, seo-family/dev.orazaka.com): stored in the issue body, it finds the issue whatever the title says. Empty: the exact title finds it."
     default: ""
   state:
     description: "red opens or comments; green closes the open issue."
@@ -60,5 +64,8 @@ runs:
         LABELS: ${{ inputs.labels }}
         STATE: ${{ inputs.state }}
         RUN_URL: ${{ inputs.run-url }}
+        ALERT_KEY: ${{ inputs.alert-key }}
         ACTION_PATH: ${{ github.action_path }}
-      run: node "${ACTION_PATH}/../../scripts/red-run-issue.mjs" --title "${TITLE}" --body-file "${BODY_FILE}" --labels "${LABELS}" --state "${STATE}" --run-url "${RUN_URL}"
+      run: |
+        key=(); if [ -n "${ALERT_KEY}" ]; then key=(--alert-key "${ALERT_KEY}"); fi
+        node "${ACTION_PATH}/../../scripts/red-run-issue.mjs" --title "${TITLE}" --body-file "${BODY_FILE}" --labels "${LABELS}" --state "${STATE}" --run-url "${RUN_URL}" "${key[@]}"

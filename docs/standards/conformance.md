@@ -19,7 +19,8 @@ matrix lists as out of scope. There are no exceptions.
   still pins a family version (`@krizaka/*` on npm; `krizaka-parent` / `krizaka-bom` from the krizaka-build releases) older than one
   out for `graceDays`. `release-propagation` asks for the receiver **and** the landed bump; `maven-family-current` does it for Java.
 - **Scheduled guards are never red in silence**: a red scheduled run of `audit-guards` opens (or comments) one issue in
-  krizaka-internal, and the next green run closes it (`scripts/red-run-issue.mjs`).
+  krizaka-internal, and the next green run closes it (`scripts/red-run-issue.mjs`). Any alert passes `alert-key` to `actions/alert-issue`:
+  one issue per key whatever its title does (comment, reopen, or close with the green run as proof; krizaka-internal#2282).
 - **Fan-out**: `node scripts/conformance-fanout.mjs --matrix matrix.json [--rules a,b] [--repos x] [--apply]` opens one pull request per
   red repository for the rules that have a template (`copy`, `append-section`, `settings-hook`, `agents-template` — it renders AGENTS.md from the
   repository's line of `repos.json` and its scripts, and moves the old AGENTS.md to `docs/agents.md`, never overwriting one); `manual` rules are listed, never guessed.
