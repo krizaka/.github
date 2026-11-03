@@ -240,6 +240,7 @@ jobs:
         env:
           GOALS: ${{ inputs.maven-goals }}
           ARGS: ${{ inputs.maven-args }}
+          GITHUB_TOKEN: ${{ github.token }}  # settings.xml's `github` server reads it (setup-java server-password)
         run: |
           mvn_cmd=mvn
           [ -x ./mvnw ] && mvn_cmd=./mvnw
@@ -252,6 +253,7 @@ jobs:
         if: ${{ inputs.rewrite }}
         env:
           WORKDIR: ${{ inputs.working-directory }}
+          GITHUB_TOKEN: ${{ github.token }}  # the released parent's recipes (krizaka-rewrite-style) come from GitHub Packages
         run: |
           if [ -n "$COMPONENT" ]; then
             cd workspace

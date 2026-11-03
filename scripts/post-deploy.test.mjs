@@ -82,7 +82,7 @@ test("waitForBuild fails when the time is up, and when the site is down the whol
 
 const workflow = readFileSync(new URL("../.github/workflows/post-deploy.yml", import.meta.url), "utf8");
 
-test("the reusable workflow waits, pings the changed URLs only, checks the live host and files an issue on the site's repository", () => {
+test("the reusable workflow waits, pings the changed URLs only, checks the live host and files an issue in krizaka-internal", () => {
   assert.match(workflow, /workflow_call:/);
   assert.match(workflow, /post-deploy\.mjs wait/);
   assert.ok(workflow.indexOf("post-deploy.mjs wait") < workflow.indexOf("post-deploy.mjs changed"), "wait comes first");
@@ -90,7 +90,8 @@ test("the reusable workflow waits, pings the changed URLs only, checks the live 
   assert.ok(workflow.indexOf("post-deploy.mjs indexnow") < workflow.indexOf("node seo/scripts/check-seo-family.mjs"));
   assert.match(workflow, /check-seo-family\.mjs --base "\$\{SITE\}" --host "\$\{SITE\}"/);
   assert.match(workflow, /issues: write/);
-  assert.match(workflow, /repos\/\$\{GITHUB_REPOSITORY\}\/issues/);
+  assert.match(workflow, /repos\/krizaka\/krizaka-internal\/issues/);
+  assert.doesNotMatch(workflow, /repos\/\$\{GITHUB_REPOSITORY\}\/issues/, "never on the site's own repository");
   assert.doesNotMatch(workflow, /\bsleep\s+\d/, "no fixed sleep");
   assert.doesNotMatch(workflow, /gh issue (list|create)|gh search/, "REST only (GraphQL quota)");
 });
