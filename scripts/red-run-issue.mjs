@@ -110,44 +110,62 @@ export async function alertByKey({ api, repo, key, state, title, body, labels, r
 
 const flag = (argv, name, fallback) => (argv.includes(name) ? argv[argv.indexOf(name) + 1] : fallback);
 
+const describe = (step) => (step.number ? `${step.action} #${step.number}` : step.action);
+const readBody = (bodyFile, fallback) => (bodyFile && existsSync(bodyFile) ? readFileSync(bodyFile, "utf8") : fallback());
+const readLog = (logFile) => (logFile && existsSync(logFile) ? readFileSync(logFile, "utf8") : "");
+
+/** One issue per alert key (see alertByKey): the by-key path of main. */
+async function fileByKey({ argv, api, repo, alertKey, state, title, bodyFile, guard, labels, runUrl }) {
+  const body = readBody(bodyFile, () => bodyOf({ guard: guard ?? title, runUrl, log: "" }));
+  const step = await alertByKey({ api, repo, key: alertKey, state, title, body, labels, runUrl, dryRun: argv.includes("--dry-run") });
+  console.log(`${alertKey} ${state}: ${describe(step)} in ${repo}`);
+}
+
+/** The title-dedupe path of main: one open issue per title. */
+async function fileByTitle({ argv, api, repo, state, title, guard, bodyFile, logFile, labels, runUrl }) {
+  const q = encodeURIComponent(`repo:${repo} is:issue is:open in:title "${title}"`);
+  const found = await api(`/search/issues?q=${q}`);
+  const step = plan({ state, open: found.items.find((i) => i.title === title) });
+  const body = readBody(bodyFile, () => bodyOf({ guard: guard ?? title, runUrl, log: readLog(logFile) }));
+  console.log(`${guard} ${state}: ${describe(step)} in ${repo}`);
+  if (argv.includes("--dry-run") || step.action === "none") {
+    return;
+  }
+  const send = (path, method, payload) => api(`/repos/${repo}/issues${path}`, { method, body: JSON.stringify(payload) });
+  if (step.action === "open") {
+    await send("", "POST", { title, body, ...(labels.length ? { labels } : {}) });
+  }
+  if (step.action === "comment") {
+    await send(`/${step.number}/comments`, "POST", { body });
+  }
+  if (step.action === "close") {
+    await send(`/${step.number}/comments`, "POST", { body: `Green again: ${runUrl}` });
+    await send(`/${step.number}`, "PATCH", { state: "closed", state_reason: "completed" });
+  }
+}
+
 export async function main(argv, api = gh) {
   const guard = flag(argv, "--guard");
   const state = flag(argv, "--state");
-  const repo = flag(argv, "--repo", "krizaka/krizaka-internal");
-  const runUrl = flag(argv, "--run-url", "");
-  const logFile = flag(argv, "--log");
   const ownTitle = flag(argv, "--title");
-  const bodyFile = flag(argv, "--body-file");
-  const labels = labelsOf(flag(argv, "--labels", ""));
   if ((!guard && !ownTitle) || !["red", "green"].includes(state)) {
     console.error("usage: red-run-issue.mjs (--guard <name> | --title <t> [--body-file f] [--labels a,b] [--alert-key k]) --state red|green --run-url <url> [--log file] [--repo owner/name] [--dry-run]");
     return 2;
   }
-  const title = titleFor({ guard, title: ownTitle });
+  const common = {
+    argv,
+    api,
+    state,
+    guard,
+    repo: flag(argv, "--repo", "krizaka/krizaka-internal"),
+    runUrl: flag(argv, "--run-url", ""),
+    logFile: flag(argv, "--log"),
+    bodyFile: flag(argv, "--body-file"),
+    labels: labelsOf(flag(argv, "--labels", "")),
+    title: titleFor({ guard, title: ownTitle }),
+  };
   const alertKey = flag(argv, "--alert-key");
-  if (alertKey) {
-    const text = bodyFile && existsSync(bodyFile) ? readFileSync(bodyFile, "utf8") : bodyOf({ guard: guard ?? title, runUrl, log: "" });
-    const step = await alertByKey({ api, repo, key: alertKey, state, title, body: text, labels, runUrl, dryRun: argv.includes("--dry-run") });
-    console.log(`${alertKey} ${state}: ${step.number ? `${step.action} #${step.number}` : step.action} in ${repo}`);
-    return 0;
-  }
-  const q = encodeURIComponent(`repo:${repo} is:issue is:open in:title "${title}"`);
-  const found = await api(`/search/issues?q=${q}`);
-  const open = found.items.find((i) => i.title === title);
-  const step = plan({ state, open });
-  const body =
-    bodyFile && existsSync(bodyFile)
-      ? readFileSync(bodyFile, "utf8")
-      : bodyOf({ guard: guard ?? title, runUrl, log: logFile && existsSync(logFile) ? readFileSync(logFile, "utf8") : "" });
-  const target = step.number ? `${step.action} #${step.number}` : step.action;
-  console.log(`${guard} ${state}: ${target} in ${repo}`);
-  if (argv.includes("--dry-run") || step.action === "none") return 0;
-  if (step.action === "open") await api(`/repos/${repo}/issues`, { method: "POST", body: JSON.stringify({ title, body, ...(labels.length ? { labels } : {}) }) });
-  if (step.action === "comment") await api(`/repos/${repo}/issues/${step.number}/comments`, { method: "POST", body: JSON.stringify({ body }) });
-  if (step.action === "close") {
-    await api(`/repos/${repo}/issues/${step.number}/comments`, { method: "POST", body: JSON.stringify({ body: `Green again: ${runUrl}` }) });
-    await api(`/repos/${repo}/issues/${step.number}`, { method: "PATCH", body: JSON.stringify({ state: "closed", state_reason: "completed" }) });
-  }
+  await (alertKey ? fileByKey({ ...common, alertKey }) : fileByTitle(common));
   return 0;
 }
 
