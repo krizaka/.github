@@ -37,6 +37,17 @@
       "status": "Paused (data only, no code: out of the matrix)"
     },
     {
+      "name": "kachizaka",
+      "owner": "krizaka",
+      "role": "Kridoc (code name kachizaka): its coming-soon site (www.kridoc.com) while the product is in design",
+      "team": "krizaka",
+      "kind": "site",
+      "deploy": [],
+      "archived": false,
+      "visibility": "public",
+      "status": "Complies"
+    },
+    {
       "name": "krizaka-accounts",
       "owner": "krizaka",
       "role": "Shared accounts site (accounts.krizaka.com)",
@@ -65,7 +76,7 @@
       "team": "krizaka",
       "kind": "maven",
       "deploy": [],
-      "archived": false,
+      "archived": true,
       "visibility": "public",
       "status": "Complies"
     },

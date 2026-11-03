@@ -55,3 +55,9 @@ test("legacy and unknown roles are reported, but the org profile repository is e
     ["orazaka-web-client"],
   );
 });
+
+test("kachizaka, Kridoc's code name, is a product repository; its roles follow the product vocabulary", () => {
+  assert.equal(isValidRepositoryName("kachizaka"), true);
+  assert.equal(isValidRepositoryName("kachizaka-web"), true);
+  assert.equal(isValidRepositoryName("kridoc"), false);
+});

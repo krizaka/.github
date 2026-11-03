@@ -36,6 +36,7 @@ shape fits, but whose role needs discussion.
 | :--- | :--- | :--- |
 | `akinaza` | Main product repository | Complies |
 | `cla-signatures` | Signatures of the CLA, written by the CLA workflow | **Paused** (data only, no code: out of the matrix) |
+| `kachizaka` | Kridoc (code name kachizaka): its coming-soon site (www.kridoc.com) while the product is in design | Complies |
 | `krizaka-accounts` | Shared accounts site (accounts.krizaka.com) | Complies |
 | `krizaka-agents` | How the agents work: rules, scripts, skills (private) | Complies |
 | `krizaka-billing` | Shared capability service | Complies |
