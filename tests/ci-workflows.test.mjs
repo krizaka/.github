@@ -530,3 +530,16 @@ test("java-ci's verify reads GitHub Packages, and every job that calls java-ci, 
   assert.ok(callers.length >= 3, "the self-test calls java-ci, and the gate calls the self-test");
   for (const [name, text] of callers) assert.match(text, PACKAGES, `${name} grants packages: read`);
 });
+
+// settings.xml names the server `github` with ${env.GITHUB_TOKEN} (setup-java `server-password`): a step that runs Maven
+// without that variable reads GitHub Packages anonymously and gets 401 on the released krizaka-parent family
+// (orazaka-knowledge-service#59: rewrite:dryRun could not read krizaka-rewrite-style 0.9.0).
+test("java-ci: every step that runs Maven passes GITHUB_TOKEN, the password settings.xml reads", () => {
+  const steps = read("java-ci").split(/\n {6}- /).slice(1);
+  const maven = steps.filter((s) => /\$mvn_cmd"|scripts\/workspace\.mjs ci /.test(s));
+  assert.ok(maven.length >= 3, "the Maven steps were not found");
+  for (const step of maven) {
+    const name = step.match(/^name: (.+)$/m)?.[1] ?? step.split("\n")[0];
+    assert.match(step, /^ {10}GITHUB_TOKEN: \$\{\{ github\.token \}\}( |$)/m, `${name}: no GITHUB_TOKEN in its env`);
+  }
+});
