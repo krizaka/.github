@@ -31,6 +31,16 @@ test("drift-all: a different plain value, an unreadable spec, a missing app and 
   assert.ok(!calls.some((c) => c.args[1] === "update"));
 });
 
+test("drift-all: an app of another team (krizaka-prod) is not read with the Krizaka team's token, and is read with its own", async () => {
+  const prod = { app: "verikora-coming-soon", repo: "krizaka/krizaka-coming-soon", spec: ".do/app-verikora.yaml", team: "krizaka-prod" };
+  const both = { apps: [...registry.apps, prod] };
+  const r1 = await driftAll({ registry: both, doctl: team(), fetch: serve(liveSpec()), env: {} });
+  assert.deepEqual(r1, { ok: ["krizaka-com"], drift: [] });
+  const prodDoctl = fakeDoctl({ team: "krizaka-prod", doTeam: "krizaka-prod", apps: [] }).doctl;
+  const r2 = await driftAll({ registry: both, doctl: prodDoctl, fetch: serve(liveSpec()), env: {} });
+  assert.deepEqual(r2.drift, [{ app: "verikora-coming-soon", differences: ["listed in apps.json but not in the team krizaka-prod"] }]);
+});
+
 test("drift-all: a spec file that does not parse (a duplicate key) is reported, it does not stop the run", async () => {
   const bad = async () => new Response("a: 1\na: 2\n", { status: 200 });
   const r = await driftAll({ registry, doctl: team(), fetch: bad, env: {} });
@@ -41,4 +51,5 @@ test("drift-all: apps.json lists every app once, with a repo and a spec path", (
   const { apps } = JSON.parse(readFileSync(new URL("../apps.json", import.meta.url), "utf8"));
   assert.equal(new Set(apps.map((a) => a.app)).size, apps.length);
   for (const a of apps) assert.match(`${a.repo} ${a.spec}`, /^krizaka\/[\w.-]+ [\w./-]+\.ya?ml$/);
+  for (const a of apps) if (a.team !== undefined) assert.equal(a.team, "krizaka-prod", `${a.app}: the only other team is krizaka-prod`);
 });

@@ -1,5 +1,5 @@
 {
-  "_": "Every App Platform app of the Krizaka team and where its spec lives (main of the repository). `krizaka-deploy drift-all` compares each with the live app (report only). A new app is added here in the PR that creates it.",
+  "_": "Every App Platform app and where its spec lives (main of the repository); `team` names the DigitalOcean team when it is not the Krizaka team (krizaka-prod: the commercial domains). `krizaka-deploy drift-all` compares each app of the team it is authenticated for with the live app (report only). A new app is added here in the PR that creates it.",
   "apps": [
     { "app": "krizaka-com", "repo": "krizaka/krizaka-com", "spec": "deploy/digitalocean/app.yaml" },
     { "app": "krizaka-blog", "repo": "krizaka/krizaka-blog", "spec": ".do/app.yaml" },
@@ -8,6 +8,9 @@
     { "app": "akinaza-dev", "repo": "krizaka/akinaza", "spec": "deploy/digitalocean/app.yaml" },
     { "app": "yomizaka-dev", "repo": "krizaka/yomizaka", "spec": "deploy/digitalocean/dev.app.yaml" },
     { "app": "orazaka-dev", "repo": "krizaka/orazaka", "spec": "infra/deploy/orazaka-dev.app.yaml" },
-    { "app": "kachizaka", "repo": "krizaka/kachizaka", "spec": ".do/app.yaml" }
+    { "app": "kachizaka", "repo": "krizaka/kachizaka", "spec": ".do/app.yaml" },
+    { "app": "verikora-coming-soon", "repo": "krizaka/krizaka-coming-soon", "spec": ".do/app-verikora.yaml", "team": "krizaka-prod" },
+    { "app": "folioviv-coming-soon", "repo": "krizaka/krizaka-coming-soon", "spec": ".do/app-folioviv.yaml", "team": "krizaka-prod" },
+    { "app": "sovkora-coming-soon", "repo": "krizaka/krizaka-coming-soon", "spec": ".do/app-sovkora.yaml", "team": "krizaka-prod" }
   ]
 }

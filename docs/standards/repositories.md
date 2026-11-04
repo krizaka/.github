@@ -43,6 +43,7 @@ shape fits, but whose role needs discussion.
 | `krizaka-blog` | Shared blog | Complies |
 | `krizaka-build` | Shared Java build | Complies |
 | `krizaka-com` | Shared company site | Complies |
+| `krizaka-coming-soon` | The coming-soon pages of the products' commercial domains (www.verikora.com, www.folioviv.com, www.sovkora.com), static sites in the DigitalOcean team krizaka-prod, until each product opens there | Complies |
 | `krizaka-composer` | Shared visual page editor: the Krizaka fork of Puck (`@krizaka/composer`) | Complies |
 | `krizaka-infra` | Shared infrastructure as code | Complies |
 | `krizaka-internal` | Internal issues and notes (private) | **Paused** (issues only, no code: out of the matrix) |

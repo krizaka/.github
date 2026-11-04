@@ -76,7 +76,8 @@ export function fakeDoctl(state = {}, calls = []) {
     if (!answer) throw new Error(`unscripted doctl call: ${args.slice(2).join(" ")}`);
     return answer();
   };
-  const doctl = createDoctl({ exec, env: {} });
+  // `doTeam`: the team the run expects (KRIZAKA_DO_TEAM), for a run against the production team.
+  const doctl = createDoctl({ exec, env: s.doTeam ? { KRIZAKA_DO_TEAM: s.doTeam } : {} });
   return { doctl, calls, state: s };
 }
 
