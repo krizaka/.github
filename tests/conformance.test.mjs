@@ -265,6 +265,22 @@ test("required-checks-profile: apps need journeys/visual only where they call th
   assert.equal((await runCheck(rule.check, snap("x", "app", withJ))).ok, true);
 });
 
+test("required-checks-profile: a private repository named in skipRepos owes no SonarCloud check, but still the gate and the scan", async () => {
+  const rule = loadRules().find((r) => r.id === "required-checks-profile");
+  const mk = (name, kind, req) => snapshotOf(name, kind, [".github/workflows/ci.yml"], async () => "on: push", { requiredChecks: async () => req });
+  const noSonar = ["CI gate", "Security scan / gitleaks (secrets)"];
+  assert.equal((await runCheck(rule.check, mk("krizaka-infra", "iac", noSonar))).ok, true);
+  assert.equal((await runCheck(rule.check, mk("kachizaka", "app", noSonar))).ok, true);
+  const other = await runCheck(rule.check, mk("krizaka-ui", "app", noSonar));
+  assert.equal(other.ok, false);
+  assert.match(other.why, /Sonar/);
+  const noGate = await runCheck(rule.check, mk("krizaka-infra", "iac", ["Security scan / gitleaks (secrets)"]));
+  assert.match(noGate.why, /CI gate/);
+  for (const groups of Object.values(rule.check.byKind)) {
+    for (const g of groups.filter((x) => x.skipRepos)) assert.ok(g.skipWhy && g.skipWhy.length >= 30, "a skip says why");
+  }
+});
+
 test("versions-current: red when a family pin is older than a version out for longer than the grace", async () => {
   const now = Date.parse("2026-11-01T00:00:00Z");
   const files = { "package.json": JSON.stringify({ devDependencies: { "@krizaka/config": "^0.19.0" } }) };
