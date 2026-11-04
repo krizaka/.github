@@ -248,7 +248,7 @@ const CHECKS = {
     const groups = check.byKind[snap.kind] ?? [];
     const required = await snap.requiredChecks();
     const text = await snap.workflows();
-    return profileVerdict(groups, required, callsOf(text));
+    return profileVerdict(groups, required, callsOf(text), snap.name);
   },
   "no-mention": async (check, snap) => {
     // `allow`: path prefixes whose text is history (a released chapter, a changelog). `scan` is absent offline: nothing to prove.
@@ -303,9 +303,10 @@ export function mergedResultVerdict({ mergeQueue, strict }) {
 }
 
 /** The groups of the profile that no required context satisfies; a group with `when` only counts when the repository calls that workflow. */
-export function profileVerdict(groups, required, calls) {
+export function profileVerdict(groups, required, calls, repo = "") {
   const missing = groups
     .filter((g) => !g.when || calls.has(g.when))
+    .filter((g) => !g.skipRepos?.includes(repo)) // a private repository cannot have SonarCloud: skipRepos names it, skipWhy says why
     .filter((g) => !required.some((c) => new RegExp(g.pattern).test(c)))
     .map((g) => g.name);
   return verdict(missing.length === 0, `required checks on main lack: ${missing.join(", ")}`);
