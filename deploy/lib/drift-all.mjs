@@ -1,6 +1,8 @@
-// `krizaka-deploy drift-all`: every app of the Krizaka team against the spec its repository keeps. Report only — it never applies.
+// `krizaka-deploy drift-all`: every app of the team doctl is authenticated for against the spec its repository keeps. Report only — it never
+// applies. apps.json holds the apps of every team (`team`, default the Krizaka team): a run reads only the apps of its own team, so the
+// production team (krizaka-prod) is checked with its own token (KRIZAKA_DO_TEAM=krizaka-prod and DIGITALOCEAN_ACCESS_TOKEN set).
 import { appendFileSync } from "node:fs";
-import { assertContext } from "./doctl.mjs";
+import { assertContext, DEFAULT_TEAM } from "./doctl.mjs";
 import { parseSpec } from "./spec.mjs";
 import { specDrift } from "./drift.mjs";
 
@@ -9,15 +11,16 @@ const raw = (repo, spec) => `https://raw.githubusercontent.com/${repo}/main/${sp
 /** @returns { ok: string[], drift: { app, differences: string[] }[] } */
 export async function driftAll({ registry, doctl, fetch = globalThis.fetch, env = process.env, argv = [] }) {
   assertContext({ env, argv });
-  await doctl.assertTeam();
+  const team = await doctl.assertTeam();
+  const apps = registry.apps.filter((a) => (a.team ?? DEFAULT_TEAM) === team);
   const live = JSON.parse((await doctl.run(["apps", "list", "-o", "json"])) || "[]");
   const byName = new Map(live.map((a) => [a?.spec?.name, a?.spec]));
   const ok = [];
   const drift = [];
-  for (const { app, repo, spec } of registry.apps) {
+  for (const { app, repo, spec } of apps) {
     const liveSpec = byName.get(app);
     if (!liveSpec) {
-      drift.push({ app, differences: ["listed in apps.json but not in the Krizaka team"] });
+      drift.push({ app, differences: [`listed in apps.json but not in the team ${team}`] });
       continue;
     }
     let res;
@@ -40,7 +43,7 @@ export async function driftAll({ registry, doctl, fetch = globalThis.fetch, env 
     if (differences.length) drift.push({ app, differences });
     else ok.push(app);
   }
-  const listed = new Set(registry.apps.map((a) => a.app));
+  const listed = new Set(apps.map((a) => a.app));
   for (const name of byName.keys()) if (!listed.has(name)) drift.push({ app: name, differences: ["a live app that apps.json does not list (add it, with its spec)"] });
   return { ok, drift };
 }

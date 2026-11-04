@@ -67,6 +67,7 @@
     "krizaka-blog": ["site"],
     "krizaka-build": ["library", "docs"],
     "krizaka-com": ["site"],
+    "krizaka-coming-soon": ["site"],
     "krizaka-composer": ["library"],
     "krizaka-infra": ["infra"],
     "krizaka-lab": ["library"],

@@ -41,12 +41,12 @@
       "owner": "krizaka",
       "role": "Kridoc (code name kachizaka): product repository, a web app (www.kridoc.com) whose coming-soon page is its stable face while the product is in design; mobile and macOS apps follow",
       "team": "krizaka",
-      "kind": "app",
+      "kind": "site",
       "deploy": [
         "kachizaka"
       ],
       "archived": false,
-      "visibility": "public",
+      "visibility": "private",
       "status": "Complies"
     },
     {
@@ -122,6 +122,21 @@
       "status": "Complies"
     },
     {
+      "name": "krizaka-coming-soon",
+      "owner": "krizaka",
+      "role": "The coming-soon pages of the products' commercial domains (www.verikora.com, www.folioviv.com, www.sovkora.com), static sites in the DigitalOcean team krizaka-prod, until each product opens there",
+      "team": "krizaka",
+      "kind": "site",
+      "deploy": [
+        "folioviv-coming-soon",
+        "sovkora-coming-soon",
+        "verikora-coming-soon"
+      ],
+      "archived": false,
+      "visibility": "private",
+      "status": "Complies"
+    },
+    {
       "name": "krizaka-composer",
       "owner": "krizaka",
       "role": "Shared visual page editor: the Krizaka fork of Puck (`@krizaka/composer`)",
@@ -140,7 +155,7 @@
       "kind": "iac",
       "deploy": [],
       "archived": false,
-      "visibility": "public",
+      "visibility": "private",
       "status": "Complies"
     },
     {
