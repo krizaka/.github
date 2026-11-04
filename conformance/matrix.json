@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-03T13:44:22.976Z",
+  "generatedAt": "2026-11-04T13:52:52.008Z",
   "summary": [
     {
       "id": "security-scan",
@@ -19,7 +19,7 @@
     {
       "id": "scorecard",
       "red": 1,
-      "green": 35
+      "green": 33
     },
     {
       "id": "dependabot-config",
@@ -53,8 +53,8 @@
     },
     {
       "id": "maven-family-current",
-      "red": 2,
-      "green": 11
+      "red": 3,
+      "green": 10
     },
     {
       "id": "workspace-guard",
@@ -143,8 +143,8 @@
     },
     {
       "id": "fail-closed-sg",
-      "red": 7,
-      "green": 1
+      "red": 6,
+      "green": 2
     },
     {
       "id": "time-limits",
@@ -153,8 +153,8 @@
     },
     {
       "id": "required-checks-report-in-queue",
-      "red": 21,
-      "green": 13
+      "red": 19,
+      "green": 15
     },
     {
       "id": "rust-guards",
@@ -169,12 +169,12 @@
     {
       "id": "sonar-ratchet",
       "red": 1,
-      "green": 33
+      "green": 32
     },
     {
       "id": "no-self-issues",
-      "red": 1,
-      "green": 35
+      "red": 0,
+      "green": 36
     }
   ],
   "cells": {
@@ -359,7 +359,7 @@
       },
       "release-propagation": {
         "status": "red",
-        "why": "the bump never landed: @krizaka/app-client 0.1.0 < 0.3.0 (published 11 days ago), @krizaka/config 0.17.0 < 0.20.0 (published 4 days ago), @krizaka/discovery 0.1.0 < 0.1.2 (published 8 days ago), @krizaka/i18n 0.2.1 < 0.2.7 (published 17 days ago), @krizaka/icons 0.7.0 < 0.9.1 (published 12 days ago), @krizaka/intl 0.3.0 < 0.4.1 (published 9 days ago), @krizaka/query 0.2.2 < 0.3.0 (published 4 days ago), @krizaka/tokens 3.76.1 < 3.82.0 (published 4 days ago), @krizaka/ui 3.76.1 < 3.82.0 (published 4 days ago), @krizaka/api-keys 0.1.0 < 0.3.1 (published 8 days ago), @krizaka/auth 0.12.0 < 0.13.2 (published 5 days ago), @krizaka/brief 0.1.0 < 0.1.1 (published 7 days ago), @krizaka/charts 0.6.1 < 0.8.0 (published 9 days ago), @krizaka/fonts 0.5.0 < 0.5.3 (published 8 days ago), @krizaka/org 0.3.1 < 0.7.1 (published 6 days ago), @krizaka/organize 0.4.0 < 0.5.1 (published 7 days ago), @krizaka/privacy 0.2.0 < 0.2.3 (published 5 days ago), @krizaka/settings 0.2.0 < 0.6.0 (published 8 days ago), @krizaka/storage 0.8.1 < 0.11.1 (published 3 days ago), @krizaka/tailwind 3.76.1 < 3.82.0 (published 4 days ago), @krizaka/webhooks 0.1.0 < 0.3.4 (published 11 days ago), @krizaka/page-audit 0.5.1 < 0.8.0 (published 4 days ago), @krizaka/db 0.3.0 < 0.3.1 (published 5 days ago)"
+        "why": "the bump never landed: @krizaka/app-client 0.1.0 < 0.3.0 (published 12 days ago), @krizaka/config 0.17.0 < 0.20.0 (published 5 days ago), @krizaka/discovery 0.1.0 < 0.1.2 (published 9 days ago), @krizaka/i18n 0.2.1 < 0.2.7 (published 18 days ago), @krizaka/icons 0.7.0 < 0.9.1 (published 13 days ago), @krizaka/intl 0.3.0 < 0.4.1 (published 10 days ago), @krizaka/query 0.2.2 < 0.3.0 (published 5 days ago), @krizaka/tokens 3.76.1 < 3.85.0 (published 5 days ago), @krizaka/ui 3.76.1 < 3.85.0 (published 5 days ago), @krizaka/api-keys 0.1.0 < 0.3.1 (published 9 days ago), @krizaka/auth 0.12.0 < 0.13.2 (published 6 days ago), @krizaka/brief 0.1.0 < 0.1.1 (published 8 days ago), @krizaka/charts 0.6.1 < 0.8.0 (published 10 days ago), @krizaka/fonts 0.5.0 < 0.5.3 (published 9 days ago), @krizaka/org 0.3.1 < 0.7.1 (published 7 days ago), @krizaka/organize 0.4.0 < 0.5.1 (published 8 days ago), @krizaka/privacy 0.2.0 < 0.2.3 (published 6 days ago), @krizaka/settings 0.2.0 < 0.6.0 (published 9 days ago), @krizaka/storage 0.8.1 < 0.11.1 (published 4 days ago), @krizaka/tailwind 3.76.1 < 3.85.0 (published 5 days ago), @krizaka/webhooks 0.1.0 < 0.3.4 (published 12 days ago), @krizaka/page-audit 0.5.1 < 0.8.0 (published 5 days ago), @krizaka/db 0.3.0 < 0.3.1 (published 6 days ago)"
       },
       "maven-family-current": {
         "status": "n/a",
@@ -476,8 +476,8 @@
         "why": ""
       },
       "scorecard": {
-        "status": "green",
-        "why": ""
+        "status": "n/a",
+        "why": "exempt: OpenSSF Scorecard and its public results are for public repositories only; this repository is private (founder, 2026-11-04, krizaka-internal#2364)."
       },
       "dependabot-config": {
         "status": "green",
@@ -576,16 +576,16 @@
         "why": ""
       },
       "fail-closed-sg": {
-        "status": "red",
-        "why": "sg-ratchet.json lacks no-fail-open-secret"
+        "status": "green",
+        "why": ""
       },
       "time-limits": {
         "status": "red",
         "why": "apps/web/vitest.config.mts: no `testTimeout`"
       },
       "required-checks-report-in-queue": {
-        "status": "red",
-        "why": "« SonarCloud Code Analysis » is required but no CI scan job (sonar-scan) exists: the app does not analyse a merge queue SHA"
+        "status": "green",
+        "why": ""
       },
       "rust-guards": {
         "status": "n/a",
@@ -841,7 +841,7 @@
       },
       "agents-template": {
         "status": "red",
-        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 102 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 105 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
       },
       "journeys": {
         "status": "n/a",
@@ -927,7 +927,7 @@
       },
       "release-propagation": {
         "status": "red",
-        "why": "the bump never landed: @krizaka/charts 0.6.1 < 0.8.0 (published 9 days ago), @krizaka/config 0.10.0 < 0.20.0 (published 6 days ago), @krizaka/email 0.1.1 < 0.5.0 (published 8 days ago), @krizaka/fonts 0.5.1 < 0.5.3 (published 8 days ago), @krizaka/i18n 0.2.5 < 0.2.7 (published 6 days ago), @krizaka/icons 0.9.0 < 0.9.1 (published 8 days ago), @krizaka/query 0.2.2 < 0.3.0 (published 4 days ago), @krizaka/rate-limit 0.2.0 < 0.2.2 (published 4 days ago), @krizaka/tailwind 3.61.0 < 3.82.0 (published 8 days ago), @krizaka/tokens 3.61.0 < 3.82.0 (published 8 days ago), @krizaka/ui 3.73.0 < 3.82.0 (published 5 days ago)"
+        "why": "the bump never landed: @krizaka/charts 0.6.1 < 0.8.0 (published 10 days ago), @krizaka/config 0.10.0 < 0.20.0 (published 7 days ago), @krizaka/email 0.1.1 < 0.5.0 (published 9 days ago), @krizaka/fonts 0.5.1 < 0.5.3 (published 9 days ago), @krizaka/i18n 0.2.5 < 0.2.7 (published 7 days ago), @krizaka/icons 0.9.0 < 0.9.1 (published 9 days ago), @krizaka/query 0.2.2 < 0.3.0 (published 5 days ago), @krizaka/rate-limit 0.2.0 < 0.2.2 (published 5 days ago), @krizaka/tailwind 3.61.0 < 3.85.0 (published 9 days ago), @krizaka/tokens 3.61.0 < 3.85.0 (published 9 days ago), @krizaka/ui 3.73.0 < 3.85.0 (published 6 days ago)"
       },
       "maven-family-current": {
         "status": "n/a",
@@ -983,7 +983,7 @@
       },
       "agents-template": {
         "status": "red",
-        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 247 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 252 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
       },
       "journeys": {
         "status": "n/a",
@@ -1069,7 +1069,7 @@
       },
       "release-propagation": {
         "status": "red",
-        "why": "the bump never landed: @krizaka/config 0.4.0 < 0.20.0 (published 19 days ago), @krizaka/fonts 0.5.1 < 0.5.3 (published 8 days ago), @krizaka/i18n 0.2.0 < 0.2.7 (published 19 days ago), @krizaka/icons 0.9.0 < 0.9.1 (published 8 days ago), @krizaka/query 0.2.2 < 0.3.0 (published 4 days ago), @krizaka/tailwind 3.60.0 < 3.82.0 (published 8 days ago), @krizaka/tokens 3.60.0 < 3.82.0 (published 8 days ago), @krizaka/ui 3.60.0 < 3.82.0 (published 8 days ago)"
+        "why": "the bump never landed: @krizaka/config 0.4.0 < 0.20.0 (published 20 days ago), @krizaka/fonts 0.5.1 < 0.5.3 (published 9 days ago), @krizaka/i18n 0.2.0 < 0.2.7 (published 20 days ago), @krizaka/icons 0.9.0 < 0.9.1 (published 9 days ago), @krizaka/query 0.2.2 < 0.3.0 (published 5 days ago), @krizaka/tailwind 3.60.0 < 3.85.0 (published 9 days ago), @krizaka/tokens 3.60.0 < 3.85.0 (published 9 days ago), @krizaka/ui 3.60.0 < 3.85.0 (published 9 days ago)"
       },
       "maven-family-current": {
         "status": "n/a",
@@ -1211,7 +1211,7 @@
       },
       "release-propagation": {
         "status": "red",
-        "why": "the bump never landed: @krizaka/config 0.17.0 < 0.20.0 (published 4 days ago), @krizaka/discovery 0.1.0 < 0.1.2 (published 8 days ago), @krizaka/email-verification 0.1.0 < 0.1.1 (published 4 days ago), @krizaka/i18n 0.2.5 < 0.2.7 (published 6 days ago), @krizaka/icons 0.9.0 < 0.9.1 (published 8 days ago), @krizaka/rate-limit 0.2.0 < 0.2.2 (published 4 days ago)"
+        "why": "the bump never landed: @krizaka/config 0.17.0 < 0.20.0 (published 5 days ago), @krizaka/discovery 0.1.0 < 0.1.2 (published 9 days ago), @krizaka/email-verification 0.1.0 < 0.1.1 (published 5 days ago), @krizaka/i18n 0.2.5 < 0.2.7 (published 7 days ago), @krizaka/icons 0.9.0 < 0.9.1 (published 9 days ago), @krizaka/rate-limit 0.2.0 < 0.2.2 (published 5 days ago)"
       },
       "maven-family-current": {
         "status": "n/a",
@@ -1267,7 +1267,7 @@
       },
       "agents-template": {
         "status": "red",
-        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 498 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 501 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
       },
       "journeys": {
         "status": "n/a",
@@ -1470,8 +1470,8 @@
         "why": ""
       },
       "scorecard": {
-        "status": "green",
-        "why": ""
+        "status": "n/a",
+        "why": "exempt: OpenSSF Scorecard and its public results are for public repositories only; this repository is private (founder, 2026-11-04, krizaka-internal#2364)."
       },
       "dependabot-config": {
         "status": "green",
@@ -1551,7 +1551,7 @@
       },
       "agents-template": {
         "status": "red",
-        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
+        "why": "not rendered from the template (no « krizaka-agents-template v1 » marker); 83 lines (at most 80); no « ## Profile » heading; no « ## Commands » heading; no « ## Read first » heading; no « ## The 10 rules that matter » heading; no « ## Before you push » heading; no link to the krizaka-engineering skill"
       },
       "journeys": {
         "status": "n/a",
@@ -1578,8 +1578,8 @@
         "why": ".github/workflows/ci.yml: job `tofu` has no timeout-minutes"
       },
       "required-checks-report-in-queue": {
-        "status": "red",
-        "why": "« SonarCloud Code Analysis » is required but no CI scan job (sonar-scan) exists: the app does not analyse a merge queue SHA"
+        "status": "green",
+        "why": ""
       },
       "rust-guards": {
         "status": "n/a",
@@ -1590,7 +1590,7 @@
         "why": ""
       },
       "sonar-ratchet": {
-        "status": "green",
+        "status": "n/a",
         "why": ""
       },
       "no-self-issues": {
@@ -1637,7 +1637,7 @@
       },
       "release-propagation": {
         "status": "red",
-        "why": "the bump never landed: @krizaka/charts 0.6.0 < 0.8.0 (published 10 days ago), @krizaka/config 0.17.0 < 0.20.0 (published 4 days ago), @krizaka/fonts 0.3.0 < 0.5.3 (published 12 days ago), @krizaka/i18n 0.2.3 < 0.2.7 (published 10 days ago), @krizaka/icons 0.7.0 < 0.9.1 (published 12 days ago), @krizaka/tailwind 3.43.0 < 3.82.0 (published 12 days ago), @krizaka/tokens 3.43.0 < 3.82.0 (published 12 days ago), @krizaka/ui 3.43.0 < 3.82.0 (published 12 days ago)"
+        "why": "the bump never landed: @krizaka/charts 0.6.0 < 0.8.0 (published 11 days ago), @krizaka/config 0.17.0 < 0.20.0 (published 5 days ago), @krizaka/fonts 0.3.0 < 0.5.3 (published 13 days ago), @krizaka/i18n 0.2.3 < 0.2.7 (published 11 days ago), @krizaka/icons 0.7.0 < 0.9.1 (published 13 days ago), @krizaka/tailwind 3.43.0 < 3.85.0 (published 13 days ago), @krizaka/tokens 3.43.0 < 3.85.0 (published 13 days ago), @krizaka/ui 3.43.0 < 3.85.0 (published 13 days ago)"
       },
       "maven-family-current": {
         "status": "n/a",
@@ -1783,7 +1783,7 @@
       },
       "maven-family-current": {
         "status": "red",
-        "why": "the bump never landed: krizaka-parent 0.3.4 < 0.9.1 (published 3 days ago)"
+        "why": "the bump never landed: krizaka-bom 0.3.5 < 0.11.0 (published 3 days ago), krizaka-parent 0.3.4 < 0.11.0 (published 4 days ago)"
       },
       "workspace-guard": {
         "status": "n/a",
@@ -1924,8 +1924,8 @@
         "why": ""
       },
       "maven-family-current": {
-        "status": "green",
-        "why": ""
+        "status": "red",
+        "why": "the bump never landed: krizaka-bom 0.3.5 < 0.11.0 (published 3 days ago), krizaka-parent 0.3.5 < 0.11.0 (published 3 days ago)"
       },
       "workspace-guard": {
         "status": "n/a",
@@ -2205,7 +2205,7 @@
       },
       "release-propagation": {
         "status": "red",
-        "why": "the bump never landed: @krizaka/config 0.4.0 < 0.20.0 (published 19 days ago), @krizaka/fonts 0.5.1 < 0.5.3 (published 8 days ago), @krizaka/i18n 0.2.0 < 0.2.7 (published 19 days ago), @krizaka/icons 0.9.0 < 0.9.1 (published 8 days ago), @krizaka/query 0.2.2 < 0.3.0 (published 4 days ago), @krizaka/tailwind 3.60.0 < 3.82.0 (published 8 days ago), @krizaka/tokens 3.60.0 < 3.82.0 (published 8 days ago), @krizaka/ui 3.60.0 < 3.82.0 (published 8 days ago)"
+        "why": "the bump never landed: @krizaka/config 0.4.0 < 0.20.0 (published 20 days ago), @krizaka/fonts 0.5.1 < 0.5.3 (published 9 days ago), @krizaka/i18n 0.2.0 < 0.2.7 (published 20 days ago), @krizaka/icons 0.9.0 < 0.9.1 (published 9 days ago), @krizaka/query 0.2.2 < 0.3.0 (published 5 days ago), @krizaka/tailwind 3.60.0 < 3.85.0 (published 9 days ago), @krizaka/tokens 3.60.0 < 3.85.0 (published 9 days ago), @krizaka/ui 3.60.0 < 3.85.0 (published 9 days ago)"
       },
       "maven-family-current": {
         "status": "n/a",
@@ -2347,7 +2347,7 @@
       },
       "release-propagation": {
         "status": "red",
-        "why": "the bump never landed: @krizaka/config 0.9.1 < 0.20.0 (published 7 days ago), @krizaka/org 0.1.0 < 0.7.1 (published 7 days ago), @krizaka/organize 0.4.0 < 0.5.1 (published 7 days ago)"
+        "why": "the bump never landed: @krizaka/config 0.9.1 < 0.20.0 (published 8 days ago), @krizaka/org 0.1.0 < 0.7.1 (published 8 days ago), @krizaka/organize 0.4.0 < 0.5.1 (published 8 days ago)"
       },
       "maven-family-current": {
         "status": "n/a",
@@ -2493,7 +2493,7 @@
       },
       "maven-family-current": {
         "status": "red",
-        "why": "the bump never landed: krizaka-bom 0.3.3 < 0.9.1 (published 3 days ago), krizaka-parent 0.3.3 < 0.9.1 (published 3 days ago)"
+        "why": "the bump never landed: krizaka-bom 0.3.3 < 0.11.0 (published 4 days ago), krizaka-parent 0.3.3 < 0.11.0 (published 4 days ago)"
       },
       "workspace-guard": {
         "status": "n/a",
@@ -2730,8 +2730,8 @@
         "why": ""
       },
       "no-self-issues": {
-        "status": "red",
-        "why": "a workflow has « gh issue create »"
+        "status": "green",
+        "why": ""
       }
     },
     "orazaka-ai-engine": {
@@ -4619,7 +4619,7 @@
       },
       "release-propagation": {
         "status": "red",
-        "why": "the bump never landed: @krizaka/auth 0.10.0 < 0.13.2 (published 5 days ago), @krizaka/charts 0.6.2 < 0.8.0 (published 8 days ago), @krizaka/config 0.17.0 < 0.20.0 (published 4 days ago), @krizaka/fonts 0.5.1 < 0.5.3 (published 8 days ago), @krizaka/icons 0.9.0 < 0.9.1 (published 8 days ago), @krizaka/intl 0.4.0 < 0.4.1 (published 8 days ago), @krizaka/orazaka-shared 1.4.0 < 1.5.0 (published 11 days ago), @krizaka/page-audit 0.3.1 < 0.8.0 (published 6 days ago), @krizaka/query 0.2.2 < 0.3.0 (published 4 days ago), @krizaka/tailwind 3.71.0 < 3.82.0 (published 5 days ago), @krizaka/tokens 3.71.0 < 3.82.0 (published 5 days ago), @krizaka/ui 3.71.0 < 3.82.0 (published 5 days ago)"
+        "why": "the bump never landed: @krizaka/auth 0.10.0 < 0.13.2 (published 6 days ago), @krizaka/charts 0.7.1 < 0.8.0 (published 6 days ago), @krizaka/config 0.17.0 < 0.20.0 (published 5 days ago), @krizaka/fonts 0.5.2 < 0.5.3 (published 5 days ago), @krizaka/orazaka-shared 1.4.0 < 1.5.0 (published 12 days ago), @krizaka/page-audit 0.3.1 < 0.8.0 (published 7 days ago), @krizaka/query 0.2.2 < 0.3.0 (published 5 days ago), @krizaka/tailwind 3.71.0 < 3.85.0 (published 6 days ago), @krizaka/tokens 3.71.0 < 3.85.0 (published 6 days ago), @krizaka/ui 3.71.0 < 3.85.0 (published 6 days ago)"
       },
       "maven-family-current": {
         "status": "n/a",
@@ -5187,7 +5187,7 @@
       },
       "release-propagation": {
         "status": "red",
-        "why": "the bump never landed: @krizaka/app-client 0.2.0 < 0.3.0 (published 8 days ago), @krizaka/app-desktop 0.1.0 < 0.1.2 (published 11 days ago), @krizaka/i18n 0.2.1 < 0.2.7 (published 17 days ago), @krizaka/icons 0.7.0 < 0.9.1 (published 12 days ago), @krizaka/query 0.2.2 < 0.3.0 (published 4 days ago), @krizaka/tailwind 3.63.0 < 3.82.0 (published 7 days ago), @krizaka/tokens 3.63.0 < 3.82.0 (published 7 days ago), @krizaka/ui 3.64.0 < 3.82.0 (published 7 days ago), @krizaka/config 0.12.0 < 0.20.0 (published 6 days ago), @krizaka/discovery 0.1.0 < 0.1.2 (published 8 days ago), @krizaka/api-keys 0.3.0 < 0.3.1 (published 5 days ago), @krizaka/audit 0.1.3 < 0.1.6 (published 7 days ago), @krizaka/auth 0.12.0 < 0.13.2 (published 5 days ago), @krizaka/brief 0.1.0 < 0.1.1 (published 7 days ago), @krizaka/charts 0.6.2 < 0.8.0 (published 8 days ago), @krizaka/coupons 0.1.1 < 0.1.4 (published 5 days ago), @krizaka/credits 0.1.1 < 0.1.4 (published 5 days ago), @krizaka/db 0.3.0 < 0.3.1 (published 5 days ago), @krizaka/email 0.3.0 < 0.5.0 (published 5 days ago), @krizaka/fonts 0.3.0 < 0.5.3 (published 12 days ago), @krizaka/intl 0.3.0 < 0.4.1 (published 9 days ago), @krizaka/orazaka-client 0.2.0 < 0.2.1 (published 4 days ago), @krizaka/organize 0.1.0 < 0.5.1 (published 11 days ago), @krizaka/payments 0.5.0 < 0.7.1 (published 4 days ago), @krizaka/privacy 0.2.0 < 0.2.3 (published 5 days ago), @krizaka/rate-limit 0.1.0 < 0.2.2 (published 7 days ago), @krizaka/storage 0.6.0 < 0.11.1 (published 5 days ago), @krizaka/time 0.1.0 < 0.2.0 (published 4 days ago), @krizaka/webhooks 0.3.0 < 0.3.4 (published 5 days ago)"
+        "why": "the bump never landed: @krizaka/app-client 0.2.0 < 0.3.0 (published 9 days ago), @krizaka/app-desktop 0.1.0 < 0.1.2 (published 12 days ago), @krizaka/i18n 0.2.1 < 0.2.7 (published 18 days ago), @krizaka/icons 0.7.0 < 0.9.1 (published 13 days ago), @krizaka/query 0.2.2 < 0.3.0 (published 5 days ago), @krizaka/tailwind 3.63.0 < 3.85.0 (published 8 days ago), @krizaka/tokens 3.63.0 < 3.85.0 (published 8 days ago), @krizaka/ui 3.64.0 < 3.85.0 (published 8 days ago), @krizaka/config 0.12.0 < 0.20.0 (published 7 days ago), @krizaka/discovery 0.1.0 < 0.1.2 (published 9 days ago), @krizaka/api-keys 0.3.0 < 0.3.1 (published 6 days ago), @krizaka/audit 0.1.3 < 0.1.6 (published 8 days ago), @krizaka/auth 0.12.0 < 0.13.2 (published 6 days ago), @krizaka/brief 0.1.0 < 0.1.1 (published 8 days ago), @krizaka/charts 0.6.2 < 0.8.0 (published 9 days ago), @krizaka/coupons 0.1.1 < 0.1.4 (published 6 days ago), @krizaka/credits 0.1.1 < 0.1.4 (published 6 days ago), @krizaka/db 0.3.0 < 0.3.1 (published 6 days ago), @krizaka/email 0.3.0 < 0.5.0 (published 6 days ago), @krizaka/fonts 0.3.0 < 0.5.3 (published 13 days ago), @krizaka/intl 0.3.0 < 0.4.1 (published 10 days ago), @krizaka/orazaka-client 0.2.0 < 0.2.1 (published 5 days ago), @krizaka/organize 0.1.0 < 0.5.1 (published 12 days ago), @krizaka/payments 0.5.0 < 0.7.1 (published 5 days ago), @krizaka/privacy 0.2.0 < 0.2.3 (published 6 days ago), @krizaka/rate-limit 0.1.0 < 0.2.2 (published 8 days ago), @krizaka/storage 0.6.0 < 0.11.1 (published 6 days ago), @krizaka/time 0.1.0 < 0.2.0 (published 5 days ago), @krizaka/webhooks 0.3.0 < 0.3.4 (published 6 days ago)"
       },
       "maven-family-current": {
         "status": "n/a",
@@ -5450,84 +5450,91 @@
           "name": "@krizaka/app-client",
           "have": "0.1.0",
           "latest": "0.3.0",
-          "days": 11
+          "days": 12
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/discovery",
           "have": "0.1.0",
           "latest": "0.1.2",
-          "days": 8
+          "days": 9
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/i18n",
           "have": "0.2.1",
           "latest": "0.2.7",
-          "days": 17
+          "days": 18
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/icons",
           "have": "0.7.0",
           "latest": "0.9.1",
-          "days": 12
+          "days": 13
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/intl",
           "have": "0.3.0",
           "latest": "0.4.1",
-          "days": 9
+          "days": 10
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/api-keys",
           "have": "0.1.0",
           "latest": "0.3.1",
-          "days": 8
+          "days": 9
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/brief",
           "have": "0.1.0",
           "latest": "0.1.1",
-          "days": 7
+          "days": 8
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/charts",
           "have": "0.6.1",
           "latest": "0.8.0",
-          "days": 9
+          "days": 10
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/fonts",
           "have": "0.5.0",
           "latest": "0.5.3",
-          "days": 8
+          "days": 9
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/org",
+          "have": "0.3.1",
+          "latest": "0.7.1",
+          "days": 7
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/organize",
           "have": "0.4.0",
           "latest": "0.5.1",
-          "days": 7
+          "days": 8
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/settings",
           "have": "0.2.0",
           "latest": "0.6.0",
-          "days": 8
+          "days": 9
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/webhooks",
           "have": "0.1.0",
           "latest": "0.3.4",
-          "days": 11
+          "days": 12
         }
       ]
     },
@@ -5536,7 +5543,7 @@
         {
           "ecosystem": "npm",
           "name": "@krizaka/config",
-          "have": "0.17.0"
+          "have": "0.20.0"
         },
         {
           "ecosystem": "npm",
@@ -5575,14 +5582,14 @@
           "name": "@krizaka/i18n",
           "have": "0.2.4",
           "latest": "0.2.7",
-          "days": 9
+          "days": 10
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/icons",
           "have": "0.9.0",
           "latest": "0.9.1",
-          "days": 8
+          "days": 9
         }
       ]
     },
@@ -5669,42 +5676,56 @@
           "name": "@krizaka/charts",
           "have": "0.6.1",
           "latest": "0.8.0",
-          "days": 9
+          "days": 10
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/config",
+          "have": "0.10.0",
+          "latest": "0.20.0",
+          "days": 7
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/email",
           "have": "0.1.1",
           "latest": "0.5.0",
-          "days": 8
+          "days": 9
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/fonts",
           "have": "0.5.1",
           "latest": "0.5.3",
-          "days": 8
+          "days": 9
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/i18n",
+          "have": "0.2.5",
+          "latest": "0.2.7",
+          "days": 7
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/icons",
           "have": "0.9.0",
           "latest": "0.9.1",
-          "days": 8
+          "days": 9
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/tailwind",
           "have": "3.61.0",
-          "latest": "3.82.0",
-          "days": 8
+          "latest": "3.85.0",
+          "days": 9
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/tokens",
           "have": "3.61.0",
-          "latest": "3.82.0",
-          "days": 8
+          "latest": "3.85.0",
+          "days": 9
         }
       ]
     },
@@ -5753,7 +5774,7 @@
         {
           "ecosystem": "maven",
           "name": "krizaka-parent",
-          "have": "0.9.1"
+          "have": "0.11.0"
         }
       ],
       "behind": [
@@ -5762,49 +5783,49 @@
           "name": "@krizaka/config",
           "have": "0.4.0",
           "latest": "0.20.0",
-          "days": 19
+          "days": 20
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/fonts",
           "have": "0.5.1",
           "latest": "0.5.3",
-          "days": 8
+          "days": 9
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/i18n",
           "have": "0.2.0",
           "latest": "0.2.7",
-          "days": 19
+          "days": 20
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/icons",
           "have": "0.9.0",
           "latest": "0.9.1",
-          "days": 8
+          "days": 9
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/tailwind",
           "have": "3.60.0",
-          "latest": "3.82.0",
-          "days": 8
+          "latest": "3.85.0",
+          "days": 9
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/tokens",
           "have": "3.60.0",
-          "latest": "3.82.0",
-          "days": 8
+          "latest": "3.85.0",
+          "days": 9
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/ui",
           "have": "3.60.0",
-          "latest": "3.82.0",
-          "days": 8
+          "latest": "3.85.0",
+          "days": 9
         }
       ]
     },
@@ -5887,14 +5908,21 @@
           "name": "@krizaka/discovery",
           "have": "0.1.0",
           "latest": "0.1.2",
-          "days": 8
+          "days": 9
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/i18n",
+          "have": "0.2.5",
+          "latest": "0.2.7",
+          "days": 7
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/icons",
           "have": "0.9.0",
           "latest": "0.9.1",
-          "days": 8
+          "days": 9
         }
       ]
     },
@@ -5955,49 +5983,49 @@
           "name": "@krizaka/charts",
           "have": "0.6.0",
           "latest": "0.8.0",
-          "days": 10
+          "days": 11
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/fonts",
           "have": "0.3.0",
           "latest": "0.5.3",
-          "days": 12
+          "days": 13
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/i18n",
           "have": "0.2.3",
           "latest": "0.2.7",
-          "days": 10
+          "days": 11
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/icons",
           "have": "0.7.0",
           "latest": "0.9.1",
-          "days": 12
+          "days": 13
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/tailwind",
           "have": "3.43.0",
-          "latest": "3.82.0",
-          "days": 12
+          "latest": "3.85.0",
+          "days": 13
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/tokens",
           "have": "3.43.0",
-          "latest": "3.82.0",
-          "days": 12
+          "latest": "3.85.0",
+          "days": 13
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/ui",
           "have": "3.43.0",
-          "latest": "3.82.0",
-          "days": 12
+          "latest": "3.85.0",
+          "days": 13
         }
       ]
     },
@@ -6080,49 +6108,49 @@
           "name": "@krizaka/app-client",
           "have": "0.1.0",
           "latest": "0.3.0",
-          "days": 11
+          "days": 12
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/app-desktop",
           "have": "0.1.0",
           "latest": "0.1.2",
-          "days": 11
+          "days": 12
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/i18n",
           "have": "0.2.1",
           "latest": "0.2.7",
-          "days": 17
+          "days": 18
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/icons",
           "have": "0.7.0",
           "latest": "0.9.1",
-          "days": 12
+          "days": 13
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/tailwind",
           "have": "3.46.0",
-          "latest": "3.82.0",
-          "days": 11
+          "latest": "3.85.0",
+          "days": 12
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/tokens",
           "have": "3.46.0",
-          "latest": "3.82.0",
-          "days": 11
+          "latest": "3.85.0",
+          "days": 12
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/ui",
           "have": "3.46.0",
-          "latest": "3.82.0",
-          "days": 11
+          "latest": "3.85.0",
+          "days": 12
         }
       ]
     },
@@ -6185,49 +6213,49 @@
           "name": "@krizaka/config",
           "have": "0.4.0",
           "latest": "0.20.0",
-          "days": 19
+          "days": 20
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/fonts",
           "have": "0.5.1",
           "latest": "0.5.3",
-          "days": 8
+          "days": 9
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/i18n",
           "have": "0.2.0",
           "latest": "0.2.7",
-          "days": 19
+          "days": 20
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/icons",
           "have": "0.9.0",
           "latest": "0.9.1",
-          "days": 8
+          "days": 9
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/tailwind",
           "have": "3.60.0",
-          "latest": "3.82.0",
-          "days": 8
+          "latest": "3.85.0",
+          "days": 9
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/tokens",
           "have": "3.60.0",
-          "latest": "3.82.0",
-          "days": 8
+          "latest": "3.85.0",
+          "days": 9
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/ui",
           "have": "3.60.0",
-          "latest": "3.82.0",
-          "days": 8
+          "latest": "3.85.0",
+          "days": 9
         }
       ]
     },
@@ -6256,7 +6284,7 @@
         {
           "ecosystem": "npm",
           "name": "@krizaka/tailwind",
-          "have": "3.82.0"
+          "have": "3.85.0"
         }
       ],
       "behind": [
@@ -6265,21 +6293,21 @@
           "name": "@krizaka/config",
           "have": "0.9.1",
           "latest": "0.20.0",
-          "days": 7
+          "days": 8
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/org",
           "have": "0.1.0",
           "latest": "0.7.1",
-          "days": 7
+          "days": 8
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/organize",
           "have": "0.4.0",
           "latest": "0.5.1",
-          "days": 7
+          "days": 8
         }
       ]
     },
@@ -6352,35 +6380,35 @@
           "name": "@krizaka/i18n",
           "have": "0.2.1",
           "latest": "0.2.7",
-          "days": 17
+          "days": 18
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/icons",
           "have": "0.4.0",
           "latest": "0.9.1",
-          "days": 20
+          "days": 21
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/tailwind",
           "have": "3.44.0",
-          "latest": "3.82.0",
-          "days": 11
+          "latest": "3.85.0",
+          "days": 12
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/tokens",
           "have": "3.44.0",
-          "latest": "3.82.0",
-          "days": 11
+          "latest": "3.85.0",
+          "days": 12
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/ui",
           "have": "3.44.0",
-          "latest": "3.82.0",
-          "days": 11
+          "latest": "3.85.0",
+          "days": 12
         }
       ]
     },
@@ -6495,56 +6523,56 @@
           "name": "@krizaka/charts",
           "have": "0.6.0",
           "latest": "0.8.0",
-          "days": 10
+          "days": 11
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/discovery",
           "have": "0.1.0",
           "latest": "0.1.2",
-          "days": 8
+          "days": 9
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/i18n",
           "have": "0.2.1",
           "latest": "0.2.7",
-          "days": 17
+          "days": 18
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/icons",
           "have": "0.5.1",
           "latest": "0.9.1",
-          "days": 16
+          "days": 17
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/intl",
           "have": "0.2.1",
           "latest": "0.4.1",
-          "days": 10
+          "days": 11
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/query",
           "have": "0.2.1",
           "latest": "0.3.0",
-          "days": 9
+          "days": 10
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/tokens",
           "have": "3.30.0",
-          "latest": "3.82.0",
-          "days": 14
+          "latest": "3.85.0",
+          "days": 15
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/ui",
           "have": "3.30.0",
-          "latest": "3.82.0",
-          "days": 14
+          "latest": "3.85.0",
+          "days": 15
         }
       ]
     },
@@ -6601,35 +6629,35 @@
           "name": "@krizaka/icons",
           "have": "0.9.0",
           "latest": "0.9.1",
-          "days": 8
+          "days": 9
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/orazaka-shared",
           "have": "1.1.0",
           "latest": "1.5.0",
-          "days": 24
+          "days": 25
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/tailwind",
           "have": "3.28.0",
-          "latest": "3.82.0",
-          "days": 14
+          "latest": "3.85.0",
+          "days": 15
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/tokens",
           "have": "3.28.0",
-          "latest": "3.82.0",
-          "days": 14
+          "latest": "3.85.0",
+          "days": 15
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/ui",
           "have": "3.28.0",
-          "latest": "3.82.0",
-          "days": 14
+          "latest": "3.85.0",
+          "days": 15
         }
       ]
     },
@@ -6648,7 +6676,7 @@
         {
           "ecosystem": "npm",
           "name": "@krizaka/charts",
-          "have": "0.6.2"
+          "have": "0.7.1"
         },
         {
           "ecosystem": "npm",
@@ -6658,17 +6686,17 @@
         {
           "ecosystem": "npm",
           "name": "@krizaka/fonts",
-          "have": "0.5.1"
+          "have": "0.5.2"
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/icons",
-          "have": "0.9.0"
+          "have": "0.9.1"
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/intl",
-          "have": "0.4.0"
+          "have": "0.4.1"
         },
         {
           "ecosystem": "npm",
@@ -6719,38 +6747,17 @@
       "behind": [
         {
           "ecosystem": "npm",
-          "name": "@krizaka/charts",
-          "have": "0.6.2",
-          "latest": "0.8.0",
-          "days": 8
-        },
-        {
-          "ecosystem": "npm",
-          "name": "@krizaka/fonts",
-          "have": "0.5.1",
-          "latest": "0.5.3",
-          "days": 8
-        },
-        {
-          "ecosystem": "npm",
-          "name": "@krizaka/icons",
-          "have": "0.9.0",
-          "latest": "0.9.1",
-          "days": 8
-        },
-        {
-          "ecosystem": "npm",
-          "name": "@krizaka/intl",
-          "have": "0.4.0",
-          "latest": "0.4.1",
-          "days": 8
-        },
-        {
-          "ecosystem": "npm",
           "name": "@krizaka/orazaka-shared",
           "have": "1.4.0",
           "latest": "1.5.0",
-          "days": 11
+          "days": 12
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/page-audit",
+          "have": "0.3.1",
+          "latest": "0.8.0",
+          "days": 7
         }
       ]
     },
@@ -6802,42 +6809,42 @@
           "name": "@krizaka/fonts",
           "have": "0.4.0",
           "latest": "0.5.3",
-          "days": 9
+          "days": 10
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/i18n",
           "have": "0.2.4",
           "latest": "0.2.7",
-          "days": 9
+          "days": 10
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/icons",
           "have": "0.9.0",
           "latest": "0.9.1",
-          "days": 8
+          "days": 9
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/tailwind",
           "have": "3.54.0",
-          "latest": "3.82.0",
-          "days": 9
+          "latest": "3.85.0",
+          "days": 10
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/tokens",
           "have": "3.54.0",
-          "latest": "3.82.0",
-          "days": 9
+          "latest": "3.85.0",
+          "days": 10
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/ui",
           "have": "3.54.0",
-          "latest": "3.82.0",
-          "days": 9
+          "latest": "3.85.0",
+          "days": 10
         }
       ]
     },
@@ -6890,49 +6897,49 @@
           "name": "@krizaka/app-client",
           "have": "0.1.0",
           "latest": "0.3.0",
-          "days": 11
+          "days": 12
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/app-desktop",
           "have": "0.1.0",
           "latest": "0.1.2",
-          "days": 11
+          "days": 12
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/i18n",
           "have": "0.2.1",
           "latest": "0.2.7",
-          "days": 17
+          "days": 18
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/icons",
           "have": "0.7.0",
           "latest": "0.9.1",
-          "days": 12
+          "days": 13
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/tailwind",
           "have": "3.46.0",
-          "latest": "3.82.0",
-          "days": 11
+          "latest": "3.85.0",
+          "days": 12
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/tokens",
           "have": "3.46.0",
-          "latest": "3.82.0",
-          "days": 11
+          "latest": "3.85.0",
+          "days": 12
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/ui",
           "have": "3.46.0",
-          "latest": "3.82.0",
-          "days": 11
+          "latest": "3.85.0",
+          "days": 12
         }
       ]
     },
@@ -7115,48 +7122,55 @@
           "name": "@krizaka/app-client",
           "have": "0.2.0",
           "latest": "0.3.0",
-          "days": 8
+          "days": 9
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/app-desktop",
           "have": "0.1.0",
           "latest": "0.1.2",
-          "days": 11
+          "days": 12
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/i18n",
           "have": "0.2.1",
           "latest": "0.2.7",
-          "days": 17
+          "days": 18
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/icons",
           "have": "0.7.0",
           "latest": "0.9.1",
-          "days": 12
+          "days": 13
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/tailwind",
           "have": "3.63.0",
-          "latest": "3.82.0",
-          "days": 7
+          "latest": "3.85.0",
+          "days": 8
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/tokens",
           "have": "3.63.0",
-          "latest": "3.82.0",
-          "days": 7
+          "latest": "3.85.0",
+          "days": 8
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/ui",
           "have": "3.64.0",
-          "latest": "3.82.0",
+          "latest": "3.85.0",
+          "days": 8
+        },
+        {
+          "ecosystem": "npm",
+          "name": "@krizaka/config",
+          "have": "0.12.0",
+          "latest": "0.20.0",
           "days": 7
         },
         {
@@ -7164,56 +7178,56 @@
           "name": "@krizaka/discovery",
           "have": "0.1.0",
           "latest": "0.1.2",
-          "days": 8
+          "days": 9
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/audit",
           "have": "0.1.3",
           "latest": "0.1.6",
-          "days": 7
+          "days": 8
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/brief",
           "have": "0.1.0",
           "latest": "0.1.1",
-          "days": 7
+          "days": 8
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/charts",
           "have": "0.6.2",
           "latest": "0.8.0",
-          "days": 8
+          "days": 9
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/fonts",
           "have": "0.3.0",
           "latest": "0.5.3",
-          "days": 12
+          "days": 13
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/intl",
           "have": "0.3.0",
           "latest": "0.4.1",
-          "days": 9
+          "days": 10
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/organize",
           "have": "0.1.0",
           "latest": "0.5.1",
-          "days": 11
+          "days": 12
         },
         {
           "ecosystem": "npm",
           "name": "@krizaka/rate-limit",
           "have": "0.1.0",
           "latest": "0.2.2",
-          "days": 7
+          "days": 8
         }
       ]
     }
