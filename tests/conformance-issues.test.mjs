@@ -52,3 +52,8 @@ test("the workflow's token reaches krizaka-internal, where the issues live (a 40
   assert.ok(scope, "the app token is scoped to the repo list");
   assert.ok(scope[1].split(",").includes(INTERNAL), `the token's repositories include ${INTERNAL}`);
 });
+
+test("rules review 2026-11-05: the issue per red repository lists only the security rules; a repository red on other rules only has none", () => {
+  const mixed = { a: { "security-scan": { status: "red", why: "x" }, "shared-ci": { status: "red", why: "y" } }, c: { "shared-ci": { status: "red", why: "y" } } };
+  assert.deepEqual(redByRepo(mixed, rules), { a: [{ id: "security-scan", why: "x" }] });
+});

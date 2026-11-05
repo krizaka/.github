@@ -64,3 +64,16 @@ test("every template job that runs on a runner has a timeout-minutes (krizaka-ts
     }
   }
 });
+
+test("rules review 2026-11-05: the fan-out opens pull requests for the security rules only; the others are reported", async () => {
+  const rules = loadRules();
+  const cells = { a: { "security-scan": { status: "red" }, "agents-anti-slop": { status: "red" } } };
+  assert.deepEqual(planOf(rules, cells, { securityOnly: true }), [{ repo: "a", rules: ["security-scan"], manual: [] }]);
+  const { main } = await import("../scripts/conformance-fanout.mjs");
+  const { mkdtempSync, writeFileSync } = await import("node:fs");
+  const { join } = await import("node:path");
+  const { tmpdir } = await import("node:os");
+  const matrix = join(mkdtempSync(join(tmpdir(), "fanout-")), "matrix.json");
+  writeFileSync(matrix, JSON.stringify({ cells }));
+  assert.equal(await main(["--matrix", matrix, "--rules", "agents-anti-slop", "--apply"]), 2, "a non-security rule is never fanned out");
+});
