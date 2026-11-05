@@ -13,6 +13,19 @@ import { pathToFileURL } from "node:url";
 /** The quality-gate metrics that block a pull request: the Security rating and the vulnerabilities that make it. */
 export const SECURITY = /^(new_)?(security_rating|vulnerabilities)$/;
 
+/** The only hosts the gate ever calls: SonarCloud. report-task.txt is scanner-written, but a URL read from a file is never trusted. */
+export const SONAR_HOSTS = new Set(["sonarcloud.io"]);
+
+/** An https SonarCloud URL as a URL object; anything else throws (SSRF guard, jssecurity:S8476). */
+export function sonarUrl(raw) {
+  const u = new URL(raw);
+  if (u.protocol !== "https:" || !SONAR_HOSTS.has(u.hostname)) throw new Error(`refused non-SonarCloud URL (${u.protocol}//${u.hostname})`);
+  return u;
+}
+
+/** One log line: strip CR/LF so a Sonar-provided value can never inject a GitHub Actions workflow command (log injection, jssecurity:S5145). */
+export const oneLine = (s) => String(s ?? "").replace(/[\r\n]+/g, " ");
+
 /** report-task.txt (key=value lines) as an object. */
 export function parseReport(text) {
   return Object.fromEntries(
@@ -32,11 +45,12 @@ export function verdict(projectStatus) {
   return { block: failed.filter((c) => SECURITY.test(c.metricKey)), warn: failed.filter((c) => !SECURITY.test(c.metricKey)) };
 }
 
-const line = (c) => `${c.metricKey}: ${c.actualValue ?? "?"} (threshold ${c.comparator ?? ""} ${c.errorThreshold ?? "?"})`;
+const line = (c) => `${oneLine(c.metricKey)}: ${oneLine(c.actualValue ?? "?")} (threshold ${oneLine(c.comparator ?? "")} ${oneLine(c.errorThreshold ?? "?")})`;
 
 async function get(url, token) {
-  const res = await fetch(url, { headers: { authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(30000) });
-  if (!res.ok) throw new Error(`${new URL(url).pathname}: ${res.status}`);
+  const safe = sonarUrl(url);
+  const res = await fetch(safe, { headers: { authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(30000) });
+  if (!res.ok) throw new Error(`${safe.pathname}: ${res.status}`);
   return res.json();
 }
 
@@ -62,7 +76,7 @@ export async function main(argv, { token = process.env.SONAR_TOKEN, wait = (ms) 
     if (block.length === 0) console.log(`Sonar: the Security rating holds; ${warn.length} other condition(s) only warn on a pull request.`);
     return block.length ? 1 : 0;
   } catch (e) {
-    console.log(`::error::sonar-gate: the quality gate cannot be read (${e.message}): failing closed`);
+    console.log(`::error::sonar-gate: the quality gate cannot be read (${oneLine(e.message)}): failing closed`);
     return 1;
   }
 }

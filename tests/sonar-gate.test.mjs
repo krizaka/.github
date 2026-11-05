@@ -3,7 +3,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { parseReport, verdict } from "../scripts/sonar-gate.mjs";
+import { parseReport, verdict, sonarUrl, oneLine } from "../scripts/sonar-gate.mjs";
 
 const cond = (metricKey, status = "ERROR") => ({ metricKey, status, comparator: "GT", errorThreshold: "1", actualValue: "3" });
 
@@ -30,6 +30,21 @@ test("a gate that passed has nothing to say; an unreadable status blocks (fail c
 test("the scanner's report-task.txt gives the server and the background task", () => {
   const r = parseReport("projectKey=krizaka_x\nserverUrl=https://sonarcloud.io\nceTaskId=AY1\nceTaskUrl=https://sonarcloud.io/api/ce/task?id=AY1\n");
   assert.deepEqual(r, { projectKey: "krizaka_x", serverUrl: "https://sonarcloud.io", ceTaskId: "AY1", ceTaskUrl: "https://sonarcloud.io/api/ce/task?id=AY1" });
+});
+
+test("sonarUrl only fetches an https SonarCloud URL, refusing anything else (SSRF guard, jssecurity:S8476)", () => {
+  assert.equal(sonarUrl("https://sonarcloud.io/api/ce/task?id=AY1").hostname, "sonarcloud.io");
+  assert.throws(() => sonarUrl("http://sonarcloud.io/api/ce/task"), /refused/); // not https
+  assert.throws(() => sonarUrl("https://evil.example.com/api/ce/task"), /refused/); // another host
+  assert.throws(() => sonarUrl("https://sonarcloud.io.evil.com/api"), /refused/); // look-alike host
+  assert.throws(() => sonarUrl("file:///etc/passwd"), /refused/); // not even http(s)
+});
+
+test("oneLine strips CR/LF so a Sonar value cannot inject a workflow command (log injection, jssecurity:S5145)", () => {
+  assert.doesNotMatch(oneLine("3\n::error::spoofed"), /[\r\n]/);
+  assert.equal(oneLine("3\r\n::set-output name=x::y"), "3 ::set-output name=x::y");
+  assert.equal(oneLine(undefined), "");
+  assert.equal(oneLine(42), "42");
 });
 
 test("every Sonar scan of the shared CI keeps the full gate except on a pull request, where sonar-gate.mjs decides", () => {
