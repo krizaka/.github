@@ -5,12 +5,15 @@
 //   node scripts/conformance-fanout.mjs --matrix matrix.json --rules security-scan --apply        open the pull requests
 //   --skip a,b leaves repositories that already have an open pull request for the rule
 //
+// Rules review of 2026-11-05: `--apply` fans out only the rules marked `"security": true` (a non-security rule asked is refused,
+// exit 2); the other rules are reported by the matrix and listed by the dry run, never fanned out.
+//
 // `matrix.json` is `conformance.mjs --json`. One pull request per red repository, holding every auto-fixable red rule asked for
 // (copy / append-section / settings-hook of docs/standards/rules.json); the rules that stay `manual` are listed, never guessed.
 // Reads and writes GitHub with GH_TOKEN (the app token: the pull requests are the agents').
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
-import { loadRules } from "./conformance.mjs";
+import { isSecurity, loadRules } from "./conformance.mjs";
 import { DETAILS_PATH, detailsOf, MARKER, render, TEMPLATE_PATH } from "./agents-md.mjs";
 
 const ROOT = new URL("../", import.meta.url);
@@ -83,7 +86,7 @@ async function agentsFiles(repo, current, readLocal) {
 
 /** What to do per red repository: `{ repo, rules: [id], manual: [id] }`. */
 export function planOf(rules, cells, only = {}) {
-  const asked = rules.filter((r) => !only.rules || only.rules.includes(r.id));
+  const asked = rules.filter((r) => (!only.rules || only.rules.includes(r.id)) && (!only.securityOnly || isSecurity(r)));
   const plan = [];
   for (const [repo, row] of Object.entries(cells)) {
     if (only.repos && !only.repos.includes(repo)) continue;
@@ -146,8 +149,14 @@ const flag = (argv, name) => (argv.includes(name) ? argv[argv.indexOf(name) + 1]
 export async function main(argv) {
   const matrix = JSON.parse(readFileSync(flag(argv, "--matrix") ?? "matrix.json", "utf8"));
   const rules = loadRules();
-  const plan = planOf(rules, matrix.cells, { rules: flag(argv, "--rules")?.split(","), repos: flag(argv, "--repos")?.split(","), skip: flag(argv, "--skip")?.split(",") });
   const apply = argv.includes("--apply");
+  const asked = flag(argv, "--rules")?.split(",");
+  const reportOnly = (asked ?? []).filter((id) => !isSecurity(rules.find((r) => r.id === id)));
+  if (apply && reportOnly.length) {
+    console.error(`Refused: ${reportOnly.join(", ")} not a security rule. Only security rules are fanned out (rules review of 2026-11-05); the others are reported by the matrix.`);
+    return 2;
+  }
+  const plan = planOf(rules, matrix.cells, { rules: asked, repos: flag(argv, "--repos")?.split(","), skip: flag(argv, "--skip")?.split(","), securityOnly: apply });
   const sha = apply ? (await api("GET", "/repos/krizaka/.github/commits/main")).sha : "<sha of main>";
   for (const step of plan) {
     const manual = step.manual.length ? ` (manual: ${step.manual.join(", ")})` : "";

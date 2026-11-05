@@ -321,3 +321,18 @@ test("required-checks-report-in-queue: a required check's workflow runs on merge
   assert.match(noScan.why, /SonarCloud Code Analysis.*scan/);
   assert.equal((await runCheck(rule.check, snap("x", "app", { ".github/workflows/ci.yml": ci(false, false) }))).ok, true);
 });
+
+test("rules review 2026-11-05: the same-day rollout is for the security rules only; the run fails only on a red security cell", async () => {
+  const { failing } = await import("../scripts/conformance.mjs");
+  const all = loadRules();
+  const security = all.filter((r) => r.security === true).map((r) => r.id).sort();
+  assert.deepEqual(security, ["dependabot-config", "email-verification", "scorecard", "security-scan", "turnstile-server-side"]);
+  for (const r of all) assert.ok(r.security === undefined || r.security === true, `${r.id}: security is true or absent`);
+  const base = { id: "r", title: "t", issue: "krizaka/.github#1", check: { type: "file-exists", paths: ["x"] }, fix: { type: "manual" } };
+  assert.match(validateRules([{ ...base, security: "yes" }]).join(), /security is true or absent/);
+  const rules = all.filter((r) => ["security-scan", "shared-ci"].includes(r.id));
+  assert.deepEqual(failing(rules, [{ id: "security-scan", green: 1, red: 0 }, { id: "shared-ci", green: 0, red: 3 }]), []);
+  assert.deepEqual(failing(rules, [{ id: "security-scan", green: 0, red: 1 }, { id: "shared-ci", green: 0, red: 3 }]), ["security-scan"]);
+  const cells = { a: { "security-scan": { status: "green" }, "shared-ci": { status: "red" } } };
+  assert.match(render(rules, cells, summarise(rules, cells)), /Same-day rollout \(security rules\): security-scan\. The other rules are reported here, never fanned out\./);
+});

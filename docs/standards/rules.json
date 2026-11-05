@@ -1,9 +1,10 @@
 {
-  "_": "The rule registry of the org (krizaka/.github#393): every org rule that must hold in every active repository, with the check that proves it. scripts/conformance.mjs runs it against repos.json (repo x rule). A rule without a check does not pass tests/conformance.test.mjs. Rolling a rule out to every active repo is part of the same work (AGENT-RULES, « A rule reaches every repo »); `node scripts/conformance-fanout.mjs` opens the conforming pull request in each red repo.",
+  "_": "The rule registry of the org (krizaka/.github#393): every org rule that must hold in every active repository, with the check that proves it. scripts/conformance.mjs runs it against repos.json (repo x rule). A rule without a check does not pass tests/conformance.test.mjs. Rules review of 2026-11-05: the registry is frozen at its 35 rules during the moratorium, and the same-day rollout to every active repo (AGENT-RULES, « A rule reaches every repo »: `node scripts/conformance-fanout.mjs --apply`, the daily run's failure, the issue per red repo) holds only for the rules marked `\"security\": true`; the others are reported in the matrix, never fanned out.",
   "checks": "workflow-calls {workflows | byKind} | workflow-matches {pattern} | workflow-forbids {pattern} | file-exists {paths} | file-matches {path, pattern} | manifests-forbid {pattern} | published-no-mention {pattern, allow}: no file of the latest npm tarball of a public package of the repository matches (built CSS/JS included; `allow`: history files such as CHANGELOG.md) | no-mention {pattern, allow, allowIn}: no tracked text file matches the pattern (path prefixes in `allow`, or in `allowIn[repo]`, are history). `applies`: kinds, notRepos, onlyRepos, when [{pathEndsWith}|{fileExists}|{fileMatches}|{inList}]. `fix`: copy {from, to} | append-section {file, from, heading} | manual {note}.",
   "rules": [
     {
       "id": "security-scan",
+      "security": true,
       "title": "Security scan: gitleaks and zizmor through the shared workflow",
       "issue": "krizaka/.github#324",
       "applies": {},
@@ -103,6 +104,7 @@
     },
     {
       "id": "scorecard",
+      "security": true,
       "title": "OpenSSF Scorecard workflow",
       "issue": "krizaka/.github#28",
       "applies": {},
@@ -122,6 +124,7 @@
     },
     {
       "id": "dependabot-config",
+      "security": true,
       "title": "Dependabot configuration",
       "issue": "krizaka/.github#393",
       "applies": {},
@@ -318,6 +321,7 @@
     },
     {
       "id": "turnstile-server-side",
+      "security": true,
       "title": "Every public form with a Turnstile widget verifies the token server-side (fail closed)",
       "issue": "krizaka/krizaka-com#464",
       "applies": {
@@ -338,6 +342,7 @@
     },
     {
       "id": "email-verification",
+      "security": true,
       "title": "Public e-mail forms verify the address before anything is delivered (a mailed code or a confirmation link)",
       "issue": "krizaka/krizaka-com#464",
       "applies": {
