@@ -1,16 +1,17 @@
-# A fix in a reusable workflow or composite action reaches every consumer without hand edits: after it lands on main,
-# one pull request per repository moves the `krizaka/.github/...@<sha> # main` pins to the new commit
+# A fix in a reusable workflow or composite action reaches every consumer without hand edits: once a day,
+# at most one pull request per repository moves the `krizaka/.github/...@<sha> # main` pins to the new commit
 # (scripts/propagate-pins.mjs). Dependabot cannot do it: it only moves pins that follow a tag.
 name: Propagate workflow pins
 
 on:
-  # Throttle (2026-11-01): pins move at most once an hour (the schedule is the debounce) or on a published .github release,
-  # never on every merge to main. One standing PR per repository (branch deps/org-workflow-pins) is force-updated in place.
+  # Throttle (2026-11-05, speed plan): at most one pin PR per repository per day, across all sources. The run is daily
+  # (06:17 Montréal) or on a published .github release, never on every merge to main; pinPrDecision skips a repository whose
+  # pin PR already went out today, else updates the standing PR in place (branch deps/org-workflow-pins) or opens one.
   # Simple and trusted: no Renovate/Dependabot, which cannot move a pin that follows a branch.
   release:
     types: [published]
   schedule:
-    - cron: "17 * * * *"
+    - cron: "17 10 * * *"
   workflow_dispatch:
     inputs:
       source:
