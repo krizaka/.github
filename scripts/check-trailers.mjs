@@ -106,9 +106,13 @@ export function sourceProblems(files, identities = loadIdentities()) {
 
 /** A git committing-identity set in a workflow or script: `user.email`, `GIT_AUTHOR_EMAIL`, `GIT_COMMITTER_EMAIL`. */
 const IDENTITY_KEY = /user\.email|GIT_(?:AUTHOR|COMMITTER)_EMAIL/i;
-/** A GitHub-noreply address anywhere on a line; the local part (`<id>+<login>` or the bare `<login>`) is split in code.
- *  One quantifier over a class the `@` is not in, then a fixed literal: linear, no backtracking. */
-const NOREPLY = /([A-Za-z0-9[\]+-]+)@users\.noreply\.github\.com/gi;
+/** The fixed suffix of every GitHub-noreply address. Found with indexOf and walked back one character at a time (no
+ *  quantifier over the line), so a crafted line cannot drive super-linear backtracking. */
+const NOREPLY_SUFFIX = "@users.noreply.github.com";
+/** A character of a noreply local part: a login, digits, the `id+` separator and the `[bot]` marker. */
+function isLocalChar(ch) {
+  return (ch >= "A" && ch <= "Z") || (ch >= "a" && ch <= "z") || (ch >= "0" && ch <= "9") || ch === "-" || ch === "+" || ch === "[" || ch === "]";
+}
 /** The login of a noreply local part: `<id>+<login>` -> `<login>`, otherwise the part itself. */
 function noreplyLogin(local) {
   const plus = local.indexOf("+");
@@ -133,10 +137,14 @@ export function committerSourceProblems(files, identities = loadIdentities()) {
       const t = line.trimStart();
       if (t.startsWith("#") || t.startsWith("//") || t.startsWith("*")) return;
       if (!IDENTITY_KEY.test(line)) return;
-      for (const m of line.matchAll(NOREPLY)) {
-        const login = noreplyLogin(m[1]);
+      const lower = line.toLowerCase();
+      for (let at = lower.indexOf(NOREPLY_SUFFIX); at !== -1; at = lower.indexOf(NOREPLY_SUFFIX, at + NOREPLY_SUFFIX.length)) {
+        let start = at;
+        while (start > 0 && isLocalChar(line[start - 1])) start--;
+        if (start === at) continue; // no local part: not an address
+        const login = noreplyLogin(line.slice(start, at));
         if (!known.has(login.toLowerCase())) continue;
-        if (!identities.emails.has(m[0].toLowerCase())) {
+        if (!identities.emails.has(lower.slice(start, at) + NOREPLY_SUFFIX)) {
           problems.push(`${f.path}:${i + 1} commits as ${login} but not with its allow-listed e-mail (a direct author or committer needs the id+login form of ${LIST})`);
         }
       }
