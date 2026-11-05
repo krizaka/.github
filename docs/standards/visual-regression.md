@@ -19,7 +19,7 @@ Layers of UI tests, from the smallest: **component baselines** (Storybook, kriza
 
 ## Updating a baseline
 
-1. The check fails on your PR: open the run, download the artifact **visual-diffs** (expected, actual, diff per journey).
+1. The check warns on your PR (it blocks only the release to production, rules review of 2026-11-05): open the run, download the artifact **visual-diffs** (expected, actual, diff per journey).
 2. If the change is intended: Actions > *Update visual baselines* > Run workflow > your branch. The new images are committed on the branch.
 3. Review the images in the pull request diff like code. An unintended change is a bug to fix, not a baseline to accept.
 
