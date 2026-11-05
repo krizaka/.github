@@ -51,7 +51,7 @@ jobs:
       - name: Scan (values are redacted; the repository's own .gitleaks.toml is never read)
         run: gitleaks git --redact --no-banner -v --config .krizaka-guards/actions/security-tools/gitleaks.toml .
 
-  # No co-author trailer in any commit (founder 2026-10-31: a made-up trailer e-mail listed a stranger as a contributor).
+  # Every author, committer and co-author trailer is an identity of data/commit-identities.json (founder 2026-11-04: no e-mail can be invented).
   # On a pull request: its own commits. In the merge queue: the squash commit itself, so a squash message cannot add one.
   trailers:
     name: commit trailers
@@ -69,7 +69,7 @@ jobs:
           ref: ${{ inputs.guards-ref }}
           path: .krizaka-guards
           persist-credentials: false
-      - name: No Co-authored-by line in the commits
+      - name: Author, committer and co-authors are in the allow-list
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
           HEAD: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
@@ -80,7 +80,7 @@ jobs:
           else
             node .krizaka-guards/scripts/check-trailers.mjs "$BASE" "$HEAD"
           fi
-      - name: No workflow or script writes that trailer
+      - name: No workflow or script writes a trailer outside the allow-list
         run: node .krizaka-guards/scripts/check-trailers.mjs --sources .github scripts tools
 
   zizmor:

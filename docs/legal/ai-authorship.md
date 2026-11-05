@@ -17,7 +17,7 @@ Krizaka can license or sell only what it owns. Each link of the chain is written
 
 ## AI-assisted work — Krizaka's position
 
-Most commits of the org are written by AI agents (`krizaka-agents[bot]`, with Claude as co-author), directed by Oussama.
+Most commits of the org are written by AI agents (`krizaka-agents[bot]`), directed by Oussama.
 
 **The law.** The *Copyright Act* (R.S.C. 1985, c. C-42, s. 5) protects *original* works. In *CCH Canadian Ltd. v. Law Society of Upper Canada*, 2004 SCC 13, the Supreme Court held that an original work is one that results from the author's **exercise of skill and judgment**, which must not be so trivial as to be a purely mechanical exercise. The Act presumes a human author (term of protection tied to the author's life, s. 6; moral rights, s. 14.1). Canada has no provision for works made by a machine alone, and no court has yet decided the question for AI-assisted code. CIPO registered a work naming an AI as co-author in 2021 (registration 1188619), but registration in Canada is not examined and proves nothing on originality.
 
@@ -39,7 +39,7 @@ The trail is the evidence of authorship. It costs nothing if it is kept as we wo
 2. **Every structural choice is an ADR or a decision in the issue**, with what was chosen, what was refused and why.
 3. **Every PR body says what was decided by whom**: « Direction: Oussama (issue #n) », and the choices the agent made inside that direction.
 4. **Review comments and requested changes stay on the PR** (never resolved by deleting them); squash merges keep the PR link in the commit.
-5. **Agents commit as `krizaka-agents[bot]` with a `Co-Authored-By:` trailer naming the model**; Oussama approves and merges with his own login. The two identities are never mixed.
+5. **Commits are authored by the `krizaka-agents` app** (`krizaka-agents[bot]`); Oussama approves and merges with his own login. The two identities are never mixed. A co-author trailer is allowed only for an identity of [`data/commit-identities.json`](../../data/commit-identities.json) (the Krizaka apps' bots and Oussama), and the author and committer e-mails of every commit must be in the same list: **no AI-model trailer and no invented e-mail** (a made-up address once listed a stranger as a contributor). The transparency about AI assistance is kept where it cannot be faked: the PR body says « 🤖 Generated with Claude Code » and « Direction: Oussama » (points 3 and 4). The check is `scripts/check-trailers.mjs` (security-scan.yml, required on every PR and in the merge queue).
 6. **Nothing is pasted from a third party** (code, text, image) without its licence being compatible and named in the PR.
 7. **Prompts that shaped a product are kept** in the repository's design notes or the private company folder, not thrown away.
 
