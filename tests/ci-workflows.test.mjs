@@ -543,3 +543,19 @@ test("java-ci: every step that runs Maven passes GITHUB_TOKEN, the password sett
     assert.match(step, /^ {10}GITHUB_TOKEN: \$\{\{ github\.token \}\}( |$)/m, `${name}: no GITHUB_TOKEN in its env`);
   }
 });
+
+test("visual regression warns on a pull request and blocks only the release to production (rules review 2026-11-05)", () => {
+  const visual = read("visual-regression");
+  // An input the release workflow sets; the default never blocks a pull request.
+  assert.match(visual, /\n {6}blocking:\n(?: {8}.*\n)*? {8}type: boolean\n(?: {8}.*\n)*? {8}default: false\n/);
+  const job = jobs(visual).find((j) => j.id === "visual").text;
+  // Blocking: the input, a release, a tag or the production branch; never pull_request or merge_group.
+  assert.match(job, /BLOCKING: \$\{\{ inputs\.blocking \|\| github\.event_name == 'release' \|\| startsWith\(github\.ref, 'refs\/tags\/'\) \|\| github\.ref == 'refs\/heads\/production' \}\}/);
+  const compare = job.slice(job.indexOf("- id: compare"), job.indexOf("- name: How to read"));
+  assert.match(compare, /::warning/, "a difference on a pull request is a warning");
+  assert.match(compare, /differs=true/, "the difference is recorded so the diffs are published");
+  assert.match(compare, /\[ "\$BLOCKING" = "true" \] && exit 1/, "a blocking run still fails");
+  // The diffs are published whether the run failed (blocking) or warned.
+  const upload = job.slice(job.indexOf("actions/upload-artifact@"));
+  assert.match(upload, /if: \$\{\{ !inputs\.update && \(failure\(\) \|\| steps\.compare\.outputs\.differs == 'true'\) \}\}/);
+});

@@ -3,7 +3,10 @@
 # The pages of the apps are compared pixel by pixel against baselines, in the official Playwright Linux container (the
 # fonts are the baselines' fonts). One workflow, two modes, so that the capture environment is the same for both:
 #
-#   compare (default)   runs the journeys; a difference fails the job and the diff images are uploaded as artifacts.
+#   compare (default)   runs the journeys; the diff images are uploaded as the artifact `visual-diffs`. On a pull request or
+#                       in the merge queue a difference is a warning and the job passes; it fails only when the run is
+#                       blocking: the release to production (a release, a tag, the `production` branch) or `blocking: true`
+#                       (rules review of 2026-11-05: visual baselines warn on a PR, they block only the release to production).
 #   update              runs them with --update-snapshots and commits the changed baselines on `branch` (never main).
 #
 # A product's repository keeps two thin callers (`visual.yml` on pull requests, `update-visual-baselines.yml` on
@@ -26,6 +29,7 @@
 # The Playwright version of the repository must equal the tag of the image (v1.64.0, pinned by digest here): this workflow fails with a clear message if not.
 # PostgreSQL runs as a service of the container, reachable at host `postgres` (user, database `ci`; password `ci-only-password`).
 # Not a required check until it has been green for a week on main (krizaka/.github#375); the strengthening is the CTO's.
+# The release workflow of an app calls it with `blocking: true`; at step 6 (a real piece can enter) it blocks every PR again.
 name: visual-regression
 
 on:
@@ -94,6 +98,10 @@ on:
         description: "JavaScript RegExp (changes.yml): a changed file matching it never needs the comparison (checked after `relevant`)."
         type: string
         default: ""
+      blocking:
+        description: "Compare mode: a difference fails the job. Default false: on a pull request or in the merge queue a difference is a warning (the diffs are still published); a release, a tag or the production branch always block. The release workflow sets it."
+        type: boolean
+        default: false
       on-merge-group:
         description: "Run the comparison again in the merge queue. Default false: the pull request's run already compared the same tree against the baselines, and the queue's capacity is the org's bottleneck."
         type: boolean
@@ -218,29 +226,36 @@ jobs:
         run: |
           cd "$WORKDIR"
           bash "$START"
-      - name: ${{ inputs.update && 'Take the baselines' || 'Compare the journeys' }}
+      - id: compare
+        name: ${{ inputs.update && 'Take the baselines' || 'Compare the journeys' }}
         env:
           TEST_COMMAND: ${{ inputs.test-command }}
           WORKDIR: ${{ inputs.working-directory }}
           UPDATE: ${{ inputs.update }}
+          BLOCKING: ${{ inputs.blocking || github.event_name == 'release' || startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/production' }}
         run: |
           cd "$WORKDIR"
           if [ "$UPDATE" = "true" ]; then
             # The journeys that differ are rewritten; the run itself passes.
             bash -c "$TEST_COMMAND --update-snapshots"
-          else
-            bash -c "$TEST_COMMAND"
+            exit 0
           fi
-      - name: How to read a failure
-        if: ${{ failure() && !inputs.update }}
+          if bash -c "$TEST_COMMAND"; then exit 0; fi
+          echo "differs=true" >> "$GITHUB_OUTPUT"
+          [ "$BLOCKING" = "true" ] && exit 1
+          # Rules review of 2026-11-05: on a pull request a difference warns; only the release to production blocks.
+          echo "::warning title=Visual regression::The journeys differ from the baselines. Not blocking on a pull request; the release to production blocks. The diffs are in the artifact visual-diffs."
+      - name: How to read a difference
+        if: ${{ !inputs.update && (failure() || steps.compare.outputs.differs == 'true') }}
         run: |
           {
-            echo "### Visual regression failed"
+            echo "### Visual regression: the journeys differ from the baselines"
+            echo "Blocking only for the release to production; on a pull request this is a warning."
             echo "The diff images (expected, actual, diff) are in this run's artifact **visual-diffs**."
             echo "If the change is intended: run **Update visual baselines** on this branch, then review the committed images in the pull request."
           } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: ${{ failure() && !inputs.update }}
+        if: ${{ !inputs.update && (failure() || steps.compare.outputs.differs == 'true') }}
         with:
           name: visual-diffs
           path: ${{ inputs.artifact-paths }}
