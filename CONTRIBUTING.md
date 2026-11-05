@@ -70,7 +70,7 @@ selection and review, so the trail is kept on every change ([docs/legal/ai-autho
 the change starts from an issue; a structural choice is an ADR or a decision written in the issue; the PR body says who
 decided what (« Direction: Oussama » and the issue); review comments stay on the PR; agents commit as `krizaka-agents[bot]`, and the PR body
 carries « 🤖 Generated with Claude Code »; a co-author trailer is allowed only for an identity of
-[`data/commit-identities.json`](data/commit-identities.json) (our apps' bots and Oussama), never an AI model, never an invented e-mail
+[`scripts/commit-identities.json`](scripts/commit-identities.json) (our apps' bots and Oussama), never an AI model, never an invented e-mail
 (the author and committer e-mails are checked against the same list); only Oussama approves and merges; nothing third-party is pasted without its licence named.
 
 By contributing you also agree to follow the [Code of Conduct](CODE_OF_CONDUCT.md).

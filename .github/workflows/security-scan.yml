@@ -51,7 +51,7 @@ jobs:
       - name: Scan (values are redacted; the repository's own .gitleaks.toml is never read)
         run: gitleaks git --redact --no-banner -v --config .krizaka-guards/actions/security-tools/gitleaks.toml .
 
-  # Every author, committer and co-author trailer is an identity of data/commit-identities.json (founder 2026-11-04: no e-mail can be invented).
+  # Every author, committer and co-author trailer is an identity of scripts/commit-identities.json (founder 2026-11-04: no e-mail can be invented).
   # On a pull request: its own commits. In the merge queue: the squash commit itself, so a squash message cannot add one.
   trailers:
     name: commit trailers

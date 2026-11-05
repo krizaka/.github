@@ -1,6 +1,6 @@
 // Commit identities are an allow-list (founder 2026-11-04, krizaka-internal#2433): a made-up e-mail in a `Co-authored-by:` line once
 // listed a stranger as an akinaza contributor (2026-10-31). Now no e-mail can be invented: the author, the committer and every
-// co-author trailer must be in data/commit-identities.json (the Krizaka apps' bots and the founder). Nothing else passes; a
+// co-author trailer must be in scripts/commit-identities.json (the Krizaka apps' bots and the founder). Nothing else passes; a
 // refused e-mail is masked in the output. The local hooks of krizaka-agents read the same file, pinned to the same sha.
 // Run by security-scan.yml on pull requests (the PR's commits) and in the merge queue (the squash commit itself).
 //   node scripts/check-trailers.mjs [--squash] <base-sha> <head-sha>   (--squash: merge queue, GitHub's noreply trailer of an allowed account passes)
@@ -19,8 +19,8 @@ function trailerValue(line) {
   return text.slice(colon + 1);
 }
 
-/** The allow-list of data/commit-identities.json: Sets of lower-case e-mails, plus the accounts (login, id) for GitHub's squash trailers. */
-export function loadIdentities(file = fileURLToPath(new URL("../data/commit-identities.json", import.meta.url))) {
+/** The allow-list of scripts/commit-identities.json: Sets of lower-case e-mails, plus the accounts (login, id) for GitHub's squash trailers. */
+export function loadIdentities(file = fileURLToPath(new URL("./commit-identities.json", import.meta.url))) {
   const raw = JSON.parse(readFileSync(file, "utf8"));
   const accounts = [...raw.bots, ...raw.humans];
   const emails = new Set(accounts.flatMap((a) => a.emails.map((e) => e.toLowerCase())));
@@ -59,14 +59,14 @@ export function trailerProblems(commits, { squash = false, identities = loadIden
     identities.emails.has(e.toLowerCase()) || (extra && identities.committerOnly.has(e.toLowerCase()));
   for (const c of commits) {
     const sha = c.sha.slice(0, 7);
-    if (c.author !== undefined && !allowed(c.author)) problems.push(`${sha} author e-mail ${maskEmail(c.author)} is not in data/commit-identities.json`);
-    if (c.committer !== undefined && !allowed(c.committer, true)) problems.push(`${sha} committer e-mail ${maskEmail(c.committer)} is not in data/commit-identities.json`);
+    if (c.author !== undefined && !allowed(c.author)) problems.push(`${sha} author e-mail ${maskEmail(c.author)} is not in scripts/commit-identities.json`);
+    if (c.committer !== undefined && !allowed(c.committer, true)) problems.push(`${sha} committer e-mail ${maskEmail(c.committer)} is not in scripts/commit-identities.json`);
     for (const line of c.message.split("\n")) {
       const value = trailerValue(line);
       if (value === null) continue;
       const email = trailerEmail(value);
       if (email && (allowed(email) || (squash && isAllowedNoreply(email, identities)))) continue;
-      problems.push(`${sha} co-author trailer with e-mail ${maskEmail(email)} is not in data/commit-identities.json: reword the line with an allowed identity or remove it`);
+      problems.push(`${sha} co-author trailer with e-mail ${maskEmail(email)} is not in scripts/commit-identities.json: reword the line with an allowed identity or remove it`);
     }
   }
   return problems;
@@ -85,7 +85,7 @@ export function sourceProblems(files, identities = loadIdentities()) {
       if (!t.toLowerCase().includes("co-authored-by")) return;
       const emails = line.match(/[^\s<>"']+@[^\s<>"']+/g) ?? [];
       if (emails.length === 0 || emails.some((e) => !identities.emails.has(e.toLowerCase().replace(/[.,;)\\]+$/, "")))) {
-        problems.push(`${f.path}:${i + 1} writes a co-author trailer without an identity of data/commit-identities.json on the line`);
+        problems.push(`${f.path}:${i + 1} writes a co-author trailer without an identity of scripts/commit-identities.json on the line`);
       }
     });
   }
