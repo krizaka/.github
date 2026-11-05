@@ -1,41 +1,91 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { parseLog, sourceProblems, trailerProblems } from "../scripts/check-trailers.mjs";
+import { loadIdentities, maskEmail, parseLog, sourceProblems, trailerProblems } from "../scripts/check-trailers.mjs";
 
-test("any co-author trailer is refused, whatever its case or author, and its e-mail is not echoed", () => {
-  const commits = [
-    { sha: "aaaaaaaaaa", message: "fix: a\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n" },
-    { sha: "bbbbbbbbbb", message: "feat: b\n\nco-authored-by: krizaka-agents[bot] <x@users.noreply.github.com>\n" },
-    { sha: "cccccccccc", message: "docs: c (co-authored work is credited in the PR body)\n" },
+const BOT = "345578919+krizaka-agents[bot]@users.noreply.github.com";
+const FOUNDER = "abidoussama99@gmail.com";
+const commit = (message, extra = {}) => ({ sha: "aaaaaaaaaa", author: BOT, committer: BOT, message, ...extra });
+
+test("an invented co-author e-mail is refused, whatever the name or case, and is never echoed", () => {
+  const p = trailerProblems([
+    commit("fix: a\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n"),
+    commit("feat: b\n\nco-authored-by: Someone <someone.invented@example.org>\n"),
+    commit("feat: no e-mail at all\n\nCo-authored-by: Nobody\n"),
+  ]);
+  assert.equal(p.length, 3);
+  assert.ok(!p.join(" ").includes("anthropic"), "the stranger's domain is not echoed");
+  assert.ok(!p.join(" ").includes("invented"), "the stranger's address is not echoed");
+});
+
+test("our bots and the founder are accepted as co-authors", () => {
+  const ok = [
+    commit(`feat: a\n\nCo-authored-by: krizaka-agents[bot] <${BOT}>\n`),
+    commit("feat: b\n\nCo-authored-by: orazaka <345578125+orazaka[bot]@users.noreply.github.com>\n"),
+    commit(`feat: c\n\nCo-authored-by: Oussama <${FOUNDER}>\n`),
+    commit("feat: d\n\nCo-authored-by: Oussama <7701298+oussamaABID@users.noreply.github.com>\n"),
+    commit("docs: e (co-authored work is credited in the PR body)\n"),
   ];
-  const p = trailerProblems(commits);
+  assert.deepEqual(trailerProblems(ok), []);
+});
+
+test("a look-alike of an allowed identity (wrong id, other address) is refused", () => {
+  const bad = [
+    commit("a\n\nCo-authored-by: x <345578920+krizaka-agents[bot]@users.noreply.github.com>\n"),
+    commit("b\n\nCo-authored-by: x <abidoussama98@gmail.com>\n"),
+  ];
+  assert.equal(trailerProblems(bad).length, 2);
+});
+
+test("the author and the committer are checked against the same list", () => {
+  assert.deepEqual(trailerProblems([commit("feat: x\n", { author: FOUNDER })]), []);
+  const p = trailerProblems([commit("feat: x\n", { author: "made.up@example.com", committer: "other@example.com" })]);
   assert.equal(p.length, 2);
-  assert.match(p[0], /^aaaaaaa .*Claude Opus 5\.5/);
-  assert.ok(!p.join(" ").includes("@"), "no e-mail in the output");
+  assert.ok(!p.join(" ").includes("example"), "no stranger e-mail in the output");
+  assert.equal(trailerProblems([commit("x\n", { committer: "noreply@github.com" })]).length, 0, "GitHub's own committer (web, merge queue)");
+  assert.equal(trailerProblems([commit("x\n", { author: "noreply@github.com" })]).length, 1, "but never as an author");
+});
+
+test("the merge queue accepts GitHub's noreply trailer of an allowed account, refuses a stranger's", () => {
+  const ok = [commit("feat: x (#1)\n\nCo-authored-by: krizaka-agents[bot] <krizaka-agents[bot]@users.noreply.github.com>\n")];
+  assert.equal(trailerProblems(ok, { squash: true }).length, 0);
+  assert.equal(trailerProblems(ok).length, 1, "a pull request's own commits need an exact e-mail of the list");
+  const stranger = [commit("feat: y\n\nCo-authored-by: Eve <999+eve@users.noreply.github.com>\n")];
+  assert.equal(trailerProblems(stranger, { squash: true }).length, 1);
+  const wrongId = [commit("feat: z\n\nCo-authored-by: x <1+krizaka-agents[bot]@users.noreply.github.com>\n")];
+  assert.equal(trailerProblems(wrongId, { squash: true }).length, 1, "an allowed login with another id is a stranger");
+  const model = [commit("feat: y\n\nCo-authored-by: Claude <noreply@anthropic.com>\n")];
+  assert.equal(trailerProblems(model, { squash: true }).length, 1);
+});
+
+test("the allow-list names exact ids, no wildcard", () => {
+  const { emails } = loadIdentities();
+  for (const e of emails) assert.ok(!e.includes("*"), e);
+  assert.ok(emails.has(BOT));
+  assert.equal(maskEmail("stranger@evil.test"), "s***@***");
 });
 
 test("git log records split on the record separator", () => {
-  const raw = "s1\x00fix: a\n\nbody\n\x1e\ns2\x00feat: b\n\x1e\n";
-  assert.deepEqual(parseLog(raw).map((c) => c.sha), ["s1", "s2"]);
+  const raw = `s1\x00${BOT}\x00${BOT}\x00fix: a\n\nbody\n\x1e\ns2\x00${FOUNDER}\x00${BOT}\x00feat: b\n\x1e\n`;
+  const c = parseLog(raw);
+  assert.deepEqual(c.map((x) => x.sha), ["s1", "s2"]);
+  assert.equal(c[1].author, FOUNDER);
+  assert.equal(c[0].committer, BOT);
 });
 
-test("a commit command that writes the trailer is flagged, in any case", () => {
-    const f = [{ path: "a.yml", text: 'git commit -m "x" -m "Co-Authored-By: Bot <a@b.c>"' }];
-    assert.equal(sourceProblems(f).length, 1);
+test("a writer of a trailer must name an allowed identity on the line", () => {
+  const bad = [
+    { path: "a.yml", text: 'git commit -m "x" -m "Co-Authored-By: Bot <a@b.c>"' },
+    { path: "b.sh", text: 'git commit -m "x" -m "Co-Authored-By: $NAME"' },
+  ];
+  assert.equal(sourceProblems(bad).length, 2);
+  const ok = [{ path: "c.yml", text: `git commit -m "x" -m "Co-authored-by: Oussama <${FOUNDER}>"` }];
+  assert.deepEqual(sourceProblems(ok), []);
 });
 
 test("a comment or a step name may mention it, and the checker itself is skipped", () => {
-    const f = [
-      { path: "a.yml", text: "# no Co-authored-by here\n- name: No Co-authored-by line\n  run: x" },
-      { path: "scripts/check-trailers.mjs", text: "co-authored-by" },
-    ];
-    assert.deepEqual(sourceProblems(f), []);
-});
-
-test("the merge queue's squash message may carry GitHub's own noreply trailers, never a made-up e-mail", () => {
-  const ok = [{ sha: "dddddddddd", message: "feat: x (#1)\n\nCo-authored-by: krizaka-agents[bot] <krizaka-agents[bot]@users.noreply.github.com>\n" }];
-  assert.equal(trailerProblems(ok, { allowNoreply: true }).length, 0);
-  assert.equal(trailerProblems(ok).length, 1, "a pull request's own commits stay strict");
-  const bad = [{ sha: "eeeeeeeeee", message: "feat: y\n\nCo-authored-by: Claude <noreply@anthropic.com>\n" }];
-  assert.equal(trailerProblems(bad, { allowNoreply: true }).length, 1);
+  const f = [
+    { path: "a.yml", text: "# no Co-authored-by here\n- name: No Co-authored-by line\n  run: x" },
+    { path: "scripts/check-trailers.mjs", text: "co-authored-by" },
+  ];
+  assert.deepEqual(sourceProblems(f), []);
 });
