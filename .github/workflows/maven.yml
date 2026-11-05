@@ -290,12 +290,32 @@ jobs:
           fetch-depth: 0  # blame and new-code detection need the history
           persist-credentials: false
 
-      - uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
+      # Rules review of 2026-11-05: on a pull request only the Security rating blocks (sonar-gate.mjs reads the gate); elsewhere the full gate fails.
+      - id: scan
+        continue-on-error: ${{ github.event_name == 'pull_request' }}
+        uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
         env:
           SONAR_HOST_URL: https://sonarcloud.io
         with:
           projectBaseDir: .
           args: -Dsonar.projectVersion=ci-${{ github.run_number }} -Dsonar.qualitygate.wait=true -Dsonar.java.binaries=. ${{ inputs.sonar-args }}
+      - name: Sonar on a pull request, the Security rating only
+        if: ${{ github.event_name == 'pull_request' && steps.scan.outcome == 'failure' }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/.github
+          ref: main
+          path: .krizaka-sonar-gate
+          sparse-checkout: scripts/sonar-gate.mjs
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - name: The Security rating blocks, the other conditions warn
+        if: ${{ github.event_name == 'pull_request' && steps.scan.outcome == 'failure' }}
+        env:
+          REPORT: .scannerwork/report-task.txt
+        run: |
+          if [ ! -f .krizaka-sonar-gate/scripts/sonar-gate.mjs ]; then echo "::error::scripts/sonar-gate.mjs is not on krizaka/.github main: the full quality gate failed"; exit 1; fi
+          node .krizaka-sonar-gate/scripts/sonar-gate.mjs --report "$REPORT"
 
   sonar:
     name: SonarCloud
@@ -329,12 +349,32 @@ jobs:
 
       # CI analysis: the SonarCloud app still decorates the pull request and posts « SonarCloud Code Analysis »; the quality gate is awaited
       # here so the CI gate carries its verdict too.
-      - uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
+      # Rules review of 2026-11-05: on a pull request only the Security rating blocks (sonar-gate.mjs reads the gate); elsewhere the full gate fails.
+      - id: scan
+        continue-on-error: ${{ github.event_name == 'pull_request' }}
+        uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
         env:
           SONAR_HOST_URL: https://sonarcloud.io
         with:
           projectBaseDir: .
           args: -Dsonar.projectVersion=ci-${{ github.run_number }} -Dsonar.qualitygate.wait=true ${{ inputs.sonar-args }}
+      - name: Sonar on a pull request, the Security rating only
+        if: ${{ github.event_name == 'pull_request' && steps.scan.outcome == 'failure' }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/.github
+          ref: main
+          path: .krizaka-sonar-gate
+          sparse-checkout: scripts/sonar-gate.mjs
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - name: The Security rating blocks, the other conditions warn
+        if: ${{ github.event_name == 'pull_request' && steps.scan.outcome == 'failure' }}
+        env:
+          REPORT: .scannerwork/report-task.txt
+        run: |
+          if [ ! -f .krizaka-sonar-gate/scripts/sonar-gate.mjs ]; then echo "::error::scripts/sonar-gate.mjs is not on krizaka/.github main: the full quality gate failed"; exit 1; fi
+          node .krizaka-sonar-gate/scripts/sonar-gate.mjs --report "$REPORT"
 
   # ALWAYS reports (see java-ci.yml): green when verify succeeded or the changes gate legitimately skipped it; the merge queue
   # and branch protection can require this one name whatever the change.
