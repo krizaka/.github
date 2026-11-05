@@ -6,7 +6,8 @@
 //   node scripts/conformance.mjs --repos a,b --rules x,y   a slice
 //   node scripts/conformance.mjs --validate           only the registry (every rule has its check); no network
 //   node scripts/conformance.mjs --repo-list           the active repositories, comma separated (scopes the workflow's token)
-//   node scripts/conformance.mjs --fail               exit 1 while a cell is red
+//   node scripts/conformance.mjs --fail               exit 1 while a cell of a security rule is red (rules review of 2026-11-05:
+//                                                     the same-day rollout holds only for the rules marked `"security": true`)
 //
 // Active = repos.json minus archived, `Archive` and `Paused` repositories, which are listed out of scope (never « exceptions »).
 // Reads GitHub with GH_TOKEN / GITHUB_TOKEN (the app token for the private ones).
@@ -39,10 +40,20 @@ export function validateRules(rules) {
     if (!/^krizaka\/[\w.-]+#\d+$/.test(rule.issue ?? "")) problems.push(`${at}: no issue (krizaka/<repo>#<n>)`);
     if (!CHECK_TYPES.includes(rule.check?.type)) problems.push(`${at}: no check (a rule without its check is refused)`);
     if (!FIX_TYPES.includes(rule.fix?.type)) problems.push(`${at}: no fix (use manual with a note)`);
+    if (rule.security !== undefined && rule.security !== true) problems.push(`${at}: security is true or absent`);
     problems.push(...checkShape(rule));
     problems.push(...exemptionProblems(rule));
   }
   return problems;
+}
+
+/** A security rule is rolled out to every repository the same day (rules review of 2026-11-05); the others are reported only. */
+export const isSecurity = (rule) => rule?.security === true;
+
+/** The security rules with a red cell: what fails the daily run. */
+export function failing(rules, summary) {
+  const security = new Set(rules.filter(isSecurity).map((r) => r.id));
+  return summary.filter((s) => s.red > 0 && security.has(s.id)).map((s) => s.id);
 }
 
 /** A repository that truly cannot follow a rule is declared in `exempt` with its reason (at least 30 characters: a sentence a reviewer can judge). */
@@ -359,6 +370,8 @@ export function render(rules, cells, summary, paused = []) {
     lines.push(`| ${repo} | ${red.length ? red.join(", ") : "all green"} |`);
   }
   if (paused.length) lines.push("", `Out of scope (paused or archived): ${paused.map((r) => r.name).join(", ")}.`);
+  const security = rules.filter(isSecurity).map((r) => r.id);
+  lines.push("", `Same-day rollout (security rules): ${security.join(", ") || "none"}. The other rules are reported here, never fanned out.`);
   return lines.join("\n");
 }
 
@@ -486,7 +499,7 @@ export async function main(argv) {
   console.log(`${render(picked, cells, summary, paused)}\n\n### Family versions\n\n${renderVersions(versions)}`);
   const jsonOut = flag(argv, "--json");
   if (jsonOut) writeFileSync(jsonOut, JSON.stringify({ generatedAt: new Date().toISOString(), summary, cells, versions, outOfScope: paused.map((r) => r.name) }, null, 2));
-  return argv.includes("--fail") && summary.some((s) => s.red > 0) ? 1 : 0;
+  return argv.includes("--fail") && failing(picked, summary).length > 0 ? 1 : 0;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) process.exit(await main(process.argv.slice(2)));

@@ -9,17 +9,21 @@
 // Reads/writes GitHub with the agents' app credential from the environment (issues: write on krizaka-internal).
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
-import { loadRules } from "./conformance.mjs";
+import { isSecurity, loadRules } from "./conformance.mjs";
 
 export const MARKER = "<!-- krizaka-conformance -->";
 export const INTERNAL = "krizaka-internal";
 const RULES_URL = "https://github.com/krizaka/.github/blob/main/docs/standards/rules.json";
 
-/** The red cells of each repository: { repo: [{ id, why }] }, only repositories with a red cell. */
-export function redByRepo(cells) {
+/**
+ * The red cells of each repository: { repo: [{ id, why }] }, only repositories with a red cell. Given the rules, only the security
+ * rules count (rules review of 2026-11-05: the same-day rollout holds for them only; the others are reported by the matrix).
+ */
+export function redByRepo(cells, rules = null) {
+  const counted = rules ? new Set(rules.filter(isSecurity).map((r) => r.id)) : null;
   const out = {};
   for (const [repo, byRule] of Object.entries(cells)) {
-    const reds = Object.entries(byRule).filter(([, c]) => c.status === "red").map(([id, c]) => ({ id, why: c.why ?? "" }));
+    const reds = Object.entries(byRule).filter(([id, c]) => c.status === "red" && (!counted || counted.has(id))).map(([id, c]) => ({ id, why: c.why ?? "" }));
     if (reds.length > 0) out[repo] = reds;
   }
   return out;
@@ -42,7 +46,7 @@ export function bodyOf(repo, reds, rules) {
     const reason = why ? `. ${why}` : "";
     return `- [ ] \`${id}\`: ${rule?.title ?? id}${link}${reason}`;
   });
-  return `${MARKER}\nThe weekly conformance run found these org rules red in \`${repo}\`. The fix is in \`fix\` of each rule in [rules.json](${RULES_URL}); the run closes this issue by itself when the repository is green.\n\n${lines.join("\n")}\n`;
+  return `${MARKER}\nThe weekly conformance run found these org security rules red in \`${repo}\`. The fix is in \`fix\` of each rule in [rules.json](${RULES_URL}); the run closes this issue by itself when the repository is green.\n\n${lines.join("\n")}\n`;
 }
 
 /** What to do: open for a red repository without an issue, update when the text changed, close when it is green. */
@@ -88,9 +92,10 @@ export async function main(argv) {
   const at = argv.indexOf("--matrix");
   const matrix = JSON.parse(readFileSync(at < 0 ? "matrix.json" : argv[at + 1], "utf8"));
   const apply = argv.includes("--apply");
-  const reds = redByRepo(matrix.cells);
+  const rules = loadRules();
+  const reds = redByRepo(matrix.cells, rules);
   const open = await openIssues();
-  for (const step of planIssues(reds, open, loadRules())) {
+  for (const step of planIssues(reds, open, rules)) {
     if (!apply) {
       console.log(`${step.repo}: would ${step.action}`);
     } else if (step.action === "open") {
