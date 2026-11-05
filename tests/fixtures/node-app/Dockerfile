@@ -1,4 +1,4 @@
-FROM node:22-alpine
+FROM node:22-alpine@sha256:fe4f6d74e20370acb04ad889077d14d0f64a9c8ea6a42bc60cddf1e844699914
 # The runtime never needs npm or corepack: dropping them removes the base image's bundled npm dependencies from the attack surface
 # (and from the Trivy scan, which fails on fixable HIGH findings).
 RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \

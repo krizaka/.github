@@ -13,5 +13,9 @@
     "typescript": "5.9.3",
     "typescript-eslint": "8.71.1"
   },
+  "overrides": {
+    "@typescript-eslint/typescript-estree": { "minimatch": "11.0.4" },
+    "eslint-plugin-sonarjs": { "minimatch": "11.0.4" }
+  },
   "engines": { "node": ">=22" }
 }
