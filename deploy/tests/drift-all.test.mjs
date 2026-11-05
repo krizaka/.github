@@ -53,3 +53,17 @@ test("drift-all: apps.json lists every app once, with a repo and a spec path", (
   for (const a of apps) assert.match(`${a.repo} ${a.spec}`, /^krizaka\/[\w.-]+ [\w./-]+\.ya?ml$/);
   for (const a of apps) if (a.team !== undefined) assert.equal(a.team, "krizaka-prod", `${a.app}: the only other team is krizaka-prod`);
 });
+
+test("drift-all: a private repository's spec is read with the token (GITHUB_TOKEN / GH_TOKEN), never anonymously when one is set", async () => {
+  const seen = [];
+  const privateRepo = async (url, init = {}) => {
+    const auth = new Headers(init.headers).get("authorization");
+    seen.push(auth);
+    return auth === "Bearer t0k" ? new Response(stringify(liveSpec()), { status: 200 }) : new Response("no", { status: 404 });
+  };
+  const r = await driftAll({ registry, doctl: team(), fetch: privateRepo, env: { GITHUB_TOKEN: "t0k" } });
+  assert.deepEqual(r, { ok: ["krizaka-com"], drift: [] });
+  const anonymous = await driftAll({ registry, doctl: team(), fetch: privateRepo, env: {} });
+  assert.match(anonymous.drift[0].differences[0], /GitHub answered 404/);
+  assert.deepEqual(seen, ["Bearer t0k", null]);
+});

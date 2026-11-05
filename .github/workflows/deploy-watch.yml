@@ -144,6 +144,18 @@ jobs:
         name: Install the CLI
         run: npm ci --omit=dev --ignore-scripts --no-audit --no-fund --prefix deploy
 
+      # Read-only App token: the specs of the private repositories (kachizaka) answer 404 to an anonymous read.
+      - if: steps.gate.outputs.enabled == 'true'
+        id: app
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: krizaka # zizmor: ignore[github-app] drift-all reads the spec of every deployed repository of the org
+          permission-contents: read
+
       - if: steps.gate.outputs.enabled == 'true'
         name: Drift (report only)
+        env:
+          GITHUB_TOKEN: ${{ steps.app.outputs.token }}
         run: node deploy/bin/krizaka-deploy.mjs drift-all
