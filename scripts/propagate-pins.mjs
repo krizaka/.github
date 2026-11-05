@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // A fix in krizaka/.github reaches every consumer without hand edits: the consumers pin the reusable workflows and
 // composite actions by commit (`krizaka/.github/<path>@<sha> # main`), and Dependabot cannot move a pin that follows a
-// branch. After a change under .github/workflows or actions/ lands on main, this script opens ONE pull request per
-// repository that moves those pins to the new commit. Run by .github/workflows/propagate-pins.yml (token: the app's).
+// branch. Once a day (and on a release) this script opens or updates AT MOST ONE pin pull request per repository per UTC
+// day, across all sources, on one stable branch (pinPrDecision), that moves those pins to the new commit. Run by .github/workflows/propagate-pins.yml (token: the app's).
 //
 //   node scripts/propagate-pins.mjs <sha> [--repos a,b,c] [--dry-run] [--work <folder>]
 //
@@ -107,6 +107,48 @@ export function publishPinPr({ repo, branch, title, body, run = sh }) {
   return url;
 }
 
+/** A pull request of the pin family, whatever its source: a `deps/…workflow-pins` head or a « ci(deps): the … workflow pins move to … » title. */
+export function isPinPr(pr) {
+  return (pr.head.startsWith("deps/") && pr.head.endsWith("workflow-pins")) || /^ci\(deps\): the .+ workflow pins move to /.test(pr.title ?? "");
+}
+
+const day = (iso) => String(iso ?? "").slice(0, 10);
+
+/**
+ * At most one pin PR per repository per UTC day, across all sources (founder, 2026-11-05: robots were 60 % of the merges,
+ * 173 pin PRs closed unmerged in 14 days). Pure: `prs` are the repository's recent PRs ({ number, head, title, state:
+ * open|closed|merged, createdAt }), `headDates` the head commit date of the open ones by number, `today` YYYY-MM-DD (UTC).
+ * Returns { action: "create" | "update" | "skip", reason, pr? }.
+ */
+export function pinPrDecision({ prs, branch, label, today, headDates = {} }) {
+  const pins = prs.filter(isPinPr);
+  const family = `ci(deps): the ${label} move to `;
+  const sameSource = (pr) => pr.head === branch || pr.head.startsWith(`${branch}-`) || (pr.title ?? "").startsWith(family);
+  const otherOpen = pins.find((pr) => pr.state === "open" && !sameSource(pr));
+  if (otherOpen) return { action: "skip", reason: `another pin PR is open (#${otherOpen.number}, ${otherOpen.head}): one pin PR per repository at a time` };
+  const standing = pins.find((pr) => pr.state === "open" && pr.head === branch);
+  if (standing && day(headDates[standing.number]) === today) {
+    return { action: "skip", reason: `#${standing.number} already moved today`, pr: standing.number };
+  }
+  const outToday = pins.find((pr) => pr !== standing && day(pr.createdAt) === today);
+  if (outToday) return { action: "skip", reason: `pin PR #${outToday.number} already went out today (${outToday.state}): next one tomorrow` };
+  if (standing) return { action: "update", reason: `#${standing.number} is from an earlier day: updated in place`, pr: standing.number };
+  return { action: "create", reason: "no pin PR today" };
+}
+
+/** The repository's recent pin PRs and the head commit date of the open one on `branch` (thin gh wrapper; `run` injected by the tests). */
+export function fetchPinState({ repo, branch, run = sh }) {
+  const api = (...a) => run("gh", ["api", ...a]);
+  const jq = "[.[]|{number,head:.head.ref,sha:.head.sha,state,merged:(.merged_at!=null),title,createdAt:.created_at}]";
+  const rows = JSON.parse(api(`repos/krizaka/${repo}/pulls?state=all&per_page=30`, "--jq", jq) || "[]");
+  const prs = rows.map((r) => ({ ...r, state: r.merged ? "merged" : r.state })).filter(isPinPr);
+  const headDates = {};
+  for (const pr of prs.filter((p) => p.state === "open" && p.head === branch)) {
+    headDates[pr.number] = api(`repos/krizaka/${repo}/commits/${pr.sha}`, "--jq", ".commit.committer.date").trim();
+  }
+  return { prs, headDates };
+}
+
 /**
  * Founder rule (2026-10-31): .github gives the rules, so nothing org-wide is applied until it has 0 open pull requests.
  * The org workflow pins (source `.github`) wait for that; the last merge that empties .github starts the run again
@@ -132,9 +174,13 @@ function main(argv) {
   const work = opt("--work") ?? mkdtempSync(join(tmpdir(), "pins-"));
   const label = source === ".github" ? "org workflow pins" : `${source} workflow pins`;
   const branch = pinBranch(label);
+  const today = new Date().toISOString().slice(0, 10); // the UTC day: at most one pin PR per repository per day
   for (const repo of repos) {
     const dir = join(work, repo);
     try {
+      const decision = pinPrDecision({ ...fetchPinState({ repo, branch }), branch, label, today });
+      console.log(`${repo}: ${decision.action} — ${decision.reason}`);
+      if (decision.action === "skip") continue;
       sh("gh", ["repo", "clone", `krizaka/${repo}`, dir, "--", "--depth=1", "--quiet"]);
       const changed = movePins(dir, sha, source);
       if (!changed.length) {
@@ -151,7 +197,7 @@ function main(argv) {
       git("-c", "user.name=krizaka-agents[bot]", "-c", "user.email=345578919+krizaka-agents[bot]@users.noreply.github.com", "commit", "-q", "-m", `ci(deps): the ${label} move to krizaka/${source}@${sha.slice(0, 8)}`);
       sh("git", pushArgs(dir, branch));
       const title = `ci(deps): the ${label} move to krizaka/${source}@${sha.slice(0, 8)}`;
-      const body = `A change in krizaka/${source} reaches this repository (propagate-pins, rule « a rule reaches every repo »). Only the \`@<sha>\` pins of krizaka/${source} change; CI decides. One pull request per repository, updated in place at every change.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)`;
+      const body = `A change in krizaka/${source} reaches this repository (propagate-pins, rule « a rule reaches every repo »). Only the \`@<sha>\` pins of krizaka/${source} change; CI decides. At most one pin pull request per repository per day, updated in place on the same branch.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)`;
       const url = publishPinPr({ repo, branch, title, body });
       console.log(`${repo}: ${url}`);
     } catch (error) {

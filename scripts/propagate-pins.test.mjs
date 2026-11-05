@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { failure, movePins, openPrsToWait, pinBranch, pinFiles, pinPattern, publishPinPr, pushArgs } from "./propagate-pins.mjs";
+import { failure, fetchPinState, movePins, openPrsToWait, pinBranch, pinFiles, pinPattern, pinPrDecision, publishPinPr, pushArgs } from "./propagate-pins.mjs";
 
 const OLD = "a".repeat(40);
 const NEW = "b".repeat(40);
@@ -108,9 +108,100 @@ test("any other open pin PR of the repository is closed as superseded, whatever 
 test("guard: the workflow cannot open a second pin PR in a repository (no push trigger, one serial run, a stable branch)", () => {
   const yml = readFileSync(new URL("../.github/workflows/propagate-pins.yml", import.meta.url), "utf8");
   const on = yml.slice(yml.indexOf("\non:"), yml.indexOf("\npermissions:"));
-  assert.ok(!/^\s{2}push:/m.test(on), "pins move hourly or on a release, not on every merge");
+  assert.ok(!/^\s{2}push:/m.test(on), "pins move once a day or on a release, not on every merge");
   assert.match(on, /schedule:/);
   assert.match(yml, /concurrency:\s*\n\s+group: propagate-pins\s*\n\s+cancel-in-progress: false/, "runs are serial");
   const src = readFileSync(new URL("./propagate-pins.mjs", import.meta.url), "utf8");
   assert.ok(!/pinBranch\([^)]*sha/i.test(src) && !/branch\s*=\s*`[^`]*\$\{sha/.test(src), "the branch never carries a sha");
+});
+
+// At most one pin PR per repository per UTC day, across all sources (founder, 2026-11-05: 173 pin PRs closed unmerged in 14 days).
+const TODAY = "2026-11-05";
+const ORG = { branch: "deps/org-workflow-pins", label: "org workflow pins" };
+const pr = (number, head, state, created, title = `ci(deps): the org workflow pins move to krizaka/.github@aaaaaaaa`) => ({
+  number,
+  head,
+  state,
+  title,
+  createdAt: `${created}T10:17:00Z`,
+});
+
+test("pinPrDecision: no pin PR at all → create", () => {
+  const d = pinPrDecision({ ...ORG, prs: [pr(1, "feat/x", "open", TODAY, "feat: x")], today: TODAY, headDates: {} });
+  assert.equal(d.action, "create");
+});
+
+test("pinPrDecision: the open pin PR on the same branch, head from an earlier day → update in place", () => {
+  const d = pinPrDecision({ ...ORG, prs: [pr(4, ORG.branch, "open", "2026-11-03")], today: TODAY, headDates: { 4: "2026-11-04T10:17:00Z" } });
+  assert.equal(d.action, "update");
+  assert.equal(d.pr, 4);
+});
+
+test("pinPrDecision: the open pin PR on the same branch already moved today → skip", () => {
+  const d = pinPrDecision({ ...ORG, prs: [pr(4, ORG.branch, "open", "2026-11-03")], today: TODAY, headDates: { 4: `${TODAY}T10:17:00Z` } });
+  assert.equal(d.action, "skip");
+  assert.match(d.reason, /today/);
+});
+
+test("pinPrDecision: a pin PR created today and already merged or closed → skip until tomorrow", () => {
+  for (const state of ["closed", "merged"]) {
+    const d = pinPrDecision({ ...ORG, prs: [pr(7, ORG.branch, state, TODAY)], today: TODAY, headDates: {} });
+    assert.equal(d.action, "skip", state);
+    assert.match(d.reason, /#7/);
+  }
+});
+
+test("pinPrDecision: another source's pin PR open in the repository → skip (one pin PR per repository at a time)", () => {
+  const other = pr(8, "deps/orazaka-workflow-pins", "open", "2026-11-01", "ci(deps): the orazaka workflow pins move to krizaka/orazaka@cccccccc");
+  const d = pinPrDecision({ ...ORG, prs: [other], today: TODAY, headDates: { 8: "2026-11-01T00:00:00Z" } });
+  assert.equal(d.action, "skip");
+  assert.match(d.reason, /#8/);
+});
+
+test("pinPrDecision: another source's pin PR created today (merged) counts for the day too", () => {
+  const other = pr(8, "deps/orazaka-workflow-pins", "merged", TODAY, "ci(deps): the orazaka workflow pins move to krizaka/orazaka@cccccccc");
+  assert.equal(pinPrDecision({ ...ORG, prs: [other], today: TODAY, headDates: {} }).action, "skip");
+  const mine = pr(4, ORG.branch, "open", "2026-11-02");
+  assert.equal(pinPrDecision({ ...ORG, prs: [other, mine], today: TODAY, headDates: { 4: "2026-11-02T00:00:00Z" } }).action, "skip", "no update the day another pin PR went out");
+});
+
+test("pinPrDecision: a new day after yesterday's merge → create", () => {
+  const d = pinPrDecision({ ...ORG, prs: [pr(7, ORG.branch, "merged", "2026-11-04")], today: TODAY, headDates: {} });
+  assert.equal(d.action, "create");
+});
+
+test("pinPrDecision: an old sha-named pin PR of the same source still open does not block (publishPinPr supersedes it)", () => {
+  const old = pr(2, "deps/org-workflow-pins-1234abcd", "open", "2026-10-20");
+  assert.equal(pinPrDecision({ ...ORG, prs: [old], today: TODAY, headDates: {} }).action, "create");
+});
+
+test("listPinPrs keeps only the pin family and reads the head date of the open one through gh (no network in tests)", () => {
+  const rows = [
+    { number: 4, head: ORG.branch, sha: "s4", state: "open", merged: false, title: "ci(deps): the org workflow pins move to krizaka/.github@aaaaaaaa", createdAt: "2026-11-03T10:17:00Z" },
+    { number: 5, head: "feat/x", sha: "s5", state: "open", merged: false, title: "feat: x", createdAt: "2026-11-05T01:00:00Z" },
+    { number: 6, head: "chore/pins-by-hand", sha: "s6", state: "closed", merged: true, title: "ci(deps): the org workflow pins move to krizaka/.github@bbbbbbbb", createdAt: "2026-11-05T01:00:00Z" },
+  ];
+  const calls = [];
+  const run = (cmd, args) => {
+    calls.push([cmd, ...args]);
+    if (String(args[1]).startsWith("repos/krizaka/r/pulls?state=all&per_page=30")) return JSON.stringify(rows);
+    if (args[1] === "repos/krizaka/r/commits/s4") return "2026-11-04T10:17:00Z\n";
+    throw new Error(`unexpected ${args.join(" ")}`);
+  };
+  const { prs, headDates } = fetchPinState({ repo: "r", branch: ORG.branch, run });
+  assert.deepEqual(prs.map((p) => [p.number, p.state]), [[4, "open"], [6, "merged"]]);
+  assert.deepEqual(headDates, { 4: "2026-11-04T10:17:00Z" });
+  assert.equal(calls.length, 2, "one list, one head commit");
+});
+
+test("guard: the pins move once a day, never hourly", () => {
+  const yml = readFileSync(new URL("../.github/workflows/propagate-pins.yml", import.meta.url), "utf8");
+  const crons = [...yml.matchAll(/cron:\s*"([^"]+)"/g)].map((m) => m[1]);
+  assert.equal(crons.length, 1);
+  const [minute, hour] = crons[0].split(/\s+/);
+  assert.match(minute, /^\d+$/);
+  assert.match(hour, /^\d+$/, "one hour of the day, not `*`");
+  assert.match(yml, /at most one pin PR per repository per day/);
+  const src = readFileSync(new URL("./propagate-pins.mjs", import.meta.url), "utf8");
+  assert.ok(src.indexOf("pinPrDecision(") < src.indexOf('"repo", "clone"'), "the decision comes before the clone");
 });

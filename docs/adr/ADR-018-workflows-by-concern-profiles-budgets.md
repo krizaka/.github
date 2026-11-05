@@ -101,7 +101,7 @@ never evaluates `${{ }}`; the 2026-10-30 lesson, `tests/literal-job-names.test.m
 | `app-videos.yml` · `brand-icons-sync.yml` | `media-films.yml` · `media-brand-icons.yml` | main, schedule |
 | `docs-current.yml` | unchanged; `docs-site.yml` (build + lychee links) for the docs profile | PR, schedule |
 | `security-scan.yml` · `scorecard.yml` | unchanged · `security-scorecard.yml` | PR, merge_group · schedule |
-| `dependabot-automerge.yml` · `bump-krizaka.yml` · `propagate-pins.yml` | `deps-automerge.yml` · `deps-bump-krizaka.yml` · `deps-propagate-pins.yml` | Dependabot PRs · release · push |
+| `dependabot-automerge.yml` · `bump-krizaka.yml` · `propagate-pins.yml` | `deps-automerge.yml` · `deps-bump-krizaka.yml` · `deps-propagate-pins.yml` | Dependabot PRs · release · daily schedule and release (at most one pin PR per repository per day) |
 | `release-notes.yml` · `maven.yml` (publish part) · `maven-github-packages.yml` · `changelog-rebuild.yml` | unchanged · `release-maven-central.yml` · `release-maven-packages.yml` · `release-changelog.yml` | tag / release |
 | `deploy-watch.yml` | unchanged | main, schedule |
 | `post-deploy.yml` · `seo-family.yml` | `seo-post-deploy.yml` · unchanged | deploy · schedule |
