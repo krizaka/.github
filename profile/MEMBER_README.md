@@ -25,7 +25,7 @@ and where the work is tracked. The public face of the organisation is the [profi
 | **Orazaka** | [`krizaka/orazaka`](https://github.com/krizaka/orazaka) — clones every component; the [`orazaka` CLI](https://github.com/krizaka/orazaka-cli) installs, starts and seeds the demo (`orazaka demo seed`) | Multimodal AI orchestration — chat, RAG, agents, image, audio, video — on **local** models, behind a deterministic interceptor pipeline | [`AGENTS.md`](https://github.com/krizaka/orazaka/blob/main/AGENTS.md) |
 | **krizaka.com** | [`krizaka/krizaka-com`](https://github.com/krizaka/krizaka-com) | The site: products, demos, the single docs site, interactive architecture views — dark and light, English and French | [`AGENTS.md`](https://github.com/krizaka/krizaka-com/blob/main/AGENTS.md) |
 
-Running environments: [dev.orazaka.com](https://dev.orazaka.com), [dev.yomizaka.com](https://dev.yomizaka.com),
+Running environments: [www.orazaka.com](https://www.orazaka.com), [dev.yomizaka.com](https://dev.yomizaka.com),
 [dev.akinaza.com](https://dev.akinaza.com) · the site at [krizaka.com](https://www.krizaka.com).
 
 ## Building blocks

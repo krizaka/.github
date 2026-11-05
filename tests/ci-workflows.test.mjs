@@ -197,14 +197,18 @@ test("java gate: red on failure, cancellation, or an unasked skip; open when the
 });
 
 // The daily SEO check (epic #119): the products' public addresses are www.<product>.com (indexed),
-// every dev.<product>.com is checked as a development host that sends its pages to www.
-test("the daily SEO check covers the www addresses and the dev hosts (--redirects-to www)", () => {
+// every live dev.<product>.com is checked as a development host that sends its pages to www.
+// dev.orazaka.com retired 2026-11-05 (#2600): orazaka keeps its www row, its dev host is gone and must not come back.
+test("the daily SEO check covers the www addresses and the live dev hosts (--redirects-to www)", () => {
   const yml = readFileSync(new URL("../.github/workflows/seo-family.yml", import.meta.url), "utf8");
   for (const p of ["orazaka", "yomizaka", "akinaza"]) {
     assert.match(yml, new RegExp(`host: www\\.${p}\\.com,`), `www.${p}.com`);
+  }
+  for (const p of ["yomizaka", "akinaza"]) {
     assert.match(yml, new RegExp(`host: dev\\.${p}\\.com, args: "--index off --redirects-to https://www\\.${p}\\.com"`), `dev.${p}.com`);
   }
-  assert.deepEqual([...yml.matchAll(/host: dev\.([a-z]+)\.com/g)].map((m) => m[1]).sort(), ["akinaza", "orazaka", "yomizaka"], "only the three products are checked");
+  assert.deepEqual([...yml.matchAll(/host: dev\.([a-z]+)\.com/g)].map((m) => m[1]).sort(), ["akinaza", "yomizaka"], "only the live dev hosts are checked (dev.orazaka.com retired #2600)");
+  assert.doesNotMatch(yml, /host: dev\.orazaka\.com/, "dev.orazaka.com is retired (#2600) and must not be probed");
   assert.doesNotMatch(yml, /^\s+- dev\./m, "no dev host is checked as an indexed site");
 });
 
