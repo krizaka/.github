@@ -44,8 +44,8 @@ test("a web app without AASA: no AASA, nothing claimed -> every shareable route 
 });
 
 test("rule 3: app.json needs associatedDomains and an autoVerify filter covering every claimed path", () => {
-  const cfg = { host: "dev.orazaka.com", iosBundleId: "com.krizaka.orazaka", androidPackage: "com.krizaka.orazaka", paths: ["/watch/*", "/me", "/me/*"] };
-  const good = { expo: { ios: { bundleIdentifier: cfg.iosBundleId, associatedDomains: ["applinks:dev.orazaka.com"] }, android: { package: cfg.androidPackage, intentFilters: [{ action: "VIEW", autoVerify: true, data: [{ scheme: "https", host: cfg.host, pathPrefix: "/watch/" }, { scheme: "https", host: cfg.host, path: "/me" }, { scheme: "https", host: cfg.host, pathPrefix: "/me/" }], category: ["BROWSABLE", "DEFAULT"] }] } } };
+  const cfg = { host: "www.orazaka.com", iosBundleId: "com.krizaka.orazaka", androidPackage: "com.krizaka.orazaka", paths: ["/watch/*", "/me", "/me/*"] };
+  const good = { expo: { ios: { bundleIdentifier: cfg.iosBundleId, associatedDomains: ["applinks:www.orazaka.com"] }, android: { package: cfg.androidPackage, intentFilters: [{ action: "VIEW", autoVerify: true, data: [{ scheme: "https", host: cfg.host, pathPrefix: "/watch/" }, { scheme: "https", host: cfg.host, path: "/me" }, { scheme: "https", host: cfg.host, pathPrefix: "/me/" }], category: ["BROWSABLE", "DEFAULT"] }] } } };
   assert.deepEqual(checkAppJson(good, cfg), []);
   assert.equal(checkAppJson({ expo: { ios: { bundleIdentifier: cfg.iosBundleId }, android: { package: cfg.androidPackage } } }, cfg).length >= 3, true);
   const noAuto = structuredClone(good);
@@ -78,9 +78,9 @@ test("rule 5 live: 200, json, no redirect, bundle id, fingerprints, CDNs", async
     if (u.host === "digitalassetlinks.googleapis.com") return reply(200, { linked: true });
     return files[u.pathname];
   };
-  assert.deepEqual(await checkLive("https://dev.orazaka.com", cfg, { fetchImpl }), []);
+  assert.deepEqual(await checkLive("https://www.orazaka.com", cfg, { fetchImpl }), []);
   const broken = async (url) => (url.includes("apple-app-site") ? reply(301, {}) : fetchImpl(url));
-  assert.match((await checkLive("https://dev.orazaka.com", cfg, { fetchImpl: broken, cdn: false })).join("\n"), /redirect/);
+  assert.match((await checkLive("https://www.orazaka.com", cfg, { fetchImpl: broken, cdn: false })).join("\n"), /redirect/);
   const wrongType = async (url) => (url.includes("assetlinks") ? reply(200, files["/.well-known/assetlinks.json"].json && [], "text/html") : fetchImpl(url));
-  assert.match((await checkLive("https://dev.orazaka.com", cfg, { fetchImpl: wrongType, cdn: false })).join("\n"), /content-type/);
+  assert.match((await checkLive("https://www.orazaka.com", cfg, { fetchImpl: wrongType, cdn: false })).join("\n"), /content-type/);
 });
