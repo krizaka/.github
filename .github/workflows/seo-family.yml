@@ -31,8 +31,7 @@ jobs:
           - { host: www.orazaka.com, args: "" }
           - { host: www.yomizaka.com, args: "" }
           - { host: www.akinaza.com, args: "" }
-          # The development hosts: not indexed, pages 308 to www, the API stays.
-          - { host: dev.orazaka.com, args: "--index off --redirects-to https://www.orazaka.com" }
+          # The development hosts: not indexed, pages 308 to www, the API stays. (dev.orazaka.com was removed on 2026-11-05, krizaka-internal#2600.)
           - { host: dev.yomizaka.com, args: "--index off --redirects-to https://www.yomizaka.com" }
           - { host: dev.akinaza.com, args: "--index off --redirects-to https://www.akinaza.com" }
     steps:

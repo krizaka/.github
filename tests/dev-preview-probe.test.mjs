@@ -15,9 +15,13 @@ test("only high and critical CodeQL and Dependabot alerts block; Scorecard findi
   assert.deepEqual(r, { codeql: 1, dependabot: 1, secrets: 1 });
 });
 
-test("the products in focus are known, each with a dev host and at least one repository; the paused ones are not probed", () => {
+test("the products in focus are known, each with a host and at least one repository; the paused ones are not probed", () => {
   assert.deepEqual(Object.keys(PRODUCTS).sort(), ["akinaza", "orazaka", "yomizaka"]);
-  for (const [name, p] of Object.entries(PRODUCTS)) assert.ok(p.host.startsWith("dev.") && p.repos.length >= 1, name);
+  for (const [name, p] of Object.entries(PRODUCTS)) assert.ok(p.host.startsWith(name === "orazaka" ? "www." : "dev.") && p.repos.length >= 1, name);
+});
+
+test("Orazaka is probed on www: dev.orazaka.com was removed on 2026-11-05 (krizaka-internal#2600)", () => {
+  assert.equal(PRODUCTS.orazaka.host, "www.orazaka.com");
 });
 
 test("mobile.app-links: the probe knows which products have a native app", () => {
