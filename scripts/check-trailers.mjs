@@ -54,22 +54,34 @@ function trailerEmail(value) {
  * checked against the same list. A refused e-mail is masked in the output.
  */
 export function trailerProblems(commits, { squash = false, identities = loadIdentities() } = {}) {
+  const inList = (e, committer = false) =>
+    identities.emails.has(e.toLowerCase()) || (committer && identities.committerOnly.has(e.toLowerCase()));
+  const trailerOk = (e) => e !== "" && (inList(e) || (squash && isAllowedNoreply(e, identities)));
   const problems = [];
-  const allowed = (e, extra = false) =>
-    identities.emails.has(e.toLowerCase()) || (extra && identities.committerOnly.has(e.toLowerCase()));
   for (const c of commits) {
     const sha = c.sha.slice(0, 7);
-    if (c.author !== undefined && !allowed(c.author)) problems.push(`${sha} author e-mail ${maskEmail(c.author)} is not in scripts/commit-identities.json`);
-    if (c.committer !== undefined && !allowed(c.committer, true)) problems.push(`${sha} committer e-mail ${maskEmail(c.committer)} is not in scripts/commit-identities.json`);
-    for (const line of c.message.split("\n")) {
-      const value = trailerValue(line);
-      if (value === null) continue;
-      const email = trailerEmail(value);
-      if (email && (allowed(email) || (squash && isAllowedNoreply(email, identities)))) continue;
-      problems.push(`${sha} co-author trailer with e-mail ${maskEmail(email)} is not in scripts/commit-identities.json: reword the line with an allowed identity or remove it`);
+    if (c.author !== undefined && !inList(c.author)) problems.push(`${sha} author e-mail ${maskEmail(c.author)} is not in ${LIST}`);
+    if (c.committer !== undefined && !inList(c.committer, true)) problems.push(`${sha} committer e-mail ${maskEmail(c.committer)} is not in ${LIST}`);
+    const emails = c.message.split("\n").map(trailerValue).filter((v) => v !== null).map(trailerEmail);
+    for (const e of emails.filter((e) => !trailerOk(e))) {
+      problems.push(`${sha} co-author trailer with e-mail ${maskEmail(e)} is not in ${LIST}: reword the line with an allowed identity or remove it`);
     }
   }
   return problems;
+}
+
+const LIST = "scripts/commit-identities.json";
+
+/** The e-mail-looking words of a line, quotes, angle brackets and trailing punctuation removed. Plain string work: no backtracking. */
+function emailsOf(line) {
+  return line
+    .split(/[\s<>"']+/)
+    .filter((w) => w.includes("@"))
+    .map((w) => {
+      let end = w.length;
+      while (end > 0 && ".,;)\\".includes(w[end - 1])) end--;
+      return w.slice(0, end);
+    });
 }
 
 const SELF = new Set(["check-trailers.mjs", "check-trailers.test.mjs"]);
@@ -83,8 +95,8 @@ export function sourceProblems(files, identities = loadIdentities()) {
       const t = line.trimStart();
       if (t.startsWith("#") || t.startsWith("//") || t.startsWith("*") || t.startsWith("- name:")) return;
       if (!t.toLowerCase().includes("co-authored-by")) return;
-      const emails = line.match(/[^\s<>"']+@[^\s<>"']+/g) ?? [];
-      if (emails.length === 0 || emails.some((e) => !identities.emails.has(e.toLowerCase().replace(/[.,;)\\]+$/, "")))) {
+      const emails = emailsOf(line);
+      if (emails.length === 0 || emails.some((e) => !identities.emails.has(e.toLowerCase()))) {
         problems.push(`${f.path}:${i + 1} writes a co-author trailer without an identity of scripts/commit-identities.json on the line`);
       }
     });
