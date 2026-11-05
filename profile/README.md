@@ -24,7 +24,7 @@ Each product stands on its own; each proves one skill. Claims are cheap — ever
 <table>
 <tr><td valign="top" width="64"><picture><source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/orazaka/mark-dark.svg?v=5adc3bcf5f"><img src="https://krizaka-assets.b-cdn.net/brand/orazaka/mark-light.svg?v=5adc3bcf5f" alt="Sovkora" width="48"></picture></td><td valign="top">
 
-**Sovkora** · The engine &nbsp;<sup>In development</sup> · <sup>sign-up closed</sup><br>Every request crosses a deterministic pipeline to the best local model: your documents, your models, your network — nothing leaves.<br>[Repository](https://github.com/krizaka/orazaka) · [![Dev: up 1.0.0+06c173c](https://img.shields.io/badge/dev-up_%C2%B7_1.0.0%2B06c173c-brightgreen)](https://www.orazaka.com) · ![Prod: not open yet](https://img.shields.io/badge/prod-not_open_yet-lightgrey)
+**Sovkora** · The engine &nbsp;<sup>In development</sup> · <sup>sign-up closed</sup><br>Every request crosses a deterministic pipeline to the best local model: your documents, your models, your network — nothing leaves.<br>[Repository](https://github.com/krizaka/orazaka) · [![Dev: up 1.0.0+f9120a9](https://img.shields.io/badge/dev-up_%C2%B7_1.0.0%2Bf9120a9-brightgreen)](https://www.orazaka.com) · ![Prod: not open yet](https://img.shields.io/badge/prod-not_open_yet-lightgrey)
 
 <details><summary>Components (17): clients, backend-for-frontend, services, workers · green is the latest, orange has a newer one</summary>
 
