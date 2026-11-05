@@ -45,6 +45,8 @@ on:
     secrets:
       DIGITALOCEAN_ACCESS_TOKEN:
         required: false
+      RELEASE_APP_PRIVATE_KEY:
+        required: false
 
 permissions:
   contents: read
