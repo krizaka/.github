@@ -3,6 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { INTERNAL, MARKER, bodyOf, labelsOf, planIssues, redByRepo, repoOfTitle, titleOf } from "../scripts/conformance-issues.mjs";
 import { loadRules } from "../scripts/conformance.mjs";
+import { readFileSync } from "node:fs";
 
 const rules = loadRules();
 const cells = {
@@ -43,4 +44,11 @@ test("the issue lives in the private krizaka-internal with the required labels, 
   assert.equal(INTERNAL, "krizaka-internal");
   assert.equal(repoOfTitle(titleOf([{ id: "x" }], "orazaka-cli")), "orazaka-cli");
   for (const prefix of ["repo:", "product:", "lane:", "type:"]) assert.ok(labelsOf("a").some((l) => l.startsWith(prefix)));
+});
+
+test("the workflow's token reaches krizaka-internal, where the issues live (a 404 there turned the daily run red)", () => {
+  const yml = readFileSync(new URL("../.github/workflows/conformance.yml", import.meta.url), "utf8");
+  const scope = yml.match(/repositories: \$\{\{ steps\.repos\.outputs\.list \}\}(.*)/);
+  assert.ok(scope, "the app token is scoped to the repo list");
+  assert.ok(scope[1].split(",").includes(INTERNAL), `the token's repositories include ${INTERNAL}`);
 });

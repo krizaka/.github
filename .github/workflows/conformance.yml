@@ -46,7 +46,8 @@ jobs:
           app-id: ${{ vars.RELEASE_APP_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
           owner: krizaka
-          repositories: ${{ steps.repos.outputs.list }}
+          # The issues live in krizaka-internal (conformance-issues.mjs INTERNAL): without it the issue step answers 404.
+          repositories: ${{ steps.repos.outputs.list }},krizaka-internal
           permission-contents: read
           permission-administration: read
           permission-metadata: read
