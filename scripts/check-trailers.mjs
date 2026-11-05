@@ -106,8 +106,14 @@ export function sourceProblems(files, identities = loadIdentities()) {
 
 /** A git committing-identity set in a workflow or script: `user.email`, `GIT_AUTHOR_EMAIL`, `GIT_COMMITTER_EMAIL`. */
 const IDENTITY_KEY = /user\.email|GIT_(?:AUTHOR|COMMITTER)_EMAIL/i;
-/** A GitHub-noreply address anywhere on a line: `<id>+<login>@users.noreply.github.com` or the bare `<login>@…`. */
-const NOREPLY = /(?:(\d+)\+)?([A-Za-z0-9._%[\]-]+)@users\.noreply\.github\.com/gi;
+/** A GitHub-noreply address anywhere on a line; the local part (`<id>+<login>` or the bare `<login>`) is split in code.
+ *  One quantifier over a class the `@` is not in, then a fixed literal: linear, no backtracking. */
+const NOREPLY = /([A-Za-z0-9[\]+-]+)@users\.noreply\.github\.com/gi;
+/** The login of a noreply local part: `<id>+<login>` -> `<login>`, otherwise the part itself. */
+function noreplyLogin(local) {
+  const plus = local.indexOf("+");
+  return plus > 0 && /^\d+$/.test(local.slice(0, plus)) ? local.slice(plus + 1) : local;
+}
 
 /**
  * files: [{ path, text }] -> each line that sets a git author/committer e-mail to the GitHub-noreply of an
@@ -128,9 +134,10 @@ export function committerSourceProblems(files, identities = loadIdentities()) {
       if (t.startsWith("#") || t.startsWith("//") || t.startsWith("*")) return;
       if (!IDENTITY_KEY.test(line)) return;
       for (const m of line.matchAll(NOREPLY)) {
-        if (!known.has(m[2].toLowerCase())) continue;
+        const login = noreplyLogin(m[1]);
+        if (!known.has(login.toLowerCase())) continue;
         if (!identities.emails.has(m[0].toLowerCase())) {
-          problems.push(`${f.path}:${i + 1} commits as ${m[2]} but not with its allow-listed e-mail (a direct author or committer needs the id+login form of ${LIST})`);
+          problems.push(`${f.path}:${i + 1} commits as ${login} but not with its allow-listed e-mail (a direct author or committer needs the id+login form of ${LIST})`);
         }
       }
     });
