@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { loadIdentities, maskEmail, parseLog, sourceProblems, trailerProblems } from "../scripts/check-trailers.mjs";
+import { committerSourceProblems, loadIdentities, maskEmail, parseLog, sourceProblems, trailerProblems } from "../scripts/check-trailers.mjs";
 
 const BOT = "345578919+krizaka-agents[bot]@users.noreply.github.com";
 const FOUNDER = "abidoussama99@gmail.com";
@@ -88,4 +88,29 @@ test("a comment or a step name may mention it, and the checker itself is skipped
     { path: "scripts/check-trailers.mjs", text: "co-authored-by" },
   ];
   assert.deepEqual(sourceProblems(f), []);
+});
+
+test("an automation that commits as a known bot with the prefix-less e-mail is refused at the source", () => {
+  const bare = "krizaka-agents[bot]@users.noreply.github.com";
+  const bad = [
+    { path: ".github/workflows/x.yml", text: `          git config user.email "${bare}"` },
+    { path: "scripts/y.mjs", text: `  git("-c", "user.email=${bare}", "commit", "-m", t);` },
+    { path: ".github/workflows/z.yml", text: `          export GIT_AUTHOR_EMAIL='${bare}' GIT_COMMITTER_EMAIL='${bare}'` },
+    { path: "scripts/w.mjs", text: `  git("-c", "user.email=1+krizaka-agents[bot]@users.noreply.github.com", "commit");` },
+  ];
+  // one per line, and two on the GIT_AUTHOR/GIT_COMMITTER line
+  assert.equal(committerSourceProblems(bad).length, 5);
+  assert.ok(!committerSourceProblems(bad).join(" ").includes("noreply.github.com"), "the offending address is not echoed back");
+});
+
+test("the exact id+login e-mail, an unknown bot and a non-identity line pass the source check", () => {
+  const ok = [
+    { path: ".github/workflows/x.yml", text: `          git config user.email "${BOT}"` },
+    { path: "scripts/y.mjs", text: `  git("-c", "user.email=${BOT}", "commit");` },
+    { path: ".github/workflows/release.yml", text: `          git config user.email "krizaka-release[bot]@users.noreply.github.com"` },
+    { path: ".github/workflows/x.yml", text: "          git config user.name 'krizaka-agents[bot]'" },
+    { path: "scripts/check-trailers.test.mjs", text: `git config user.email "krizaka-agents[bot]@users.noreply.github.com"` },
+    { path: ".github/workflows/x.yml", text: "          # git config user.email krizaka-agents[bot]@users.noreply.github.com" },
+  ];
+  assert.deepEqual(committerSourceProblems(ok), []);
 });
