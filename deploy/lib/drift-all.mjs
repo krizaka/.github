@@ -8,6 +8,12 @@ import { specDrift } from "./drift.mjs";
 
 const raw = (repo, spec) => `https://raw.githubusercontent.com/${repo}/main/${spec}`;
 
+/** A private repository's spec (kachizaka) answers 404 to an anonymous read: the token is sent when the run has one. */
+const readHeaders = (env) => {
+  const token = env.GITHUB_TOKEN || env.GH_TOKEN;
+  return { "user-agent": "krizaka-deploy", ...(token ? { authorization: `Bearer ${token}` } : {}) };
+};
+
 /** @returns { ok: string[], drift: { app, differences: string[] }[] } */
 export async function driftAll({ registry, doctl, fetch = globalThis.fetch, env = process.env, argv = [] }) {
   assertContext({ env, argv });
@@ -25,7 +31,7 @@ export async function driftAll({ registry, doctl, fetch = globalThis.fetch, env 
     }
     let res;
     try {
-      res = await fetch(raw(repo, spec), { signal: AbortSignal.timeout(15_000) });
+      res = await fetch(raw(repo, spec), { headers: readHeaders(env), signal: AbortSignal.timeout(15_000) });
     } catch (error) {
       drift.push({ app, differences: [`cannot read ${repo}/${spec}: ${error.message}`] });
       continue;
