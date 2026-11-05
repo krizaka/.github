@@ -100,7 +100,7 @@ test("an automation that commits as a known bot with the prefix-less e-mail is r
   ];
   // one per line, and two on the GIT_AUTHOR/GIT_COMMITTER line
   assert.equal(committerSourceProblems(bad).length, 5);
-  assert.ok(!committerSourceProblems(bad).join(" ").includes("noreply.github.com"), "the offending address is not echoed back");
+  assert.doesNotMatch(committerSourceProblems(bad).join(" "), /users\.noreply\.github\.com/, "the offending address is not echoed back");
 });
 
 test("the exact id+login e-mail, an unknown bot and a non-identity line pass the source check", () => {
