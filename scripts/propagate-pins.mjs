@@ -148,7 +148,7 @@ function main(argv) {
       const git = (...a) => sh("git", ["-C", dir, ...a]);
       git("switch", "-C", branch);
       git("add", "-A");
-      git("-c", "user.name=krizaka-agents[bot]", "-c", "user.email=krizaka-agents[bot]@users.noreply.github.com", "commit", "-q", "-m", `ci(deps): the ${label} move to krizaka/${source}@${sha.slice(0, 8)}`);
+      git("-c", "user.name=krizaka-agents[bot]", "-c", "user.email=345578919+krizaka-agents[bot]@users.noreply.github.com", "commit", "-q", "-m", `ci(deps): the ${label} move to krizaka/${source}@${sha.slice(0, 8)}`);
       sh("git", pushArgs(dir, branch));
       const title = `ci(deps): the ${label} move to krizaka/${source}@${sha.slice(0, 8)}`;
       const body = `A change in krizaka/${source} reaches this repository (propagate-pins, rule « a rule reaches every repo »). Only the \`@<sha>\` pins of krizaka/${source} change; CI decides. One pull request per repository, updated in place at every change.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)`;

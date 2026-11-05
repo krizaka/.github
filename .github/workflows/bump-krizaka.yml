@@ -75,7 +75,7 @@ jobs:
         run: |
           branch="deps/krizaka-$(printf '%s' "$PACKAGES" | sha256sum | cut -c1-8)"
           git config user.name "krizaka-agents[bot]"
-          git config user.email "krizaka-agents[bot]@users.noreply.github.com"
+          git config user.email "345578919+krizaka-agents[bot]@users.noreply.github.com"
           git switch -C "$branch"
           git add -A -- ':!.krizaka-org'
           git commit -m "$TITLE"

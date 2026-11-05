@@ -104,6 +104,55 @@ export function sourceProblems(files, identities = loadIdentities()) {
   return problems;
 }
 
+/** A git committing-identity set in a workflow or script: `user.email`, `GIT_AUTHOR_EMAIL`, `GIT_COMMITTER_EMAIL`. */
+const IDENTITY_KEY = /user\.email|GIT_(?:AUTHOR|COMMITTER)_EMAIL/i;
+/** The fixed suffix of every GitHub-noreply address. Found with indexOf and walked back one character at a time (no
+ *  quantifier over the line), so a crafted line cannot drive super-linear backtracking. */
+const NOREPLY_SUFFIX = "@users.noreply.github.com";
+/** A character of a noreply local part: a login, digits, the `id+` separator and the `[bot]` marker. */
+function isLocalChar(ch) {
+  return (ch >= "A" && ch <= "Z") || (ch >= "a" && ch <= "z") || (ch >= "0" && ch <= "9") || ch === "-" || ch === "+" || ch === "[" || ch === "]";
+}
+/** The login of a noreply local part: `<id>+<login>` -> `<login>`, otherwise the part itself. */
+function noreplyLogin(local) {
+  const plus = local.indexOf("+");
+  return plus > 0 && /^\d+$/.test(local.slice(0, plus)) ? local.slice(plus + 1) : local;
+}
+
+/**
+ * files: [{ path, text }] -> each line that sets a git author/committer e-mail to the GitHub-noreply of an
+ * allow-listed login but NOT its exact e-mail (the bare, prefix-less or wrong-id form). A direct author or committer
+ * needs the `<id>+<login>@users.noreply.github.com` of scripts/commit-identities.json; the bare form only ever passes
+ * as a squash-merge co-author trailer, so an automation that commits with it is refused by the commit check above —
+ * the whole org at once (krizaka/akinaza#691, the propagate-pins fan-out, 2026-11-05). This catches that at the
+ * source. An unknown login (a bot not on the list) is a different matter, left to the commit check; a non-noreply
+ * e-mail is none of this guard's business.
+ */
+export function committerSourceProblems(files, identities = loadIdentities()) {
+  const known = new Set(identities.accounts.map((a) => a.login.toLowerCase()));
+  const problems = [];
+  for (const f of files) {
+    if (SELF.has(basename(f.path)) || /\.test\.[cm]?js$/.test(f.path)) continue;
+    f.text.split("\n").forEach((line, i) => {
+      const t = line.trimStart();
+      if (t.startsWith("#") || t.startsWith("//") || t.startsWith("*")) return;
+      if (!IDENTITY_KEY.test(line)) return;
+      const lower = line.toLowerCase();
+      for (let at = lower.indexOf(NOREPLY_SUFFIX); at !== -1; at = lower.indexOf(NOREPLY_SUFFIX, at + NOREPLY_SUFFIX.length)) {
+        let start = at;
+        while (start > 0 && isLocalChar(line[start - 1])) start--;
+        if (start === at) continue; // no local part: not an address
+        const login = noreplyLogin(line.slice(start, at));
+        if (!known.has(login.toLowerCase())) continue;
+        if (!identities.emails.has(lower.slice(start, at) + NOREPLY_SUFFIX)) {
+          problems.push(`${f.path}:${i + 1} commits as ${login} but not with its allow-listed e-mail (a direct author or committer needs the id+login form of ${LIST})`);
+        }
+      }
+    });
+  }
+  return problems;
+}
+
 /** The workflow, script and tool files under the given paths (node_modules and .git skipped). */
 export function collectSources(paths) {
   const out = [];
@@ -134,9 +183,10 @@ export function parseLog(raw) {
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const args = process.argv.slice(2);
   if (args[0] === "--sources") {
-    const problems = sourceProblems(collectSources(args.slice(1)));
+    const files = collectSources(args.slice(1));
+    const problems = [...sourceProblems(files), ...committerSourceProblems(files)];
     for (const p of problems) console.log(`::error::${p}`);
-    console.log(problems.length ? `${problems.length} writer(s) of a co-author trailer without an allowed identity` : "no writer of a co-author trailer outside the allow-list");
+    console.log(problems.length ? `${problems.length} script(s) or workflow(s) name an identity outside the allow-list` : "no script or workflow names an identity outside the allow-list");
     process.exit(problems.length ? 1 : 0);
   }
   const squash = args[0] === "--squash";

@@ -59,7 +59,7 @@ function syncOne(repo, work, dry) {
   const pr = pullRequestOf(repo, branch);
   git("switch", "-C", branch);
   git("add", "-A");
-  git("-c", "user.name=krizaka-agents[bot]", "-c", "user.email=krizaka-agents[bot]@users.noreply.github.com", "commit", "-q", "-m", pr.title);
+  git("-c", "user.name=krizaka-agents[bot]", "-c", "user.email=345578919+krizaka-agents[bot]@users.noreply.github.com", "commit", "-q", "-m", pr.title);
   git("push", "-q", "-f", "origin", branch);
   const url = sh("gh", ["pr", "create", "-R", `krizaka/${repo}`, "--head", branch, "--title", pr.title, "--body", pr.body]);
   try {
