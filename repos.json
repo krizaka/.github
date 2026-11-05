@@ -233,7 +233,9 @@
       "role": "Shared TypeScript building blocks",
       "team": "krizaka",
       "kind": "npm",
-      "deploy": [],
+      "deploy": [
+        "krizaka-ts-site"
+      ],
       "archived": false,
       "visibility": "public",
       "status": "Complies"
