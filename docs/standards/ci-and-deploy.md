@@ -229,7 +229,7 @@ MDX `content/` folder only tells a blog apart from another Node repository; MDX 
 The steps are composite actions in [`actions/`](../../actions), so `node-ci.yml` and the pack run the same code:
 `setup` (toolchains, caches, `.krizaka/ci.json` env, PostgreSQL, install), `quality`, `test`, `build` (the build script,
 then a buildx image when there is a Dockerfile, layers cached, written on main only), `after-build` (Playwright browsers,
-the repository's script, `CI_IMAGE` set when an image was built) and `agent-setup` (below).
+the repository's script, `CI_IMAGE` set when an image was built).
 
 ### `.krizaka/ci.json` — values, never steps
 
@@ -250,13 +250,6 @@ Optional, in the project folder. Unknown keys are an error ("it never lists step
 Keys: `workingDirectory`, `postgres`, `postgresName`, `env`, `ignore`, `relevant`, `afterBuild`, `playwright`, `rewrite`,
 `nodeVersion`, `javaVersion`, `pythonVersion`, `timeoutMinutes`. `ignore`/`relevant` replace the stack's defaults of the
 `changes` gate. A Sovkora component cannot declare `afterBuild` (component.yml has none).
-
-### `agent-setup` — a coding agent's sandbox
-
-`uses: krizaka/.github/actions/agent-setup@<sha>` in a repository's `copilot-setup-steps.yml`, after the checkout. It
-generalises sovkora's `copilot-workspace`: for a workspace component, Java 21 + Node 22, the workspace cloned,
-`node scripts/workspace.mjs upstreams <component>`, and the workspace's manifest and packs linked beside the checkout; for
-the other stacks, the toolchain and the dependencies.
 
 ### Migrating a caller
 
@@ -284,7 +277,7 @@ see (private) keep what the standard says.
 naming checker, then lists every file of the org that names `<from>` (code search, whole-name matches only) and what code
 search cannot see (deploy targets, settings). It changes nothing. The real mode is not written yet (TODO in the script).
 
-## `krizaka-deploy` — `deploy/` (CLI) and `actions/deploy` (the same, as a step)
+## `krizaka-deploy` — `deploy/` (CLI)
 
 Located **here** and not in a new repository: the CI workflows and the deploy tool share one release tag and one review path; this repository
 already holds the org's shared tooling and standards; a repository of 600 lines would need its own protection, CI and Dependabot for nothing.
@@ -321,7 +314,7 @@ A repository adds `.krizaka-deploy.json`:
 
 `--dry-run` reads everything (guards, live spec, the merge, the live site) and changes nothing. `krizaka-deploy check` runs only the live checks.
 
-In CI: `uses: krizaka/.github/actions/deploy@<sha>` with `digitalocean-token` (the Krizaka team's token, a repository secret) and `contents: read`.
+In CI, run the CLI with the Krizaka team's DigitalOcean token as a repository secret and `contents: read` (the composite action that wrapped it had no caller and was removed, ADR-026 phase A).
 The unit tests (`deploy/tests`) mock doctl and HTTP and cover each guard.
 
 ## What it costs and saves (phase 1, measured)

@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// MANUAL TOOL (ADR-026): no workflow calls it; a person runs it to write or lower a repository's baseline. Owner: security lane.
+// How to run: from a krizaka/.github checkout inside the repository, SONAR_TOKEN set: `node actions/sonar-ratchet/sonar-ratchet.mjs --update`
+// (the `sonar-ratchet` rule of docs/standards/rules.json names this command; 29 repositories hold the baseline it writes).
 // SonarCloud overall counts, ratcheted (krizaka/.github, security lane; founder 2026-11-01). Rules review of 2026-11-05 (Sonar blocks a
 // pull request only on its Security rating, krizaka-internal#2613): only the security counts (vulnerabilities, hotspots to review) fail;
 // bugs and smells that rise are a warning, still lowered by --update.
