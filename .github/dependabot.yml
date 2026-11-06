@@ -5,7 +5,7 @@
 version: 2
 updates:
   - package-ecosystem: github-actions
-    directories: ["/", "/actions/deploy"]
+    directories: ["/"]
     cooldown:
       default-days: 7
     schedule:
@@ -23,6 +23,23 @@ updates:
   # krizaka-deploy's one runtime dependency (the YAML parser), locked in deploy/package-lock.json.
   - package-ecosystem: npm
     directory: /deploy
+    cooldown:
+      default-days: 7
+    schedule:
+      interval: monthly
+      time: "06:00"
+      timezone: Europe/Paris
+    groups:
+      all:
+        patterns: ["*"]
+    commit-message:
+      prefix: "chore(deps)"
+    labels: ["area:deps"]
+    open-pull-requests-limit: 1
+
+  # The automation catalogue's two runtime dependencies (the TypeScript compiler and the YAML parser), locked in its package-lock.json.
+  - package-ecosystem: npm
+    directory: /tools/automation-catalogue
     cooldown:
       default-days: 7
     schedule:

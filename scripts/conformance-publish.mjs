@@ -16,7 +16,7 @@ export const URL_MD = `https://github.com/${REPO}/blob/${BRANCH}/${FILES.md}`;
 export const pageOf = ({ generatedAt, runUrl, matrix }) =>
   `# Conformance matrix\n\nGenerated ${generatedAt} by ${runUrl || "a local run"} from \`docs/standards/rules.json\` against main of every active repository of \`repos.json\`. Machine-readable: [matrix.json](matrix.json).\n\n${matrix.trim()}\n`;
 
-async function gh(path, init = {}) {
+export async function gh(path, init = {}) {
   const res = await fetch(`https://api.github.com${path}`, {
     ...init,
     headers: { accept: "application/vnd.github+json", authorization: `Bearer ${process.env.GH_TOKEN ?? ""}`, "content-type": "application/json" },
@@ -27,7 +27,7 @@ async function gh(path, init = {}) {
   return res.json();
 }
 
-async function put(path, text, message) {
+export async function put(path, text, message) {
   const current = await gh(`/repos/${REPO}/contents/${path}?ref=${BRANCH}`);
   const body = { message, branch: BRANCH, content: Buffer.from(text).toString("base64"), ...(current?.sha ? { sha: current.sha } : {}) };
   await gh(`/repos/${REPO}/contents/${path}`, { method: "PUT", body: JSON.stringify(body) });

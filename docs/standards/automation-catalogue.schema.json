@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/krizaka/.github/blob/main/docs/standards/automation-catalogue.schema.json",
+  "title": "krizaka.automation/1",
+  "description": "The automation catalogue generated daily by tools/automation-catalogue (ADR-026, krizaka-internal#2755). Published as automation/catalogue.json on the conformance-matrix branch.",
+  "type": "object",
+  "required": ["schema", "generatedAt", "repositories", "summary", "units"],
+  "properties": {
+    "schema": { "const": "krizaka.automation/1" },
+    "generatedAt": { "type": "string" },
+    "runUrl": { "type": ["string", "null"] },
+    "repositories": {
+      "type": "array",
+      "items": { "type": "object", "required": ["name", "commit"], "properties": { "name": { "type": "string" }, "commit": { "type": "string" }, "committedAt": { "type": "string" } } }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["units", "byKind", "byType", "flags", "repos"],
+      "properties": {
+        "units": { "type": "integer" },
+        "byKind": { "type": "object", "additionalProperties": { "type": "integer" } },
+        "byType": { "type": "object", "additionalProperties": { "type": "integer" } },
+        "byLanguage": { "type": "object", "additionalProperties": { "type": "integer" } },
+        "flags": { "type": "object", "additionalProperties": { "type": "integer" } },
+        "repos": { "type": "object", "additionalProperties": { "type": "object" } }
+      }
+    },
+    "units": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "repo", "path", "type", "kind", "language", "lines", "calledBy", "flags", "tests", "regex"],
+        "properties": {
+          "id": { "type": "string" },
+          "repo": { "type": "string" },
+          "path": { "type": "string" },
+          "type": { "enum": ["script", "workflow", "template", "action", "npm-script", "hook-config", "agent-hook", "entrypoint", "cron", "launchagent"] },
+          "kind": { "enum": ["CI check", "git hook", "cron", "dev tool", "generator", "deploy", "one-off", "agent hook", "library"] },
+          "language": { "type": "string" },
+          "lines": { "type": "integer" },
+          "owner": { "type": ["string", "null"] },
+          "what": { "type": "string" },
+          "header": { "type": ["boolean", "null"] },
+          "manual": { "type": "boolean" },
+          "tests": { "type": "object", "required": ["required", "has"], "properties": { "required": { "type": "boolean" }, "has": { "type": "boolean" } } },
+          "regex": { "type": "object", "required": ["count", "longest", "over80", "long"], "properties": { "count": { "type": "integer" }, "longest": { "type": "integer" }, "over80": { "type": "integer" }, "long": { "type": "array", "items": { "type": "string" } } } },
+          "calledBy": { "type": "array", "items": { "type": "object", "required": ["type", "by"], "properties": { "type": { "type": "string" }, "by": { "type": "string" } } } },
+          "documented": { "type": "boolean" },
+          "copies": { "type": "array", "items": { "type": "object", "required": ["repo", "path", "similarity"] } },
+          "machine": { "type": "boolean" },
+          "triggers": { "type": "array", "items": { "type": "string" } },
+          "schedules": { "type": "array", "items": { "type": "string" } },
+          "lastRun": { "type": ["object", "null"] },
+          "hash": { "type": "string" },
+          "changedAt": { "type": ["string", "null"] },
+          "flags": { "type": "array", "items": { "enum": ["nothingCalls", "noTest", "regexOver80", "overSize", "noHeader", "copied"] } }
+        }
+      }
+    }
+  }
+}

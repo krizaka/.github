@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install a checkout's dependencies, the build pack's way (actions/setup and actions/agent-setup). Runs in the working directory.
+# Install a checkout's dependencies, the build pack's way (actions/setup). Runs in the working directory.
 #   STACK     node | blog | python | maven | workspace | iac
 #   PM        npm | pnpm                 (node, blog)
 #   INSTALL   replaces the default Node install when set
