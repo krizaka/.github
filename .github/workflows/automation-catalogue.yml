@@ -1,0 +1,36 @@
+# The automation catalogue's own tests (ADR-026, krizaka-internal#2755): fixtures whose units, callers, regexes and copies are
+# known. The catalogue itself is generated daily by the Conformance workflow (job « Automation catalogue »); this workflow only
+# proves the generator still counts right before a change to it merges.
+name: Automation catalogue
+
+on:
+  pull_request:
+    paths:
+      - tools/automation-catalogue/**
+      - .github/workflows/automation-catalogue.yml
+  push:
+    branches: [main]
+    paths:
+      - tools/automation-catalogue/**
+      - .github/workflows/automation-catalogue.yml
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Automation catalogue tool
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: tools/automation-catalogue
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm test
