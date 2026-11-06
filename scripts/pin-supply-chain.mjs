@@ -64,6 +64,15 @@ export function exactVersion(tagsAtSha, current) {
   return full.length ? bestTag(full) : null;
 }
 
+/** A pinned line whose comment is a version: it stays, becomes the exact release, or is `unresolved` (no tag backs it). */
+function exactComment({ line, target, comment, word, tags }) {
+  const exact = exactVersion(tags, word);
+  if (exact === word) return { line };
+  if (!exact) return { line, unresolved: target.replace(/@([0-9a-f]{10})\w+$/, "@$1") + " # " + word + ": no release tag points at this commit" };
+  const heading = line.slice(0, line.indexOf(target));
+  return { line: heading + target + comment.replace(/^(\s*#\s*)\S+/, "$1" + exact), change: "# " + word + " -> # " + exact };
+}
+
 /**
  * Rewrite the unpinned `uses:` lines of a workflow. `resolve(owner/repo, ref)` returns { sha, label }.
  * With `tagsAt(owner/repo, sha)` (the tags of a commit), version comments of pinned lines are made exact; the ones no tag backs
@@ -89,14 +98,10 @@ export function pinWorkflowText(text, resolve, { refresh = false, tagsAt = null 
       const branch = (m[3] ?? "").replace(/^\s*#\s*/, "").trim();
       const word = branch.split(/\s+/)[0];
       if (tagsAt && VERSION_COMMENT.test(word)) {
-        const exact = exactVersion(tagsAt(repo, ref), word);
-        if (exact === word) return line;
-        if (!exact) {
-          unresolved.push(`${target.slice(0, at + 11)} # ${word}: no release tag points at this commit`);
-          return line;
-        }
-        changes.push(`${path} # ${word} -> # ${exact}`);
-        return `${head}${target}${m[3].replace(/^(\s*#\s*)\S+/, `$1${exact}`)}`;
+        const fixed = exactComment({ line, target, comment: m[3], word, tags: tagsAt(repo, ref) });
+        if (fixed.unresolved) unresolved.push(fixed.unresolved);
+        if (fixed.change) changes.push(`${path} ${fixed.change}`);
+        return fixed.line;
       }
       if (!refresh || !branch || /^v?\d/.test(branch)) return line;
       pinned = branch;
@@ -181,7 +186,8 @@ function main(argv) {
     const unresolved = result.unresolved ?? [];
     if (!changes.length && !unresolved.length) continue;
     pending += changes.length + unresolved.length;
-    console.log(`${file}\n  ${[...changes, ...unresolved.map((u) => `UNRESOLVED ${u}`)].join("\n  ")}`);
+    const lines = [...changes, ...unresolved.map((u) => "UNRESOLVED " + u)];
+    console.log(file + "\n  " + lines.join("\n  "));
     if (!check) writeFileSync(file, text);
   }
   if (check && pending) {
