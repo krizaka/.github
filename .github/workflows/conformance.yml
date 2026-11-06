@@ -95,3 +95,52 @@ jobs:
           name: conformance-matrix
           path: matrix.json
           retention-days: 14
+
+  # Daily (and by hand), beside the matrix and independent of it (a red security cell never stops the catalogue): the automation
+  # catalogue of ADR-026 (krizaka-internal#2755), generated from the files of every active repository at its default branch. Two
+  # requests per repository (the commit, one tarball) plus one for the last workflow runs, then published next to the matrix on
+  # the branch conformance-matrix (automation/catalogue.json, catalogue.md, history.json). Never on a pull request.
+  catalogue:
+    name: Automation catalogue
+    if: ${{ github.event_name != 'pull_request' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+        working-directory: tools/automation-catalogue
+      - id: repos
+        run: echo "list=$(node scripts/conformance.mjs --repo-list)" >> "$GITHUB_OUTPUT"
+      - id: read
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: krizaka
+          repositories: ${{ steps.repos.outputs.list }}
+          permission-contents: read
+          permission-actions: read
+          permission-metadata: read
+      - id: publish
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: krizaka
+          repositories: .github
+          permission-contents: write
+      - name: The catalogue
+        env:
+          READ_TOKEN: ${{ steps.read.outputs.token }}
+          GH_TOKEN: ${{ steps.publish.outputs.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          # Read the repositories with the read-only token, then publish with the write one (contents of this repository only).
+          GH_TOKEN="$READ_TOKEN" node tools/automation-catalogue/catalogue.mjs --out catalogue --previous
+          { echo '### Automation catalogue'; cat catalogue/catalogue.md; } >> "$GITHUB_STEP_SUMMARY"
+          node tools/automation-catalogue/catalogue.mjs --publish-from catalogue
