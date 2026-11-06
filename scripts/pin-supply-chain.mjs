@@ -75,6 +75,12 @@ function parseUses(line) {
   return { head, target, path, ref: target.slice(at + 1), repo: path.split("/").slice(0, 2).join("/"), comment: m[3] ?? "" };
 }
 
+/** A moved pin keeps the reason after the version: `# main (why)` stays `# main (why)`. */
+const movedReason = (ref, comment) => (SHA.test(ref) ? comment.replace(/^\s*#\s*\S+/, "") : "");
+
+/** The first word of a pin comment (`# main (why)` -> `main`): the version or the branch; the rest is the reason. */
+const commentWord = (comment) => comment.replace(/^\s*#\s*/, "").trim().split(/\s+/)[0];
+
 /** A pinned line whose comment is a version: it stays, becomes the exact release, or is `unresolved` (no tag backs it). */
 function exactComment({ line, target, comment, word, tags }) {
   const exact = exactVersion(tags, word);
@@ -100,8 +106,7 @@ export function pinWorkflowText(text, resolve, { refresh = false, tagsAt = null 
     if (SHA.test(ref)) {
       // --refresh: a pin commented with a branch name (a first-party reusable workflow @main) moves to that branch's head;
       // Dependabot only follows tags, so these are the pins nothing else bumps.
-      const branch = comment.replace(/^\s*#\s*/, "").trim();
-      const word = branch.split(/\s+/)[0];
+      const word = commentWord(comment);
       if (tagsAt && VERSION_COMMENT.test(word)) {
         const fixed = exactComment({ line, target, comment, word, tags: tagsAt(repo, ref) });
         if (fixed.unresolved) unresolved.push(fixed.unresolved);
@@ -114,9 +119,7 @@ export function pinWorkflowText(text, resolve, { refresh = false, tagsAt = null 
     const { sha, label } = resolve(repo, pinned);
     if (SHA.test(ref) && sha === ref) return line;
     changes.push(`${target} -> ${sha.slice(0, 10)} # ${label}`);
-    // A moved pin keeps the reason after the version: `# main (why)` stays `# main (why)`.
-    const reason = SHA.test(ref) ? comment.replace(/^\s*#\s*\S+/, "") : "";
-    return `${head}${path}@${sha} # ${label}${reason}`;
+    return `${head}${path}@${sha} # ${label}${movedReason(ref, comment)}`;
   });
   return { text: out.join("\n"), changes, unresolved };
 }
