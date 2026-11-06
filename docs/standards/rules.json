@@ -119,7 +119,9 @@
       },
       "exempt": {
         "kachizaka": "OpenSSF Scorecard and its public results are for public repositories only; this repository is private (founder, 2026-11-04, krizaka-internal#2364).",
-        "krizaka-infra": "OpenSSF Scorecard and its public results are for public repositories only; this repository is private (founder, 2026-11-04, krizaka-internal#2364)."
+        "krizaka-infra": "OpenSSF Scorecard and its public results are for public repositories only; this repository is private (founder, 2026-11-04, krizaka-internal#2364).",
+        "krizaka-agents": "OpenSSF Scorecard and its public results are for public repositories only; this repository is private (founder, 2026-11-04, krizaka-internal#2364).",
+        "krizaka-coming-soon": "OpenSSF Scorecard and its public results are for public repositories only; this repository is private (founder, 2026-11-04, krizaka-internal#2364)."
       }
     },
     {
