@@ -1,5 +1,7 @@
 #!/usr/bin/env node
-// SonarCloud overall counts, ratcheted (krizaka/.github, security lane; founder 2026-11-01: a blocking threshold, smells included).
+// SonarCloud overall counts, ratcheted (krizaka/.github, security lane; founder 2026-11-01). Rules review of 2026-11-05 (Sonar blocks a
+// pull request only on its Security rating, krizaka-internal#2613): only the security counts (vulnerabilities, hotspots to review) fail;
+// bugs and smells that rise are a warning, still lowered by --update.
 //
 //   node sonar-ratchet.mjs [--baseline sonar-ratchet.json] [--pull-request N] [--update]
 //
@@ -40,6 +42,9 @@ export async function current(get, project, { pullRequest } = {}) {
   return Object.fromEntries(KEYS.map((k) => [k, main[k] + own[k]]));
 }
 
+/** The counts that block: security only (rules review 2026-11-05). The others warn. */
+export const BLOCKING = ["vulnerabilities", "hotspots"];
+
 /** The keys whose count rose above the baseline. A key missing from the baseline counts as 0. */
 export function regressions(now, baseline) {
   return KEYS.filter((k) => now[k] > (baseline[k] ?? 0)).map((k) => ({ key: k, now: now[k], baseline: baseline[k] ?? 0 }));
@@ -75,9 +80,11 @@ export async function main(argv, { get, read = readFileSync, write = writeFileSy
     log(`${path} updated: ${JSON.stringify(next.counts)}`);
     return 0;
   }
-  const bad = regressions(now, baseline);
+  const risen = regressions(now, baseline);
+  for (const r of risen.filter((x) => !BLOCKING.includes(x.key))) log(`::warning::sonar ratchet: ${r.key} is ${r.now}, baseline ${r.baseline}: a warning (only the security counts block, rules review 2026-11-05)`);
+  const bad = risen.filter((x) => BLOCKING.includes(x.key));
   if (bad.length) {
-    for (const r of bad) log(`::error::sonar ratchet: ${r.key} is ${r.now}, baseline ${r.baseline}: the overall count may only go down (fix the new findings)`);
+    for (const r of bad) log(`::error::sonar ratchet: ${r.key} is ${r.now}, baseline ${r.baseline}: a security count may only go down (fix the new findings)`);
     return 1;
   }
   const better = KEYS.filter((k) => now[k] < (baseline[k] ?? 0));
