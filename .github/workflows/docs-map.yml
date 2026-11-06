@@ -1,0 +1,42 @@
+# Docs map (krizaka-internal#2758, ADR-026): a pull request whose changed files match a category of docs-map.json updates that category's
+# documents of its repository, or says « Docs: <link> » / « Docs: not needed, <why> » in its description. Logic in scripts/docs-map-check.mjs.
+# Rollout: `mode` is `warn` (a warning in the job, never red) until the check has run clean on the org's pull requests, then `required`.
+# Reusable: every repository calls it (workflow-templates/docs-map.yml, rule `docs-map` of docs/standards/rules.json).
+name: Docs map
+
+on:
+  workflow_call:
+    inputs:
+      mode:
+        description: "warn (a warning, never red) or required (red)"
+        type: string
+        default: warn
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/.github
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: The documents follow the change
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          MODE: ${{ inputs.mode || 'warn' }}
+        run: node scripts/docs-map-check.mjs
