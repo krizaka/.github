@@ -12,11 +12,9 @@ const SHARED_REPOSITORIES = new Set([
   "krizaka-infra",
   "krizaka-lab",
   "krizaka-billing",
-  "krizaka-users",
   "krizaka-platform",
   "krizaka-desktop",
   "krizaka-composer",
-  "krizaka-accounts",
   "krizaka-agents",
   // The coming-soon faces of the commercial domains (krizaka-internal#2372): shared by the three products until each opens.
   "krizaka-coming-soon",

@@ -40,7 +40,7 @@ test("deploy targets are deploy/apps.json's, each on its repository", () => {
 });
 
 test("kind: root files first, then topics, then the role", () => {
-  assert.equal(kindOf({ name: "krizaka-users", files: ["pom.xml"] }), "maven");
+  assert.equal(kindOf({ name: "krizaka-billing", files: ["pom.xml"] }), "maven");
   assert.equal(kindOf({ name: "krizaka-infra", files: ["main.tf"] }), "iac");
   assert.equal(kindOf({ name: "krizaka-infra", files: [], role: "Shared infrastructure as code" }), "iac");
   assert.equal(kindOf({ name: "orazaka-worker-media", files: ["pyproject.toml"] }), "python");

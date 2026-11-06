@@ -374,8 +374,8 @@
         "patternBase64": "b3JvY2hpYXx5YXNha2lhfHlhemFraWF8eW9yb3Jpcw==",
         "allow": [],
         "allowIn": {
-          "krizaka-users": [
-            "krizaka-users-persistence/src/main/resources/db/migration/V4__organizations.sql"
+          "krizaka-build": [
+            "krizaka-users/krizaka-users-persistence/src/main/resources/db/migration/V4__organizations.sql"
           ]
         }
       },
@@ -988,11 +988,9 @@
           "krizaka-internal",
           "krizaka-lab",
           "krizaka-notifications",
-          "krizaka-platform-kit",
           "krizaka-tauri-kit",
           "krizaka-ts",
           "krizaka-ui",
-          "krizaka-users",
           "orazaka",
           "orazaka-ai-engine",
           "orazaka-automation-service",

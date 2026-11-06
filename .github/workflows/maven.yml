@@ -6,7 +6,7 @@
 #     maven:
 #       uses: krizaka/.github/.github/workflows/maven.yml@main
 #       with:
-#         upstreams: "krizaka-build krizaka-platform-kit"   # repositories built first, in order
+#         upstreams: "krizaka-build"                       # repositories built first, in order
 #         rewrite: true                                     # OpenRewrite dry run must find nothing to change
 #         registry: github                                  # github | central (default) | "github,central"
 #       secrets: inherit
@@ -186,7 +186,7 @@ jobs:
         uses: krizaka/.github/actions/maven-github-packages@d701b569b15617609b890102bc0be9978759909c # main
         with:
           token: ${{ github.token }}
-          repositories: krizaka-build krizaka-platform-kit krizaka-users krizaka-notifications krizaka-billing
+          repositories: krizaka-build krizaka-notifications krizaka-billing
 
       - name: Build the upstream Krizaka repositories
         if: inputs.upstreams != ''
@@ -485,7 +485,7 @@ jobs:
       - uses: krizaka/.github/actions/maven-github-packages@d701b569b15617609b890102bc0be9978759909c # main
         with:
           token: ${{ github.token }}
-          repositories: krizaka-build krizaka-platform-kit krizaka-users krizaka-notifications krizaka-billing
+          repositories: krizaka-build krizaka-notifications krizaka-billing
 
       - name: Version from the tag
         run: |

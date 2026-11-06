@@ -37,7 +37,6 @@ shape fits, but whose role needs discussion.
 | `akinaza` | Main product repository | Complies |
 | `cla-signatures` | Signatures of the CLA, written by the CLA workflow | **Paused** (data only, no code: out of the matrix) |
 | `kachizaka` | Kridoc (code name kachizaka): product repository, a web app (www.kridoc.com) whose coming-soon page is its stable face while the product is in design; mobile and macOS apps follow | Complies |
-| `krizaka-accounts` | Shared accounts site (accounts.krizaka.com) | Complies |
 | `krizaka-agents` | How the agents work: rules, scripts, skills (private) | Complies |
 | `krizaka-billing` | Shared capability service | Complies |
 | `krizaka-blog` | Shared blog | Complies |
@@ -49,12 +48,10 @@ shape fits, but whose role needs discussion.
 | `krizaka-internal` | Internal issues and notes (private) | **Paused** (issues only, no code: out of the matrix) |
 | `krizaka-lab` | The family lab: UI, motion, Java, AI and data experiments; publishes nothing (formerly krizaka-motion) | Complies |
 | `krizaka-notifications` | Shared capability service | **Fold into `krizaka-build`** (ADR-021), then archive |
-| `krizaka-platform-kit` | Java cross-cutting blocks | **Rename → `krizaka-platform`** |
 | `krizaka-skills` | Former agents' skills, moved into `krizaka-agents` | **Archive** |
 | `krizaka-tauri-kit` | Shared Tauri crate | **Rename → `krizaka-desktop`** |
 | `krizaka-ts` | Shared TypeScript building blocks | Complies |
 | `krizaka-ui` | Shared design system | Complies |
-| `krizaka-users` | Shared capability service | Complies |
 | `orazaka` | Main product repository | Complies |
 | `orazaka-ai-engine` | The engine's core library | **Rename → `orazaka-engine`** |
 | `orazaka-automation-service` | Deployable backend service | Complies |
@@ -98,11 +95,10 @@ name for git and the API, but everything that **names** the repository is update
 | :--- | :--- | :--- | :--- |
 | 1 | `krizaka-tauri-kit` | `krizaka-desktop` | low: no deployment |
 | 2 | `orazaka-mobile-client` | `orazaka-mobile` | low |
-| 3 | `krizaka-platform-kit` | `krizaka-platform` | medium: in the workspace, Maven artifacts unchanged |
-| 4 | `orazaka-ai-engine` | `orazaka-engine` | medium: in the workspace, upstream of most services |
-| 5 | `orazaka-edge` | `orazaka-edge-service` | medium: in the workspace, deployed |
-| 6 | `orazaka-studio` | `orazaka-studio-service` | medium: in the workspace, deployed, many links |
-| 7 | `orazaka-web-client` | `orazaka-web` | high: the public site's deployment builds from it |
+| 3 | 3 | `orazaka-ai-engine` | `orazaka-engine` | medium: in the workspace, upstream of most services |
+| 4 | `orazaka-edge` | `orazaka-edge-service` | medium: in the workspace, deployed |
+| 5 | `orazaka-studio` | `orazaka-studio-service` | medium: in the workspace, deployed, many links |
+| 6 | `orazaka-web-client` | `orazaka-web` | high: the public site's deployment builds from it |
 
 Archive: `orazaka-web-admin` (the console now lives in `orazaka-web-client`, under `src/app/console`; its last open issue moved there as orazaka-web-client#264). One app serves the site and the console: there is no separate admin repository for Orazaka.
 
