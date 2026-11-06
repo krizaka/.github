@@ -34,29 +34,27 @@ function openingOf(line, language) {
   return end === -1 ? { text: stripMarks(line.slice(2), "*/ "), close: "*/", last: false } : { text: stripMarks(line.slice(2, end), "*/ "), close: null, last: false };
 }
 
+/** One line of the header: the prose it adds, the closing mark still awaited, and whether the header ends here. */
+function lineOf(line, language, close, first) {
+  if (close) {
+    const end = line.indexOf(close);
+    return { text: stripMarks(end === -1 ? line : line.slice(0, end), "*#/ "), close: end === -1 ? close : null };
+  }
+  if (first && isLeading(line, language)) return { skip: true, close: null };
+  const opening = openingOf(line, language);
+  if (opening) return { text: opening.text, close: opening.close, stop: opening.last };
+  return isLineComment(line) ? { text: stripMarks(line, "/# "), close: null } : { stop: true, close: null };
+}
+
 /** The prose lines of the header of a file, in order (empty when there is none). */
 export function headerLines(text, language) {
   const out = [];
   let close = null;
   for (const raw of text.split("\n").slice(0, 60)) {
-    const line = raw.trim();
-    if (close) {
-      const end = line.indexOf(close);
-      out.push(stripMarks(end === -1 ? line : line.slice(0, end), "*#/ "));
-      if (end !== -1) close = null;
-      continue;
-    }
-    if (out.length === 0 && isLeading(line, language)) continue;
-    const opening = openingOf(line, language);
-    if (opening) {
-      out.push(opening.text);
-      close = opening.close;
-      if (opening.last) break;
-    } else if (isLineComment(line)) {
-      out.push(stripMarks(line, "/# "));
-    } else {
-      break;
-    }
+    const step = lineOf(raw.trim(), language, close, out.length === 0);
+    close = step.close;
+    if (step.text !== undefined) out.push(step.text);
+    if (step.stop) break;
   }
   return out.filter(Boolean);
 }
