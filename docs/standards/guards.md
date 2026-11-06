@@ -35,6 +35,7 @@ This page lists the guards that catch each lesson, and the repos where each guar
 | Orphan ratchet counter (`pageTemplate`: no rule measures it) | **missing**: the ratchet keeps unknown counters | folioviv, sovkora-web, verikora | krizaka-ts#172 |
 | A fix with no guard | `fix-needs-guard` (see below) | all | .github#323 |
 | import collapse (OpenRewrite autodetected the import layout and folded untouched files) | explicit layout in krizaka-parent and sovkora-parent (`krizaka-rewrite-style`, no star import, static imports first) | every JVM repo | krizaka-java#101, sovkora-build#39, sovkora-engine#133 #143 |
+| A guide, README, AGENTS or skill out of date after a change | `docs-map.json` lists, per kind of change, the documents to update ([docs-map.md](docs-map.md)); `scripts/docs-map.mjs` checks its shape and that every document exists; the pull-request check is **missing** until krizaka-internal#2758 | every repository once the check ships | krizaka-internal#2756, #2758 |
 
 ## 2. The matrix (2026-10-27, read from the GitHub API)
 
