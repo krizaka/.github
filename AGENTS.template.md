@@ -86,6 +86,7 @@ test/               # mirrors src/ (section 5)
 3. No function above 35 lines; every export documented.
 4. Light and dark themes work (`useTheme()`); accessibility roles and labels are present.
 5. The pull request is merged with green CI (no merge with a pending check).
+6. The documents follow the change: when the pull request matches a category of the [docs map](https://github.com/krizaka/.github/blob/main/docs-map.json), it updates that category's documents, or its body says `Docs: <link to the docs pull request>` or `Docs: not needed, <why>`.
 
 ## 8. Coding agents (GitHub Copilot, Claude, any agent)
 

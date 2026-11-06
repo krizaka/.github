@@ -7,6 +7,10 @@
     {
       "path": "tools",
       "why": "the org's measuring tools, run against the repositories' checkouts (tools/code-health, krizaka/.github#384)"
+    },
+    {
+      "path": "docs-map.json",
+      "why": "which documents a change of each kind must update, read by the docs-map check and by krizaka-agents through the local config key docsMap (ADR-026, krizaka-internal#2756)"
     }
   ]
 }
