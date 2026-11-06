@@ -56,8 +56,8 @@ A local page (`local: true`) is never asked for.
 **Rollout.** The registry of rules has no « warning » state, so the check has its own: the input `mode` of the reusable workflow
 is `warn` (default: the problem is a warning in the job and its summary, the check stays green) or `required` (red). The check is
 first rolled out in `warn`; once it has run clean on the org's pull requests, the default is changed to `required` in
-`docs-map.yml` and the check is added to the required checks of the profile. The conformance rule
-[krizaka-internal#2759](https://github.com/krizaka/krizaka-internal/issues/2759) makes every active repository call it.
+`docs-map.yml` and the check is added to the required checks of the profile. The conformance rule `docs-map` ([rules.json](rules.json),
+[krizaka-internal#2759](https://github.com/krizaka/krizaka-internal/issues/2759)) makes every active repository call it (`workflow-calls docs-map.yml`; the fan-out copies the template); it is not yet in the `required-checks-profile` list, which waits for the `required` step.
 
 ## Add a category
 
