@@ -6,21 +6,30 @@
 //   node scripts/conformance.mjs --repos a,b --rules x,y   a slice
 //   node scripts/conformance.mjs --validate           only the registry (every rule has its check); no network
 //   node scripts/conformance.mjs --repo-list           the active repositories, comma separated (scopes the workflow's token)
-//   node scripts/conformance.mjs --fail               exit 1 while a cell of a security rule is red (rules review of 2026-11-05:
+//   node scripts/conformance.mjs --fail               exit 1 while a cell of a security rule fails (rules review of 2026-11-05:
 //                                                     the same-day rollout holds only for the rules marked `"security": true`)
+//
+// Deterministic (founder 2026-11-06, « la matrice doit le prouver d'une façon déterministe »): each repository is read at one pinned
+// commit (the default branch's SHA, recorded in the output), every file a check reads is recorded with the SHA-256 of what it judged,
+// a live setting (rulesets, npm) with its URL and the SHA-256 of the answer. A cell is `pass`, `fail`, `unknown` (a fetch error or
+// nothing readable: never pass, never fail), `manual` (no deterministic check exists: never shown as pass) or `n/a`.
 //
 // Active = repos.json minus archived, `Archive` and `Paused` repositories, which are listed out of scope (never « exceptions »).
 // Reads GitHub with GH_TOKEN / GITHUB_TOKEN (the app token for the private ones).
 import { readFileSync, writeFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { gunzipSync } from "node:zlib";
+import { createHash } from "node:crypto";
 import { problemsOf } from "./agents-md.mjs";
 import { behind, latestOf, pinsOf, renderVersions, versionsVerdict } from "./conformance-versions.mjs";
 
 const HERE = new URL("../", import.meta.url);
 import { jobsWithoutTimeout, configWithoutTestTimeout, nodeTestWithoutTimeout } from "./check-timeouts.mjs";
 const TEST_CONFIG = /(^|\/)((playwright|vitest|jest)\.config\.[cm]?[jt]s|junit-platform\.properties)$/;
-export const CHECK_TYPES = ["workflow-calls", "workflow-matches", "workflow-forbids", "file-exists", "file-matches", "manifests-forbid", "no-mention", "published-no-mention", "all-of", "any-of", "agents-template", "required-check", "merged-result", "queue-reports", "required-profile", "time-limits", "versions-current"];
+export const CHECK_TYPES = ["path-matches", "lists-rule-ids", "manual", "workflow-calls", "workflow-matches", "workflow-forbids", "file-exists", "file-matches", "manifests-forbid", "no-mention", "published-no-mention", "all-of", "any-of", "agents-template", "required-check", "merged-result", "queue-reports", "required-profile", "time-limits", "versions-current"];
+/** The states of a cell. `unknown` and `manual` are never counted as pass nor as fail. */
+export const STATUSES = ["pass", "fail", "unknown", "manual", "n/a"];
+export const sha256 = (text) => createHash("sha256").update(text ?? "").digest("hex");
 export const FIX_TYPES = ["copy", "append-section", "settings-hook", "agents-template", "manual"];
 const WORKFLOW_PATH = /^\.github\/workflows\/[^/]+\.ya?ml$/;
 const CALL = /uses:\s*krizaka\/(?:\.github|orazaka)\/\.github\/workflows\/([\w.-]+\.ya?ml)@/g;
@@ -53,7 +62,7 @@ export const isSecurity = (rule) => rule?.security === true;
 /** The security rules with a red cell: what fails the daily run. */
 export function failing(rules, summary) {
   const security = new Set(rules.filter(isSecurity).map((r) => r.id));
-  return summary.filter((s) => s.red > 0 && security.has(s.id)).map((s) => s.id);
+  return summary.filter((s) => s.fail > 0 && security.has(s.id)).map((s) => s.id);
 }
 
 /** A repository that truly cannot follow a rule is declared in `exempt` with its reason (at least 30 characters: a sentence a reviewer can judge). */
@@ -73,6 +82,9 @@ const composite = (check) =>
 function checkShape({ id, check = {} }) {
   const needs = {
     "workflow-calls": () => Boolean(check.workflows?.length || check.byKind),
+    "path-matches": () => Boolean(check.pattern),
+    "lists-rule-ids": () => Boolean(check.path),
+    manual: () => Boolean(check.note),
     "workflow-matches": () => Boolean(check.pattern),
     "workflow-forbids": () => Boolean(check.pattern),
     "file-exists": () => Boolean(check.paths?.length),
@@ -102,18 +114,21 @@ export function scopeOf(repositories) {
 }
 
 /** A repository as the checks see it: its tracked paths and a reader of one file (null when absent). */
-export function snapshotOf(name, kind, paths, readFile, { scan = null, published = null, requiredChecks = null, mergeGuard = null, latest = null, now = Date.now() } = {}) {
+export function snapshotOf(name, kind, paths, readFile, { commit = null, scan = null, published = null, requiredChecks = null, mergeGuard = null, latest = null, now = Date.now() } = {}) {
   const cache = new Map();
+  const evidence = [];
   const read = async (path) => {
     if (!paths.includes(path)) return null;
     if (!cache.has(path)) cache.set(path, await readFile(path));
-    return cache.get(path);
+    const body = cache.get(path);
+    evidence.push({ path, sha256: body === null ? null : sha256(body) });
+    return body;
   };
   const workflows = async () => {
     const texts = await Promise.all(paths.filter((p) => WORKFLOW_PATH.test(p)).map(read));
     return texts.filter(Boolean).join("\n");
   };
-  return { name, kind, paths, read, workflows, scan, published, requiredChecks, mergeGuard, latest, now };
+  return { name, kind, commit, paths, read, workflows, scan, published, requiredChecks, mergeGuard, latest, now, evidence };
 }
 
 /** Does the rule concern this repository? */
@@ -129,6 +144,7 @@ export async function appliesTo(rule, snap, lists = {}) {
 }
 
 async function holds(w, snap, lists) {
+  if (w.pathMatches) return snap.paths.some((p) => new RegExp(w.pathMatches).test(p));
   if (w.pathEndsWith) return snap.paths.some((p) => p === w.pathEndsWith || p.endsWith(`/${w.pathEndsWith}`));
   if (w.fileExists) return snap.paths.includes(w.fileExists);
   if (w.fileMatches) return new RegExp(w.fileMatches.pattern).test((await snap.read(w.fileMatches.path)) ?? "");
@@ -141,6 +157,35 @@ const MANIFEST = /(^|\/)(package\.json|pnpm-workspace\.yaml|\.gitmodules|pom\.xm
 const callsOf = (text) => new Set([...text.matchAll(CALL)].map((m) => m[1]));
 
 const verdict = (ok, why) => ({ ok, why: ok ? "" : why });
+/** A check that has nothing to read (offline, no token): neither pass nor fail. */
+const unread = (what) => ({ ok: null, why: `not read: ${what}` });
+const lineOf = (body, re) => {
+  const m = re.exec(body);
+  return m ? body.slice(0, m.index).split("\n").length : null;
+};
+
+/** The ids of the org rules a register lists: the first cell (`id` in backticks) of each table row between the markers. */
+export const REGISTER_START = "<!-- org-rules:start -->";
+export const REGISTER_END = "<!-- org-rules:end -->";
+export function registerIds(text) {
+  const from = text.indexOf(REGISTER_START);
+  const to = text.indexOf(REGISTER_END);
+  if (from < 0 || to < from) return null;
+  return text
+    .slice(from, to)
+    .split("\n")
+    .map((l) => /^\|\s*`([\w.-]+)`\s*\|/.exec(l)?.[1])
+    .filter(Boolean);
+}
+export function registerVerdict(text, ids) {
+  const listed = registerIds(text ?? "");
+  if (!listed) return { ok: false, why: `no ${REGISTER_START} … ${REGISTER_END} table` };
+  const missing = ids.filter((id) => !listed.includes(id));
+  const extra = listed.filter((id) => !ids.includes(id));
+  const twice = listed.filter((id, i) => listed.indexOf(id) !== i);
+  const problems = [missing.length && `missing: ${missing.join(", ")}`, extra.length && `not in rules.json: ${extra.join(", ")}`, twice.length && `twice: ${twice.join(", ")}`].filter(Boolean);
+  return verdict(problems.length === 0, problems.join("; "));
+}
 
 const SONAR_APP_CHECK = /^SonarCloud Code Analysis$/;
 const triggersOf = (text) => (text.split(/^jobs:/m)[0].match(/^ {2}([a-z_]+):/gm) ?? []).map((t) => t.trim().replace(":", ""));
@@ -167,6 +212,28 @@ export function queueReportsVerdict(required, workflows) {
 
 /** One handler per check type: each returns { ok, why }. */
 const CHECKS = {
+  // A tracked path matches `pattern` (the per-repo test a rule requires, named by convention); with `contains`, one of them also holds
+  // that text. Paths are sorted, so the first match is always the same one.
+  "path-matches": async (check, snap) => {
+    const re = new RegExp(check.pattern);
+    const hits = snap.paths.filter((p) => re.test(p)).sort();
+    if (hits.length === 0) return { ok: false, why: `no tracked file matches ${check.pattern}` };
+    if (!check.contains) return { ok: true, why: "", evidence: [{ path: hits[0] }] };
+    const body = new RegExp(check.contains);
+    for (const p of hits) {
+      const text = (await snap.read(p)) ?? "";
+      if (body.test(text)) return { ok: true, why: "", evidence: [{ path: p, line: lineOf(text, body) }] };
+    }
+    return { ok: false, why: `${hits[0]} (and ${hits.length - 1} more) lack ${check.contains}` };
+  },
+  // The rules register (krizaka-agents docs/rules-register.md) names exactly the rules of this registry: none missing, none extra.
+  "lists-rule-ids": async (check, snap) => {
+    const text = await snap.read(check.path);
+    if (text === null) return { ok: false, why: `no ${check.path}` };
+    return registerVerdict(text, snap.ruleIds ?? []);
+  },
+  // No deterministic check exists yet: the cell says so and is never shown as pass.
+  manual: async (check) => ({ ok: null, manual: true, why: check.note }),
   "workflow-calls": async (check, snap) => {
     const wanted = check.byKind ? (check.byKind[snap.kind] ?? []) : check.workflows;
     const calls = callsOf(await snap.workflows());
@@ -183,7 +250,8 @@ const CHECKS = {
   "file-matches": async (check, snap) => {
     const body = await snap.read(check.path);
     if (body === null) return { ok: false, why: `no ${check.path}` };
-    return verdict(new RegExp(check.pattern).test(body), `${check.path} lacks ${check.pattern}`);
+    const re = new RegExp(check.pattern);
+    return { ...verdict(re.test(body), `${check.path} lacks ${check.pattern}`), evidence: [{ path: check.path, line: lineOf(body, re) }] };
   },
   // The manifests that can name a dependency: npm, pnpm workspaces, git submodules, Maven, Gradle.
   "manifests-forbid": async (check, snap) => {
@@ -208,9 +276,10 @@ const CHECKS = {
     for (const sub of check.checks) {
       const result = await runCheck(sub, snap);
       if (result.ok) return result;
-      results.push(result.why);
+      results.push(result);
     }
-    return { ok: false, why: results.join("; or ") };
+    // One sub-check could not be read: the cell cannot be called a failure.
+    return { ok: results.some((r) => r.ok === null) ? null : false, why: results.map((r) => r.why).join("; or ") };
   },
   // AGENTS.md rendered from docs/standards/agents-template.md: the marker, the headings, at most 80 lines, the skill linked, relative links resolve.
   "agents-template": async (_check, snap) => {
@@ -219,7 +288,7 @@ const CHECKS = {
   },
   // The check is REQUIRED on main (ruleset or branch protection). `requiredChecks` is absent offline: nothing to prove.
   "required-check": async (check, snap) => {
-    if (!snap.requiredChecks) return { ok: true, why: "" };
+    if (!snap.requiredChecks) return unread("the required checks of main");
     const required = await snap.requiredChecks();
     return verdict(required.includes(check.context), `« ${check.context} » is not a required check on main`);
   },
@@ -227,7 +296,7 @@ const CHECKS = {
   // `merge_group`, and « SonarCloud Code Analysis » (posted by the SonarCloud app, which never analyses a queue SHA) has a CI scan job.
   // `requiredChecks` is absent offline: nothing to prove.
   "queue-reports": async (_check, snap) => {
-    if (!snap.requiredChecks) return { ok: true, why: "" };
+    if (!snap.requiredChecks) return unread("the required checks of main");
     return queueReportsVerdict(await snap.requiredChecks(), await Promise.all(snap.paths.filter((p) => WORKFLOW_PATH.test(p)).map(async (p) => ({ path: p, text: (await snap.read(p)) ?? "" }))));
   },
   // Time limits everywhere (krizaka-internal#2007): every workflow job has `timeout-minutes` (a job that only calls a reusable workflow is exempt),
@@ -249,13 +318,13 @@ const CHECKS = {
   // The merged result is tested (krizaka-internal#2000): a merge queue, or branch protection that requires the branch up to date (`strict`).
   // `mergeGuard` is absent offline: nothing to prove.
   "merged-result": async (_check, snap) => {
-    if (!snap.mergeGuard) return { ok: true, why: "" };
+    if (!snap.mergeGuard) return unread("the merge guard of main");
     return mergedResultVerdict(await snap.mergeGuard());
   },
   // The required checks on main match the repository profile (apps: CI gate, Sonar, security scan, + journeys / visual where the repo has them;
   // libraries: CI gate, Sonar, security). Each group is a regex over the required contexts; `when` (a workflow it calls) scopes a group to repos that have the thing.
   "required-profile": async (check, snap) => {
-    if (!snap.requiredChecks) return { ok: true, why: "" };
+    if (!snap.requiredChecks) return unread("the required checks of main");
     const groups = check.byKind[snap.kind] ?? [];
     const required = await snap.requiredChecks();
     const text = await snap.workflows();
@@ -263,7 +332,7 @@ const CHECKS = {
   },
   "no-mention": async (check, snap) => {
     // `allow`: path prefixes whose text is history (a released chapter, a changelog). `scan` is absent offline: nothing to prove.
-    if (!snap.scan) return { ok: true, why: "" };
+    if (!snap.scan) return unread("the repository's files");
     const allowed = [...(check.allow ?? []), ...(check.allowIn?.[snap.name] ?? [])];
     const hits = (await snap.scan(new RegExp(patternOf(check), "i"))).filter((p) => !allowed.some((a) => p === a || p.startsWith(a) || p.endsWith(`/${a}`)));
     return verdict(hits.length === 0, `${hits.length} file(s) name a departed product, e.g. ${hits.slice(0, 3).join(", ")}`);
@@ -272,12 +341,12 @@ const CHECKS = {
   // A rule change reached the repository (krizaka-internal#879): no family pin older than a version out for `graceDays`.
   // `latest` is absent offline: nothing to prove.
   "versions-current": async (check, snap) => {
-    if (!snap.latest) return { ok: true, why: "" };
+    if (!snap.latest) return unread("the published versions");
     return versionsVerdict(await lateOf(snap, check));
   },
   // `published` is absent offline: nothing to prove. `allow`: files that are history inside a package (its CHANGELOG).
   "published-no-mention": async (check, snap) => {
-    if (!snap.published) return { ok: true, why: "" };
+    if (!snap.published) return unread("the published packages");
     const allowed = check.allow ?? [];
     const hits = (await snap.published(new RegExp(patternOf(check), "i"))).filter((h) => !allowed.some((a) => h.endsWith(`:${a}`) || h.includes(`:${a}`)));
     return verdict(hits.length === 0, `${hits.length} published file(s) name a departed product, e.g. ${hits.slice(0, 3).join(", ")}`);
@@ -329,45 +398,109 @@ export async function runCheck(check, snap) {
   return handler ? handler(check, snap) : { ok: false, why: `unknown check ${check.type}` };
 }
 
-/** The matrix: `cells[repo][rule]` = { status: "green" | "red" | "n/a", why }. */
+/** A check's answer as a cell state: true pass, false fail, null unknown (manual when the check is `manual`). */
+export const statusOf = ({ ok, manual }) => (manual ? "manual" : ok === true ? "pass" : ok === false ? "fail" : "unknown");
+
+/** Evidence, sorted and without duplicates, so the same content gives the same text. */
+function evidenceOf(result, reads) {
+  const seen = new Map();
+  // A check that names what proved it keeps only that (with its hash); otherwise every read is the evidence.
+  const named = result.evidence?.length ? new Set(result.evidence.map((e) => e.path ?? e.url)) : null;
+  for (const e of [...(result.evidence ?? []), ...reads.filter((r) => !named || named.has(r.path ?? r.url))]) {
+    const key = e.path ?? e.url;
+    seen.set(key, { ...seen.get(key), ...e });
+  }
+  return [...seen.values()].sort((a, b) => String(a.path ?? a.url).localeCompare(String(b.path ?? b.url)));
+}
+
+/**
+ * The matrix: `cells[repo][rule]` = { status: "pass" | "fail" | "unknown" | "manual" | "n/a", why, commit, check, evidence }.
+ * A check that throws (a fetch error) is `unknown` with the reason, never pass nor fail.
+ */
 export async function evaluate(rules, snapshots, lists = {}) {
   const cells = {};
+  const ruleIds = rules.map((r) => r.id);
   for (const snap of snapshots) {
     cells[snap.name] = {};
+    snap.ruleIds = ruleIds;
     for (const rule of rules) {
-      if (!(await appliesTo(rule, snap, lists))) {
-        cells[snap.name][rule.id] = { status: "n/a", why: "" };
-        continue;
-      }
-      const reason = rule.exempt?.[snap.name];
-      if (reason) {
-        cells[snap.name][rule.id] = { status: "n/a", why: `exempt: ${reason}` };
-        continue;
-      }
-      const { ok, why } = await runCheck(rule.check, snap);
-      cells[snap.name][rule.id] = { status: ok ? "green" : "red", why };
+      cells[snap.name][rule.id] = await cellOf(rule, snap, lists);
     }
   }
   return cells;
 }
 
-/** Red/green counts per rule. */
+async function cellOf(rule, snap, lists) {
+  const base = { commit: snap.commit ?? null, check: rule.check.type, evidence: [] };
+  if (snap.error) return { status: "unknown", why: snap.error, ...base };
+  if (!(await appliesTo(rule, snap, lists))) return { status: "n/a", why: "", ...base };
+  const reason = rule.exempt?.[snap.name];
+  if (reason) return { status: "n/a", why: `exempt: ${reason}`, ...base };
+  const reads = snap.evidence ?? [];
+  reads.length = 0;
+  let result;
+  try {
+    result = await runCheck(rule.check, snap);
+  } catch (error) {
+    result = { ok: null, why: `could not read: ${String(error?.message ?? error).replace(/\s+/g, " ")}` };
+  }
+  return { status: statusOf(result), why: result.why ?? "", ...base, evidence: evidenceOf(result, reads) };
+}
+
+/** Counts per rule: pass, fail, unknown, manual. */
 export function summarise(rules, cells) {
   return rules.map((rule) => {
     const states = Object.values(cells).map((row) => row[rule.id]?.status);
-    return { id: rule.id, red: states.filter((s) => s === "red").length, green: states.filter((s) => s === "green").length };
+    const count = (st) => states.filter((s) => s === st).length;
+    return { id: rule.id, pass: count("pass"), fail: count("fail"), unknown: count("unknown"), manual: count("manual") };
   });
+}
+
+/** Where a rule's text lives: rules.json at the registry's commit (or main), scrolled to its id. */
+export const ruleLink = (id, commit = "main") => `https://github.com/krizaka/.github/blob/${commit}/docs/standards/rules.json#:~:text=${encodeURIComponent(`"id": "${id}"`)}`;
+
+/**
+ * The machine-readable matrix (what the cockpit, session-start and the checkpoint read): pure, so the same cells give the same text.
+ * `results` is one line per cell: rule x repo x commit x check x status x evidence x run date x link to the rule.
+ */
+export function reportOf({ rules, cells, summary, versions = {}, paused = [], generatedAt, runUrl = null, rulesCommit = null }) {
+  const repos = Object.keys(cells).sort();
+  const link = (id) => ruleLink(id, rulesCommit ?? "main");
+  const results = repos.flatMap((repo) =>
+    rules
+      .filter((rule) => cells[repo][rule.id])
+      .map((rule) => {
+        const c = cells[repo][rule.id];
+        return { rule: rule.id, repo, commit: c.commit, check: c.check, status: c.status, why: c.why, evidence: c.evidence, runDate: generatedAt, link: link(rule.id) };
+      }),
+  );
+  return {
+    schema: 2,
+    generatedAt,
+    runUrl,
+    rulesCommit,
+    statuses: STATUSES,
+    rules: rules.map((r) => ({ id: r.id, title: r.title, issue: r.issue, security: r.security === true, check: r.check.type, link: link(r.id) })),
+    repos: Object.fromEntries(repos.map((repo) => [repo, { commit: Object.values(cells[repo])[0]?.commit ?? null }])),
+    summary,
+    cells: Object.fromEntries(repos.map((repo) => [repo, cells[repo]])),
+    results,
+    versions,
+    outOfScope: paused.map((r) => r.name),
+  };
 }
 
 /** The matrix as markdown: counts per rule, then the red cells per repository, then the repositories out of scope. */
 export function render(rules, cells, summary, paused = []) {
-  const lines = ["| rule | green | red |", "|---|---:|---:|"];
-  for (const s of summary) lines.push(`| ${s.id} | ${s.green} | ${s.red} |`);
-  const total = summary.reduce((acc, s) => ({ g: acc.g + s.green, r: acc.r + s.red }), { g: 0, r: 0 });
-  lines.push(`| **all** | **${total.g}** | **${total.r}** |`, "", "| repo | red rules |", "|---|---|");
-  for (const [repo, row] of Object.entries(cells)) {
-    const red = Object.entries(row).filter(([, c]) => c.status === "red").map(([id]) => id);
-    lines.push(`| ${repo} | ${red.length ? red.join(", ") : "all green"} |`);
+  const lines = ["| rule | pass | fail | unknown | manual |", "|---|---:|---:|---:|---:|"];
+  for (const s of summary) lines.push(`| ${s.id} | ${s.pass} | ${s.fail} | ${s.unknown} | ${s.manual} |`);
+  const total = summary.reduce((acc, s) => ({ p: acc.p + s.pass, f: acc.f + s.fail, u: acc.u + s.unknown, m: acc.m + s.manual }), { p: 0, f: 0, u: 0, m: 0 });
+  lines.push(`| **all** | **${total.p}** | **${total.f}** | **${total.u}** | **${total.m}** |`, "", "| repo | commit | failing rules | unknown |", "|---|---|---|---|");
+  for (const repo of Object.keys(cells).sort()) {
+    const row = cells[repo];
+    const of = (st) => Object.entries(row).filter(([, c]) => c.status === st).map(([id]) => id);
+    const commit = Object.values(row)[0]?.commit?.slice(0, 7) ?? "?";
+    lines.push(`| ${repo} | ${commit} | ${of("fail").join(", ") || "none"} | ${of("unknown").join(", ") || "none"} |`);
   }
   if (paused.length) lines.push("", `Out of scope (paused or archived): ${paused.map((r) => r.name).join(", ")}.`);
   const security = rules.filter(isSecurity).map((r) => r.id);
@@ -375,15 +508,20 @@ export function render(rules, cells, summary, paused = []) {
   return lines.join("\n");
 }
 
-async function api(path, accept = "application/vnd.github+json") {
+async function api(path, accept = "application/vnd.github+json", record = null) {
   const auth = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
   const res = await fetch(`https://api.github.com${path}`, {
     headers: { accept, ...(auth ? { authorization: `Bearer ${auth}` } : {}) },
     signal: AbortSignal.timeout(30000),
   });
-  if (res.status === 404 || res.status === 409) return null;
+  if (res.status === 404 || res.status === 409) {
+    record?.({ url: `https://api.github.com${path}`, http: res.status, sha256: null });
+    return null;
+  }
   if (!res.ok) throw new Error(`${path}: ${res.status}`);
-  return accept.includes("raw") ? res.text() : res.json();
+  const text = await res.text();
+  record?.({ url: `https://api.github.com${path}`, http: res.status, sha256: sha256(text) });
+  return accept.includes("raw") ? text : JSON.parse(text);
 }
 
 /** Paths of the text files of a gzipped tarball whose content matches `re` (GitHub's tarball: one top folder, ustar headers). */
@@ -410,11 +548,23 @@ export function tarballMatches(gz, re) {
 
 /** The live snapshot of one repository (default branch). */
 export async function liveSnapshot({ name, kind }, org = "krizaka") {
-  const tree = await api(`/repos/${org}/${name}/git/trees/HEAD?recursive=1`);
-  const paths = (tree?.tree ?? []).filter((e) => e.type === "blob").map((e) => e.path);
-  const raw = (path) => api(`/repos/${org}/${name}/contents/${path.split("/").map(encodeURIComponent).join("/")}`, "application/vnd.github.raw+json");
+  let commit = null;
+  let paths;
+  try {
+    // One commit for the whole run: the tree, the files and the tarball are all read at this SHA.
+    commit = (await api(`/repos/${org}/${name}/commits/HEAD`))?.sha ?? null;
+    if (!commit) throw new Error("no default branch commit");
+    const tree = await api(`/repos/${org}/${name}/git/trees/${commit}?recursive=1`);
+    paths = (tree?.tree ?? []).filter((e) => e.type === "blob").map((e) => e.path).sort();
+  } catch (error) {
+    return { ...snapshotOf(name, kind, [], async () => null, { commit }), error: `could not read the repository: ${error.message}` };
+  }
+  let snap;
+  const record = (e) => snap?.evidence.push(e);
+  const raw = (path) => api(`/repos/${org}/${name}/contents/${path.split("/").map(encodeURIComponent).join("/")}?ref=${commit}`, "application/vnd.github.raw+json");
   const scan = async (re) => {
-    const res = await fetch(`https://api.github.com/repos/${org}/${name}/tarball`, {
+    record({ url: `https://api.github.com/repos/${org}/${name}/tarball/${commit}` });
+    const res = await fetch(`https://api.github.com/repos/${org}/${name}/tarball/${commit}`, {
       headers: { accept: "application/vnd.github+json", ...(process.env.GH_TOKEN || process.env.GITHUB_TOKEN ? { authorization: `Bearer ${process.env.GH_TOKEN || process.env.GITHUB_TOKEN}` } : {}) },
       signal: AbortSignal.timeout(120000),
     });
@@ -435,6 +585,7 @@ export async function liveSnapshot({ name, kind }, org = "krizaka") {
       const meta = await fetch(`https://registry.npmjs.org/${pkg.name.replaceAll("/", "%2F")}/latest`, { signal: AbortSignal.timeout(30000) });
       if (!meta.ok) continue;
       const { version, dist } = await meta.json();
+      record({ url: dist.tarball, integrity: dist.integrity ?? null });
       const tgz = await fetch(dist.tarball, { signal: AbortSignal.timeout(120000) });
       if (!tgz.ok) throw new Error(`${pkg.name} tarball: ${tgz.status}`);
       hits.push(...tarballMatches(Buffer.from(await tgz.arrayBuffer()), re).map((f) => `${pkg.name}@${version}:${f}`));
@@ -444,19 +595,20 @@ export async function liveSnapshot({ name, kind }, org = "krizaka") {
   // Required status checks on main: the rulesets that apply to the branch, then classic branch protection.
   const requiredChecks = async () => {
     const contexts = new Set();
-    const rules = (await api(`/repos/${org}/${name}/rules/branches/main`)) ?? [];
+    const rules = (await api(`/repos/${org}/${name}/rules/branches/main`, undefined, record)) ?? [];
     for (const r of rules) if (r.type === "required_status_checks") for (const c of r.parameters?.required_status_checks ?? []) contexts.add(c.context);
-    const classic = await api(`/repos/${org}/${name}/branches/main/protection/required_status_checks`);
+    const classic = await api(`/repos/${org}/${name}/branches/main/protection/required_status_checks`, undefined, record);
     for (const c of classic?.contexts ?? []) contexts.add(c);
     for (const c of classic?.checks ?? []) contexts.add(c.context);
     return [...contexts];
   };
   const mergeGuard = async () => {
-    const rules = (await api(`/repos/${org}/${name}/rules/branches/main`)) ?? [];
-    const classic = await api(`/repos/${org}/${name}/branches/main/protection/required_status_checks`);
+    const rules = (await api(`/repos/${org}/${name}/rules/branches/main`, undefined, record)) ?? [];
+    const classic = await api(`/repos/${org}/${name}/branches/main/protection/required_status_checks`, undefined, record);
     return { mergeQueue: rules.some((r) => r.type === "merge_queue"), strict: classic?.strict === true || rules.some((r) => r.type === "required_status_checks" && r.parameters?.strict_required_status_checks_policy === true) };
   };
-  return snapshotOf(name, kind, paths, raw, { scan, published, requiredChecks, mergeGuard, latest: (pin) => latestOf(pin, api) });
+  snap = snapshotOf(name, kind, paths, raw, { commit, scan, published, requiredChecks, mergeGuard, latest: (pin) => latestOf(pin, api) });
+  return snap;
 }
 
 const flag = (argv, name) => (argv.includes(name) ? argv[argv.indexOf(name) + 1] : undefined);
@@ -498,7 +650,10 @@ export async function main(argv) {
   const versions = await versionsReport(snapshots);
   console.log(`${render(picked, cells, summary, paused)}\n\n### Family versions\n\n${renderVersions(versions)}`);
   const jsonOut = flag(argv, "--json");
-  if (jsonOut) writeFileSync(jsonOut, JSON.stringify({ generatedAt: new Date().toISOString(), summary, cells, versions, outOfScope: paused.map((r) => r.name) }, null, 2));
+  if (jsonOut) {
+    const report = reportOf({ rules: picked, cells, summary, versions, paused, generatedAt: new Date().toISOString(), runUrl: process.env.RUN_URL || null, rulesCommit: process.env.GITHUB_SHA || null });
+    writeFileSync(jsonOut, `${JSON.stringify(report, null, 2)}\n`);
+  }
   return argv.includes("--fail") && failing(picked, summary).length > 0 ? 1 : 0;
 }
 

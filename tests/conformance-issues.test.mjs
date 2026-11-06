@@ -7,8 +7,8 @@ import { readFileSync } from "node:fs";
 
 const rules = loadRules();
 const cells = {
-  a: { "security-scan": { status: "red", why: "no security.yml" }, scorecard: { status: "green", why: "" }, "shared-ci": { status: "n/a", why: "" } },
-  b: { "security-scan": { status: "green", why: "" } },
+  a: { "security-scan": { status: "fail", why: "no security.yml" }, scorecard: { status: "pass", why: "" }, "shared-ci": { status: "n/a", why: "" } },
+  b: { "security-scan": { status: "pass", why: "" } },
 };
 
 test("only repositories with a red cell are listed, with the reason", () => {
@@ -54,6 +54,6 @@ test("the workflow's token reaches krizaka-internal, where the issues live (a 40
 });
 
 test("rules review 2026-11-05: the issue per red repository lists only the security rules; a repository red on other rules only has none", () => {
-  const mixed = { a: { "security-scan": { status: "red", why: "x" }, "shared-ci": { status: "red", why: "y" } }, c: { "shared-ci": { status: "red", why: "y" } } };
+  const mixed = { a: { "security-scan": { status: "fail", why: "x" }, "shared-ci": { status: "fail", why: "y" } }, c: { "shared-ci": { status: "fail", why: "y" } } };
   assert.deepEqual(redByRepo(mixed, rules), { a: [{ id: "security-scan", why: "x" }] });
 });

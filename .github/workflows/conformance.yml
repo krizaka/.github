@@ -57,6 +57,7 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
           EVENT: ${{ github.event_name }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           fail=()
           if [ "$EVENT" = schedule ]; then fail=(--fail); fi

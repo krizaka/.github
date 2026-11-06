@@ -23,7 +23,7 @@ export function redByRepo(cells, rules = null) {
   const counted = rules ? new Set(rules.filter(isSecurity).map((r) => r.id)) : null;
   const out = {};
   for (const [repo, byRule] of Object.entries(cells)) {
-    const reds = Object.entries(byRule).filter(([id, c]) => c.status === "red" && (!counted || counted.has(id))).map(([id, c]) => ({ id, why: c.why ?? "" }));
+    const reds = Object.entries(byRule).filter(([id, c]) => c.status === "fail" && (!counted || counted.has(id))).map(([id, c]) => ({ id, why: c.why ?? "" }));
     if (reds.length > 0) out[repo] = reds;
   }
   return out;
