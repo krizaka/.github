@@ -64,6 +64,17 @@ export function exactVersion(tagsAtSha, current) {
   return full.length ? bestTag(full) : null;
 }
 
+/** The parts of a remote `uses: owner/repo[/path]@ref # comment` line; null for any other line (local, docker, no ref). */
+function parseUses(line) {
+  const m = USES.exec(line);
+  if (!m) return null;
+  const [, head, target] = m;
+  const at = target.lastIndexOf("@");
+  if (at < 0 || target.startsWith("./") || target.startsWith("docker://")) return null;
+  const path = target.slice(0, at);
+  return { head, target, path, ref: target.slice(at + 1), repo: path.split("/").slice(0, 2).join("/"), comment: m[3] ?? "" };
+}
+
 /** A pinned line whose comment is a version: it stays, becomes the exact release, or is `unresolved` (no tag backs it). */
 function exactComment({ line, target, comment, word, tags }) {
   const exact = exactVersion(tags, word);
@@ -82,23 +93,17 @@ export function pinWorkflowText(text, resolve, { refresh = false, tagsAt = null 
   const changes = [];
   const unresolved = [];
   const out = text.split("\n").map((line) => {
-    const m = USES.exec(line);
-    if (!m) return line;
-    const [, head, target] = m;
-    if (target.startsWith("./") || target.startsWith("docker://")) return line;
-    const at = target.lastIndexOf("@");
-    if (at < 0) return line;
-    const path = target.slice(0, at);
-    const ref = target.slice(at + 1);
-    const repo = path.split("/").slice(0, 2).join("/");
+    const use = parseUses(line);
+    if (!use) return line;
+    const { head, target, path, ref, repo, comment } = use;
     let pinned = ref;
     if (SHA.test(ref)) {
       // --refresh: a pin commented with a branch name (a first-party reusable workflow @main) moves to that branch's head;
       // Dependabot only follows tags, so these are the pins nothing else bumps.
-      const branch = (m[3] ?? "").replace(/^\s*#\s*/, "").trim();
+      const branch = comment.replace(/^\s*#\s*/, "").trim();
       const word = branch.split(/\s+/)[0];
       if (tagsAt && VERSION_COMMENT.test(word)) {
-        const fixed = exactComment({ line, target, comment: m[3], word, tags: tagsAt(repo, ref) });
+        const fixed = exactComment({ line, target, comment, word, tags: tagsAt(repo, ref) });
         if (fixed.unresolved) unresolved.push(fixed.unresolved);
         if (fixed.change) changes.push(`${path} ${fixed.change}`);
         return fixed.line;
