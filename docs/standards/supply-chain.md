@@ -13,7 +13,7 @@ Measure the whole org: `node scripts/scorecard-report.mjs > scorecard.md` (reads
 
 | Check | The rule | How it is kept |
 | :--- | :--- | :--- |
-| Pinned-Dependencies | Every `uses:` by full commit SHA with a `# <tag>` comment; every Docker `FROM` by digest. | `node scripts/pin-supply-chain.mjs [dir]` (`--check` in CI, `--refresh` for first-party pins commented `# main`); Dependabot bumps the SHAs and digests. |
+| Pinned-Dependencies | Every `uses:` by full commit SHA with the exact release as comment (`# v8.0.2`, [action-pinning](action-pinning.md)); every Docker `FROM` by digest. | `node scripts/pin-supply-chain.mjs [dir]` (`--exact --check` in CI, `--refresh` for first-party pins commented `# main`); Dependabot bumps the SHAs and digests; a weekly online audit of the org. |
 | Token-Permissions | Top-level `permissions: contents: read` in every workflow; write only on the job that needs it. | Reviewed per workflow. |
 | Dependency-Update-Tool | `.github/dependabot.yml`: one ecosystem per manifest kind (npm, maven, pip, cargo, docker, github-actions), **monthly, one grouped PR per ecosystem, limit 1** (decision of 2026-10-13: fewer mails). Security updates arrive grouped apart. | Copy the file of a sibling repository. |
 | Security-Policy | The org default `SECURITY.md` of this repository is detected on every repo (check = 10); a repository may add its own. | Nothing to do. |

@@ -14,7 +14,6 @@
   always_run: true
 - id: krizaka-zizmor
   name: zizmor (GitHub Actions workflow security)
-  entry: zizmor --offline --min-severity medium
-  language: python
-  additional_dependencies: ["zizmor==1.31.1"]
+  entry: scripts/hooks/zizmor-workflows.sh
+  language: script
   files: ^\.github/(workflows|actions)/.*\.ya?ml$|(^|/)action\.ya?ml$

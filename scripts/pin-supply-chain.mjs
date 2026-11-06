@@ -8,6 +8,9 @@
 //   node scripts/pin-supply-chain.mjs [repo-dir] --check  # exit 1 when something is not pinned
 //   node scripts/pin-supply-chain.mjs [repo-dir] --no-docker
 //   node scripts/pin-supply-chain.mjs [repo-dir] --refresh  # also move `# <branch>` pins to the branch's current head
+//   node scripts/pin-supply-chain.mjs [repo-dir] --exact    # a pin commented `# v7` becomes `# v7.0.1`; a comment no tag backs is reported
+// The comment is the exact version, never a range: a SHA resolves publicly to its tag, hiding the version is obscurity
+// (docs/standards/action-pinning.md).
 //
 // Actions are resolved with `git ls-remote` (public repositories, no token); images with
 // `docker buildx imagetools inspect`. Nothing is guessed: an unresolved reference fails the run.
@@ -18,6 +21,8 @@ import { join } from "node:path";
 
 const SHA = /^[0-9a-f]{40}$/;
 const USES = /^(\s*(?:-\s+)?uses:\s*)([^\s#]+)(\s*#.*)?$/;
+const VERSION_COMMENT = /^v?\d+(\.\d+){0,2}$/;
+const FULL_VERSION = /^v?\d+\.\d+\.\d+$/;
 
 /** Highest semver-looking tag among `tags`, else the first. */
 export function bestTag(tags) {
@@ -52,9 +57,21 @@ export function resolveRef(refs, ref) {
   return { sha, label: isTag && same.length ? bestTag(same) : ref };
 }
 
-/** Rewrite the unpinned `uses:` lines of a workflow. `resolve(owner/repo, ref)` returns { sha, label }. */
-export function pinWorkflowText(text, resolve, { refresh = false } = {}) {
+/** The exact version a commit is: the tag it carries (the one already in the comment when it is one of them), else null. */
+export function exactVersion(tagsAtSha, current) {
+  if (tagsAtSha.includes(current) && FULL_VERSION.test(current)) return current;
+  const full = tagsAtSha.filter((t) => FULL_VERSION.test(t));
+  return full.length ? bestTag(full) : null;
+}
+
+/**
+ * Rewrite the unpinned `uses:` lines of a workflow. `resolve(owner/repo, ref)` returns { sha, label }.
+ * With `tagsAt(owner/repo, sha)` (the tags of a commit), version comments of pinned lines are made exact; the ones no tag backs
+ * are listed in `unresolved` (they need a human: re-pin to a release).
+ */
+export function pinWorkflowText(text, resolve, { refresh = false, tagsAt = null } = {}) {
   const changes = [];
+  const unresolved = [];
   const out = text.split("\n").map((line) => {
     const m = USES.exec(line);
     if (!m) return line;
@@ -70,6 +87,17 @@ export function pinWorkflowText(text, resolve, { refresh = false } = {}) {
       // --refresh: a pin commented with a branch name (a first-party reusable workflow @main) moves to that branch's head;
       // Dependabot only follows tags, so these are the pins nothing else bumps.
       const branch = (m[3] ?? "").replace(/^\s*#\s*/, "").trim();
+      const word = branch.split(/\s+/)[0];
+      if (tagsAt && VERSION_COMMENT.test(word)) {
+        const exact = exactVersion(tagsAt(repo, ref), word);
+        if (exact === word) return line;
+        if (!exact) {
+          unresolved.push(`${target.slice(0, at + 11)} # ${word}: no release tag points at this commit`);
+          return line;
+        }
+        changes.push(`${path} # ${word} -> # ${exact}`);
+        return `${head}${target}${m[3].replace(/^(\s*#\s*)\S+/, `$1${exact}`)}`;
+      }
       if (!refresh || !branch || /^v?\d/.test(branch)) return line;
       pinned = branch;
     }
@@ -78,7 +106,7 @@ export function pinWorkflowText(text, resolve, { refresh = false } = {}) {
     changes.push(`${target} -> ${sha.slice(0, 10)} # ${label}`);
     return `${head}${path}@${sha} # ${label}`;
   });
-  return { text: out.join("\n"), changes };
+  return { text: out.join("\n"), changes, unresolved };
 }
 
 const FROM = /^(\s*FROM\s+(?:--platform=\S+\s+)?)(\S+)(\s+AS\s+\S+)?(\s*)$/i;
@@ -121,6 +149,10 @@ function remoteRefs(repo) {
   return cache.get(repo);
 }
 
+function tagsAtCommit(repo, sha) {
+  return [...remoteRefs(repo).tags].filter(([, s]) => s === sha).map(([t]) => t);
+}
+
 function imageDigest(image) {
   const out = execFileSync("docker", ["buildx", "imagetools", "inspect", image, "--format", "{{.Manifest.Digest}}"], { encoding: "utf8" });
   const d = out.trim();
@@ -132,21 +164,24 @@ function main(argv) {
   const check = argv.includes("--check");
   const docker = !argv.includes("--no-docker");
   const refresh = argv.includes("--refresh");
+  const exact = argv.includes("--exact");
   const root = argv.find((a) => !a.startsWith("--")) ?? ".";
   let pending = 0;
   const files = [
-    ...walk(root, (n, p) => /\.ya?ml$/.test(n) && /(^|[\\/])\.github[\\/](workflows|actions)[\\/]/.test(p)).map((p) => [p, "wf"]),
+    ...walk(root, (n, p) => /\.ya?ml$/.test(n) && /(^|[\\/])(\.github[\\/](workflows|actions)|actions[\\/][^\\/]+)[\\/]/.test(p)).map((p) => [p, "wf"]),
     ...(docker ? walk(root, (n) => /^Dockerfile(\..+)?$|\.Dockerfile$/.test(n)).map((p) => [p, "docker"]) : []),
   ];
   for (const [file, kind] of files) {
     const before = readFileSync(file, "utf8");
-    const { text, changes } =
+    const result =
       kind === "wf"
-        ? pinWorkflowText(before, (repo, ref) => resolveRef(remoteRefs(repo), ref), { refresh })
+        ? pinWorkflowText(before, (repo, ref) => resolveRef(remoteRefs(repo), ref), { refresh, tagsAt: exact ? tagsAtCommit : null })
         : pinDockerfileText(before, imageDigest);
-    if (!changes.length) continue;
-    pending += changes.length;
-    console.log(`${file}\n  ${changes.join("\n  ")}`);
+    const { text, changes } = result;
+    const unresolved = result.unresolved ?? [];
+    if (!changes.length && !unresolved.length) continue;
+    pending += changes.length + unresolved.length;
+    console.log(`${file}\n  ${[...changes, ...unresolved.map((u) => `UNRESOLVED ${u}`)].join("\n  ")}`);
     if (!check) writeFileSync(file, text);
   }
   if (check && pending) {
