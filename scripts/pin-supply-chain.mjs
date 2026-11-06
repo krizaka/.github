@@ -114,7 +114,9 @@ export function pinWorkflowText(text, resolve, { refresh = false, tagsAt = null 
     const { sha, label } = resolve(repo, pinned);
     if (SHA.test(ref) && sha === ref) return line;
     changes.push(`${target} -> ${sha.slice(0, 10)} # ${label}`);
-    return `${head}${path}@${sha} # ${label}`;
+    // A moved pin keeps the reason after the version: `# main (why)` stays `# main (why)`.
+    const reason = SHA.test(ref) ? comment.replace(/^\s*#\s*\S+/, "") : "";
+    return `${head}${path}@${sha} # ${label}${reason}`;
   });
   return { text: out.join("\n"), changes, unresolved };
 }
