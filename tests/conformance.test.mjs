@@ -431,3 +431,12 @@ test("rules-register: the register names exactly the rules of the registry", asy
   assert.match(registerVerdict(table(["a", "b", "c"]), ["a", "b"]).why, /not in rules\.json: c/);
   assert.match(registerVerdict("no table", ["a"]).why, /org-rules:start/);
 });
+
+test("the docs-map rule asks every repository to call docs-map.yml, and the fan-out copies the template", async () => {
+  const rule = loadRules().find((r) => r.id === "docs-map");
+  assert.deepEqual(rule.check, { type: "workflow-calls", workflows: ["docs-map.yml"] });
+  assert.deepEqual(rule.fix, { type: "copy", from: "workflow-templates/docs-map.yml", to: ".github/workflows/docs-map.yml" });
+  const caller = "jobs:\n  docs-map:\n    uses: krizaka/.github/.github/workflows/docs-map.yml@main\n";
+  assert.equal((await runCheck(rule.check, snap("ui", "npm", { ".github/workflows/docs-map.yml": caller }))).ok, true);
+  assert.equal((await runCheck(rule.check, snap("ui", "npm", { ".github/workflows/ci.yml": call("node-ci.yml") }))).ok, false);
+});

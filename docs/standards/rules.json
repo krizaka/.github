@@ -1196,6 +1196,23 @@
       }
     },
     {
+      "id": "docs-map",
+      "title": "Every repository runs the docs-map check: a pull request that changes what docs-map.json lists updates the documents of its category, or says « Docs: <link> » or « Docs: not needed, <why> » (ADR-026, founder 2026-11-06). Rolled out in warn mode, then required",
+      "issue": "krizaka/krizaka-internal#2759",
+      "applies": {
+        "kinds": ["npm", "site", "app", "maven", "python", "rust", "iac"]
+      },
+      "check": {
+        "type": "workflow-calls",
+        "workflows": ["docs-map.yml"]
+      },
+      "fix": {
+        "type": "copy",
+        "from": "workflow-templates/docs-map.yml",
+        "to": ".github/workflows/docs-map.yml"
+      }
+    },
+    {
       "id": "rules-register",
       "title": "The rules register of krizaka-agents (docs/rules-register.md, its org-rules table) names exactly the rules of this registry: the register and the matrix are the same list (founder 2026-11-06)",
       "issue": "krizaka/krizaka-internal#2635",
