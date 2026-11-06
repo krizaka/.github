@@ -36,8 +36,8 @@ jobs:
         with:
           node-version: 22
 
-      - name: Every action pinned by SHA
-        run: node scripts/pin-supply-chain.mjs . --no-docker --check
+      - name: Every action pinned by SHA, with its exact version in the comment
+        run: node scripts/pin-supply-chain.mjs . --no-docker --exact --check
 
       - name: Repository layout of this repository
         run: node scripts/check-repo-layout.mjs
@@ -48,7 +48,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           ZIZMOR_GITHUB_TOKEN: ${{ github.token }}
-        run: zizmor --offline --min-severity medium --no-progress .
+        run: zizmor --config actions/security-tools/zizmor.yml --min-severity medium --no-progress .
 
       - name: Unit tests of the shared CI
         run: node --test tests/ci-workflows.test.mjs tests/buildpack.test.mjs tests/repos-registry.test.mjs tests/rename-repo.test.mjs tests/workflows-lint.test.mjs tests/workflow-identities.test.mjs tests/ci-scope.test.mjs actions/security-tools/security-tools.test.mjs tests/check-repo-layout.test.mjs tests/tauri-macos.test.mjs tests/token-permissions.test.mjs tests/weekly-digest.test.mjs tests/scan-public-issues.test.mjs actions/dup-check/dup-ratchet.test.mjs tests/repo-layout-pin.test.mjs actions/release-notes/release-notes.test.mjs actions/licence-check/licence-gate.test.mjs actions/cdn-purge/cdn-purge.test.mjs actions/app-videos/app-videos.test.mjs tests/fix-needs-guard.test.mjs tests/check-expo-sdk.test.mjs tests/krizaka-release.test.mjs tests/conformance.test.mjs tests/conformance-fanout.test.mjs tests/agents-md.test.mjs tests/ci-speed.test.mjs tests/journeys.test.mjs scripts/post-deploy.test.mjs scripts/propagate-pins.test.mjs tests/sonar-gate.test.mjs

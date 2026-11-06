@@ -1,0 +1,8 @@
+# zizmor 1.31.1, pinned by hash (pip install --require-hashes). The wheels of the CI runner (Linux x86_64) and of the
+# developers' machines; the other platforms install through brew. Move the version and the hashes together:
+# curl -s https://pypi.org/pypi/zizmor/<version>/json | jq -r '.urls[] | "\(.filename) \(.digests.sha256)"'
+zizmor==1.31.1 \
+    --hash=sha256:58e878eb2dbd2c6183c105e1ac28c14f7dd1eca44a783f1fe2a69647d012c410 \
+    --hash=sha256:d9b36840c560a8abe39d9ef3d077239aabf6d572c5c2b629c970592a617dbf6f \
+    --hash=sha256:9696d3c10919a3a2eb086c102f1bc10717f53ef3700a0d6c55a709c274995476 \
+    --hash=sha256:4a70ee3c2721122aff04d5bbad5e448d15384f45de2ecb3c9493fe9dac2bc95f

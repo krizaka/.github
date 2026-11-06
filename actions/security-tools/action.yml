@@ -1,5 +1,5 @@
 name: Security tools
-description: Installs gitleaks and zizmor at the versions pinned by the org (checksum verified). One place for the pins (krizaka/.github#324, #325).
+description: Installs gitleaks (sha256 verified) and zizmor (pip --require-hashes) at the versions pinned by the org. One place for the pins (krizaka/.github#324, #325).
 runs:
   using: composite
   steps:
@@ -16,4 +16,4 @@ runs:
     - name: Install zizmor
       shell: bash
       run: |
-        python3 -m pip install --quiet --only-binary :all: "zizmor==1.31.1"
+        python3 -m pip install --quiet --only-binary :all: --require-hashes -r "${GITHUB_ACTION_PATH}/zizmor-requirements.txt"
