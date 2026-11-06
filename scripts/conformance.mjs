@@ -21,12 +21,13 @@ import { pathToFileURL } from "node:url";
 import { gunzipSync } from "node:zlib";
 import { createHash } from "node:crypto";
 import { problemsOf } from "./agents-md.mjs";
+import { candidateOf, isPublicSource, publicEmailHits } from "./public-email.mjs";
 import { behind, latestOf, pinsOf, renderVersions, versionsVerdict } from "./conformance-versions.mjs";
 
 const HERE = new URL("../", import.meta.url);
 import { jobsWithoutTimeout, configWithoutTestTimeout, nodeTestWithoutTimeout } from "./check-timeouts.mjs";
 const TEST_CONFIG = /(^|\/)((playwright|vitest|jest)\.config\.[cm]?[jt]s|junit-platform\.properties)$/;
-export const CHECK_TYPES = ["path-matches", "lists-rule-ids", "manual", "workflow-calls", "workflow-matches", "workflow-forbids", "file-exists", "file-matches", "manifests-forbid", "no-mention", "published-no-mention", "all-of", "any-of", "agents-template", "required-check", "merged-result", "queue-reports", "required-profile", "time-limits", "versions-current"];
+export const CHECK_TYPES = ["path-matches", "lists-rule-ids", "manual", "workflow-calls", "workflow-matches", "workflow-forbids", "file-exists", "file-matches", "manifests-forbid", "no-mention", "no-public-email", "published-no-mention", "all-of", "any-of", "agents-template", "required-check", "merged-result", "queue-reports", "required-profile", "time-limits", "versions-current"];
 /** The states of a cell. `unknown` and `manual` are never counted as pass nor as fail. */
 export const STATUSES = ["pass", "fail", "unknown", "manual", "n/a"];
 /** A sort order that does not depend on the machine's locale (determinism). */
@@ -97,6 +98,7 @@ function checkShape({ id, check = {} }) {
     "manifests-forbid": () => Boolean(check.pattern),
     "no-mention": () => Boolean(patternOf(check)),
     "published-no-mention": () => Boolean(patternOf(check)),
+    "no-public-email": () => ["domains", "extensions", "publicSegments", "skipSegments", "skipPaths", "publicFiles", "privacyPaths", "customerData"].every((k) => Array.isArray(check[k])) && check.domains.length > 0,
     "all-of": () => composite(check),
     "any-of": () => composite(check),
     "required-check": () => Boolean(check.context),
@@ -342,6 +344,17 @@ const CHECKS = {
     const allowed = [...(check.allow ?? []), ...(check.allowIn?.[snap.name] ?? [])];
     const hits = (await snap.scan(new RegExp(patternOf(check), "i"))).filter((p) => !allowed.some((a) => p === a || p.startsWith(a) || p.endsWith(`/${a}`)));
     return verdict(hits.length === 0, `${hits.length} file(s) name a departed product, e.g. ${hits.slice(0, 3).join(", ")}`);
+  },
+  // No Krizaka address on a public page (krizaka-internal#2764): the scan finds the files naming one, the public sources among them are
+  // read and judged line by line (scripts/public-email.mjs); the privacy officer and a customer's own data are the written exceptions.
+  "no-public-email": async (check, snap) => {
+    if (!snap.scan) return unread("the repository's files");
+    const files = (await snap.scan(candidateOf(check))).filter((p) => isPublicSource(p, check));
+    const hits = [];
+    for (const path of files) {
+      for (const hit of publicEmailHits(path, (await snap.read(path)) ?? "", check)) hits.push(`${path}:${hit.line} ${hit.address}`);
+    }
+    return verdict(hits.length === 0, `${hits.length} Krizaka address(es) on a public page, e.g. ${hits.slice(0, 3).join(", ")}`);
   },
   // What the repository PUBLISHES: the latest npm tarball of each of its public packages (built CSS/JS included), not its sources.
   // A rule change reached the repository (krizaka-internal#879): no family pin older than a version out for `graceDays`.

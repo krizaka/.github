@@ -87,6 +87,7 @@ test/               # mirrors src/ (section 5)
 4. Light and dark themes work (`useTheme()`); accessibility roles and labels are present.
 5. The pull request is merged with green CI (no merge with a pending check).
 6. The documents follow the change: when the pull request matches a category of the [docs map](https://github.com/krizaka/.github/blob/main/docs-map.json), it updates that category's documents, or its body says `Docs: <link to the docs pull request>` or `Docs: not needed, <why>`.
+7. No Krizaka e-mail address on a public page of a site or an app: Support and Contact lead to krizaka.com's contact form. Only the privacy officer on privacy pages and a customer's own published data are exceptions ([`no-public-email`](docs/standards/no-public-email.md)).
 
 ## 8. Coding agents (GitHub Copilot, Claude, any agent)
 

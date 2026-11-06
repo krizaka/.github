@@ -1212,6 +1212,102 @@
         "type": "manual",
         "note": "add or remove the line of the rule in the table between <!-- org-rules:start --> and <!-- org-rules:end --> of docs/rules-register.md, in the same work as the change of rules.json"
       }
+    },
+    {
+      "id": "no-public-email",
+      "title": "No Krizaka e-mail address on a public page of a site or an app: Support and Contact lead to the contact form of krizaka.com (kind and product in the link). Written exceptions: the privacy officer on privacy text (Quebec Act respecting the protection of personal information in the private sector, s. 3.1, as amended by Law 25: the person in charge's title and contact are published) and the data a customer publishes about itself (a Folioviv shop's own publicEmail) (founder 2026-11-06)",
+      "issue": "krizaka/krizaka-internal#2764",
+      "applies": {
+        "kinds": [
+          "site",
+          "app"
+        ],
+        "onlyRepos": [
+          "krizaka-com",
+          "krizaka-coming-soon",
+          "krizaka-blog",
+          "kridoc",
+          "verikora",
+          "folioviv",
+          "sovkora-web"
+        ]
+      },
+      "check": {
+        "type": "no-public-email",
+        "domains": [
+          "krizaka.com",
+          "verikora.com",
+          "folioviv.com",
+          "sovkora.com",
+          "kridoc.com"
+        ],
+        "extensions": [
+          "ts",
+          "tsx",
+          "js",
+          "jsx",
+          "mjs",
+          "mdx",
+          "md",
+          "json",
+          "html",
+          "txt"
+        ],
+        "publicSegments": [
+          "app",
+          "pages",
+          "components",
+          "src",
+          "messages",
+          "content",
+          "public",
+          "lib",
+          "locales"
+        ],
+        "publicFiles": [
+          "llms.txt",
+          "llms-full.txt"
+        ],
+        "skipSegments": [
+          "node_modules",
+          "test",
+          "tests",
+          "__tests__",
+          "e2e",
+          "fixtures",
+          "seed",
+          "seeds",
+          "scripts",
+          "docs",
+          "api",
+          "emails",
+          "email",
+          "mail",
+          ".github",
+          ".claude",
+          ".next",
+          "dist",
+          "build"
+        ],
+        "skipPaths": [
+          "\\.(test|spec)\\.[cm]?[jt]sx?$",
+          "(^|/)(SECURITY|SUPPORT|README|CHANGELOG|AGENTS|CODE_OF_CONDUCT)\\.md$",
+          "(^|/)package(-lock)?\\.json$",
+          "\\.env(\\.[\\w-]+)?$"
+        ],
+        "privacyPaths": [
+          "(^|/)(privacy|confidentialit)[^/]*(/|\\.)"
+        ],
+        "customerData": [
+          "publicEmail",
+          "shop.email",
+          "client.email"
+        ]
+      },
+      "fix": {
+        "type": "manual",
+        "note": "replace the address by the contact form link (krizaka.com/<locale>/contact with kind and product, see one-contact-path); an address of ours stays only in the privacy officer's text on a privacy page, or as data a customer published about itself (a variable such as shop.publicEmail, never a literal of ours). Server-side senders, tests, seeds, scripts and SECURITY.md are not public sources"
+      }
     }
   ]
 }
