@@ -6,12 +6,12 @@
 #     desktop-pr:                # pull_request: unsigned, no secret
 #       if: github.event_name == 'pull_request'
 #       uses: krizaka/.github/.github/workflows/tauri-macos.yml@<sha>
-#       with: { working-directory: apps/desktop, product-name: "Yomizaka", sign: false }
+#       with: { working-directory: apps/desktop, product-name: "Verikora", sign: false }
 #     desktop-release:           # push of a tag: signed, secrets passed by name
 #       if: github.event_name == 'push'
 #       permissions: { contents: write }
 #       uses: krizaka/.github/.github/workflows/tauri-macos.yml@<sha>
-#       with: { working-directory: apps/desktop, product-name: "Yomizaka", tag-prefix: "v", sign: true }
+#       with: { working-directory: apps/desktop, product-name: "Verikora", tag-prefix: "v", sign: true }
 #       secrets: { APPLE_CERTIFICATE: "${{ secrets.APPLE_CERTIFICATE }}", ... }
 #
 # Two modes, chosen by `sign` (default false):
@@ -30,7 +30,7 @@ on:
         type: string
         default: apps/desktop
       product-name:
-        description: "The product's name, for the release title (`Yomizaka`)."
+        description: "The product's name, for the release title (`Verikora`)."
         type: string
         required: true
       tag-prefix:

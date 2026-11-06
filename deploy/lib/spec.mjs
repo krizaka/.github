@@ -101,7 +101,7 @@ export async function mergeWithLive(fileSpec, liveSpec, options = {}) {
   const { secret = async () => undefined } = options;
   const missing = new Set();
   const draft = structuredClone(fileSpec);
-  // `KEY: __KEY__` is a value-less variable written the Orazaka way: the live value wins, the vault is the fallback.
+  // `KEY: __KEY__` is a value-less variable written the Sovkora way: the live value wins, the vault is the fallback.
   for (const { env } of envEntries(draft)) if (env.value === `__${env.key}__`) delete env.value;
   const spec = await render(draft, secret, missing);
   const state = { carried: [], resolved: [], problems: [] };

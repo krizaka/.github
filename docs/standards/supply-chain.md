@@ -43,7 +43,7 @@ so those pins are refreshed with `node scripts/pin-supply-chain.mjs --refresh` (
 - **Maintained** (0) needs the repository to be older than 90 days; it rises by itself with age and activity. Nothing to fake.
 - **Contributors** (0) counts contributing organisations. Nothing to fake.
 - **CII-Best-Practices** (0) needs a project registered at <https://www.bestpractices.dev> by a signed-in maintainer (GitHub login). Done by
-  Oussama for `orazaka` and `krizaka-ui`; the answers come from this page, `CONTRIBUTING.md`, `SECURITY.md` and the CI.
+  Oussama for `sovkora` and `krizaka-ui`; the answers come from this page, `CONTRIBUTING.md`, `SECURITY.md` and the CI.
 - **Fuzzing** (0): not applicable to most of our code (Spring services, UI). Skipped on purpose; a property-based test is added where it is cheap
   (parsers, the pack catalogue), and Scorecard only recognises OSS-Fuzz, ClusterFuzzLite, Go native fuzzing, fast-check and similar.
 - **Signed-Releases** and **Packaging** (-1 = not applicable) appear when a repository publishes releases / packages through a workflow Scorecard

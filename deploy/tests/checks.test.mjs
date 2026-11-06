@@ -36,18 +36,18 @@ test("robots (indexed site): allows crawling and names a sitemap; refuses Disall
   await assert.rejects(checkIndexing(BASE, "on", { fetch: fakeFetch({}) }), /robots\.txt answers 404/);
 });
 
-const DEV = "https://dev.akinaza.com";
+const DEV = "https://dev.folioviv.com";
 const devSite = (over = {}) =>
   fakeFetch({
     "/robots.txt": { body: ROBOTS_OFF, headers: { "x-robots-tag": "noindex, nofollow" } },
-    "/": { status: 308, headers: { location: "https://www.akinaza.com/", "x-robots-tag": "noindex, nofollow" } },
+    "/": { status: 308, headers: { location: "https://www.folioviv.com/", "x-robots-tag": "noindex, nofollow" } },
     "/api/healthz": { status: 200, headers: { "x-robots-tag": "noindex, nofollow" } },
     ...over,
   });
 
 test("robots (dev host): robots.txt disallows everything and keeps noindex; the HTML answers 308 to www", async () => {
   const result = await checkIndexing(DEV, "off", { fetch: devSite(), healthUrl: `${DEV}/api/healthz` });
-  assert.deepEqual(result, { robots: "disallows", noindex: "header", redirect: "https://www.akinaza.com/" });
+  assert.deepEqual(result, { robots: "disallows", noindex: "header", redirect: "https://www.folioviv.com/" });
 });
 
 test("robots (dev host): HTML that is served (200) instead of redirected is refused, whatever it carries", async () => {
@@ -56,8 +56,8 @@ test("robots (dev host): HTML that is served (200) instead of redirected is refu
 });
 
 test("robots (dev host): a redirect that is not a 308, or leaves for another host or path, is refused", async () => {
-  await assert.rejects(checkIndexing(DEV, "off", { fetch: devSite({ "/": { status: 302, headers: { location: "https://www.akinaza.com/" } } }) }), /308/);
-  await assert.rejects(checkIndexing(DEV, "off", { fetch: devSite({ "/": { status: 308, headers: { location: "https://www.krizaka.com/" } } }) }), /www\.akinaza\.com/);
+  await assert.rejects(checkIndexing(DEV, "off", { fetch: devSite({ "/": { status: 302, headers: { location: "https://www.folioviv.com/" } } }) }), /308/);
+  await assert.rejects(checkIndexing(DEV, "off", { fetch: devSite({ "/": { status: 308, headers: { location: "https://www.krizaka.com/" } } }) }), /www\.folioviv\.com/);
   await assert.rejects(checkIndexing(DEV, "off", { fetch: devSite({ "/": { status: 308 } }) }), /Location/);
 });
 

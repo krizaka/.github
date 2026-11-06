@@ -1,7 +1,7 @@
 # Publishes a Krizaka Maven repository to GitHub Packages (maven.pkg.github.com/<repository>) from a v* tag.
 #
 # Why: a release on Maven Central is a human pressing Publish and can never be deleted, so it is the last step. Every
-# development build (the Orazaka workspace, the Krizaka repositories) resolves the version just released from GitHub
+# development build (the Sovkora workspace, the Krizaka repositories) resolves the version just released from GitHub
 # Packages, where this workflow puts it first (actions/maven-github-packages adds the repositories to the runner's settings).
 #
 # A repository calls it from its own workflow; the caller grants `packages: write`:

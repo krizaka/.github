@@ -15,11 +15,11 @@ regexes = ['''sk_live_[A-Za-z0-9]+''']
 # Test fixtures and CI-only dummies found by the first scan of the focus repositories (2026-10-27). Each is a path-scoped
 # exception with its reason; a real credential is never allowlisted: it is rotated.
 [[allowlists]]
-description = "yomizaka: fake hash/token/password constants of the auth and redaction unit tests"
+description = "verikora: fake hash/token/password constants of the auth and redaction unit tests"
 paths = ['''apps/web/lib/auth-compat\.test\.ts''', '''apps/web/lib/redact\.test\.ts''']
 
 [[allowlists]]
-description = "akinaza: CI-only build/e2e environment (the sibling secret is named ci-only-...), set after the build; production keys come from the deployment environment"
+description = "folioviv: CI-only build/e2e environment (the sibling secret is named ci-only-...), set after the build; production keys come from the deployment environment"
 paths = ['''scripts/ci-after-build\.sh''']
 
 [[allowlists]]

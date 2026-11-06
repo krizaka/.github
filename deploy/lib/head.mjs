@@ -1,5 +1,5 @@
 // After a deploy: the commit that runs is the head of the branch the app follows (krizaka/.github#113).
-// A force-rebuild can reuse a cached source clone and ship old code under an ACTIVE deployment (orazaka-dev core,
+// A force-rebuild can reuse a cached source clone and ship old code under an ACTIVE deployment (sovkora-dev core,
 // 2026-10-21); the deployment's own report is therefore not trusted alone. Three sources must agree with the branch head
 // read from GitHub: each component's `source_commit_hash`, the `Checking out commit` lines of the build log, and — for a
 // deployment caused by a push — `cause_details.git_push.commit_sha`. Anything else throws a GuardError("commit").

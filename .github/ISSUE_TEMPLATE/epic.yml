@@ -23,7 +23,7 @@ body:
     id: milestone
     attributes:
       label: Milestone and target date
-      placeholder: "Yomizaka · B2B verification"
+      placeholder: "Verikora · B2B verification"
   - type: textarea
     id: notes
     attributes:

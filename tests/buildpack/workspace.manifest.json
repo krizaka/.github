@@ -3,7 +3,7 @@
   "org": "krizaka",
   "repositories": [
     { "name": "krizaka-build", "path": "krizaka/krizaka-build", "kind": "maven" },
-    { "name": "orazaka-edge", "path": "orazaka-apps/services/orazaka-edge", "kind": "maven" },
-    { "name": "orazaka-ui-kit", "path": "orazaka-apps/ui/orazaka-ui-kit", "kind": "npm" }
+    { "name": "sovkora-edge-service", "path": "sovkora-apps/services/sovkora-edge-service", "kind": "maven" },
+    { "name": "sovkora-ui-kit", "path": "sovkora-apps/ui/sovkora-ui-kit", "kind": "npm" }
   ]
 }

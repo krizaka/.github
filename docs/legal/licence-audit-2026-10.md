@@ -4,7 +4,7 @@
 
 ## Method
 
-- **Sources**: the CycloneDX SBOM that `node-ci.yml` keeps for every container build (Trivy, artifact `sbom-cyclonedx`), for Yomizaka and Akinaza; GitHub's dependency-graph SBOM (SPDX, `GET /repos/krizaka/<repo>/dependency-graph/sbom`) for every product and library repository.
+- **Sources**: the CycloneDX SBOM that `node-ci.yml` keeps for every container build (Trivy, artifact `sbom-cyclonedx`), for Verikora and Folioviv; GitHub's dependency-graph SBOM (SPDX, `GET /repos/krizaka/<repo>/dependency-graph/sbom`) for every product and library repository.
 - **Tool**: `node actions/licence-check/licence-gate.mjs --sbom <file>` — an allowlist: permissive and weak copyleft pass; GPL, AGPL, SSPL, EUPL, BUSL, Elastic, non-commercial fail; anything else is « unknown » and is read by hand. System packages of a base image (deb, apk) and first-party packages are not judged.
 - **Why AGPL matters most**: we *operate* the products. A hosted service does not « distribute » the code, so GPL obligations do not arise from hosting; AGPL-3.0 s. 13 does (users interacting over a network must be offered the source). GPL matters for what we **distribute**: the mobile and desktop apps, the npm and Maven libraries, any public image.
 
@@ -14,11 +14,11 @@
 
 | Repository | Allowed | Forbidden | Unknown | Notes |
 | :--- | ---: | ---: | ---: | :--- |
-| yomizaka (container SBOM) | 55 | 0 | 0 | The Next.js standalone image; the Alpine base's GPL packages (busybox…) are system packages, not linked |
-| akinaza (container SBOM) | 34 | 0 | 0 | Same |
-| yomizaka (dependency graph) | 1 988 | 0 | 48 | Unknown: direct manifest entries without a resolved licence (react, next, zod, vitest…; all MIT or Apache-2.0 upstream) and Actions |
-| akinaza (dependency graph) | 2 008 | 0 | 46 | Same |
-| orazaka (workspace) | 1 921 | 0 | 39 | Same; Maven direct entries (Spring, PostgreSQL JDBC BSD-2, RabbitMQ client MPL-2.0/Apache-2.0) |
+| verikora (container SBOM) | 55 | 0 | 0 | The Next.js standalone image; the Alpine base's GPL packages (busybox…) are system packages, not linked |
+| folioviv (container SBOM) | 34 | 0 | 0 | Same |
+| verikora (dependency graph) | 1 988 | 0 | 48 | Unknown: direct manifest entries without a resolved licence (react, next, zod, vitest…; all MIT or Apache-2.0 upstream) and Actions |
+| folioviv (dependency graph) | 2 008 | 0 | 46 | Same |
+| sovkora (workspace) | 1 921 | 0 | 39 | Same; Maven direct entries (Spring, PostgreSQL JDBC BSD-2, RabbitMQ client MPL-2.0/Apache-2.0) |
 | sovkora-engine, -studio, -job-service, -knowledge-service, -conversation-service, -automation-service, -edge | ≤ 5 each | 0 | 18–54 | GitHub resolves Maven direct dependencies only, without licences: every one is Spring, Spring AI, Jackson, Micrometer, Caffeine, Logback (EPL-1.0 / LGPL-2.1), JUnit, Mockito, ArchUnit — Apache-2.0, EPL or MIT upstream |
 | sovkora-worker-media | 17 | 0 | 29 | Python: torch, torchvision (BSD-3), transformers, diffusers, accelerate, safetensors (Apache-2.0), mlx, mflux (MIT), pika, psutil (BSD-3), pyyaml (MIT), cryptography (Apache-2.0 / BSD), pillow (MIT-CMU) |
 | sovkora-web / -mobile-client | 1 045 / 1 076 | 0 | 9 / 12 | |
@@ -32,8 +32,8 @@
 | :--- | :--- | :--- | :--- |
 | 1 | **MMAudio (video-to-audio) weights are CC-BY-NC-4.0** — in `sovkora-worker-media/models.yaml`, `commercial: false`, never a default, but a job can still ask for it by name | **High** if a paying customer's job uses it: commercial use of non-commercial weights | Refuse non-commercial weights in a production deployment (setting in the DB, default off), test it — krizaka/sovkora-worker-media#80 |
 | 2 | **ffmpeg from Ubuntu** in the worker's CUDA image (built with GPL components) | Low: called as a separate program, the image is built in CI and never published (`load: true`) | If the image is ever pushed to a public registry, ship the GPL notice and the source offer, or build ffmpeg LGPL-only |
-| 3 | **sharp's libvips binaries (LGPL-3.0-or-later)** in the Yomizaka and Akinaza images | Low: dynamically linked, allowed by policy | If an image is distributed: keep the LGPL notice and the library replaceable (it is, as a separate .so) |
-| 4 | **Java product repositories have no CI SBOM** (Trivy runs only in `node-ci.yml`'s container job), and GitHub's graph does not resolve transitive Maven licences | Medium: the Java audit above reads direct dependencies only | Add `cyclonedx-maven-plugin` to `orazaka-parent` / `krizaka-parent` and the licence gate to `java-ci.yml` — .github#292 |
+| 3 | **sharp's libvips binaries (LGPL-3.0-or-later)** in the Verikora and Folioviv images | Low: dynamically linked, allowed by policy | If an image is distributed: keep the LGPL notice and the library replaceable (it is, as a separate .so) |
+| 4 | **Java product repositories have no CI SBOM** (Trivy runs only in `node-ci.yml`'s container job), and GitHub's graph does not resolve transitive Maven licences | Medium: the Java audit above reads direct dependencies only | Add `cyclonedx-maven-plugin` to `sovkora-parent` / `krizaka-parent` and the licence gate to `java-ci.yml` — .github#292 |
 | 5 | **False positives of GitHub's scanner**: `org.glassfish.jaxb:*` 4.0.9 read as « … AND GPL-1.0-or-later » (it is EDL-1.0, a BSD-3 licence) and `jakarta.servlet-api` read as « EPL-2.0 AND GPL-2.0-only » (it is EPL-2.0 OR GPL-2.0 with the Classpath exception) | None | Listed here; if the gate ever reads them from a CI SBOM, a `.licence-exceptions.json` entry with this reason |
 | 6 | Dual-licensed packages that offer GPL as one choice (`node-forge` BSD-3 OR GPL-2.0, `react-native`'s docs CC-BY-NC-SA as one alternative, `jakarta.*` EPL OR GPL+CPE) | None | We use them under the permissive alternative; the gate reads OR as « the best choice » |
 

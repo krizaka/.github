@@ -4,23 +4,23 @@
 - **Date:** 2026-11-03
 - **Issue:** krizaka-internal#2331. **Builds on:** krizaka-internal#840 (one cast, one seed per app), [ADR-011](ADR-011-default-media-in-the-org-json.md)
   (default media), [ADR-014](ADR-014-bunny-org-cdn-and-apps.md) (Bunny layout v2), [ADR-022](ADR-022-dev-and-prod-environments.md)
-  (prod holds no dev data), akinaza ADR-004 (look presets).
-- **Scope:** `@krizaka/org` (the cast), yomizaka and akinaza (their seeds), `krizaka-agents` `tools/seed-dev.sh`. Orazaka keeps its
+  (prod holds no dev data), folioviv ADR-004 (look presets).
+- **Scope:** `@krizaka/org` (the cast), verikora and folioviv (their seeds), `krizaka-agents` `tools/seed-dev.sh`. Sovkora keeps its
   `names` step.
 
 ## Context
 
 The founder does not want the old demo data re-seeded. What exists today:
 
-- **Cast v1** in `@krizaka/org` (`CAST_VERSION = 1`): Éric, Mira and Camille in Yomizaka; Éric, Mira, Léa and five clients in Akinaza.
+- **Cast v1** in `@krizaka/org` (`CAST_VERSION = 1`): Éric, Mira and Camille in Verikora; Éric, Mira, Léa and five clients in Folioviv.
   It is the right place and stays the one source.
-- **Yomizaka** `scripts/demo-seed/` (`cast.mjs`, `seed.mjs`, `fingerprint.json`): one file mixes accounts, collections, documents,
+- **Verikora** `scripts/demo-seed/` (`cast.mjs`, `seed.mjs`, `fingerprint.json`): one file mixes accounts, collections, documents,
   analyses and screenings; document ids come from `randomUUID()`, `--reset` deletes the owner's documents, the clock defaults to the
   real instant, and the fingerprint counts rows only.
-- **Akinaza** `apps/web/scripts/seed-cast.mjs` plus seven `seed-*.mjs` and `packages/db/src/{seed-walker,seed-krizaka,demo-shops,
+- **Folioviv** `apps/web/scripts/seed-cast.mjs` plus seven `seed-*.mjs` and `packages/db/src/{seed-walker,seed-krizaka,demo-shops,
   demo-st-henri.json,demo-media.json,demo-community}.ts`: 27 Saint-Henri shops (salon, workshop, coaching, pets only, two
   templates per trade), a walker, the studio, `--clean` that deletes what journeys left. Media are **full CDN URLs typed in the data**
-  (`https://krizaka-assets.b-cdn.net/sites/akinaza/demo/…`, even an `orazaka` gallery file). The shops do not show the 12 look presets.
+  (`https://krizaka-assets.b-cdn.net/sites/folioviv/demo/…`, even an `sovkora` gallery file). The shops do not show the 12 look presets.
 
 Both seeds work, but they are hard to extend, partly random, and they delete. A demo, a recording and a hot fix need the same data on
 the Mac and on dev, from one command, without ever erasing what someone made.
@@ -36,14 +36,14 @@ a role word.
 
 | App (public name) | Persona | Role · story |
 |---|---|---|
-| Yomizaka (Verikora) | **Éric Tremblay** | member · owns Gestion Rosemont, a small rental agency; he screens applicants and verifies their documents |
+| Verikora (Verikora) | **Éric Tremblay** | member · owns Gestion Rosemont, a small rental agency; he screens applicants and verifies their documents |
 | | **Nadia Benali** | member · Éric's leasing agent, same organisation (shows sharing and roles) |
 | | **Camille Tremblay** | member · an applicant who sends her file through Éric's link (the tenant side of the journey) |
-| Akinaza (Folioviv) | **Léa Beaulieu**, **Éric Tremblay** + one owner per demo shop | owner · each owns one shop of § 3; Léa (pets) and Éric (studio) are the two featured ones |
+| Folioviv (Folioviv) | **Léa Beaulieu**, **Éric Tremblay** + one owner per demo shop | owner · each owns one shop of § 3; Léa (pets) and Éric (studio) are the two featured ones |
 | | **Camille, Jordan, Nadia, Étienne, Sofia** | client · book, review and receive reports, across several shops |
 | both | **Mira Haddad** | admin · never in a demo |
 
-The new owner names are fixed in the Akinaza issue, under three rules: Québec-plausible, no name shared with another persona, and
+The new owner names are fixed in the Folioviv issue, under three rules: Québec-plausible, no name shared with another persona, and
 « (démo) » in every legal name. People who never sign in (a dossier's applicants, a shop's walk-in clients) are **fixtures** of the
 app's seed module, not cast members, under the same rules.
 
@@ -53,17 +53,17 @@ Each app has one entry point, `seed --cast` (`pnpm run dev:seed`), that runs its
 `scripts/seed/<nn>-<domain>.ts` exporting `{ domain, version, plan(cast, clock), apply(db, plan) }`: `plan` is pure (data only,
 unit-tested), `apply` writes it in one transaction. The data lives next to it as `scripts/seed/data/<domain>.v2.json`.
 
-- **Yomizaka:** `10-agencies` (organisations, members, roles) · `20-dossiers` (screenings and their collections) · `30-tenants`
+- **Verikora:** `10-agencies` (organisations, members, roles) · `20-dossiers` (screenings and their collections) · `30-tenants`
   (applicants as fixtures, share links) · `40-documents` (fixture PDFs built locally from text, through the storage port) ·
   `50-verifications` (seeded analyses and fraud signals, run ids prefixed `seeded-`, never a paid run).
-- **Akinaza:** `10-shops` (shop, zone, rules, the page document with its preset) · `20-services` (prices from the catalogue) ·
+- **Folioviv:** `10-shops` (shop, zone, rules, the page document with its preset) · `20-services` (prices from the catalogue) ·
   `30-staff` · `40-bookings` · `50-reviews` · `60-media` (wall, reels and videos by logical key) · `70-community`.
 
 ### 3. The demo shops are the Krizaka UI showcase
 
 Twelve demo shops, **one per look preset** of `@krizaka/tokens/shop-presets` (two per trade: salon, coaching, workshop, cleaning,
 pets, consulting), so no two shops look alike and every preset is seen on the TV and the map. Each shop uses a different section
-mix of akinaza ADR-004 and an accent from its preset's tested list. A test asserts: 12 shops, 12 distinct presets, 6 trades, every
+mix of folioviv ADR-004 and an accent from its preset's tested list. A test asserts: 12 shops, 12 distinct presets, 6 trades, every
 section type used at least once, AA proven per preset (the library's matrix). No café, restaurant or bar.
 
 ### 4. Ids and clock
@@ -105,8 +105,8 @@ dev are accepted: the check counts « at least » there (§ 7).
 ### 8. The journey that proves it
 
 One e2e journey per app on the seeded data, on green main (Playwright web, Maestro mobile), recorded for the videos (rule « videos
-from tests »): **Yomizaka** — Éric signs in, opens Camille's dossier, reads the verification of her pay slip and shares the report;
-**Akinaza** — Camille finds Léa's shop on the map, books a walk, Léa sees it in her day. Each journey names the persona and the
+from tests »): **Verikora** — Éric signs in, opens Camille's dossier, reads the verification of her pay slip and shares the report;
+**Folioviv** — Camille finds Léa's shop on the map, books a walk, Léa sees it in her day. Each journey names the persona and the
 data by key, never by text the seed may change.
 
 ## Consequences

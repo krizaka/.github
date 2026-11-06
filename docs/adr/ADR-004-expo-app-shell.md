@@ -2,7 +2,7 @@
 
 - **Status**: Accepted
 - **Date**: 2026-10-22
-- **Scope**: every Krizaka Expo app (orazaka-mobile-client, former repositories, then Yomizaka and Akinaza)
+- **Scope**: every Krizaka Expo app (sovkora-mobile, former repositories, then Verikora and Folioviv)
 - **Issue**: [krizaka/.github#178](https://github.com/krizaka/.github/issues/178), epic #179. Builds on ADR-003 and #72, #75, #139.
 
 ## Context
@@ -27,7 +27,7 @@ the product's address, mark and message keys. The org already learned that « ke
 3. **`krizaka/template-expo-app` only wires** (repository deleted 2026-10-30, krizaka-internal#752: no app was made from it; backup bundle kept, recreated with the next Expo app): `app.config.js`, `eas.json` (development, preview, production), `.maestro/`,
    `app-links.json`, `.github/workflows/ci.yml` (thin over `expo-ci`), `scripts/init.mjs <slug> "<Name>"`, i18n skeleton. No logic.
    `check-app-links` is shipped as the package's `bin` (`krizaka-check-app-links`), the copies are deleted.
-4. **Where an app lives**: a product's mobile app lives in its monorepo (`apps/mobile`) per #72 (Yomizaka, Akinaza). Existing
+4. **Where an app lives**: a product's mobile app lives in its monorepo (`apps/mobile`) per #72 (Verikora, Folioviv). Existing
    standalone repositories migrate to the package first; moving them is a separate decision.
 5. **Migration is proven, not assumed**: the first consumer (a former repository or a former repository) moves to the package with its
    own tests unchanged and green before the package is declared done.
@@ -55,7 +55,7 @@ is `krizaka-tauri-kit` v0.2.0 with `tauri-plugin-krizaka`, the bindings `@krizak
 |---|---|
 | ADR-004 and ADR-005 merged | Done |
 | `@krizaka/app-client` published | Done (`/react` 0.2.0: `createAuth`, `useSessionStatus`) |
-| A first app migrated with its tests unchanged | **Not as written**: former repositories are paused. Yomizaka's and Akinaza's apps were built on the package instead, with regression tests on the real query client. Proposal: accept those two as the proof and strike the paused apps from the criterion. Oussama to confirm. |
+| A first app migrated with its tests unchanged | **Not as written**: former repositories are paused. Verikora's and Folioviv's apps were built on the package instead, with regression tests on the real query client. Proposal: accept those two as the proof and strike the paused apps from the criterion. Oussama to confirm. |
 | `krizaka-tauri-kit` tested (traversal, symlink, never-grantable paths) | Done (33 tests) |
 | `template-expo-app`, `template-tauri-app` | Expo done (trial app green, `expo-doctor` 20/20); Tauri template waits for `@krizaka/app-desktop` 0.1.0 on npm |
 | Update `.github#139` | To do |
@@ -63,9 +63,9 @@ is `krizaka-tauri-kit` v0.2.0 with `tauri-plugin-krizaka`, the bindings `@krizak
 The issue names no Kotlin or Swift counterpart, and this ADR rejects Flutter and Kotlin Multiplatform: nothing is planned in those languages.
 
 **Left, as tasks** (krizaka-ui#741): `sessionTokenOf` (bearer before cookie) into `@krizaka/config` or the Next template; the `@krizaka/ui/native` sign-in,
-settings and tabs templates in the Yomizaka and Akinaza apps; the unsigned Mac build's Keychain prompt, to verify with the Developer ID signature.
+settings and tabs templates in the Verikora and Folioviv apps; the unsigned Mac build's Keychain prompt, to verify with the Developer ID signature.
 
 **The web has the same problem.** The 2026-10 navigation audit (`docs/audits/2026-10-ux-navigation.md`) found three signed-in frames
-composed three ways (Yomizaka: `RailNav` + `AppHeader`; Akinaza: `AppShell`; Orazaka: `RailNav` + `AppHeader`) and the account menu filled
+composed three ways (Verikora: `RailNav` + `AppHeader`; Folioviv: `AppShell`; Sovkora: `RailNav` + `AppHeader`) and the account menu filled
 differently in each. The same rule applies: one `AppFrame` in `@krizaka/ui` that takes the sections, the account links and the primary
 action as data (krizaka-ui#739); the products keep only their section list.

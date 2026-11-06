@@ -15,7 +15,7 @@ Readiness is a gap analysis and a plan: Krizaka is **not** certified and does no
 | Access control and credential rotation | [`access-control.md`](access-control.md) | Draft; first access review planned |
 | Supplier register | [`supplier-register.json`](supplier-register.json) | Draft; terms and regions to collect (.github#285) |
 | Continuity and backups | [`continuity.md`](continuity.md) | Restore test **planned** (krizaka-infra#15) |
-| Incident management | [incident procedure](../../privacy/incident-procedure.md), [notices](../../privacy/incident-notices.md) | Draft; drill done on file; consoles yomizaka#418, akinaza#392 |
+| Incident management | [incident procedure](../../privacy/incident-procedure.md), [notices](../../privacy/incident-notices.md) | Draft; drill done on file; consoles verikora#418, folioviv#392 |
 | Secure development | [`docs/standards/rules.md`](../../standards/rules.md) | Applied |
 | Supply chain | [`docs/standards/supply-chain.md`](../../standards/supply-chain.md) | Applied |
 | Internal audit, management review | [`internal-audit.md`](internal-audit.md), [`management-review.md`](management-review.md) | Templates |

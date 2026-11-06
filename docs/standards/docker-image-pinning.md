@@ -13,7 +13,7 @@ SonarCloud `docker:S8431` asks for « either the version tag or the digest, not 
 (the docker ecosystem of `.github/dependabot.yml`) reads the **tag** to decide where an image goes next:
 
 - With a tag and a digest, it bumps the tag within its line and the digest together (`node:22-alpine@sha256:A` becomes
-  `node:22-alpine@sha256:B`). This is the PR we merge today (for example `bump node from 0a7108b to fe4f6d7`, yomizaka#706).
+  `node:22-alpine@sha256:B`). This is the PR we merge today (for example `bump node from 0a7108b to fe4f6d7`, verikora#706).
 - With a digest alone, it has no line to follow. `dependabot-core` (`docker/lib/dependabot/docker/update_checker.rb`, branch
   `elsif digest`) resolves a pure digest pin against the tag **`latest`**
   ([source](https://github.com/dependabot/dependabot-core/blob/main/docker/lib/dependabot/docker/update_checker.rb)).

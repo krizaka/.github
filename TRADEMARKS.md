@@ -4,7 +4,7 @@
 
 ## What the marks are
 
-The names **Krizaka**, **Orazaka**, **Yomizaka**, **Akinaza**, every product's logo, and the **birds** that stand for them (the drawings and mascots of `@krizaka/ui`: `KrizakaLogo`, `OrazakaLogo`, `ProductLogo` and the mascot illustrations), are trademarks of Technologies Krizaka Inc., used in Canada (*Trademarks Act*, R.S.C. 1985, c. T-13, ss. 2, 4, 19, 20, 22 — [Justice Laws](https://laws-lois.justice.gc.ca/eng/acts/T-13/)). Registration applications are being prepared; an unregistered mark is still protected against passing off (s. 7).
+The names **Krizaka**, **Sovkora**, **Verikora**, **Folioviv**, every product's logo, and the **birds** that stand for them (the drawings and mascots of `@krizaka/ui`: `KrizakaLogo`, `SovkoraLogo`, `ProductLogo` and the mascot illustrations), are trademarks of Technologies Krizaka Inc., used in Canada (*Trademarks Act*, R.S.C. 1985, c. T-13, ss. 2, 4, 19, 20, 22 — [Justice Laws](https://laws-lois.justice.gc.ca/eng/acts/T-13/)). Registration applications are being prepared; an unregistered mark is still protected against passing off (s. 7).
 
 ## The code licence gives no right to the marks
 
@@ -15,7 +15,7 @@ You may copy, fork and modify the code under its licence. You may not use our na
 
 ## What you may do without asking
 
-- Say truthfully that your work **uses**, **is built on** or **is compatible with** a Krizaka library or product (« built with Krizaka UI », « an Orazaka pack »), in plain text, without our logo and without suggesting we endorse you.
+- Say truthfully that your work **uses**, **is built on** or **is compatible with** a Krizaka library or product (« built with Krizaka UI », « a Sovkora pack »), in plain text, without our logo and without suggesting we endorse you.
 - Keep our names in the copyright, NOTICE and licence files of a fork, as the licence requires.
 - Write about us (articles, reviews, talks, tutorials), with the names and, for illustration, our unmodified logos.
 - Publish a package under your own scope that targets ours (`yourname/krizaka-ui-theme`), when its description says it is not an official Krizaka package.

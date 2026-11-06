@@ -8,11 +8,11 @@
 #       permissions: { contents: read }
 #       uses: krizaka/.github/.github/workflows/mobile-e2e.yml@<sha> # v1
 #       with:
-#         app-id: com.krizaka.yomizaka
+#         app-id: com.krizaka.verikora
 #         app-directory: apps/mobile
 #         package-manager: pnpm
 #         lockfile-directory: .
-#         demo-email: eric@demo.yomizaka.test
+#         demo-email: eric@demo.verikora.test
 #         setup-command: bash scripts/ci-mobile-backend.sh   # a backend on the runner, seeded with the demo account
 #         env: |
 #           EXPO_PUBLIC_APP_URL=http://localhost:3000

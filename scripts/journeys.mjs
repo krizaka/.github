@@ -2,7 +2,7 @@
 /* The org's critical journeys (krizaka-internal#1939), the commands behind journeys.yml, post-deploy-journeys.yml and journey-line.yml:
 
      preflight   env: JOURNEYS_MODE=ci|post-deploy, NEEDS_PERSONA, NEEDS_PAYMENTS, PERSONAS, JOURNEY_PERSONA_PASSWORD, JOURNEY_PAYMENTS_KEY
-                 FAILS on a missing credential (never a silent pass: Orazaka's dev-persona-smoke stayed green with them unset), on a
+                 FAILS on a missing credential (never a silent pass: Sovkora's dev-persona-smoke stayed green with them unset), on a
                  persona that is not of the demo cast, on a payments key that is not a test-mode key.
      report      --json playwright.json [--out summary.md]
                  reads the Playwright JSON report; FAILS when nothing ran (« nothing checked »), when a test failed unexpectedly, was skipped,

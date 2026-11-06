@@ -23,20 +23,20 @@ every resource. No secret, address or IP is recorded here.
 | :-- | :-- | :-- | --: |
 | App Platform, static-only apps | 4 | `krizaka-blog` (+ one function), `krizaka-ui-site`, `krizaka-java-site`, `krizaka-ts-site`. The first 3 are free; the 4th is billed | 3.00 |
 | App Platform, `krizaka-com` | 1 | one service, 512 MiB | 5.00 |
-| App Platform, `yomizaka-dev` | 1 | one service, 512 MiB (`www.`, apex, `dev.`, `admin.yomizaka.com`) | 5.00 |
-| App Platform, `akinaza-dev` | 1 | one service, 512 MiB (`basic-xxs`) | 5.00 |
-| App Platform, `orazaka-dev` | 1 | `web` 512 MiB (5), `core` 2 GiB `basic-s` (20), `gpu-relay` 512 MiB (5) | 30.00 |
-| Managed PostgreSQL | **1** | `krizaka-dev-pg`, pg 18, one node of 1 vCPU / 1 GiB with 10 GiB, in `tor1`. It holds 11 databases: 5 for Orazaka, 1 for Yomizaka, 1 for Akinaza, the platform's accounts, users and billing, the newsletter, and `defaultdb`. It has 10 pools | 15.15 |
-| Droplet | 1 | `orazaka-broker-dev`, `s-1vcpu-512mb-10gb`, no backups | 4.00 |
-| Spaces | 1 bucket | `yomizaka-documents-prod`, created by krizaka-infra `stacks/prod/yomizaka-documents`. **This is a prod bucket, in the dev team** | 5.00 |
+| App Platform, `verikora-dev` | 1 | one service, 512 MiB (`www.`, apex, `dev.`, `admin.verikora.com`) | 5.00 |
+| App Platform, `folioviv-dev` | 1 | one service, 512 MiB (`basic-xxs`) | 5.00 |
+| App Platform, `sovkora-dev` | 1 | `web` 512 MiB (5), `core` 2 GiB `basic-s` (20), `gpu-relay` 512 MiB (5) | 30.00 |
+| Managed PostgreSQL | **1** | `krizaka-dev-pg`, pg 18, one node of 1 vCPU / 1 GiB with 10 GiB, in `tor1`. It holds 11 databases: 5 for Sovkora, 1 for Verikora, 1 for Folioviv, the platform's accounts, users and billing, the newsletter, and `defaultdb`. It has 10 pools | 15.15 |
+| Droplet | 1 | `sovkora-broker-dev`, `s-1vcpu-512mb-10gb`, no backups | 4.00 |
+| Spaces | 1 bucket | `verikora-documents-prod`, created by krizaka-infra `stacks/prod/verikora-documents`. **This is a prod bucket, in the dev team** | 5.00 |
 | Load balancers, Kubernetes, registry, volumes, snapshots, CDN endpoints, DigitalOcean DNS domains | 0 | none. DNS is at Porkbun (krizaka-infra `stacks/dns`) and media are on Bunny | 0 |
-| Projects | 8 | `krizaka`, `yomizaka`, `akinaza`, `orazaka`, plus 4 empty projects of departed products | 0 |
+| Projects | 8 | `krizaka`, `verikora`, `folioviv`, `sovkora`, plus 4 empty projects of departed products | 0 |
 | **Total** | | before taxes and any transfer overage | **≈ 72.15** |
 
 - **The invoice was not read.** The billing endpoints (`balance`, `invoices`) answered 403. The token in use has no billing scope,
   and the vault has no DigitalOcean token under the name documented in krizaka-infra `docs/SECRETS.md`. The total above is
   therefore the list price of every resource. Slice 2 reads the measured invoice before step 1 is planned.
-- **There is already only one non-prod database cluster.** No per-app cluster remains: `orazaka-admin-dev`, named by ADR-022, is
+- **There is already only one non-prod database cluster.** No per-app cluster remains: `sovkora-admin-dev`, named by ADR-022, is
   gone. « Two clusters » therefore means keeping `krizaka-dev-pg` as the non-prod cluster and adding exactly one prod cluster.
   Consolidation saves no money on the databases; step 1's savings come from the apps and from Spaces (§ 6).
 
@@ -49,8 +49,8 @@ What krizaka-infra already codes (main, 2026-11-01):
   - `providers/ovh/document-storage`.
 - **Tests:** each module and adapter has a mocked `tofu test`.
 - **Stacks, three of them, each on a local state outside the repository:**
-  - `stacks/dev/orazaka` (10 imported resources, plan no-op);
-  - `stacks/prod/yomizaka-documents` (the bucket above);
+  - `stacks/dev/sovkora` (10 imported resources, plan no-op);
+  - `stacks/prod/verikora-documents` (the bucket above);
   - `stacks/dns` (8 zones, 134 records, plan in CI and as a daily drift check).
 - **Not coded:** a remote state backend, the other apps, a `machine` adapter and an `environment` / `provider` switch.
 
@@ -123,7 +123,7 @@ DNS (Porkbun) and Bunny each have one account-wide API key that reaches both sid
 
 | Side | Sites and services |
 | :-- | :-- |
-| **Non-prod** | www.krizaka.com · blog.krizaka.com (and its OAuth function) · ui. / java. / ts.krizaka.com · `yomizaka-dev`, `akinaza-dev`, `orazaka-dev` (`web`, `core`, `gpu-relay`) on their code-name hosts · the dev broker · `krizaka-dev-pg` and its 11 databases · Bunny `krizaka-assets` · Stripe test keys |
+| **Non-prod** | www.krizaka.com · blog.krizaka.com (and its OAuth function) · ui. / java. / ts.krizaka.com · `verikora-dev`, `folioviv-dev`, `sovkora-dev` (`web`, `core`, `gpu-relay`) on their code-name hosts · the dev broker · `krizaka-dev-pg` and its 11 databases · Bunny `krizaka-assets` · Stripe test keys |
 | **Prod** | Verikora (`www.verikora.com`, its database, its documents bucket) from step 1. Later, each with its own step: the headless engine (`api.sovkora.com`), Folioviv, Sovkora public, Stripe live, Kridoc (ADR-022 § 6) |
 
 - **The test for prod.** A site or service runs in prod only if it holds customer data or takes payments.
@@ -185,7 +185,7 @@ bucket:
 
 Prices are DigitalOcean list prices, in USD a month before taxes. They were read on 2026-11-01 from three sources:
 `digitalocean.com/pricing/app-platform`, `digitalocean.com/pricing/managed-databases`, and the API's App Platform instance-size
-list. Spaces is USD 5 a month (250 GiB, 1 TiB out), as noted in `stacks/prod/yomizaka-documents`; this is confirmed at signing.
+list. Spaces is USD 5 a month (250 GiB, 1 TiB out), as noted in `stacks/prod/verikora-documents`; this is confirmed at signing.
 
 | Step | What | Change | Net / month | Cumulative vs today (≈ 72.15) |
 | :-- | :-- | :-- | --: | --: |
@@ -203,7 +203,7 @@ Step 1, line by line:
 
 | Line | USD / month |
 | :-- | --: |
-| `orazaka-dev` `core`: 2 GiB `basic-s` (20) → 1 GiB `apps-s-1vcpu-1gb-fixed` (10). Done only if its memory p95 stays under 700 MiB over 7 days (measured in slice 2) | −10.00 |
+| `sovkora-dev` `core`: 2 GiB `basic-s` (20) → 1 GiB `apps-s-1vcpu-1gb-fixed` (10). Done only if its memory p95 stays under 700 MiB over 7 days (measured in slice 2) | −10.00 |
 | The 4th static-only app becomes a static component of `krizaka-com`. DigitalOcean bills nothing for a static site inside a paid app | −3.00 |
 | The non-prod Spaces subscription ends: the prod bucket leaves the dev team, and the non-prod state uses the `pg` backend | −5.00 |
 | Prod: team and VPC | 0.00 |

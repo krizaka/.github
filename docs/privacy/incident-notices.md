@@ -51,7 +51,7 @@ Sent directly (e-mail to the account address, then post if it bounces). A public
 
 ## 3. Notice to a business client (when we are its service provider)
 
-When the information belongs to a client for whom we act as service provider (P-39.1 art. 18.3: Yomizaka for a property firm, Akinaza for a shop), we tell the client **without delay** with the elements of section 1; the client, as the enterprise that holds the information, decides its own notices. The [processor terms](pims/dpa-template.md) commit us to it.
+When the information belongs to a client for whom we act as service provider (P-39.1 art. 18.3: Verikora for a property firm, Folioviv for a shop), we tell the client **without delay** with the elements of section 1; the client, as the enterprise that holds the information, decides its own notices. The [processor terms](pims/dpa-template.md) commit us to it.
 
 ## 4. What is never in a notice
 
