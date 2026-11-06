@@ -12,6 +12,8 @@ import { fileURLToPath } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 export const MAP_FILE = join(here, "..", "docs-map.json");
 const ORG = "krizaka";
+// `gh` is looked up in these system directories only, never in a search path inherited from the caller (Sonar S4036).
+const TOOL_DIRS = "/usr/bin:/bin:/usr/local/bin:/opt/homebrew/bin";
 const CATEGORY_KEYS = ["id", "title", "when", "docs"];
 const WHEN_KEYS = ["repo", "globs"];
 const DOC_KEYS = ["repo", "path", "bump", "local"];
@@ -91,7 +93,7 @@ export function missingDocuments(map, treeOf) {
 
 /** The file paths of a repository's default branch, read through the API. */
 export function liveTree(repo) {
-  const out = execFileSync("gh", ["api", `repos/${ORG}/${repo}/git/trees/HEAD?recursive=1`, "--jq", ".tree[].path"], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+  const out = execFileSync("gh", ["api", `repos/${ORG}/${repo}/git/trees/HEAD?recursive=1`, "--jq", ".tree[].path"], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, env: { ...process.env, PATH: TOOL_DIRS } });
   return new Set(out.split("\n").filter(Boolean));
 }
 
