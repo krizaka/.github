@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/krizaka/.github/blob/main/docs/standards/docs-map.schema.json",
+  "title": "docs-map.json: which documents a change of each kind must update (ADR-026)",
+  "type": "object",
+  "required": ["categories"],
+  "properties": {
+    "_": { "type": "string" },
+    "categories": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "when", "docs"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+          "title": { "type": "string", "minLength": 1 },
+          "when": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["repo", "globs"],
+              "additionalProperties": false,
+              "properties": {
+                "repo": { "type": "string", "minLength": 1 },
+                "globs": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+              }
+            }
+          },
+          "docs": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["path"],
+              "additionalProperties": false,
+              "properties": {
+                "repo": { "type": "string", "minLength": 1 },
+                "path": { "type": "string", "minLength": 1 },
+                "bump": { "const": true },
+                "local": { "const": true }
+              },
+              "if": { "properties": { "local": { "const": true } }, "required": ["local"] },
+              "then": { "not": { "anyOf": [{ "required": ["repo"] }, { "required": ["bump"] }] } },
+              "else": { "required": ["repo"] }
+            }
+          }
+        }
+      }
+    }
+  }
+}

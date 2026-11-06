@@ -1,9 +1,9 @@
 # ADR-009 — Prices are data: one price catalogue per product, edited by its admin, audited and dated
 
-- **Status**: Accepted (shipped in `@krizaka/settings`; Orazaka's Java side planned)
+- **Status**: Accepted (shipped in `@krizaka/settings`; Sovkora's Java side planned)
 - **Date**: 2026-10-26
-- **Scope**: every Krizaka product that sells something (Yomizaka, Akinaza, Orazaka)
-- **Issue**: [krizaka/.github#253](https://github.com/krizaka/.github/issues/253). Related: orazaka#416 (licence), #254 (SLA tiers), krizaka-ui#713 (admin block).
+- **Scope**: every Krizaka product that sells something (Verikora, Folioviv, Sovkora)
+- **Issue**: [krizaka/.github#253](https://github.com/krizaka/.github/issues/253). Related: sovkora#416 (licence), #254 (SLA tiers), krizaka-ui#713 (admin block).
 
 ## Context
 
@@ -43,9 +43,9 @@ environment variable or in code. Nothing in an entry's words claims a conformity
 
 | Product | State (2026-10-26) | Remaining |
 |---|---|---|
-| Yomizaka | Adopted: admin prices route and catalogue view, pricing page | None for the model (`findTypedPrices` runs in `lib/pricing.test.ts`); the amounts still held stay with Oussama (yomizaka#300) |
-| Akinaza | Adopted: `lib/price-catalogue.ts`, admin prices page and routes, pricing page | None for the model (`findTypedPrices` runs in its pricing tests) |
-| Orazaka | Planned (orazaka#417): the catalogue goes in `krizaka-billing` (Java) with the same rules (versions, effective dates, audit); web client reads it | Java module, then the licence and SLA entries (`slaEssential`, `slaBusiness`, `slaPremium`; the last two « preparing » until the status page measures) |
+| Verikora | Adopted: admin prices route and catalogue view, pricing page | None for the model (`findTypedPrices` runs in `lib/pricing.test.ts`); the amounts still held stay with Oussama (verikora#300) |
+| Folioviv | Adopted: `lib/price-catalogue.ts`, admin prices page and routes, pricing page | None for the model (`findTypedPrices` runs in its pricing tests) |
+| Sovkora | Planned (sovkora#417): the catalogue goes in `krizaka-billing` (Java) with the same rules (versions, effective dates, audit); web client reads it | Java module, then the licence and SLA entries (`slaEssential`, `slaBusiness`, `slaPremium`; the last two « preparing » until the status page measures) |
 
 ## Consequences
 
@@ -53,4 +53,4 @@ environment variable or in code. Nothing in an entry's words claims a conformity
 - Invoices and renewals can say which version applied.
 - The catalogue is one more table per product database; the seed must be kept in step with the first migration.
 - `unit` and `limits` are an enumeration and named integers: a new kind of unit is a package change, on purpose.
-- Orazaka's Java side repeats the model in another language; the rules are written down here and tested on both sides.
+- Sovkora's Java side repeats the model in another language; the rules are written down here and tested on both sides.

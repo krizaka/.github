@@ -3,7 +3,7 @@
 - **Status:** Accepted (CTO, delegated) as the direction. The kit, the audits and the lint rule are slices of [#423](https://github.com/krizaka/.github/issues/423).
 - **Date:** 2026-10-29
 - **Builds on:** [ui-testing.md](../standards/ui-testing.md) (layers, page journeys, baselines), [app-videos.md](../standards/app-videos.md) (videos recorded by e2e), [bug-means-missing-guard.md](../standards/bug-means-missing-guard.md), the seeded cast of [#356](https://github.com/krizaka/.github/issues/356).
-- **Repositories:** every product (Yomizaka, Akinaza, Orazaka) and their web, mobile and admin clients; `krizaka-ts` (`@krizaka/page-audit`) for the shared kit; `krizaka-ui` keeps the component tests.
+- **Repositories:** every product (Verikora, Folioviv, Sovkora) and their web, mobile and admin clients; `krizaka-ts` (`@krizaka/page-audit`) for the shared kit; `krizaka-ui` keeps the component tests.
 
 ## Context
 
@@ -56,8 +56,8 @@ The index is the catalogue; a check fails when a file has no row or a row has no
 - `persona` is a member of the seeded cast (the same people locally and deployed); no customer name, no company identifier.
 - `video: true` makes the same run the source of the product video (rule « videos from tests »): one source, two uses.
 - `tags`: `smoke` runs on every pull request, `paid` and the rest run in the nightly full pass.
-- First catalogues (from #423): Yomizaka lease check, report, Section G, pay with a launch code; Akinaza owner sets up a
-  shop, publishes, a customer orders; Orazaka chat with a tool call, studio run.
+- First catalogues (from #423): Verikora lease check, report, Section G, pay with a launch code; Folioviv owner sets up a
+  shop, publishes, a customer orders; Sovkora chat with a tool call, studio run.
 
 ### 4. Budgets
 

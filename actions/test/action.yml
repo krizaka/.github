@@ -7,7 +7,7 @@
 #   iac          for each module: `tofu init -backend=false`, `tofu validate`, and `tofu test` when it has tests. A test whose
 #                run blocks do not all say `command = plan` is refused: nothing here ever applies.
 name: test
-description: Tests of a Krizaka repository (Node, Maven, Orazaka workspace, Python, OpenTofu).
+description: Tests of a Krizaka repository (Node, Maven, Sovkora workspace, Python, OpenTofu).
 author: Krizaka
 
 inputs:

@@ -2,7 +2,7 @@
 
 <!-- summary: The download pages show app videos recorded by the end-to-end tests, so they always follow the product. -->
 
-The download page of a product (Yomizaka, Akinaza, Orazaka) shows short videos of its apps, **recorded by the e2e tests**,
+The download page of a product (Verikora, Folioviv, Sovkora) shows short videos of its apps, **recorded by the e2e tests**,
 so they follow the product (krizaka/.github#315).
 
 1. **Record** in the e2e job, on demo personas and demo data only (no personal data, no secret on screen, the dev banner visible):

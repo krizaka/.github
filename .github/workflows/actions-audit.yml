@@ -1,0 +1,57 @@
+# Weekly audit of the actions used by every active repository of the org (docs/standards/action-pinning.md).
+# Dependabot does not alert on actions pinned by SHA, and the per-repository scan only runs when a pull request does, so a
+# vulnerability published after the last merge would go unseen. Each Monday this job reads the default branch of every
+# repository and runs, online, zizmor (known vulnerable actions, impostor commits, ref confusion, stale refs) and the pin
+# check (every `uses:` a full SHA, its comment an exact release tag). Red opens (or comments on) one issue; green closes it.
+name: Actions audit
+
+on:
+  schedule:
+    - cron: "17 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Org actions audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - uses: ./actions/security-tools
+      # Reads the code of every repository of the org (private ones too): the Krizaka Agents app, contents and metadata read.
+      - id: app
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: krizaka # zizmor: ignore[github-app] the audit reads every repository of the org, by design
+          permission-contents: read
+          permission-metadata: read
+      - id: audit
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+        run: bash scripts/actions-audit.sh 2>&1 | tee audit.log; exit "${PIPESTATUS[0]}" # zizmor: ignore[github-app] the token is read-only (contents, metadata)
+      - id: issues
+        if: ${{ always() }}
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: krizaka
+          repositories: krizaka-internal
+          permission-issues: write
+      - name: The audit's issue
+        if: ${{ always() && github.event_name == 'schedule' && steps.issues.outputs.token != '' }}
+        env:
+          GH_TOKEN: ${{ steps.issues.outputs.token }}
+          STATE: ${{ steps.audit.outcome == 'success' && 'green' || 'red' }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node scripts/red-run-issue.mjs --guard actions-audit --state "$STATE" --run-url "$RUN_URL" --log audit.log

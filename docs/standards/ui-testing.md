@@ -31,7 +31,7 @@ as well when one can express it (« A bug means a missing guard »).
 - `firstPaint: true` captures the HTML the server sent, JavaScript off. `firstPaint: { hold: [...] }` keeps JavaScript but
   never answers the held requests (the account query): a flash such as krizaka-ui#827 is then a visible diff.
 - Journeys to have: the public landing, sign-in, the signed-in home, the product's main screen, and each journey a customer
-  pays for. Yomizaka: landing, pricing, sign-in, home, report. Akinaza: a shop's page, explore with the map, a booking.
+  pays for. Verikora: landing, pricing, sign-in, home, report. Folioviv: a shop's page, explore with the map, a booking.
 
 ## 3. Where the pixels are taken
 

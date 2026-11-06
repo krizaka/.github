@@ -1,12 +1,20 @@
 {
   "allow": [
     {
+      "path": "policy.json",
+      "why": "the org policy, one source of truth read by every guard, cron and CI job, validated by docs/standards/policy.schema.json (krizaka-internal#2781)"
+    },
+    {
       "path": ".pre-commit-hooks.yaml",
       "why": "the hooks of the org, read by the pre-commit framework from the repository root (krizaka/.github#324)"
     },
     {
       "path": "tools",
       "why": "the org's measuring tools, run against the repositories' checkouts (tools/code-health, krizaka/.github#384)"
+    },
+    {
+      "path": "docs-map.json",
+      "why": "which documents a change of each kind must update, read by the docs-map check and by krizaka-agents through the local config key docsMap (ADR-026, krizaka-internal#2756)"
     }
   ]
 }

@@ -116,7 +116,7 @@ test("signed releases require every signing and notarisation credential", () => 
 });
 
 test("the v-tag example sets its tag prefix", () => {
-  assert.match(text, /with: \{ working-directory: apps\/desktop, product-name: "Yomizaka", tag-prefix: "v", sign: true \}/);
+  assert.match(text, /with: \{ working-directory: apps\/desktop, product-name: "Verikora", tag-prefix: "v", sign: true \}/);
 });
 
 test("no job asks for more than the pull-request caller grants (startup_failure otherwise)", () => {

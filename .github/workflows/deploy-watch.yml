@@ -4,7 +4,7 @@
 # app of the Krizaka team with a few doctl reads — never a job that sleeps per merge — and, for the head of a branch
 # older than the grace period with no deployment, starts a plain deployment and fails so that the miss is visible.
 # A deployment that started and ended ERROR / CANCELED is listed as failed (it is not a missing one). Apps without
-# deploy_on_push (orazaka-dev core) are deployed by hand and never expected to start by themselves.
+# deploy_on_push (sovkora-dev core) are deployed by hand and never expected to start by themselves.
 #
 # Reads the secret DIGITALOCEAN_ACCESS_TOKEN of the `dev` environment (an app-scoped token; the environment only
 # deploys from protected branches, so a pull request never sees it): without it the job says so in a warning and does
@@ -146,7 +146,7 @@ jobs:
         name: Install the CLI
         run: npm ci --omit=dev --ignore-scripts --no-audit --no-fund --prefix deploy
 
-      # Read-only App token: the specs of the private repositories (kachizaka) answer 404 to an anonymous read.
+      # Read-only App token: the specs of the private repositories (kridoc) answer 404 to an anonymous read.
       - if: steps.gate.outputs.enabled == 'true'
         id: app
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0

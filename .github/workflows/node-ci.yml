@@ -373,7 +373,7 @@ jobs:
         run: '"$PM" run "$SCRIPT"'
 
       # Turborepo's local cache (every leg but lint), then the tests: the test leg only. The build leg ran them again from
-      # the build pack (2026-10-25) to 2026-10-30, nine minutes of akinaza's critical path (ADR-018, measured).
+      # the build pack (2026-10-25) to 2026-10-30, nine minutes of folioviv's critical path (ADR-018, measured).
       - uses: krizaka/.github/actions/test@d701b569b15617609b890102bc0be9978759909c # main
         with:
           working-directory: ${{ inputs.working-directory }}

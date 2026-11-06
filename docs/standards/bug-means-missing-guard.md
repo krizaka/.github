@@ -42,7 +42,7 @@ Choose the **earliest** layer that can express the rule: a type before a lint ru
 
 ## 4. Seeds must cover the states
 
-A page audit, a screenshot flow or a demo seed is only as good as its data. The seed of every list or collection covers **three states**: **empty**, **one item**, **many items** (enough to overflow a row, a panel, a viewport). The binder overflow of yomizaka#435 slipped past the audit because the seed held one tidy folder. A list with no seed for each of the three states fails the seed check (to be built in the shared page-audit package).
+A page audit, a screenshot flow or a demo seed is only as good as its data. The seed of every list or collection covers **three states**: **empty**, **one item**, **many items** (enough to overflow a row, a panel, a viewport). The binder overflow of verikora#435 slipped past the audit because the seed held one tidy folder. A list with no seed for each of the three states fails the seed check (to be built in the shared page-audit package).
 
 ## 5. Where it is wired
 

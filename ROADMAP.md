@@ -9,18 +9,18 @@ _Last reviewed: 2026-10-25._
 ## Vision
 
 Krizaka builds **open-source building blocks** (`@krizaka/*` on npm, `com.krizaka` on Maven Central) and the products
-that consume them. The products in focus are **Yomizaka**, rental verification (the lease read rule by rule, the
-application screened), **Akinaza**, bookings, invoices and the books of independent shops, and **Orazaka**, sovereign
+that consume them. The products in focus are **Verikora**, rental verification (the lease read rule by rule, the
+application screened), **Folioviv**, bookings, invoices and the books of independent shops, and **Sovkora**, sovereign
 AI that runs on your own machines and powers both. In that order:
 
-1. Yomizaka's B2B verification and screening (P0),
-2. Akinaza's shop (P1),
-3. the Orazaka adjustments they need (P2),
+1. Verikora's B2B verification and screening (P0),
+2. Folioviv's shop (P1),
+3. the Sovkora adjustments they need (P2),
 
-with the company and its accounts in order (M0), a public launch (M2) and Orazaka out of its local phase (M3), while the
+with the company and its accounts in order (M0), a public launch (M2) and Sovkora out of its local phase (M3), while the
 platform keeps shipping — Krizaka UI, the Java and TypeScript building blocks from CI.
 
-**Focus** (Oussama, 2026-10-29): the org holds Yomizaka, Akinaza and Orazaka, and the platforms. The other products left to the founder's account.
+**Focus** (Oussama, 2026-10-29): the org holds Verikora, Folioviv and Sovkora, and the platforms. The other products left to the founder's account.
 
 ## Milestones
 
@@ -30,7 +30,7 @@ platform keeps shipping — Krizaka UI, the Java and TypeScript building blocks 
 | **Novembre · Maven 0.2.0** | 2026-11-20 | krizaka-java 0.3.0, then users / notifications / billing 0.2.0, published from CI | [krizaka-java#16](https://github.com/krizaka/krizaka-java/issues/16) |
 | **Krizaka UI · W1–W5** | 2026-12-18 | Signature components, effects, `@krizaka/charts`, blocks, adopted by every product | [krizaka-ui#49](https://github.com/krizaka/krizaka-ui/issues/49) |
 | **M2 · Lancement public & marketing** | 2027-02-26 | Three blogs live, Product Hunt / Show HN, campaign running with analytics | [krizaka-com#55](https://github.com/krizaka/krizaka-com/issues/55) |
-| **M3 · Orazaka hors phase locale** | 2027-03-31 | GPU target decided (ADR), staging and production from code, secrets, images, observability, billing | [orazaka#30](https://github.com/krizaka/sovkora/issues/30) |
+| **M3 · Sovkora hors phase locale** | 2027-03-31 | GPU target decided (ADR), staging and production from code, secrets, images, observability, billing | [sovkora#30](https://github.com/krizaka/sovkora/issues/30) |
 
 Dates are targets, not promises. They assume the company's registration and bank account arrive in November, merchant
 underwriting takes four to six weeks after that.
@@ -52,7 +52,7 @@ underwriting takes four to six weeks after that.
 - `@krizaka/ui` 2.0.0 stable, `@krizaka/icons`, `@krizaka/i18n`, `@krizaka/intl`; every product on the shared primitives
 - krizaka.com/docs: one documentation, component docs generated from the code
 - Maven Central 0.2.0: build, BOM, platform kit and the four Spring Boot starters
-- Orazaka: home and feature pages, Eric's demo recorded on the real app
+- Sovkora: home and feature pages, Eric's demo recorded on the real app
 
 ## How we plan
 

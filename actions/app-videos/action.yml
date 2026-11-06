@@ -6,7 +6,7 @@ description: >
   (never deletes). Use the reusable workflow app-videos.yml to also open the pull request.
 inputs:
   product:
-    description: The product id (yomizaka, akinaza, orazaka).
+    description: The product id (verikora, folioviv, sovkora).
     required: true
   inputs:
     description: Directories holding the recordings, one per line.

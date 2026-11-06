@@ -1,0 +1,6 @@
+{
+  "name": "Docs map",
+  "description": "A pull request updates the documents listed for its kind of change, or says why not.",
+  "iconName": "octicon book",
+  "categories": ["Code Scanning"]
+}

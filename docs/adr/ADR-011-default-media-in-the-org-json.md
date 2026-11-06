@@ -2,12 +2,12 @@
 
 - **Status**: Accepted · §1 amended by [ADR-014](ADR-014-bunny-org-cdn-and-apps.md) (the defaults move to `org/v<n>/defaults/<kind>/`)
 - **Date**: 2026-10-26
-- **Issues**: [krizaka-ts#134](https://github.com/krizaka/krizaka-ts/issues/134), [yomizaka#433](https://github.com/krizaka/yomizaka/issues/433)
+- **Issues**: [krizaka-ts#134](https://github.com/krizaka/krizaka-ts/issues/134), [verikora#433](https://github.com/krizaka/verikora/issues/433)
 - **Standard**: [default-media](../standards/default-media.md)
 
 ## Context
 
-Each product drew or embedded its own default avatars, and a folder in Yomizaka's binder was offered people. Oussama: centralise the assets
+Each product drew or embedded its own default avatars, and a folder in Verikora's binder was offered people. Oussama: centralise the assets
 in Bunny according to a structure, and let the JSON that Krizaka exposes give the URLs to use by default.
 
 ## Decision

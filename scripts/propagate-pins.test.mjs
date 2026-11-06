@@ -38,7 +38,7 @@ test("--source moves the component.yml pins of krizaka/sovkora and leaves the or
   assert.match(after, new RegExp(`krizaka/.github/.github/workflows/node-ci.yml@${OLD} # main`));
   assert.equal(movePins(root, NEW, "sovkora").length, 0, "idempotent");
   assert.ok(pinPattern(".github").test("krizaka/.github/x@" + OLD), "the default source is the org's .github");
-  assert.ok(!pinPattern("orazaka").test("krizaka/sovkora-edge-service/x@" + OLD), "the source name is exact");
+  assert.ok(!pinPattern("sovkora").test("krizaka/sovkora-edge-service/x@" + OLD), "the source name is exact");
 });
 
 test("the push carries the app's token through gh's credential helper (a runner has none: every push of 2026-10-29 failed), and a failure says why", () => {
@@ -147,14 +147,14 @@ test("pinPrDecision: a pin PR created today and already merged or closed → ski
 });
 
 test("pinPrDecision: another source's pin PR open in the repository → skip (one pin PR per repository at a time)", () => {
-  const other = pr(8, "deps/orazaka-workflow-pins", "open", "2026-11-01", "ci(deps): the orazaka workflow pins move to krizaka/sovkora@cccccccc");
+  const other = pr(8, "deps/sovkora-workflow-pins", "open", "2026-11-01", "ci(deps): the sovkora workflow pins move to krizaka/sovkora@cccccccc");
   const d = pinPrDecision({ ...ORG, prs: [other], today: TODAY, headDates: { 8: "2026-11-01T00:00:00Z" } });
   assert.equal(d.action, "skip");
   assert.match(d.reason, /#8/);
 });
 
 test("pinPrDecision: another source's pin PR created today (merged) counts for the day too", () => {
-  const other = pr(8, "deps/orazaka-workflow-pins", "merged", TODAY, "ci(deps): the orazaka workflow pins move to krizaka/sovkora@cccccccc");
+  const other = pr(8, "deps/sovkora-workflow-pins", "merged", TODAY, "ci(deps): the sovkora workflow pins move to krizaka/sovkora@cccccccc");
   assert.equal(pinPrDecision({ ...ORG, prs: [other], today: TODAY, headDates: {} }).action, "skip");
   const mine = pr(4, ORG.branch, "open", "2026-11-02");
   assert.equal(pinPrDecision({ ...ORG, prs: [other, mine], today: TODAY, headDates: { 4: "2026-11-02T00:00:00Z" } }).action, "skip", "no update the day another pin PR went out");

@@ -13,7 +13,7 @@ Measure the whole org: `node scripts/scorecard-report.mjs > scorecard.md` (reads
 
 | Check | The rule | How it is kept |
 | :--- | :--- | :--- |
-| Pinned-Dependencies | Every `uses:` by full commit SHA with a `# <tag>` comment; every Docker `FROM` by digest. | `node scripts/pin-supply-chain.mjs [dir]` (`--check` in CI, `--refresh` for first-party pins commented `# main`); Dependabot bumps the SHAs and digests. |
+| Pinned-Dependencies | Every `uses:` by full commit SHA with the exact release as comment (`# v8.0.2`, [action-pinning](action-pinning.md)); every Docker `FROM` by digest. | `node scripts/pin-supply-chain.mjs [dir]` (`--exact --check` in CI, `--refresh` for first-party pins commented `# main`); Dependabot bumps the SHAs and digests; a weekly online audit of the org. |
 | Token-Permissions | Top-level `permissions: contents: read` in every workflow; write only on the job that needs it. | Reviewed per workflow. |
 | Dependency-Update-Tool | `.github/dependabot.yml`: one ecosystem per manifest kind (npm, maven, pip, cargo, docker, github-actions), **monthly, one grouped PR per ecosystem, limit 1** (decision of 2026-10-13: fewer mails). Security updates arrive grouped apart. | Copy the file of a sibling repository. |
 | Security-Policy | The org default `SECURITY.md` of this repository is detected on every repo (check = 10); a repository may add its own. | Nothing to do. |
@@ -43,7 +43,7 @@ so those pins are refreshed with `node scripts/pin-supply-chain.mjs --refresh` (
 - **Maintained** (0) needs the repository to be older than 90 days; it rises by itself with age and activity. Nothing to fake.
 - **Contributors** (0) counts contributing organisations. Nothing to fake.
 - **CII-Best-Practices** (0) needs a project registered at <https://www.bestpractices.dev> by a signed-in maintainer (GitHub login). Done by
-  Oussama for `orazaka` and `krizaka-ui`; the answers come from this page, `CONTRIBUTING.md`, `SECURITY.md` and the CI.
+  Oussama for `sovkora` and `krizaka-ui`; the answers come from this page, `CONTRIBUTING.md`, `SECURITY.md` and the CI.
 - **Fuzzing** (0): not applicable to most of our code (Spring services, UI). Skipped on purpose; a property-based test is added where it is cheap
   (parsers, the pack catalogue), and Scorecard only recognises OSS-Fuzz, ClusterFuzzLite, Go native fuzzing, fast-check and similar.
 - **Signed-Releases** and **Packaging** (-1 = not applicable) appear when a repository publishes releases / packages through a workflow Scorecard

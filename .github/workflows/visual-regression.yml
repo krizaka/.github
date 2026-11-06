@@ -19,7 +19,7 @@
 #       with:
 #         package-manager: pnpm
 #         start-script: scripts/ci-visual-start.sh   # builds, seeds the cast (.github#356), starts the app, waits until it answers
-#         test-command: pnpm --filter @yomizaka/web exec playwright test
+#         test-command: pnpm --filter @verikora/web exec playwright test
 #         snapshot-paths: apps/web/e2e/__screenshots__
 #         base-url: http://localhost:3000
 #         env: |
@@ -87,7 +87,7 @@ on:
         type: number
         default: 40
       group-suffix:
-        description: "Appended to the concurrency group. A second caller on the same ref (the journeys next to the visual regression) sets one, or it cancels the first run (yomizaka#623: cancelled in 0 s)."
+        description: "Appended to the concurrency group. A second caller on the same ref (the journeys next to the visual regression) sets one, or it cancels the first run (verikora#623: cancelled in 0 s)."
         type: string
         default: ""
       relevant:

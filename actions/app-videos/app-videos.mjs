@@ -34,7 +34,7 @@ export function parseName(file) {
 
 /** The directory of a product's videos on the zone, relative to the zone root. */
 export function folder(product) {
-  if (!/^[a-z][a-z0-9-]*$/.test(product)) throw new Error(`product "${product}" is not an id like yomizaka`);
+  if (!/^[a-z][a-z0-9-]*$/.test(product)) throw new Error(`product "${product}" is not an id like verikora`);
   return `sites/${product}/download`;
 }
 

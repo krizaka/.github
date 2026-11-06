@@ -13,17 +13,17 @@
 
 ## Context
 
-Every product runs today on one DigitalOcean App Platform app per product in `tor1` (`yomizaka-dev`, `akinaza-dev`, `orazaka-dev`,
-`orazaka-admin-dev`), one managed Postgres `krizaka-dev-pg` (1 vCPU / 1 GB) and a broker droplet. Each app answers on its code-name
+Every product runs today on one DigitalOcean App Platform app per product in `tor1` (`verikora-dev`, `folioviv-dev`, `sovkora-dev`,
+`sovkora-admin-dev`), one managed Postgres `krizaka-dev-pg` (1 vCPU / 1 GB) and a broker droplet. Each app answers on its code-name
 hosts (`www.`, apex, `dev.`, `admin.`). Sign-up is closed everywhere; the public opening comes later.
 
-The products' visible names are now commercial (krizaka-internal#2103): **Verikora** (code name yomizaka), **Folioviv** (akinaza),
-**Sovkora** (orazaka), **Kridoc** (the managed storage). Their domains (verikora.com, folioviv.com/.app/.shop, sovkora.com,
+The products' visible names are now commercial (krizaka-internal#2103): **Verikora** (code name verikora), **Folioviv** (folioviv),
+**Sovkora** (sovkora), **Kridoc** (the managed storage). Their domains (verikora.com, folioviv.com/.app/.shop, sovkora.com,
 kridoc.com) are registered at Porkbun with no live record. The visible name is the admin setting `brand.displayName`.
 
 What does not work with « one environment that slowly becomes public »: demo personas and test data share the database real
 customers would use; test and live payment keys would sit in the same app; a code change reaches users the minute it merges; and
-Verikora's server calls the engine on a dev host (`AI_API_URL=https://dev.orazaka.com/edge`).
+Verikora's server calls the engine on a dev host (`AI_API_URL=https://dev.sovkora.com/edge`).
 
 ## Decision
 
@@ -32,13 +32,13 @@ Verikora's server calls the engine on a dev host (`AI_API_URL=https://dev.orazak
 | | Dev (code names) | Prod (commercial names) |
 | :-- | :-- | :-- |
 | Purpose | integration, demos with the persona cast, recordings, mobile dev builds | real customers, after the opening |
-| Web + app + `/api` | `www.yomizaka.com`, `www.akinaza.com`, `www.orazaka.com` | `www.verikora.com`, `www.folioviv.com`, `www.sovkora.com` |
+| Web + app + `/api` | `www.verikora.com`, `www.folioviv.com`, `www.sovkora.com` | `www.verikora.com`, `www.folioviv.com`, `www.sovkora.com` |
 | Apex | 308 → `www.` | 308 → `www.` |
 | API, auth callbacks, webhooks for mobile dev builds | `dev.<code>.com` (HTML 308 → `www.<code>.com`, as today) | on `www.<brand>.com` (one host per product; no `dev.` in prod) |
-| Engine, server to server | `dev.orazaka.com/edge` | `api.sovkora.com` (no HTML, `noindex`) |
+| Engine, server to server | `dev.sovkora.com/edge` | `api.sovkora.com` (no HTML, `noindex`) |
 | Admin console | `admin.<code>.com` | `admin.<brand>.com` (IP-gated, host-only cookie, `noindex`) |
 | Media of the app (runtime) | Bunny `krizaka-assets`, `apps/<app>/…` (ADR-014) | one Bunny prod storage zone per product, `media.<brand>.com`, same `apps/<app>/<kind>/` layout inside |
-| Shops (Folioviv) | `akinaza.shop` | `folioviv.shop`, `*.folioviv.shop` |
+| Shops (Folioviv) | `folioviv.shop` | `folioviv.shop`, `*.folioviv.shop` |
 | Indexing | **`noindex` everywhere**: robots `Disallow: /`, `X-Robots-Tag: noindex`, `APP_SEARCH_INDEXING=off` | indexed: sitemap, hreflang, canonical on the prod host, Search Console by DNS TXT |
 
 - **No redirect** from a code-name host to a commercial host or back (founder, #2126): they are two different deployments.
@@ -78,7 +78,7 @@ Verikora's server calls the engine on a dev host (`AI_API_URL=https://dev.orazak
 | Observability | as today | shared: App Platform alerts, an uptime check per prod host, one log sink tagged by product, personal data scrubbed, 30-day retention, founder and CTO only |
 | Infra as code | krizaka-infra `stacks/dev/*` | `stacks/prod/shared` (team, VPC, Postgres, Spaces, alerts), `stacks/prod/<brand>` per product, `stacks/dns` records for the commercial zones; OpenTofu, its own state; agents only plan, the founder applies (krizaka-infra ADR-001) |
 
-The existing `stacks/prod/yomizaka-documents` (the Spaces bucket for Verikora's documents) becomes part of Verikora's prod step.
+The existing `stacks/prod/verikora-documents` (the Spaces bucket for Verikora's documents) becomes part of Verikora's prod step.
 Kubernetes (DOKS) is not chosen for the opening: a cluster's minimum (nodes, load balancer, upgrades) costs more money and more
 operations than the handful of containers we run; it is reconsidered when the prod runs more than about ten long-lived services.
 
@@ -99,7 +99,7 @@ operations than the handful of containers we run; it is reconsidered when the pr
 ### 5. Rollout: one product first, smallest viable prod, each step gated and reversible
 
 The pilot is **Verikora**: it is sold first (P0), it is the smallest stack (one web, a backup job, a bucket already written as
-code), and its prod stack (`stacks/prod/yomizaka-documents`) and Stripe flow already exist. Its one dependency is the engine:
+code), and its prod stack (`stacks/prod/verikora-documents`) and Stripe flow already exist. Its one dependency is the engine:
 because a prod product never calls a dev host, the pilot brings a **headless prod engine** (`api.sovkora.com`, core and edge only,
 a key per consuming product) — Sovkora's public site comes later.
 

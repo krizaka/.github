@@ -2,11 +2,11 @@
 
 - **Status:** Accepted for the libraries (nothing changes). **Proposed** for the products: one licence PR per product repository, labelled `needs-oussama`, merged only by Oussama. Good-faith version, **à valider par l'avocat** ([.github#250](https://github.com/krizaka/.github/issues/250)).
 - **Date:** 2026-10-26
-- **Builds on:** [`docs/legal/ip-split.md`](../legal/ip-split.md) (Background / Foreground IP, B64, .github#252), Orazaka's ADR-049 (open-core split: commercial packs live in a private repository).
+- **Builds on:** [`docs/legal/ip-split.md`](../legal/ip-split.md) (Background / Foreground IP, B64, .github#252), Sovkora's ADR-049 (open-core split: commercial packs live in a private repository).
 
 ## Context
 
-Every repository of the `krizaka` org is public and Apache-2.0, the products included. Krizaka earns its money by **operating** those products (Yomizaka, Akinaza, Orazaka as a service) and by services mandates. Apache-2.0 lets anyone take the product code and run a competing hosted service, with no obligation back. Three facts frame what we can do:
+Every repository of the `krizaka` org is public and Apache-2.0, the products included. Krizaka earns its money by **operating** those products (Verikora, Folioviv, Sovkora as a service) and by services mandates. Apache-2.0 lets anyone take the product code and run a competing hosted service, with no obligation back. Three facts frame what we can do:
 
 1. **A grant already given cannot be taken back.** Apache-2.0 s. 2 is perpetual and irrevocable: every commit published so far stays Apache-2.0 for whoever received it. A new licence applies only to the commits that follow the change.
 2. **Apache-2.0 grants no trademark rights** (s. 6). Our names and birds are protected by trademark law, not by the code licence ([TRADEMARKS.md](../../TRADEMARKS.md)).
@@ -20,7 +20,7 @@ Every repository of the `krizaka` org is public and Apache-2.0, the products inc
 | :--- | :--- |
 | `krizaka-ui`, `krizaka-ts`, `krizaka-build`, `krizaka-platform-kit`, `krizaka-tauri-kit`, `krizaka-lab` (formerly krizaka-motion) | Adoption; Background IP of every services mandate |
 | `krizaka-billing`, `krizaka-users`, `krizaka-notifications`, `krizaka-accounts` | Building blocks named in the services contract (ip-split.md) or shared by every product |
-| `orazaka-packs`, `orazaka-contracts`, `orazaka-cli`, `orazaka-ui-kit`, `orazaka-build`, `orazaka-edge` | The pack format, the API contracts, the CLI and the parent: what an integrator or a client needs to call Orazaka; `orazaka-packs` is Background IP |
+| `sovkora-packs`, `sovkora-contracts`, `sovkora-cli`, `sovkora-ui-kit`, `sovkora-build`, `sovkora-edge` | The pack format, the API contracts, the CLI and the parent: what an integrator or a client needs to call Sovkora; `sovkora-packs` is Background IP |
 | `template-*`, `krizaka-com`, `krizaka-blog`, `krizaka-infra`, `.github` | Templates, sites and governance; their content is covered by the trademark policy |
 
 Contributions to the libraries: the [Developer Certificate of Origin](https://developercertificate.org) (`Signed-off-by:`), no CLA (Apache-2.0 s. 5 already licenses the contribution inbound = outbound).
@@ -29,8 +29,8 @@ Contributions to the libraries: the [Developer Certificate of Origin](https://de
 
 | Repository | Product |
 | :--- | :--- |
-| `yomizaka`, `akinaza` | The products and their sites (dev.yomizaka.com, Akinaza's shop pages) |
-| `orazaka` (workspace), `orazaka-ai-engine`, `orazaka-studio`, `orazaka-job-service`, `orazaka-knowledge-service`, `orazaka-conversation-service`, `orazaka-automation-service`, `orazaka-worker-media`, `orazaka-web-client`, `orazaka-mobile-client` | The Orazaka engine operated as a service, and its clients |
+| `verikora`, `folioviv` | The products and their sites (dev.verikora.com, Folioviv's shop pages) |
+| `sovkora` (workspace), `sovkora-engine`, `sovkora-studio`, `sovkora-job-service`, `sovkora-knowledge-service`, `sovkora-conversation-service`, `sovkora-automation-service`, `sovkora-worker-media`, `sovkora-web`, `sovkora-mobile` | The Sovkora engine operated as a service, and its clients |
 
 The **Functional Source License 1.1, Apache-2.0 future licence** ([fsl.software](https://fsl.software), SPDX `FSL-1.1-ALv2`) lets anyone read, run, modify and redistribute the code for any purpose **except a Competing Use** (offering it to others as a commercial product or service that substitutes for ours), and **each version turns into Apache-2.0 two years after it is published**.
 
@@ -60,7 +60,7 @@ A source-available licence still shows the code. What is a business asset by its
 
 | Candidate | What it holds | Proposal |
 | :--- | :--- | :--- |
-| Yomizaka's and Akinaza's rule sets and domain packs (`orazaka-packs/tenant-screening-qc`, `realestate-studio`, `privacy-law25`, `document-validation`, `identity-document-check`, and the encoded Québec rules) | The prompts, rule tables and fixtures that are the product's judgement | Future versions move to the private `orazaka-packs-cloud` that Orazaka's ADR-049 already foresees; `orazaka-packs` keeps the format, `echo-toolkit` and generic packs. The published commits stay Apache-2.0 |
+| Verikora's and Folioviv's rule sets and domain packs (`sovkora-packs/tenant-screening-qc`, `realestate-studio`, `privacy-law25`, `document-validation`, `identity-document-check`, and the encoded Québec rules) | The prompts, rule tables and fixtures that are the product's judgement | Future versions move to the private `sovkora-packs-cloud` that Sovkora's ADR-049 already foresees; `sovkora-packs` keeps the format, `echo-toolkit` and generic packs. The published commits stay Apache-2.0 |
 | `krizaka-infra` | Infrastructure as code of the running services | Private: the topology of production is a security asset (ISO/IEC 27001 A 8.9), not a library |
 | Customer data, prices, contracts | Never in a repository | Already the rule ([docs/legal/README.md](../legal/README.md)) |
 
@@ -80,7 +80,7 @@ Every product SBOM is checked against the policy of [`actions/licence-check`](..
 
 - Sites and READMEs stop calling the products « open source »: they are « source-available, Apache-2.0 after two years » (Fair Source). The libraries remain open source. krizaka.com's open-source page lists the libraries only.
 - The Scorecard « License » check still passes (a licence file is detected); its row in [supply-chain.md](../standards/supply-chain.md) now says « Apache-2.0 or FSL-1.1-ALv2 per ADR-012 ».
-- A product that depends on a library: fine (Apache-2.0 into FSL). A library may **never** depend on a product (FSL into Apache would contaminate the library's users). `orazaka-edge` stays a library for that reason.
+- A product that depends on a library: fine (Apache-2.0 into FSL). A library may **never** depend on a product (FSL into Apache would contaminate the library's users). `sovkora-edge` stays a library for that reason.
 - Reversible: a product can go back to Apache-2.0 at any time (a wider grant). The reverse never applies to what is already published.
 
 ## Questions for the lawyer (in #250)

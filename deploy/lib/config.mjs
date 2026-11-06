@@ -5,13 +5,13 @@ import { GuardError } from "./errors.mjs";
 
 /**
  * {
- *   "app": "akinaza-dev",                        // the App Platform app's name (spec.name)
- *   "url": "https://dev.akinaza.com",            // the live site the checks read
+ *   "app": "folioviv-dev",                        // the App Platform app's name (spec.name)
+ *   "url": "https://dev.folioviv.com",            // the live site the checks read
  *   "health": "/api/healthz",                    // path (or absolute URL) answering 2xx when the app is up
  *   "indexing": "off",                           // "on" for an indexed site, "off" for a noindex one — REQUIRED
  *   "indexingVariable": true,                    // false when the app has no APP_SEARCH_INDEXING switch (krizaka.com)
  *   "spec": "deploy/digitalocean/app.yaml",      // the spec `--apply` sends (optional without --apply)
- *   "product": "akinaza",                        // `secret.sh @<product>` fills secrets locally (optional)
+ *   "product": "folioviv",                        // `secret.sh @<product>` fills secrets locally (optional)
  *   "seoFamily": { "script": "scripts/check-seo-family.mjs", "args": ["--organization"] },   // optional
  *   "waitMinutes": 25
  * }

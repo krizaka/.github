@@ -2,7 +2,7 @@
 
 <!-- summary: What a product must prove, with evidence, before it wears the Dev preview status. -->
 
-> North star (Oussama, 2026-10-16): **every product, Orazaka included, reaches Dev preview.**
+> North star (Oussama, 2026-10-16): **every product, Sovkora included, reaches Dev preview.**
 > Decision record: [ADR-002](../adr/ADR-002-dev-preview-status-is-data.md). Schema: [dev-preview.schema.json](dev-preview.schema.json).
 
 **Dev preview** means: the product runs for real on its dev site, only the QA accounts can use it, one real journey
@@ -34,7 +34,7 @@ outside and prints what it could not.
 | `site.signup-closed` | Sign-up is closed server-side (`AUTH_SIGNUP_ENABLED=false`): the sign-up endpoint answers 403 and a test guards it | probe (POST to the sign-up endpoint answers 403); link to the test | no |
 | `site.qa-signin` | The QA account signs in on the real backend and reaches its home | `~/.krizaka-worktrees/tools/qa-accounts.sh` accounts; evidence = the e2e/CI run that signs in, or a request id | no |
 | `journey.core` | The product's core journey works end to end on the real backend, with proof. **The evidence is a video of the journey** (standing rule « videos of real use cases »): recorded on the real dev backend as a demo persona (never an admin), uploaded to Bunny (`site/products/<product>/tour/…`, `scripts/cdn-assets.mjs`), shown in the product's docs and site, with the run's request ids in the PR that adds it | URL of the video (or of the docs page that plays it) + link to the PR listing the request ids and to the test that replays the journey | no |
-| `journey.ai-via-orazaka` | Its AI goes through Orazaka with a real run (trace of the run, no mock, no direct vendor call); the journey video shows it | link to the Orazaka run trace (run id) and to the video; Orazaka itself: a real engine run (generation, analysis) | yes: the product has no AI feature (stated in its AGENTS) |
+| `journey.ai-via-sovkora` | Its AI goes through Sovkora with a real run (trace of the run, no mock, no direct vendor call); the journey video shows it | link to the Sovkora run trace (run id) and to the video; Sovkora itself: a real engine run (generation, analysis) | yes: the product has no AI feature (stated in its AGENTS) |
 | `ui.krizaka-ui` | Krizaka UI only: the NAV-SYS bar (`@krizaka/ui/nav-bar`, product standard of the addendum 2026-10-15), **one** footer (« A Krizaka product »), the brand marks of `@krizaka/ui`, no hand-made bar, no hard-coded colour | `npm run lint` (ratchets) + probe (one `<footer>`) | no |
 | `ui.themes-devices` | The key screens are reviewed in dark **and** light, phone **and** desktop: a Playwright crawl in CI (no cut content, no horizontal scroll, no empty tile, no console error) and reviewed screenshots | link to the CI crawl job and to the capture set on Bunny (`pr-assets/<repo>/dev-preview/`, overwritten each time) | no |
 | `ux.ia-review` | **UX/IA review**: the user's jobs map to a navigation of **at most about 5 top-level items**, no mixed concepts in one menu (docs next to features next to platforms), no orphan entries (a platform or a demo alone at the top), a coherent journey for the product's real users, Krizaka UI patterns, reviewed screenshots of the key screens on phone and desktop | a `docs/UX_DECISIONS.md` entry (decision · problem · principle · refused · cost · signal) + the nav file + a test of its shape + the screenshots | no |
@@ -60,7 +60,7 @@ outside and prints what it could not.
 | `admin.ux-review` | `ux.ia-review` for the console: the operator's jobs → at most about 5 sections, no mixed concepts | as `ux.ia-review` | no |
 | `admin.ci` | The console's code is covered by CI with tests (own repository today, or the product repository once merged by host routing) | CI link | no |
 
-Merging the consoles into the product apps by host routing (orazaka-web-admin#31 before its retirement) is the way to deliver
+Merging the consoles into the product apps by host routing (sovkora-web-admin#31 before its retirement) is the way to deliver
 `admin.*` for every product without a new App Platform app each; the criteria do not change, only where the code lives.
 
 ## The checklist file
@@ -72,11 +72,11 @@ product that is not yet one repository are reported in the same file):
 {
   "$schema": "https://raw.githubusercontent.com/krizaka/.github/main/docs/standards/dev-preview.schema.json",
   "version": 1,
-  "product": "yomizaka",
+  "product": "verikora",
   "index": "off",
   "criteria": {
-    "site.healthy": { "evidence": "https://dev.yomizaka.com/api/healthz", "checked": "2026-10-25" },
-    "journey.ai-via-orazaka": { "evidence": null, "gap": "The screening step still calls a vendor directly" },
+    "site.healthy": { "evidence": "https://dev.verikora.com/api/healthz", "checked": "2026-10-25" },
+    "journey.ai-via-sovkora": { "evidence": null, "gap": "The screening step still calls a vendor directly" },
     "mobile.build": { "na": "No mobile app is planned for the dev preview; AGENTS.md says so." }
   }
 }

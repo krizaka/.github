@@ -35,7 +35,7 @@ A *confidentiality incident* is unauthorised access to, use of or communication 
 
 | Factor | Question | Examples in our data |
 | :--- | :--- | :--- |
-| Sensitivity | How sensitive is the information? | Yomizaka: leases, pay stubs, applicant files (high). Akinaza: clients, appointments, invoices (medium). |
+| Sensitivity | How sensitive is the information? | Verikora: leases, pay stubs, applicant files (high). Folioviv: clients, appointments, invoices (medium). |
 | Consequences | What harm could its use cause? | Identity theft, discrimination in housing, fraud, humiliation. |
 | Likelihood | How likely is misuse? | Who obtained it, intent, whether it was encrypted, whether it was recovered. |
 
@@ -49,7 +49,7 @@ The register is **data, not a document**: an append-only store, one row per inci
 
 ## Product consoles
 
-Each product's admin console can open an incident and writes to the shared register: Yomizaka first (krizaka/verikora#418), then Akinaza (krizaka/folioviv#392). Until then an incident is recorded by a row validated with the script.
+Each product's admin console can open an incident and writes to the shared register: Verikora first (krizaka/verikora#418), then Folioviv (krizaka/folioviv#392). Until then an incident is recorded by a row validated with the script.
 
 ## Drill
 

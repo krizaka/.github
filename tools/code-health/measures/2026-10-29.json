@@ -107,7 +107,7 @@
       }
     },
     {
-      "repo": "orazaka-conversation-service",
+      "repo": "sovkora-conversation-service",
       "sha": "ba87ccc",
       "ts": null,
       "java": {
@@ -134,27 +134,27 @@
         },
         "examples": {
           "nullChecksOnInjected": [
-            "src/main/java/com/krizaka/orazaka/conversationservice/application/service/ContextService.java:85"
+            "src/main/java/com/krizaka/sovkora/conversationservice/application/service/ContextService.java:85"
           ],
           "methodsWith3PlusNullChecks": [
-            "src/main/java/com/krizaka/orazaka/conversationservice/application/service/ContextService.java:93",
-            "src/main/java/com/krizaka/orazaka/conversationservice/application/service/VoiceTurnService.java:149",
-            "src/main/java/com/krizaka/orazaka/conversationservice/application/service/VoiceTurnService.java:204",
-            "src/main/java/com/krizaka/orazaka/conversationservice/application/service/VoiceTurnService.java:327",
-            "src/main/java/com/krizaka/orazaka/conversationservice/infrastructure/adapter/rest/ChatController.java:102"
+            "src/main/java/com/krizaka/sovkora/conversationservice/application/service/ContextService.java:93",
+            "src/main/java/com/krizaka/sovkora/conversationservice/application/service/VoiceTurnService.java:149",
+            "src/main/java/com/krizaka/sovkora/conversationservice/application/service/VoiceTurnService.java:204",
+            "src/main/java/com/krizaka/sovkora/conversationservice/application/service/VoiceTurnService.java:327",
+            "src/main/java/com/krizaka/sovkora/conversationservice/infrastructure/adapter/rest/ChatController.java:102"
           ],
           "stringSwitchExpressions": [
-            "src/main/java/com/krizaka/orazaka/conversationservice/application/service/GateService.java:67"
+            "src/main/java/com/krizaka/sovkora/conversationservice/application/service/GateService.java:67"
           ],
           "requestBodiesWithoutValid": [
-            "src/main/java/com/krizaka/orazaka/conversationservice/infrastructure/adapter/rest/AgentTurnsController.java:46",
-            "src/main/java/com/krizaka/orazaka/conversationservice/infrastructure/adapter/rest/ChatController.java:108",
-            "src/main/java/com/krizaka/orazaka/conversationservice/infrastructure/adapter/rest/ChecksController.java:72",
-            "src/main/java/com/krizaka/orazaka/conversationservice/infrastructure/adapter/rest/CodeController.java:64",
-            "src/main/java/com/krizaka/orazaka/conversationservice/infrastructure/adapter/rest/EmbeddingController.java:45"
+            "src/main/java/com/krizaka/sovkora/conversationservice/infrastructure/adapter/rest/AgentTurnsController.java:46",
+            "src/main/java/com/krizaka/sovkora/conversationservice/infrastructure/adapter/rest/ChatController.java:108",
+            "src/main/java/com/krizaka/sovkora/conversationservice/infrastructure/adapter/rest/ChecksController.java:72",
+            "src/main/java/com/krizaka/sovkora/conversationservice/infrastructure/adapter/rest/CodeController.java:64",
+            "src/main/java/com/krizaka/sovkora/conversationservice/infrastructure/adapter/rest/EmbeddingController.java:45"
           ],
           "controllersTouchingPersistence": [
-            "src/main/java/com/krizaka/orazaka/conversationservice/infrastructure/adapter/rest/PipelineController.java:29"
+            "src/main/java/com/krizaka/sovkora/conversationservice/infrastructure/adapter/rest/PipelineController.java:29"
           ]
         },
         "utilsNames": [],
@@ -195,19 +195,19 @@
         },
         "top": {
           "CognitiveComplexity": [
-            "src/main/java/com/krizaka/orazaka/conversationservice/infrastructure/adapter/amqp/JobEventListener.java:117 (21)",
-            "src/main/java/com/krizaka/orazaka/conversationservice/domain/model/voice/SentenceBuffer.java:115 (18)",
-            "src/main/java/com/krizaka/orazaka/conversationservice/infrastructure/adapter/amqp/JobEventListener.java:51 (15)"
+            "src/main/java/com/krizaka/sovkora/conversationservice/infrastructure/adapter/amqp/JobEventListener.java:117 (21)",
+            "src/main/java/com/krizaka/sovkora/conversationservice/domain/model/voice/SentenceBuffer.java:115 (18)",
+            "src/main/java/com/krizaka/sovkora/conversationservice/infrastructure/adapter/amqp/JobEventListener.java:51 (15)"
           ],
           "CyclomaticComplexity": [
-            "src/main/java/com/krizaka/orazaka/conversationservice/domain/model/voice/SentenceBuffer.java:115 (17)",
-            "src/main/java/com/krizaka/orazaka/conversationservice/infrastructure/adapter/amqp/JobEventListener.java:117 (17)",
-            "src/main/java/com/krizaka/orazaka/conversationservice/infrastructure/adapter/rest/IntentController.java:79 (16)"
+            "src/main/java/com/krizaka/sovkora/conversationservice/domain/model/voice/SentenceBuffer.java:115 (17)",
+            "src/main/java/com/krizaka/sovkora/conversationservice/infrastructure/adapter/amqp/JobEventListener.java:117 (17)",
+            "src/main/java/com/krizaka/sovkora/conversationservice/infrastructure/adapter/rest/IntentController.java:79 (16)"
           ],
           "NPathComplexity": [
-            "src/main/java/com/krizaka/orazaka/conversationservice/infrastructure/adapter/amqp/JobEventListener.java:117 (750)",
-            "src/main/java/com/krizaka/orazaka/conversationservice/infrastructure/adapter/rest/OperatorAuditFilter.java:99 (219)",
-            "src/main/java/com/krizaka/orazaka/conversationservice/domain/model/voice/SentenceBuffer.java:115 (74)"
+            "src/main/java/com/krizaka/sovkora/conversationservice/infrastructure/adapter/amqp/JobEventListener.java:117 (750)",
+            "src/main/java/com/krizaka/sovkora/conversationservice/infrastructure/adapter/rest/OperatorAuditFilter.java:99 (219)",
+            "src/main/java/com/krizaka/sovkora/conversationservice/domain/model/voice/SentenceBuffer.java:115 (74)"
           ]
         }
       }
@@ -337,7 +337,7 @@
       }
     },
     {
-      "repo": "orazaka-ai-engine",
+      "repo": "sovkora-engine",
       "sha": "fd3db42",
       "ts": null,
       "java": {
@@ -365,39 +365,39 @@
         },
         "examples": {
           "methodsWith3PlusNullChecks": [
-            "orazaka-adapter-spring-ai/src/main/java/com/krizaka/orazaka/adapter/springai/CoreInfrastructureAutoConfiguration.java:114",
-            "orazaka-adapter-spring-ai/src/main/java/com/krizaka/orazaka/adapter/springai/CoreServicesAutoConfiguration.java:106",
-            "orazaka-adapter-spring-ai/src/main/java/com/krizaka/orazaka/adapter/springai/chat/SpringAiChatInvocation.java:66",
-            "orazaka-adapter-spring-ai/src/main/java/com/krizaka/orazaka/adapter/springai/chat/SpringAiChatInvocation.java:78",
-            "orazaka-adapter-spring-ai/src/main/java/com/krizaka/orazaka/adapter/springai/client/EmbeddingClientImpl.java:68"
+            "sovkora-adapter-spring-ai/src/main/java/com/krizaka/sovkora/adapter/springai/CoreInfrastructureAutoConfiguration.java:114",
+            "sovkora-adapter-spring-ai/src/main/java/com/krizaka/sovkora/adapter/springai/CoreServicesAutoConfiguration.java:106",
+            "sovkora-adapter-spring-ai/src/main/java/com/krizaka/sovkora/adapter/springai/chat/SpringAiChatInvocation.java:66",
+            "sovkora-adapter-spring-ai/src/main/java/com/krizaka/sovkora/adapter/springai/chat/SpringAiChatInvocation.java:78",
+            "sovkora-adapter-spring-ai/src/main/java/com/krizaka/sovkora/adapter/springai/client/EmbeddingClientImpl.java:68"
           ],
           "stringSwitchExpressions": [
-            "orazaka-adapter-spring-ai/src/main/java/com/krizaka/orazaka/adapter/springai/memory/PersistedChatMemoryStore.java:73",
-            "orazaka-adapter-spring-ai/src/main/java/com/krizaka/orazaka/adapter/springai/prompt/ChatOptionsResolver.java:71",
-            "orazaka-adapter-spring-ai/src/main/java/com/krizaka/orazaka/adapter/springai/prompt/MessageCompiler.java:72",
-            "orazaka-core/src/main/java/com/krizaka/orazaka/core/infrastructure/checks/HttpCheckConnector.java:189",
-            "orazaka-interceptors/src/main/java/com/krizaka/orazaka/interceptor/translation/LanguageAlignmentInterceptor.java:83"
+            "sovkora-adapter-spring-ai/src/main/java/com/krizaka/sovkora/adapter/springai/memory/PersistedChatMemoryStore.java:73",
+            "sovkora-adapter-spring-ai/src/main/java/com/krizaka/sovkora/adapter/springai/prompt/ChatOptionsResolver.java:71",
+            "sovkora-adapter-spring-ai/src/main/java/com/krizaka/sovkora/adapter/springai/prompt/MessageCompiler.java:72",
+            "sovkora-core/src/main/java/com/krizaka/sovkora/core/infrastructure/checks/HttpCheckConnector.java:189",
+            "sovkora-interceptors/src/main/java/com/krizaka/sovkora/interceptor/translation/LanguageAlignmentInterceptor.java:83"
           ],
           "discriminatorLadders": [
-            "orazaka-adapter-spring-ai/src/main/java/com/krizaka/orazaka/adapter/springai/prompt/MessageCompiler.java:113"
+            "sovkora-adapter-spring-ai/src/main/java/com/krizaka/sovkora/adapter/springai/prompt/MessageCompiler.java:113"
           ],
           "stringSwitchStatements": [
-            "orazaka-assets/src/main/java/com/krizaka/orazaka/assets/infrastructure/config/MediaStorageProperties.java:29",
-            "orazaka-assets/src/main/java/com/krizaka/orazaka/assets/infrastructure/tool/AssetEncryptionTool.java:55"
+            "sovkora-assets/src/main/java/com/krizaka/sovkora/assets/infrastructure/config/MediaStorageProperties.java:29",
+            "sovkora-assets/src/main/java/com/krizaka/sovkora/assets/infrastructure/tool/AssetEncryptionTool.java:55"
           ],
           "utilsHelperClasses": [
-            "orazaka-core/src/main/java/com/krizaka/orazaka/core/application/pipeline/PipelineUtils.java:4",
-            "orazaka-core/src/main/java/com/krizaka/orazaka/core/application/routing/CosineSimilarityUtil.java:7",
-            "orazaka-core/src/main/java/com/krizaka/orazaka/core/infrastructure/adapter/processor/LocalProcessorUtil.java:9",
-            "orazaka-core/src/main/java/com/krizaka/orazaka/core/infrastructure/support/SecurityContextUtil.java:16"
+            "sovkora-core/src/main/java/com/krizaka/sovkora/core/application/pipeline/PipelineUtils.java:4",
+            "sovkora-core/src/main/java/com/krizaka/sovkora/core/application/routing/CosineSimilarityUtil.java:7",
+            "sovkora-core/src/main/java/com/krizaka/sovkora/core/infrastructure/adapter/processor/LocalProcessorUtil.java:9",
+            "sovkora-core/src/main/java/com/krizaka/sovkora/core/infrastructure/support/SecurityContextUtil.java:16"
           ],
           "nonFinalServiceFields": [
-            "orazaka-persistence-app/src/main/java/com/krizaka/orazaka/persistence/application/service/McpTokenSealer.java:33"
+            "sovkora-persistence-app/src/main/java/com/krizaka/sovkora/persistence/application/service/McpTokenSealer.java:33"
           ],
           "nullChecksOnInjected": [
-            "orazaka-tools/src/main/java/com/krizaka/orazaka/tools/infrastructure/adapter/mcp/DefaultMcpOrchestrator.java:57",
-            "orazaka-tools/src/main/java/com/krizaka/orazaka/tools/infrastructure/adapter/mcp/DefaultMcpOrchestrator.java:71",
-            "orazaka-tools/src/main/java/com/krizaka/orazaka/tools/infrastructure/adapter/mcp/DefaultToolCatalogue.java:80"
+            "sovkora-tools/src/main/java/com/krizaka/sovkora/tools/infrastructure/adapter/mcp/DefaultMcpOrchestrator.java:57",
+            "sovkora-tools/src/main/java/com/krizaka/sovkora/tools/infrastructure/adapter/mcp/DefaultMcpOrchestrator.java:71",
+            "sovkora-tools/src/main/java/com/krizaka/sovkora/tools/infrastructure/adapter/mcp/DefaultToolCatalogue.java:80"
           ]
         },
         "utilsNames": [
@@ -443,25 +443,25 @@
         },
         "top": {
           "CyclomaticComplexity": [
-            "orazaka-tools/src/main/java/com/krizaka/orazaka/tools/domain/model/research/PublicAddresses.java:68 (25)",
-            "orazaka-adapter-spring-ai/src/main/java/com/krizaka/orazaka/adapter/springai/client/EmbeddingClientImpl.java:69 (18)",
-            "orazaka-tools/src/main/java/com/krizaka/orazaka/tools/application/service/RulesetPromotionService.java:83 (18)"
+            "sovkora-tools/src/main/java/com/krizaka/sovkora/tools/domain/model/research/PublicAddresses.java:68 (25)",
+            "sovkora-adapter-spring-ai/src/main/java/com/krizaka/sovkora/adapter/springai/client/EmbeddingClientImpl.java:69 (18)",
+            "sovkora-tools/src/main/java/com/krizaka/sovkora/tools/application/service/RulesetPromotionService.java:83 (18)"
           ],
           "NPathComplexity": [
-            "orazaka-tools/src/main/java/com/krizaka/orazaka/tools/domain/model/research/PublicAddresses.java:68 (2480)",
-            "orazaka-adapter-spring-ai/src/main/java/com/krizaka/orazaka/adapter/springai/CoreInfrastructureAutoConfiguration.java:114 (2048)",
-            "orazaka-tools/src/main/java/com/krizaka/orazaka/tools/application/service/LawImportService.java:160 (320)"
+            "sovkora-tools/src/main/java/com/krizaka/sovkora/tools/domain/model/research/PublicAddresses.java:68 (2480)",
+            "sovkora-adapter-spring-ai/src/main/java/com/krizaka/sovkora/adapter/springai/CoreInfrastructureAutoConfiguration.java:114 (2048)",
+            "sovkora-tools/src/main/java/com/krizaka/sovkora/tools/application/service/LawImportService.java:160 (320)"
           ],
           "CognitiveComplexity": [
-            "orazaka-tools/src/main/java/com/krizaka/orazaka/tools/infrastructure/adapter/http/PinnedHttpClient.java:81 (29)",
-            "orazaka-tools/src/main/java/com/krizaka/orazaka/tools/application/service/LawImportService.java:160 (24)",
-            "orazaka-tools/src/main/java/com/krizaka/orazaka/tools/domain/model/law/WorkerRegex.java:137 (20)"
+            "sovkora-tools/src/main/java/com/krizaka/sovkora/tools/infrastructure/adapter/http/PinnedHttpClient.java:81 (29)",
+            "sovkora-tools/src/main/java/com/krizaka/sovkora/tools/application/service/LawImportService.java:160 (24)",
+            "sovkora-tools/src/main/java/com/krizaka/sovkora/tools/domain/model/law/WorkerRegex.java:137 (20)"
           ]
         }
       }
     },
     {
-      "repo": "orazaka-web-client",
+      "repo": "sovkora-web",
       "sha": "6ae7baf",
       "ts": {
         "files": 472,
@@ -549,7 +549,7 @@
       "java": null
     },
     {
-      "repo": "yomizaka",
+      "repo": "verikora",
       "sha": "3722186",
       "ts": {
         "files": 673,
@@ -586,7 +586,7 @@
             "apps/web/app/active-store.ts:57",
             "apps/web/app/active-store.ts:59",
             "apps/web/app/own-s3.ts:15",
-            "apps/web/app/api/admin/orazaka/route.ts:19"
+            "apps/web/app/api/admin/sovkora/route.ts:19"
           ]
         },
         "top": {
@@ -629,7 +629,7 @@
       "java": null
     },
     {
-      "repo": "akinaza",
+      "repo": "folioviv",
       "sha": "8cd61e1",
       "ts": {
         "files": 662,

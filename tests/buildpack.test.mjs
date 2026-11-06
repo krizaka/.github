@@ -25,16 +25,16 @@ function checkout(files) {
 }
 
 test("workspace: a repository listed in orazaka.workspace.json is verified inside the workspace, whatever it holds", () => {
-  const plan = fixture("workspace", "krizaka/orazaka-edge");
+  const plan = fixture("workspace", "krizaka/sovkora-edge-service");
   assert.equal(plan.stack, "workspace");
-  assert.equal(plan.component, "orazaka-edge");
+  assert.equal(plan.component, "sovkora-edge-service");
   assert.equal(plan.rewrite, false, "component.yml: OpenRewrite is opt-in");
   assert.equal(plan.container, false, "the workspace flow builds no image");
   assert.equal(plan.timeout, 60);
   assert.equal(plan.ignore, DEFAULT_IGNORE.workspace);
-  // A Node member is a workspace member too (component.yml verifies orazaka-ui-kit the same way).
-  assert.throws(() => fixture("node", "krizaka/orazaka-ui-kit"), /afterBuild" does not apply/, "the node fixture declares an afterBuild");
-  assert.equal(fixture("blog", "krizaka/orazaka-ui-kit").stack, "workspace");
+  // A Node member is a workspace member too (component.yml verifies sovkora-ui-kit the same way).
+  assert.throws(() => fixture("node", "krizaka/sovkora-ui-kit"), /afterBuild" does not apply/, "the node fixture declares an afterBuild");
+  assert.equal(fixture("blog", "krizaka/sovkora-ui-kit").stack, "workspace");
 });
 
 test("maven: pom.xml, Java 21; Spotless and OpenRewrite only when the pom or its parent declares them", () => {
@@ -44,7 +44,7 @@ test("maven: pom.xml, Java 21; Spotless and OpenRewrite only when the pom or its
   assert.equal(plan.spotless, false);
   assert.equal(plan.rewrite, false);
   assert.equal(plan.timeout, 45);
-  // The same component, outside the workspace: a plain Maven project whose parent (orazaka-build) carries the plugins.
+  // The same component, outside the workspace: a plain Maven project whose parent (sovkora-build) carries the plugins.
   const inherited = fixture("workspace", "krizaka/not-a-member");
   assert.equal(inherited.stack, "maven");
   assert.equal(inherited.spotless, true);
@@ -145,7 +145,7 @@ test("iac: only an active top-level `command = plan` makes a run block safe", ()
 
 test("the detection order: workspace before maven before node before python before iac", () => {
   const all = { "pom.xml": "<project/>", "package.json": "{}", "pyproject.toml": "", "main.tf": "" };
-  assert.equal(detect({ root: checkout(all), repository: "krizaka/orazaka-edge", manifest }).stack, "workspace");
+  assert.equal(detect({ root: checkout(all), repository: "krizaka/sovkora-edge-service", manifest }).stack, "workspace");
   assert.equal(detect({ root: checkout(all), manifest }).stack, "maven");
   const { "pom.xml": _p, ...noPom } = all;
   assert.equal(detect({ root: checkout(noPom), manifest }).stack, "node");

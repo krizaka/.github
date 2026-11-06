@@ -64,10 +64,10 @@ test("the generator keeps a private repository of the standard, and reports drif
     repositories: [{ name: "folioviv", archived: false, visibility: "public", topics: ["nextjs"] }],
     files: { folioviv: ["package.json"] },
     standard: std,
-    apps: { apps: [{ app: "akinaza-dev", repo: "krizaka/folioviv" }] },
+    apps: { apps: [{ app: "folioviv-dev", repo: "krizaka/folioviv" }] },
   });
   assert.deepEqual(next.map((r) => [r.name, r.kind, r.deploy, r.archived, r.visibility]), [
-    ["folioviv", "app", ["akinaza-dev"], false, "public"],
+    ["folioviv", "app", ["folioviv-dev"], false, "public"],
     ["krizaka-internal", "none", [], null, "private"],
   ]);
   assert.deepEqual(drift(next, next), []);

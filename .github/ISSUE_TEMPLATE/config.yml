@@ -9,9 +9,9 @@ contact_links:
   - name: Questions & ideas — Krizaka UI
     url: https://github.com/krizaka/krizaka-ui/discussions
     about: "@krizaka/tokens, tailwind, ui, icons, i18n, intl, config."
-  - name: Questions & ideas — Orazaka
+  - name: Questions & ideas — Sovkora
     url: https://github.com/krizaka/sovkora/discussions
-    about: The Orazaka engine and its applications.
+    about: The Sovkora engine and its applications.
   - name: Deployments & partnerships
     url: https://www.krizaka.com/en/contact
     about: Write to the Krizaka team.

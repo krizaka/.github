@@ -9,8 +9,8 @@ Use lower-case, hyphen-separated names in the form **`<owner>-<role>`**. A produ
 exception: it is named after the product alone, with no role suffix.
 
 - **Owner:** `krizaka` for shared repositories, or a product's **commercial name**: `verikora`, `folioviv`, `sovkora`
-  (the engine) and `kridoc` (in design). No code name in a repository name (founder, 2026-11-06: `yomizaka`, `akinaza`,
-  `orazaka` and `kachizaka` were renamed that day). The other products left the org on 2026-10-29 (krizaka/.github#413).
+  (the engine) and `kridoc` (in design). No code name in a repository name (founder, 2026-11-06: `verikora`, `folioviv`,
+  `sovkora` and `kridoc` were renamed that day). The other products left the org on 2026-10-29 (krizaka/.github#413).
 - **Product roles:** no suffix for the main repository; `web` for the web app when the main repository is an umbrella (Sovkora); `engine` for an engine product's core library; `mobile`, `desktop` or `admin` for another app; `<name>-service`
   for a deployable backend service; `services` for the umbrella repository; `worker-<name>` for a worker; and `packs`,
   `cli`, `contracts` or `build`.

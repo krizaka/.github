@@ -7,7 +7,7 @@
 #       stack: node
 #       package-manager: pnpm
 #
-# Orazaka workspace (stack `workspace`): the caller checked krizaka/sovkora out at `workspace-path` and itself at
+# Sovkora workspace (stack `workspace`): the caller checked krizaka/sovkora out at `workspace-path` and itself at
 # `incoming-path` (component.yml's layout); the component is placed at its workspace path and every other repository is
 # cloned from its default branch, so `workspace.mjs ci` builds the upstreams from source.
 name: setup
@@ -95,7 +95,7 @@ runs:
         case "$STACK" in python) case "$PY_PM" in pip|uv) ;; *) echo "::error::python-manager must be pip or uv, got '$PY_PM'"; exit 1 ;; esac ;; *) ;; esac
         if [ "$STACK" = workspace ] && [ -z "$COMPONENT" ]; then echo "::error::the workspace stack needs a component"; exit 1; fi
 
-    # ── the Orazaka workspace (component.yml's flow) ─────────────────────────────────────────────────────────────────
+    # ── the Sovkora workspace (component.yml's flow) ─────────────────────────────────────────────────────────────────
     - name: Place ${{ inputs.component }} at its workspace path
       if: ${{ inputs.stack == 'workspace' }}
       shell: bash
@@ -138,7 +138,7 @@ runs:
       with:
         node-version: ${{ inputs.node-version }}
 
-    - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+    - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
       if: ${{ inputs.stack == 'maven' || inputs.stack == 'workspace' }}
       with:
         distribution: ${{ inputs.java-distribution }}
@@ -152,7 +152,7 @@ runs:
         server-username: GITHUB_ACTOR
         server-password: GITHUB_TOKEN
 
-    - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+    - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
       if: ${{ inputs.stack == 'workspace' || (inputs.stack == 'python' && inputs.python-manager == 'pip') }}
       with:
         python-version: ${{ inputs.python-version }}

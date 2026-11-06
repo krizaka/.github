@@ -1,8 +1,7 @@
 # The Krizaka family SEO guard, daily (krizaka-com AGENTS §2.4).
 # Runs scripts/check-seo-family.mjs of krizaka-com against every indexed site and opens (or comments on) one issue
 # per site when it fails. Since 2026-10-21 (epic #119) the products' public addresses are www.<product>.com (indexed)
-# and dev.<product>.com is checked as a development host: robots Disallow, noindex,
-# every page 308 to www (--redirects-to). The live DigitalOcean spec has twice drifted to APP_SEARCH_INDEXING=off (noindex +
+# and dev.<product>.com is checked as a development host (the dev app itself since 2026-11-06): robots Disallow, noindex. The live DigitalOcean spec has twice drifted to APP_SEARCH_INDEXING=off (noindex +
 # Disallow: /), which hid a site from Google: this is the alarm. Fix the live spec with doctl and the repo's .do/app.yaml.
 name: SEO family
 
@@ -28,12 +27,13 @@ jobs:
           - { host: www.krizaka.com, args: "" }
           - { host: ui.krizaka.com, args: "" }
           - { host: java.krizaka.com, args: "" }
-          - { host: www.orazaka.com, args: "" }
-          - { host: www.yomizaka.com, args: "" }
-          - { host: www.akinaza.com, args: "" }
-          # The development hosts: not indexed, pages 308 to www, the API stays. (dev.orazaka.com was removed on 2026-11-05, krizaka-internal#2600.)
-          - { host: dev.yomizaka.com, args: "--index off --redirects-to https://www.yomizaka.com" }
-          - { host: dev.akinaza.com, args: "--index off --redirects-to https://www.akinaza.com" }
+          - { host: www.sovkora.com, args: "" }
+          - { host: www.verikora.com, args: "" }
+          - { host: www.folioviv.com, args: "" }
+          # The development hosts (dev.<product>.com since 2026-11-06, krizaka-internal#2659): the dev app itself, never indexed.
+          - { host: dev.verikora.com, args: "--index off" }
+          - { host: dev.folioviv.com, args: "--index off" }
+          - { host: dev.sovkora.com, args: "--index off" }
     steps:
       - name: Fetch the guard
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

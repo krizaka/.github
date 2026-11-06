@@ -3,12 +3,12 @@
 - **Status:** Proposed (architect, 2026-11-02). The founder accepts.
 - **Date:** 2026-11-02
 - **Issue:** [krizaka-internal#2246](https://github.com/krizaka/krizaka-internal/issues/2246) (epic, lot B09, between step 1 and steps 2–3)
-- **Builds on:** akinaza `docs/adr/ADR-010-shop-editor-on-puck.md` (the evaluation, the spike, the fork, amended 2026-10-31),
-  akinaza ADR-004 and ADR-007 (the shop page is a document in Akinaza's database), [ADR-015](ADR-015-ai-code-audit-measured-and-enforced.md)
+- **Builds on:** folioviv `docs/adr/ADR-010-shop-editor-on-puck.md` (the evaluation, the spike, the fork, amended 2026-10-31),
+  folioviv ADR-004 and ADR-007 (the shop page is a document in Folioviv's database), [ADR-015](ADR-015-ai-code-audit-measured-and-enforced.md)
   (ratchets), [ADR-017](ADR-017-e2e-journeys-test-shape.md) (journeys in products, components in the library), the audit inputs of
   krizaka-internal#1907 and #2003 (posted on #2246), and the founder's rules: no raw px or z-index (#2245), FR/EN (#1897), schema 2 (#1892),
   library first, trusted OSS behind a facade, the admin follows the feature.
-- **Repositories:** krizaka-composer, krizaka-ui, akinaza; krizaka-ts (`@krizaka/config` rules); the Orazaka lane for the assistant pack.
+- **Repositories:** krizaka-composer, krizaka-ui, folioviv; krizaka-ts (`@krizaka/config` rules); the Sovkora lane for the assistant pack.
 - **Keeps from ADR-010:** the choice of Puck, the fork `krizaka/krizaka-composer` published as `@krizaka/composer`, the closed field types, the
   five example shops, the Style panel, the assistant that proposes and the owner confirms, the budgets, the refusals. **Changes:** how the fork
   follows upstream (§ 1), where the document contract lives and who owns the shop migration (§ 2–3), the catalogue version (§ 3), the
@@ -17,7 +17,7 @@
 ## Context
 
 ADR-010 chose Puck and, on 2026-10-31, a Krizaka fork instead of a facade. C1 (#1891) shipped `@krizaka/composer` 0.1.0 with
-`@krizaka/composer/document` (the `ComposerDocument`, zod validation, migrations, `fromPuckData`). Before C2, C3, L2 and the Akinaza slices are
+`@krizaka/composer/document` (the `ComposerDocument`, zod validation, migrations, `fromPuckData`). Before C2, C3, L2 and the Folioviv slices are
 built, the founder asked for the long-term integration to be checked. Reading the code on 2026-11-02 shows four things that the plan would
 otherwise lock in:
 
@@ -94,9 +94,9 @@ store, its validation and its admin.**
   audit's « no two Réserver with one name », « no empty tile », « text on photo ≥ 4.5:1 » — rules in the blocks, refused at the server),
   and its labels as `@krizaka/ui` message keys. `@krizaka/ui/shop` exports `shopCatalogue` (the definitions) and `shopRenderers`
   (type → React component, Server Component safe).
-- ✓ **The registry is built by the product, in one line**: `defineBlocks({ catalogue: shopCatalogue, extra: akinazaBlocks })`, used by the
+- ✓ **The registry is built by the product, in one line**: `defineBlocks({ catalogue: shopCatalogue, extra: foliovivBlocks })`, used by the
   editor (client) and by `validateDocument` (server) — the same object, so editor and server cannot disagree.
-- ✓ **A product adds a block** with the same `defineSection`, in its own repository, with its renderer, when only it needs it (an Akinaza
+- ✓ **A product adds a block** with the same `defineSection`, in its own repository, with its renderer, when only it needs it (an Folioviv
   booking widget bound to its API). A block a second product needs moves into `@krizaka/ui` (library first). An editor-local component, a raw
   `px`, a `z-index` or a colour literal is refused by the lint of #2245.
 - ✓ **The catalogue is versioned**: the document carries `catalogue: { id: "krizaka:shop", version: n }` beside `schema`. A change of a
@@ -122,7 +122,7 @@ store, its validation and its admin.**
   another shop is « unknown »); bindings are resolved server-side at render from the allow-list; limits (bytes ≤ 256 kB, blocks, depth) are
   hard ceilings in code (`@fixed`), the per-plan counts are admin data (§ 6). Publish refuses a document whose `defaultLocale` text is empty
   in any visible block (Loi 96: the French is never missing).
-- ✓ **Storage is the product's**, never the editor's: Akinaza keeps `shop_page_versions` (`doc` jsonb, `schema` and `catalogue_version`
+- ✓ **Storage is the product's**, never the editor's: Folioviv keeps `shop_page_versions` (`doc` jsonb, `schema` and `catalogue_version`
   columns, draft/published, author, time), publish is a pointer move with the diff, rollback keeps the last 20 versions (a setting). A later
   product gets the same table shape from `@krizaka/composer-document`'s README, not a shared service.
 
@@ -141,7 +141,7 @@ store, its validation and its admin.**
 - ✓ **Bundle**: the editor is one lazy chunk on the studio route — eager JS ≤ 200 kB gz over the app shell, CSS ≤ 20 kB gz (ADR-010); the
   fork's size-limit (editor entry, `rsc` entry, `composer-document`) only goes down. **Public pages import neither the editor nor the
   document validator**: they render the stored document with `shopRenderers` in a Server Component. Two guards: dependency-cruiser, and a
-  build check in Akinaza that no chunk of `/s/*` contains a module of `@krizaka/composer` (the JS ratchet `perf-budgets.json` unchanged).
+  build check in Folioviv that no chunk of `/s/*` contains a module of `@krizaka/composer` (the JS ratchet `perf-budgets.json` unchanged).
 - ✓ **Tests (ADR-017)**: the fork tests its own code — document, migrations, codec round-trip, keyboard, i18n, axe on an editor fixture —
   and keeps Puck's suite green (it guards every release merge). `@krizaka/ui` tests the blocks, their rules and the catalogue migrations.
   Products write **journeys only**: edit → preview at 360 → publish → public page, FR and EN, both themes, axe on the published page; a
@@ -151,15 +151,15 @@ store, its validation and its admin.**
 
 | What | Who | Where |
 | :-- | :-- | :-- |
-| Turn the editor on, per plan and per shop (`editor.engine`: `classic` · `composer`, § 8) | the platform admin; the shop's owner sees it | Akinaza admin console, settings in DB |
+| Turn the editor on, per plan and per shop (`editor.engine`: `classic` · `composer`, § 8) | the platform admin; the shop's owner sees it | Folioviv admin console, settings in DB |
 | Which blocks and presets a plan unlocks, the per-plan counts (sections, blocks) | the platform admin | price/plan catalogue (ADR-009), read by `defineBlocks` filters and the server validator |
 | The example shops offered (the five of ADR-010 § 3 are code in `@krizaka/ui/shop`, tested; which are shown, in what order, per kind of shop) | the platform admin | settings in DB |
-| Audit of page changes: every save, publish, rollback, « Start from this shop » and applied assistant suggestion is an audit event (actor, shop, version from → to, the block keys changed) | read by the admin and the owner; the admin can roll a shop back | Akinaza audit log + the versions table |
-| The assistant: on/off (`assistant.editor.enabled`, off by default), the daily quota per shop, the Orazaka pack and model | the platform admin | settings in DB; credits from Orazaka's pricebook |
+| Audit of page changes: every save, publish, rollback, « Start from this shop » and applied assistant suggestion is an audit event (actor, shop, version from → to, the block keys changed) | read by the admin and the owner; the admin can roll a shop back | Folioviv audit log + the versions table |
+| The assistant: on/off (`assistant.editor.enabled`, off by default), the daily quota per shop, the Sovkora pack and model | the platform admin | settings in DB; credits from Sovkora's pricebook |
 
-### 7. The assistant through Orazaka (Sovkora in production), confirm before apply
+### 7. The assistant through Sovkora (Sovkora in production), confirm before apply
 
-- ✓ Behind `AssistantPort` in Akinaza (Orazaka adapter only), answers from the editor's docs (`docs/editor/`, EN/FR) with their links.
+- ✓ Behind `AssistantPort` in Folioviv (Sovkora adapter only), answers from the editor's docs (`docs/editor/`, EN/FR) with their links.
 - ✓ A suggestion is a list of typed operations of `@krizaka/composer-document` (`addBlock`, `moveBlock`, `setVariant`, `setProp`,
   `setStyle`, `startFromExample`), validated against the registry before it is shown, shown as a diff, applied to the **draft** on « Apply »,
   undoable, audited (§ 6). Never silent, never a publish; the save goes through the same server validation.
@@ -182,11 +182,11 @@ store, its validation and its admin.**
 
 ### 9. Other consumers
 
-- ✓ **Akinaza (Folioviv) only, now.** The fork and the contract are product-neutral so a second product costs a registry, a table and a
+- ✓ **Folioviv (Folioviv) only, now.** The fork and the contract are product-neutral so a second product costs a registry, a table and a
   journey — no editor work.
 - ✕ **krizaka.com and the Krizaka sites**: their pages are code under templates (`lib/page-templates.ts`), words in messages, facts generated
   at build, reviewed in a pull request. An editor would be a second source of truth for content that must be proven at build; refused.
-- ✕ **Yomizaka, Orazaka today**: no owner-composed page in their plans. **Trigger** to revisit: an issue that needs an end user to compose a
+- ✕ **Verikora, Sovkora today**: no owner-composed page in their plans. **Trigger** to revisit: an issue that needs an end user to compose a
   page or a template (e.g. a report or a public profile) — then that product adds its catalogue and its table, nothing else.
 
 ### 10. Options weighed
@@ -221,7 +221,7 @@ publish; editor lazy on one route, public pages free of editor code, both proven
 | 3 | C2 · editor words FR/EN, `t` at the seam, upstream labels PR | krizaka-internal#1897 | depends on D1 |
 | 3 | C3 · tokens, `@krizaka/ui` controls, keyboard, a11y, phone-first preview, #214 guard | krizaka-internal#1905 | + 360 default, theme file, `--kz-z-*` from #2245; parallel with C2 |
 | 4 | L2 · schema 2 in `@krizaka/ui/shop`: `defineSection` on composer field types, `shopCatalogue` + `shopRenderers`, block rules of the audit, catalogue version + JSON Schema snapshot, `migrateShopPage` 1 → 2 | krizaka-internal#1892 | + catalogue, rules, migration moved here |
-| 5 | A1 · Akinaza mount behind `editor.engine`, registry in one line, tenant asset check, audit events, admin setting, journeys, `/s/*` chunk check | krizaka-internal#1893 | + admin, audit, one-way lock |
+| 5 | A1 · Folioviv mount behind `editor.engine`, registry in one line, tenant asset check, audit events, admin setting, journeys, `/s/*` chunk check | krizaka-internal#1893 | + admin, audit, one-way lock |
 | 6 | A2 · example shops (admin chooses which), Start from this shop, Style panel, backfill, flag removed when no shop is `classic` | krizaka-internal#1894 | + backfill, removal condition |
 | 7 | A3 · docs + assistant (typed operations, audited, admin quota) | krizaka-internal#1895 | operations from the contract |
 | 8 | L4 · remove the hand-made composer | krizaka-internal#1896 | after A2 + backfill |

@@ -9,13 +9,13 @@
 #         packages: read   # the released krizaka-parent family comes from GitHub Packages
 #       uses: krizaka/.github/.github/workflows/java-ci.yml@<sha> # v1.0.0
 #       with:
-#         workspace-component: sovkora-knowledge-service   # an Orazaka service: verified inside the workspace
+#         workspace-component: sovkora-knowledge-service   # a Sovkora service: verified inside the workspace
 #         rewrite: true
 #
 # What it owns (same shape as node-ci.yml):
 #   changes   the changes.yml gate: a docs-only change skips the heavy job (fail-open).
-#   verify    JDK + the Maven repository cache (~/.m2), then either `mvnw verify` in the repository, or — for an Orazaka
-#             service — the workspace flow: the Orazaka workspace is checked out, every other repository is cloned at its
+#   verify    JDK + the Maven repository cache (~/.m2), then either `mvnw verify` in the repository, or — for a Sovkora
+#             service — the workspace flow: the Sovkora workspace is checked out, every other repository is cloned at its
 #             path, this one is placed at the commit under test, and `scripts/workspace.mjs ci <component>` builds its
 #             upstream repositories from source before verifying it (the cross-repository rules run exactly as locally).
 #   sonar     optional, after verify: the SonarCloud CI analysis (JaCoCo report + compiled classes uploaded by verify), quality gate awaited.
@@ -49,7 +49,7 @@ on:
         type: string
         default: ""
       workspace-component:
-        description: "An Orazaka repository name (orazaka.workspace.json): verify it inside the workspace instead of alone."
+        description: "A Sovkora repository name (orazaka.workspace.json): verify it inside the workspace instead of alone."
         type: string
         default: ""
       maven-packages-registry:
@@ -135,8 +135,8 @@ jobs:
     env:
       COMPONENT: ${{ inputs.workspace-component }}
     steps:
-      # ── the workspace flow (an Orazaka service) ────────────────────────────────────────────────────────────────
-      - name: Check out the Orazaka workspace
+      # ── the workspace flow (a Sovkora service) ────────────────────────────────────────────────────────────────
+      - name: Check out the Sovkora workspace
         if: ${{ inputs.workspace-component != '' }}
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -181,7 +181,7 @@ jobs:
         if: ${{ inputs.workspace-component == '' }}
         uses: krizaka/.github/actions/repo-layout@d701b569b15617609b890102bc0be9978759909c # main
 
-      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: ${{ inputs.java-distribution }}
           java-version: ${{ inputs.java-version }}
@@ -222,7 +222,7 @@ jobs:
         with:
           node-version: "22"
 
-      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         if: ${{ inputs.workspace-component != '' }}
         with:
           python-version: "3.12"
