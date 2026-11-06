@@ -24,7 +24,7 @@ Each product stands on its own; each proves one skill. Claims are cheap — ever
 <table>
 <tr><td valign="top" width="64"><picture><source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/orazaka/mark-dark.svg?v=5adc3bcf5f"><img src="https://krizaka-assets.b-cdn.net/brand/orazaka/mark-light.svg?v=5adc3bcf5f" alt="Sovkora" width="48"></picture></td><td valign="top">
 
-**Sovkora** · The engine &nbsp;<sup>In development</sup> · <sup>sign-up closed</sup><br>Every request crosses a deterministic pipeline to the best local model: your documents, your models, your network — nothing leaves.<br>[Repository](https://github.com/krizaka/orazaka) · [![Dev: up 1.0.0+d3af949](https://img.shields.io/badge/dev-up_%C2%B7_1.0.0%2Bd3af949-brightgreen)](https://www.orazaka.com) · ![Prod: not open yet](https://img.shields.io/badge/prod-not_open_yet-lightgrey)
+**Sovkora** · The engine &nbsp;<sup>In development</sup> · <sup>sign-up closed</sup><br>Every request crosses a deterministic pipeline to the best local model: your documents, your models, your network — nothing leaves.<br>[Repository](https://github.com/krizaka/orazaka) · [![Dev: up 1.0.0+cb4e3c8](https://img.shields.io/badge/dev-up_%C2%B7_1.0.0%2Bcb4e3c8-brightgreen)](https://www.orazaka.com) · ![Prod: not open yet](https://img.shields.io/badge/prod-not_open_yet-lightgrey)
 
 <details><summary>Components (17): clients, backend-for-frontend, services, workers · green is the latest, orange has a newer one</summary>
 
@@ -90,7 +90,7 @@ Each product stands on its own; each proves one skill. Claims are cheap — ever
 </td></tr>
 <tr><td valign="top" width="64"><picture><source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/yomizaka/mark-dark.svg?v=c4fbf96eee"><img src="https://krizaka-assets.b-cdn.net/brand/yomizaka/mark-light.svg?v=c4fbf96eee" alt="Verikora" width="48"></picture></td><td valign="top">
 
-**Verikora** · Reading documents &nbsp;<sup>In development</sup> · <sup>sign-up closed</sup><br>A lease checked rule by rule against the law in force on a date, a PDF examined for signs of editing: every finding quotes its passage, every check is a traced engine run.<br>[Repository](https://github.com/krizaka/yomizaka) · [![Dev: up 0.1.0+6707bc4](https://img.shields.io/badge/dev-up_%C2%B7_0.1.0%2B6707bc4-brightgreen)](https://www.yomizaka.com) · ![Prod: not open yet](https://img.shields.io/badge/prod-not_open_yet-lightgrey)
+**Verikora** · Reading documents &nbsp;<sup>In development</sup> · <sup>sign-up closed</sup><br>A lease checked rule by rule against the law in force on a date, a PDF examined for signs of editing: every finding quotes its passage, every check is a traced engine run.<br>[Repository](https://github.com/krizaka/yomizaka) · [![Dev: up 0.1.0+14eeab9](https://img.shields.io/badge/dev-up_%C2%B7_0.1.0%2B14eeab9-brightgreen)](https://www.yomizaka.com) · ![Prod: not open yet](https://img.shields.io/badge/prod-not_open_yet-lightgrey)
 
 <details><summary>Components (5): clients, backend-for-frontend, services, workers · green is the latest, orange has a newer one</summary>
 
