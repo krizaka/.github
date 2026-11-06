@@ -36,7 +36,7 @@ export function ownerOf(name) {
 /** A Node repository is an npm package, an app, or a site (an app of the organisation that is not a template). */
 function nodeKind({ name, files, topics, deploy }) {
   if (topics.includes("npm-package")) return "npm";
-  const app = /^krizaka-template-/.test(name) || deploy.length > 0 || topics.some((t) => t === "nextjs" || t === "expo")
+  const app = name.startsWith("krizaka-template-") || deploy.length > 0 || topics.some((t) => t === "nextjs" || t === "expo")
     || files.some((file) => file === "app.json" || /^next\.config\.(js|mjs|ts)$/.test(file));
   if (!app) return "npm";
   return ownerOf(name) === ORG && !name.startsWith("krizaka-template-") ? "site" : "app";
