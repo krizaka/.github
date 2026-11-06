@@ -14,9 +14,25 @@
 import { pathToFileURL } from "node:url";
 
 import { loadPolicy } from "./policy.mjs";
+import { ALERT_LABEL, findByKey, withMarker } from "./red-run-issue.mjs";
 
 export const TRACKING_TITLE = "Open-PR cap: lanes over the cap";
-const TRACKING_PREFIX = "Open-PR cap:";
+/** Where the tracking issue lives: the private repository of our issues, never a public one (krizaka-internal#2794). It is found
+    by its alert key (the `red-run-issue.mjs` contract: a marker in the body, the `alert` label) and its body is rewritten on
+    every report, so the issue is a living table, not one comment per run. */
+export const TRACKING_REPO = "krizaka-internal";
+export const TRACKING_KEY = "pr-cap";
+export const TRACKING_LABELS = [ALERT_LABEL, "lane:platform", "product:platform", "repo:.github", "type:chore"];
+
+/** The one write a report makes on the tracking issue: rewrite the one found (open while a lane is over, closed once none
+    is), open one when a lane is over and none exists, or nothing. */
+export function trackingWrite({ org, issue, over, body }) {
+  const base = `repos/${org}/${TRACKING_REPO}/issues`;
+  const text = withMarker(body, TRACKING_KEY);
+  if (issue) return { path: `${base}/${issue.number}`, method: "PATCH", body: { title: TRACKING_TITLE, body: text, state: over ? "open" : "closed" } };
+  if (over) return { path: base, method: "POST", body: { title: TRACKING_TITLE, body: text, labels: TRACKING_LABELS } };
+  return null;
+}
 
 const RELEASE_BRANCH = /^(changeset-release\/|release-please--)/;
 const PIN_BRANCH = /^deps\/[^/]+$/;
@@ -125,11 +141,11 @@ async function report(argv) {
   const rules = rulesFromPolicy();
   const body = trackingBody(byRepo, Date.now(), rules);
   console.log(body);
-  const issues = argv.includes("--issue") ? [] : await api(`repos/${org}/.github/issues?state=all&per_page=100&labels=ci`);
-  const number = argv.includes("--issue") ? Number(flag(argv, "--issue")) : issues.find((i) => i.title.startsWith(TRACKING_PREFIX) && !i.pull_request)?.number;
-  const over = overCap(byRepo, rules).length > 0;
-  if (number) await api(`repos/${org}/.github/issues/${number}`, { method: "PATCH", body: { title: TRACKING_TITLE, body, state: over ? "open" : "closed" } });
-  else if (over) await api(`repos/${org}/.github/issues`, { method: "POST", body: { title: TRACKING_TITLE, body, labels: ["ci"] } });
+  const issue = argv.includes("--issue")
+    ? { number: Number(flag(argv, "--issue")) }
+    : findByKey(await api(`repos/${org}/${TRACKING_REPO}/issues?labels=${ALERT_LABEL}&state=all&per_page=100`), TRACKING_KEY);
+  const write = trackingWrite({ org, issue, over: overCap(byRepo, rules).length > 0, body });
+  if (write) await api(write.path, { method: write.method, body: write.body });
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {

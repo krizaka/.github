@@ -30,7 +30,7 @@ release PRs. They land the backlog, so the cap never blocks them.
 
 ## Who reads it
 
-- CI: `scripts/pr-cap.mjs` (the `PR cap` check of every product repository, and the scheduled report that keeps the tracking issue).
+- CI: `scripts/pr-cap.mjs` (the `PR cap` check of every product repository, and the scheduled report that keeps the tracking issue — in krizaka/krizaka-internal, alert key `pr-cap`, never in a public repository).
 - krizaka-agents tools, through `tools/policy.py`: `kz.PR_CAP` (so `pr-open`, `pr-train.sh`, `train-queue.py`, `infra-retry.py`, `watchdog.py`), `crack-metrics.py`, `lane-dispatch.py`.
 - The cockpit: shows the policy and the live open-PR counts against it.
 
