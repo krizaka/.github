@@ -11,7 +11,6 @@ const SHARED_REPOSITORIES = new Set([
   "krizaka-blog",
   "krizaka-infra",
   "krizaka-lab",
-  "krizaka-billing",
   "krizaka-platform",
   "krizaka-desktop",
   "krizaka-composer",

@@ -4,7 +4,7 @@ import { test } from "node:test";
 
 // 2026-11-06: the founder deleted these three repositories. krizaka-users and krizaka-platform-kit are folders of krizaka-build
 // since ADR-021; krizaka-accounts comes back when a shared accounts site is needed. No live file names them as a repository.
-const GONE = ["krizaka-accounts", "krizaka-users", "krizaka-platform-kit"];
+const GONE = ["krizaka-accounts", "krizaka-users", "krizaka-platform-kit", "krizaka-notifications", "krizaka-billing"];
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const json = (path) => JSON.parse(read(path));
 
@@ -34,12 +34,13 @@ test("no live file links the deleted repositories", () => {
     "docs/standards/repositories.md",
     "docs/standards/ci-and-deploy.md",
     "scripts/repository-names.mjs",
+    "scripts/dev-preview-probe.mjs",
   ]) {
     const text = read(file);
     for (const gone of GONE) {
       assert.doesNotMatch(text, new RegExp(`github\\.com/krizaka/${gone}(?![-\\w])`), `${file} links ${gone}`);
-      if (file !== "scripts/repository-names.mjs") continue;
-      assert.ok(!text.includes(`"${gone}"`), `${file} allows ${gone}`);
+      if (!file.startsWith("scripts/")) continue;
+      assert.ok(!text.includes(`"${gone}"`), `${file} names ${gone}`);
     }
   }
   for (const file of ["docs/standards/repositories.md", "docs/standards/ci-and-deploy.md", ".github/workflows/maven.yml"]) {

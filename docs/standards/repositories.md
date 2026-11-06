@@ -38,7 +38,6 @@ shape fits, but whose role needs discussion.
 | `cla-signatures` | Signatures of the CLA, written by the CLA workflow | **Paused** (data only, no code: out of the matrix) |
 | `kachizaka` | Kridoc (code name kachizaka): product repository, a web app (www.kridoc.com) whose coming-soon page is its stable face while the product is in design; mobile and macOS apps follow | Complies |
 | `krizaka-agents` | How the agents work: rules, scripts, skills (private) | Complies |
-| `krizaka-billing` | Shared capability service | Complies |
 | `krizaka-blog` | Shared blog | Complies |
 | `krizaka-build` | Shared Java build | Complies |
 | `krizaka-com` | Shared company site | Complies |
@@ -47,7 +46,6 @@ shape fits, but whose role needs discussion.
 | `krizaka-infra` | Shared infrastructure as code | Complies |
 | `krizaka-internal` | Internal issues and notes (private) | **Paused** (issues only, no code: out of the matrix) |
 | `krizaka-lab` | The family lab: UI, motion, Java, AI and data experiments; publishes nothing (formerly krizaka-motion) | Complies |
-| `krizaka-notifications` | Shared capability service | **Fold into `krizaka-build`** (ADR-021), then archive |
 | `krizaka-skills` | Former agents' skills, moved into `krizaka-agents` | **Archive** |
 | `krizaka-tauri-kit` | Shared Tauri crate | **Rename → `krizaka-desktop`** |
 | `krizaka-ts` | Shared TypeScript building blocks | Complies |

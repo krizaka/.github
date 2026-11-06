@@ -40,7 +40,7 @@ test("deploy targets are deploy/apps.json's, each on its repository", () => {
 });
 
 test("kind: root files first, then topics, then the role", () => {
-  assert.equal(kindOf({ name: "krizaka-billing", files: ["pom.xml"] }), "maven");
+  assert.equal(kindOf({ name: "krizaka-composer", files: ["pom.xml"] }), "maven");
   assert.equal(kindOf({ name: "krizaka-infra", files: ["main.tf"] }), "iac");
   assert.equal(kindOf({ name: "krizaka-infra", files: [], role: "Shared infrastructure as code" }), "iac");
   assert.equal(kindOf({ name: "orazaka-worker-media", files: ["pyproject.toml"] }), "python");
@@ -52,7 +52,7 @@ test("kind: root files first, then topics, then the role", () => {
   assert.equal(kindOf({ name: "template-next-app", files: ["package.json"] }), "app");
   assert.equal(kindOf({ name: "krizaka-ts", files: ["package.json"] }), "npm");
   assert.equal(kindOf({ name: "yomizaka-mobile", files: [], role: "Mobile app" }), "app");
-  assert.equal(kindOf({ name: "krizaka-billing", files: [], role: "Shared capability service" }), "none");
+  assert.equal(kindOf({ name: "krizaka-composer", files: [], role: "Shared capability service" }), "none");
 });
 
 test("the generator keeps a private repository of the standard, and reports drift field by field", () => {

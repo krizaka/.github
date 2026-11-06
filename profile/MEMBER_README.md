@@ -36,10 +36,10 @@ released, then adopted.
 **Java — `com.krizaka` on Maven Central.** The BOM [`com.krizaka:krizaka-bom`](https://central.sonatype.com/artifact/com.krizaka/krizaka-bom)
 **0.2.0** aligns everything: the parent POM, `krizaka-web`, `krizaka-security`, `krizaka-messaging`,
 `krizaka-observability`, `krizaka-test-support` and their Spring Boot starters are at 0.2.0; `krizaka-users`,
-`krizaka-notifications` (modules of `krizaka-build`) and `krizaka-billing` are published at **0.1.0** until their 0.2.0 (declare them with
+`krizaka-notifications` and `krizaka-billing` (modules of `krizaka-build`) are published at **0.1.0** until their 0.2.0 (declare them with
 `<version>0.1.0</version>`). Sources: [`krizaka-build`](https://github.com/krizaka/krizaka-build) (with its
 [`krizaka-platform-kit`](https://github.com/krizaka/krizaka-build/tree/main/krizaka-platform-kit) and [`krizaka-users`](https://github.com/krizaka/krizaka-build/tree/main/krizaka-users) folders) ·
-[`krizaka-notifications`](https://github.com/krizaka/krizaka-build/blob/main/krizaka-platform-kit/docs/notifications.md) · [`krizaka-billing`](https://github.com/krizaka/krizaka-billing);
+[`krizaka-notifications`](https://github.com/krizaka/krizaka-build/blob/main/krizaka-platform-kit/docs/notifications.md) · [`krizaka-billing`](https://github.com/krizaka/krizaka-build/tree/main/krizaka-billing);
 the release pipeline is [`maven.yml`](https://github.com/krizaka/.github/blob/main/.github/workflows/maven.yml) in this
 repository (parent first, signed).
 

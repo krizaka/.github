@@ -70,7 +70,7 @@ Two PRs green on an old base can turn `main` red once both merge (yomizaka: lint
 
 <!-- gen:queue-state:start -->
 - **On the merge queue (6):** `akinaza`, `krizaka-com`, `krizaka-composer`, `krizaka-ts`, `krizaka-ui`, `yomizaka`.
-- **Not on the merge queue yet (26; the Strict column of the table above says which keep strict up-to-date branches):** `.github`, `krizaka-billing`, `krizaka-blog`, `krizaka-build`, `krizaka-infra`, `krizaka-lab`, `krizaka-notifications`, `krizaka-tauri-kit`, `orazaka`, `orazaka-ai-engine`, `orazaka-automation-service`, `orazaka-build`, `orazaka-cli`, `orazaka-contracts`, `orazaka-conversation-service`, `orazaka-edge`, `orazaka-job-service`, `orazaka-knowledge-service`, `orazaka-mobile-client`, `orazaka-packs`, `orazaka-studio`, `orazaka-ui-kit`, `orazaka-web-client`, `orazaka-worker-media`, `template-next-app`, `template-tauri-app`.
+- **Not on the merge queue yet (24; the Strict column of the table above says which keep strict up-to-date branches):** `.github`, `krizaka-blog`, `krizaka-build`, `krizaka-infra`, `krizaka-lab`, `krizaka-tauri-kit`, `orazaka`, `orazaka-ai-engine`, `orazaka-automation-service`, `orazaka-build`, `orazaka-cli`, `orazaka-contracts`, `orazaka-conversation-service`, `orazaka-edge`, `orazaka-job-service`, `orazaka-knowledge-service`, `orazaka-mobile-client`, `orazaka-packs`, `orazaka-studio`, `orazaka-ui-kit`, `orazaka-web-client`, `orazaka-worker-media`, `template-next-app`, `template-tauri-app`.
 <!-- gen:queue-state:end -->
 
 ## 2.2 « A fix needs a guard » recognises a lowered ratchet

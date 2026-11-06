@@ -17,7 +17,6 @@ test("repository names follow the owner-role vocabulary", () => {
     "krizaka-ui",
     "krizaka-ts",
     "krizaka-build",
-    "krizaka-billing",
     "krizaka-com",
     "krizaka-blog",
     "krizaka-infra",

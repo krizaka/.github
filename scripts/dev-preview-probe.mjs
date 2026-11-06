@@ -7,7 +7,7 @@ import { checkLive } from "./check-app-links.mjs";
 
 // The products in focus.
 export const PRODUCTS = {
-  orazaka: { host: "www.orazaka.com", admin: "admin.orazaka.com", health: ["/api/healthz", "/api/health"], signup: ["/api/auth/register"], mobile: true, repos: ["orazaka", "orazaka-web-client", "orazaka-ui-kit", "orazaka-mobile-client", "orazaka-packs", "orazaka-studio", "orazaka-edge", "orazaka-ai-engine", "orazaka-worker-media", "orazaka-job-service", "orazaka-conversation-service", "orazaka-knowledge-service", "orazaka-automation-service", "krizaka-users", "krizaka-billing", "krizaka-notifications"], ci: "orazaka" },
+  orazaka: { host: "www.orazaka.com", admin: "admin.orazaka.com", health: ["/api/healthz", "/api/health"], signup: ["/api/auth/register"], mobile: true, repos: ["orazaka", "orazaka-web-client", "orazaka-ui-kit", "orazaka-mobile-client", "orazaka-packs", "orazaka-studio", "orazaka-edge", "orazaka-ai-engine", "orazaka-worker-media", "orazaka-job-service", "orazaka-conversation-service", "orazaka-knowledge-service", "orazaka-automation-service", "krizaka-build"], ci: "orazaka" },
   yomizaka: { host: "dev.yomizaka.com", admin: "admin.yomizaka.com", health: ["/api/healthz"], signup: ["/api/auth/sign-up"], repos: ["yomizaka"], ci: "yomizaka" },
   akinaza: { host: "dev.akinaza.com", admin: "admin.akinaza.com", health: ["/api/healthz"], signup: ["/api/auth/sign-up"], repos: ["akinaza"], ci: "akinaza" },
 };

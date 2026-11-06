@@ -61,17 +61,6 @@
       "status": "Complies"
     },
     {
-      "name": "krizaka-billing",
-      "owner": "krizaka",
-      "role": "Shared capability service",
-      "team": "krizaka",
-      "kind": "maven",
-      "deploy": [],
-      "archived": true,
-      "visibility": "public",
-      "status": "Complies"
-    },
-    {
       "name": "krizaka-blog",
       "owner": "krizaka",
       "role": "Shared blog",
@@ -168,18 +157,6 @@
       "archived": false,
       "visibility": "public",
       "status": "Complies"
-    },
-    {
-      "name": "krizaka-notifications",
-      "owner": "krizaka",
-      "role": "Shared capability service",
-      "team": "krizaka",
-      "kind": "maven",
-      "deploy": [],
-      "archived": false,
-      "visibility": "public",
-      "status": "Fold into krizaka-build (ADR-021), then archive",
-      "foldInto": "krizaka-build"
     },
     {
       "name": "krizaka-skills",

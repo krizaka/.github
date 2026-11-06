@@ -186,7 +186,7 @@ jobs:
         uses: krizaka/.github/actions/maven-github-packages@d701b569b15617609b890102bc0be9978759909c # main
         with:
           token: ${{ github.token }}
-          repositories: krizaka-build krizaka-notifications krizaka-billing
+          repositories: krizaka-build
 
       - name: Build the upstream Krizaka repositories
         if: inputs.upstreams != ''
@@ -485,7 +485,7 @@ jobs:
       - uses: krizaka/.github/actions/maven-github-packages@d701b569b15617609b890102bc0be9978759909c # main
         with:
           token: ${{ github.token }}
-          repositories: krizaka-build krizaka-notifications krizaka-billing
+          repositories: krizaka-build
 
       - name: Version from the tag
         run: |
