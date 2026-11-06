@@ -27,10 +27,10 @@ platform keeps shipping — Krizaka UI, the Java and TypeScript building blocks 
 | Milestone | Target | What "done" means | Epic |
 | :--- | :--- | :--- | :--- |
 | **M0 · Société & comptes** | 2026-11-30 | Registration numbers, bank, verified domain, public address, npm / Renovate set up, site legal pages | [.github#24](https://github.com/krizaka/.github/issues/24) |
-| **Novembre · Maven 0.2.0** | 2026-11-20 | krizaka-build 0.3.0, then users / notifications / billing 0.2.0, published from CI | [krizaka-build#16](https://github.com/krizaka/krizaka-build/issues/16) |
+| **Novembre · Maven 0.2.0** | 2026-11-20 | krizaka-java 0.3.0, then users / notifications / billing 0.2.0, published from CI | [krizaka-java#16](https://github.com/krizaka/krizaka-java/issues/16) |
 | **Krizaka UI · W1–W5** | 2026-12-18 | Signature components, effects, `@krizaka/charts`, blocks, adopted by every product | [krizaka-ui#49](https://github.com/krizaka/krizaka-ui/issues/49) |
 | **M2 · Lancement public & marketing** | 2027-02-26 | Three blogs live, Product Hunt / Show HN, campaign running with analytics | [krizaka-com#55](https://github.com/krizaka/krizaka-com/issues/55) |
-| **M3 · Orazaka hors phase locale** | 2027-03-31 | GPU target decided (ADR), staging and production from code, secrets, images, observability, billing | [orazaka#30](https://github.com/krizaka/orazaka/issues/30) |
+| **M3 · Orazaka hors phase locale** | 2027-03-31 | GPU target decided (ADR), staging and production from code, secrets, images, observability, billing | [orazaka#30](https://github.com/krizaka/sovkora/issues/30) |
 
 Dates are targets, not promises. They assume the company's registration and bank account arrive in November, merchant
 underwriting takes four to six weeks after that.

@@ -10,7 +10,7 @@ import { pathToFileURL } from "node:url";
 const ORG = "krizaka";
 const ROOT = new URL("../", import.meta.url);
 export const KINDS = ["maven", "npm", "app", "site", "iac", "python", "rust", "none"];
-export const PRODUCTS = ["akinaza", "orazaka", "yomizaka"];
+export const PRODUCTS = ["folioviv", "sovkora", "verikora"];
 
 /** The inventory table of docs/standards/repositories.md: name → { role, status, renameTo, foldInto }. */
 export function parseStandard(markdown) {
@@ -36,10 +36,10 @@ export function ownerOf(name) {
 /** A Node repository is an npm package, an app, or a site (an app of the organisation that is not a template). */
 function nodeKind({ name, files, topics, deploy }) {
   if (topics.includes("npm-package")) return "npm";
-  const app = /^template-.+-app$/.test(name) || deploy.length > 0 || topics.some((t) => t === "nextjs" || t === "expo")
+  const app = /^krizaka-template-/.test(name) || deploy.length > 0 || topics.some((t) => t === "nextjs" || t === "expo")
     || files.some((file) => file === "app.json" || /^next\.config\.(js|mjs|ts)$/.test(file));
   if (!app) return "npm";
-  return ownerOf(name) === ORG && !name.startsWith("template-") ? "site" : "app";
+  return ownerOf(name) === ORG && !name.startsWith("krizaka-template-") ? "site" : "app";
 }
 
 /** What the repository builds, from its root files first, then its topics, then its role in the standard. */

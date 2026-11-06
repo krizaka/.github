@@ -37,7 +37,7 @@ export function byCodePoint(a, b) {
 export const sha256 = (text) => createHash("sha256").update(text ?? "").digest("hex");
 export const FIX_TYPES = ["copy", "append-section", "settings-hook", "agents-template", "manual"];
 const WORKFLOW_PATH = /^\.github\/workflows\/[^/]+\.ya?ml$/;
-const CALL = /uses:\s*krizaka\/(?:\.github|orazaka)\/\.github\/workflows\/([\w.-]+\.ya?ml)@/g;
+const CALL = /uses:\s*krizaka\/(?:\.github|sovkora|orazaka)\/\.github\/workflows\/([\w.-]+\.ya?ml)@/g;
 
 const readJson = (path) => JSON.parse(readFileSync(new URL(path, HERE), "utf8"));
 export const loadRules = () => readJson("docs/standards/rules.json").rules;

@@ -15,7 +15,7 @@ test("every row carries the six badges, duplicated lines included", () => {
   }
 });
 
-test("krizaka-platform-kit is gone (it lives in krizaka-build, ADR-021)", () => {
+test("krizaka-platform-kit is gone (it lives in krizaka-java, ADR-021)", () => {
   assert.doesNotMatch(renderQuality(config), /platform-kit/);
 });
 

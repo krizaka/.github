@@ -53,13 +53,13 @@ function checkPublished({ http, remote }) {
   const bin = join(dir, "bin");
   mkdirSync(bin);
   writeFileSync(join(dir, "pom.xml"), "<project/>\n");
-  writeFileSync(join(dir, "mvnw"), '#!/bin/sh\ncase "$*" in *groupId*) echo com.krizaka;; *) echo krizaka-build;; esac\n', { mode: 0o755 });
+  writeFileSync(join(dir, "mvnw"), '#!/bin/sh\ncase "$*" in *groupId*) echo com.krizaka;; *) echo krizaka-java;; esac\n', { mode: 0o755 });
   writeFileSync(join(bin, "curl"), `#!/bin/sh\nwhile [ $# -gt 0 ]; do [ "$1" = -o ] && out="$2"; shift; done\nprintf '%s' '${remote}' > "$out"\nprintf '%s' '${http}'\n`, { mode: 0o755 });
   writeFileSync(join(bin, "sha256sum"), '#!/bin/sh\nexec shasum -a 256 "$@"\n', { mode: 0o755 });
   const out = join(dir, "output");
   const run = spawnSync("bash", ["-c", publishedStep], {
     cwd: dir,
-    env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, GITHUB_OUTPUT: out, RUNNER_TEMP: dir, GITHUB_REF_NAME: "v0.4.3", GITHUB_TOKEN: "x", REPOSITORY: "krizaka/krizaka-build" },
+    env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, GITHUB_OUTPUT: out, RUNNER_TEMP: dir, GITHUB_REF_NAME: "v0.4.3", GITHUB_TOKEN: "x", REPOSITORY: "krizaka/krizaka-java" },
     encoding: "utf8",
   });
   return { status: run.status, stdout: run.stdout, outputs: existsSync(out) ? readFileSync(out, "utf8") : "" };

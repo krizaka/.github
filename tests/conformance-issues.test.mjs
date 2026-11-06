@@ -42,7 +42,7 @@ test("a green repository closes its open issue", () => {
 
 test("the issue lives in the private krizaka-internal with the required labels, never in the red repository", () => {
   assert.equal(INTERNAL, "krizaka-internal");
-  assert.equal(repoOfTitle(titleOf([{ id: "x" }], "orazaka-cli")), "orazaka-cli");
+  assert.equal(repoOfTitle(titleOf([{ id: "x" }], "sovkora-cli")), "sovkora-cli");
   for (const prefix of ["repo:", "product:", "lane:", "type:"]) assert.ok(labelsOf("a").some((l) => l.startsWith(prefix)));
 });
 

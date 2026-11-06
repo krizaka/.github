@@ -1,21 +1,22 @@
 #!/usr/bin/env node
 import { pathToFileURL } from "node:url";
 
-// The products in focus, by code name: Kachizaka is Kridoc, in design (krizaka-internal#2143).
-const PRODUCT_OWNERS = ["akinaza", "kachizaka", "orazaka", "yomizaka"];
+// The products, by their commercial name (founder, 2026-11-06: no more code names): Kridoc is in design (krizaka-internal#2143).
+const PRODUCT_OWNERS = ["folioviv", "kridoc", "sovkora", "verikora"];
 const SHARED_REPOSITORIES = new Set([
   "krizaka-ui",
   "krizaka-ts",
-  "krizaka-build",
+  "krizaka-java",
   "krizaka-com",
   "krizaka-blog",
   "krizaka-infra",
   "krizaka-lab",
-  "krizaka-billing",
-  "krizaka-platform",
   "krizaka-desktop",
   "krizaka-composer",
   "krizaka-agents",
+  "krizaka-internal",
+  "krizaka-restricted",
+  "krizaka-cla-signatures",
   // The coming-soon faces of the commercial domains (krizaka-internal#2372): shared by the three products until each opens.
   "krizaka-coming-soon",
 ]);
@@ -27,7 +28,7 @@ const PRODUCT_ROLE = new RegExp(`^(?:web|engine|mobile|desktop|admin|services|pa
 export function isValidRepositoryName(name) {
   if (typeof name !== "string" || !new RegExp(`^${SLUG}$`).test(name) || FORBIDDEN.test(name)) return false;
   if (PRODUCT_OWNERS.includes(name) || SHARED_REPOSITORIES.has(name)) return true;
-  if (new RegExp(`^template-${SLUG}-app$`).test(name)) return true;
+  if (new RegExp(`^krizaka-template-${SLUG}$`).test(name)) return true;
   return PRODUCT_OWNERS.some((owner) => name.startsWith(`${owner}-`) && PRODUCT_ROLE.test(name.slice(owner.length + 1)));
 }
 

@@ -17,7 +17,7 @@ test("green closes the open issue, and does nothing otherwise", () => {
 
 test("the issue follows the title standard and carries the run and the end of the log", () => {
   assert.match(titleOf("audit-guards"), /^\.github · fix\(guards\): /);
-  const body = bodyOf({ guard: "audit-guards", runUrl: "https://x/run/1", log: "a\n- krizaka-build: CI gate is not a required check of main\n" });
+  const body = bodyOf({ guard: "audit-guards", runUrl: "https://x/run/1", log: "a\n- krizaka-java: CI gate is not a required check of main\n" });
   assert.match(body, /https:\/\/x\/run\/1/);
   assert.match(body, /CI gate is not a required check/);
 });

@@ -27,7 +27,7 @@ matrix lists as out of scope. There are no exceptions.
   `results`: one line per cell with rule, repo, commit, check, status, why, evidence, runDate and link.
   It opens or refreshes one issue per red repository and closes it when the repository is green (`scripts/conformance-issues.mjs`).
 - **The rules really reach the repositories** (krizaka-internal#879): `versions-current {ecosystems, graceDays}` is red when a repository
-  still pins a family version (`@krizaka/*` on npm; `krizaka-parent` / `krizaka-bom` from the krizaka-build releases) older than one
+  still pins a family version (`@krizaka/*` on npm; `krizaka-parent` / `krizaka-bom` from the krizaka-java releases) older than one
   out for `graceDays`. `release-propagation` asks for the receiver **and** the landed bump; `maven-family-current` does it for Java.
 - **Scheduled guards are never red in silence**: a red scheduled run of `audit-guards` opens (or comments) one issue in
   krizaka-internal, and the next green run closes it (`scripts/red-run-issue.mjs`). Any alert passes `alert-key` to `actions/alert-issue`:

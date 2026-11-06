@@ -20,7 +20,7 @@ inputs:
     default: ${{ github.repository }}
   manifest:
     description: "orazaka.workspace.json: a URL or a file."
-    default: https://raw.githubusercontent.com/krizaka/orazaka/main/orazaka.workspace.json
+    default: https://raw.githubusercontent.com/krizaka/sovkora/main/orazaka.workspace.json
   timeout-minutes:
     description: "Timeout of the verify job; 0: the stack's default (.krizaka/ci.json `timeoutMinutes` wins)."
     default: "0"

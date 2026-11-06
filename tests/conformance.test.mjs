@@ -43,8 +43,8 @@ test("workflow-calls reads the called workflows, per stack", async () => {
   assert.equal((await runCheck(check, snap("m", "maven", { ".github/workflows/ci.yml": call("java-ci.yml") }))).ok, true);
 });
 
-test("an Orazaka component calls component.yml of krizaka/orazaka", async () => {
-  const text = "uses: krizaka/orazaka/.github/workflows/component.yml@" + "b".repeat(40);
+test("an Orazaka component calls component.yml of krizaka/sovkora", async () => {
+  const text = "uses: krizaka/sovkora/.github/workflows/component.yml@" + "b".repeat(40);
   const check = { type: "workflow-calls", byKind: { maven: ["component.yml"] } };
   assert.equal((await runCheck(check, snap("c", "maven", { ".github/workflows/ci.yml": text }))).ok, true);
 });
@@ -237,7 +237,7 @@ test("journeys: both callers and `journeys / gate` required on main; a missing o
   assert.equal((await runCheck(rule.check, snap("akinaza", "app", files))).ok, null); // offline: unknown, never pass
   const noPost = { ".github/workflows/ci.yml": call("journeys.yml") };
   assert.equal((await runCheck(rule.check, snap("akinaza", "app", noPost))).ok, false);
-  assert.deepEqual(rule.applies.onlyRepos, ["akinaza", "yomizaka", "orazaka-web-client"]);
+  assert.deepEqual(rule.applies.onlyRepos, ["folioviv", "verikora", "sovkora-web"]);
 });
 
 test("merged-result-tested: a merge queue or strict passes, neither fails, offline proves nothing", async () => {
@@ -273,7 +273,7 @@ test("required-checks-profile: a private repository named in skipRepos owes no S
   const mk = (name, kind, req) => snapshotOf(name, kind, [".github/workflows/ci.yml"], async () => "on: push", { requiredChecks: async () => req });
   const noSonar = ["CI gate", "Security scan / gitleaks (secrets)"];
   assert.equal((await runCheck(rule.check, mk("krizaka-infra", "iac", noSonar))).ok, true);
-  assert.equal((await runCheck(rule.check, mk("kachizaka", "app", noSonar))).ok, true);
+  assert.equal((await runCheck(rule.check, mk("kridoc", "app", noSonar))).ok, true);
   const other = await runCheck(rule.check, mk("krizaka-ui", "app", noSonar));
   assert.equal(other.ok, false);
   assert.match(other.why, /Sonar/);

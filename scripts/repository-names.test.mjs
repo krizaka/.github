@@ -2,62 +2,61 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { isValidRepositoryName, violationsIn } from "./repository-names.mjs";
 
-test("repository names follow the owner-role vocabulary", () => {
+test("repository names follow the owner-role vocabulary, owners being the commercial names", () => {
   for (const name of [
-    "orazaka",
-    "orazaka-mobile",
-    "orazaka-desktop",
-    "orazaka-admin",
-    "orazaka-studio-service",
-    "orazaka-worker-media",
-    "orazaka-packs",
-    "orazaka-cli",
-    "orazaka-contracts",
-    "orazaka-build",
+    "sovkora",
+    "sovkora-mobile",
+    "sovkora-desktop",
+    "sovkora-admin",
+    "sovkora-studio-service",
+    "sovkora-worker-media",
+    "sovkora-packs",
+    "sovkora-cli",
+    "sovkora-contracts",
+    "sovkora-build",
+    "sovkora-web",
+    "sovkora-engine",
+    "sovkora-edge-service",
+    "verikora",
+    "folioviv",
+    "kridoc",
+    "kridoc-web",
     "krizaka-ui",
     "krizaka-ts",
-    "krizaka-build",
-    "krizaka-billing",
+    "krizaka-java",
     "krizaka-com",
     "krizaka-blog",
     "krizaka-infra",
     "krizaka-lab",
-    "krizaka-platform",
     "krizaka-desktop",
     "krizaka-composer",
-    "orazaka-web",
-    "orazaka-engine",
-    "orazaka-edge-service",
-    "template-next-app",
+    "krizaka-cla-signatures",
+    "krizaka-template-web",
+    "krizaka-template-desktop",
   ]) {
     assert.equal(isValidRepositoryName(name), true, name);
   }
 });
 
-test("legacy and unknown roles are reported, but the org profile repository is excluded", () => {
+test("code names, legacy roles and unknown names are reported, but the org profile repository is excluded", () => {
   for (const name of [
+    "orazaka",
+    "yomizaka",
+    "akinaza",
+    "kachizaka",
     "orazaka-web-client",
-    "orazaka-mobile-client",
-    "orazaka-web-admin",
-    "orazaka-ui-kit",
-    "orazaka-design-system",
+    "sovkora-web-client",
+    "sovkora-mobile-client",
+    "sovkora-ui-kit",
+    "sovkora-design-system",
     "krizaka-platform-kit",
-    "orazaka-edge",
-    "orazaka-ai-engine",
-    "orazaka-studio",
-    "orazaka_uppercase",
+    "krizaka-build",
+    "krizaka-tauri-kit",
+    "template-next-app",
+    "sovkora_uppercase",
     "template-app",
   ]) {
     assert.equal(isValidRepositoryName(name), false, name);
   }
-  assert.deepEqual(
-    violationsIn(["orazaka", ".github", "orazaka-web-client", "krizaka-ui"]),
-    ["orazaka-web-client"],
-  );
-});
-
-test("kachizaka, Kridoc's code name, is a product repository; its roles follow the product vocabulary", () => {
-  assert.equal(isValidRepositoryName("kachizaka"), true);
-  assert.equal(isValidRepositoryName("kachizaka-web"), true);
-  assert.equal(isValidRepositoryName("kridoc"), false);
+  assert.deepEqual(violationsIn(["sovkora", ".github", "sovkora-ui-kit", "krizaka-ui"]), ["sovkora-ui-kit"]);
 });

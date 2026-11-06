@@ -21,7 +21,7 @@ test("pinWorkflowText pins uses lines, keeps pinned, local and docker ones", () 
   const src = [
     "      - uses: actions/checkout@v7",
     `      - uses: actions/setup-node@${B} # v4`,
-    "    uses: krizaka/orazaka/.github/workflows/component.yml@main",
+    "    uses: krizaka/sovkora/.github/workflows/component.yml@main",
     "      - uses: ./.github/actions/x",
     "      - uses: docker://alpine:3",
     "      - run: echo uses: foo@v1",
@@ -31,7 +31,7 @@ test("pinWorkflowText pins uses lines, keeps pinned, local and docker ones", () 
   const lines = text.split("\n");
   assert.equal(lines[0], `      - uses: actions/checkout@${A} # actions/checkout:v7`);
   assert.equal(lines[1], src.split("\n")[1]);
-  assert.equal(lines[2], `    uses: krizaka/orazaka/.github/workflows/component.yml@${A} # krizaka/orazaka:main`);
+  assert.equal(lines[2], `    uses: krizaka/sovkora/.github/workflows/component.yml@${A} # krizaka/sovkora:main`);
   assert.equal(lines.slice(3).join("\n"), src.split("\n").slice(3).join("\n"));
 });
 

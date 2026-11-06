@@ -42,9 +42,9 @@ test("inScope: only our apps, no PR, not marked public, opened in the window", (
 });
 
 test("renderReport lists every suspect with its categories, or says none", () => {
-  const md = renderReport([{ url: "https://github.com/krizaka/yomizaka/issues/1", categories: { fraud: "title", pricing: "body ×3" } }], new Date(NOW));
+  const md = renderReport([{ url: "https://github.com/krizaka/verikora/issues/1", categories: { fraud: "title", pricing: "body ×3" } }], new Date(NOW));
   assert.match(md, /1 suspect issue/);
-  assert.match(md, /- \[ \] https:\/\/github\.com\/krizaka\/yomizaka\/issues\/1 — `fraud` \(title\), `pricing` \(body ×3\)/);
+  assert.match(md, /- \[ \] https:\/\/github\.com\/krizaka\/verikora\/issues\/1 — `fraud` \(title\), `pricing` \(body ×3\)/);
   assert.match(md, /gh issue transfer <n> krizaka\/krizaka-internal/);
   assert.match(renderReport([], new Date(NOW)), /No suspect issue\./);
 });
@@ -61,7 +61,7 @@ test("the workflow runs daily and on new issues, writes only to krizaka-internal
 
 test("SAFE_PATH lets through only this org's repos and issues endpoints", () => {
   assert.ok(SAFE_PATH.test("orgs/krizaka/repos?type=public&per_page=100&page=1"));
-  assert.ok(SAFE_PATH.test("repos/krizaka/yomizaka/issues?state=open&since=2026-10-23T00%3A00%3A00.000Z&per_page=100&page=1"));
+  assert.ok(SAFE_PATH.test("repos/krizaka/verikora/issues?state=open&since=2026-10-23T00%3A00%3A00.000Z&per_page=100&page=1"));
   assert.ok(SAFE_PATH.test("repos/krizaka/krizaka-internal/issues/12"));
   assert.ok(SAFE_PATH.test("repos/krizaka/.github/issues?state=open"));
   assert.equal(SAFE_PATH.test("repos/other/x/issues"), false);

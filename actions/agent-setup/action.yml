@@ -1,6 +1,6 @@
 # What a coding agent needs before it works in a Krizaka repository (krizaka/.github#113): the toolchains of its stack and
 # its dependencies, so it can build, format and test before it pushes (AGENTS.template.md §8.2). It generalises
-# krizaka/orazaka's `.github/actions/copilot-workspace`. A repository calls it from `.github/workflows/copilot-setup-steps.yml`:
+# krizaka/sovkora's `.github/actions/copilot-workspace`. A repository calls it from `.github/workflows/copilot-setup-steps.yml`:
 #
 #   jobs:
 #     copilot-setup-steps:
@@ -27,7 +27,7 @@ inputs:
     default: ${{ github.repository }}
   manifest:
     description: "orazaka.workspace.json: a URL or a file."
-    default: https://raw.githubusercontent.com/krizaka/orazaka/main/orazaka.workspace.json
+    default: https://raw.githubusercontent.com/krizaka/sovkora/main/orazaka.workspace.json
 
 outputs:
   stack:
@@ -89,7 +89,7 @@ runs:
       run: |
         set -euo pipefail
         ws="$RUNNER_TEMP/orazaka-workspace"
-        git clone --depth 1 https://github.com/krizaka/orazaka.git "$ws"
+        git clone --depth 1 https://github.com/krizaka/sovkora.git "$ws"
         cd "$ws"
         node scripts/workspace.mjs clone --depth 1
         node scripts/workspace.mjs upstreams "$COMPONENT"

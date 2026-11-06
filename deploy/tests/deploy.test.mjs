@@ -144,9 +144,9 @@ test("head check: it passes when the deployment, its build log and main's head a
 
 test("head check: each component is held to the head of its own repository", async () => {
   const { verifyRunningHead } = await import("../lib/head.mjs");
-  const spec = { services: [{ name: "core", github: { repo: "krizaka/orazaka", branch: "main" } }, { name: "web", github: { repo: "krizaka/orazaka-web-client", branch: "main" } }] };
+  const spec = { services: [{ name: "core", github: { repo: "krizaka/sovkora", branch: "main" } }, { name: "web", github: { repo: "krizaka/sovkora-web", branch: "main" } }] };
   const deployment = { id: "d1", services: [{ name: "core", source_commit_hash: "1".repeat(40) }, { name: "web", source_commit_hash: "2".repeat(40) }] };
-  const f = (a, b) => fakeFetch({ "https://api.github.com/repos/krizaka/orazaka/commits/main": { body: a }, "https://api.github.com/repos/krizaka/orazaka-web-client/commits/main": { body: b } });
+  const f = (a, b) => fakeFetch({ "https://api.github.com/repos/krizaka/sovkora/commits/main": { body: a }, "https://api.github.com/repos/krizaka/sovkora-web/commits/main": { body: b } });
   const doctl = { run: async () => `x => Checking out commit "${"1".repeat(40)}"\nx => Checking out commit "${"2".repeat(40)}"\n` };
   assert.equal((await verifyRunningHead({ doctl, fetch: f("1".repeat(40), "2".repeat(40)), appId: "a", deployment, spec })).length, 2);
   await assert.rejects(verifyRunningHead({ doctl, fetch: f("1".repeat(40), "3".repeat(40)), appId: "a", deployment, spec }), (e) => /web/.test(e.message));

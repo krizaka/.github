@@ -75,9 +75,9 @@
       },
       "exempt": {
         "krizaka-infra": "OpenTofu stack pinned by .tool-versions that also runs tflint and checkov; krizaka-ci's iac flow (fmt, validate, test) runs neither, so moving would drop two checks.",
-        "krizaka-tauri-kit": "A Rust-only library workspace on macOS (fmt, clippy, test, generated-permissions diff); no shared Rust workflow exists (tauri-macos.yml builds apps), and its own rust.yml already ends in the standard `CI gate`.",
+        "krizaka-desktop": "A Rust-only library workspace on macOS (fmt, clippy, test, generated-permissions diff); no shared Rust workflow exists (tauri-macos.yml builds apps), and its own rust.yml already ends in the standard `CI gate`.",
         "krizaka-ui": "The component library's 20 KB CI (registries, size budgets, realtime adapters, docs-site crawl and layout shards) is specialised beyond node-ci's inputs; it already uses the shared changes.yml, sonar-scan and dup-check pieces and ends in `CI gate`.",
-        "orazaka": "The Orazaka workspace root: its ci.yml IS the workspace flow (clone every repository, workspace.mjs ci) that component.yml and krizaka-ci's workspace mode derive from, so it cannot call itself."
+        "sovkora": "The Orazaka workspace root: its ci.yml IS the workspace flow (clone every repository, workspace.mjs ci) that component.yml and krizaka-ci's workspace mode derive from, so it cannot call itself."
       },
       "fix": {
         "type": "manual",
@@ -118,7 +118,7 @@
         "to": ".github/workflows/scorecard.yml"
       },
       "exempt": {
-        "kachizaka": "OpenSSF Scorecard and its public results are for public repositories only; this repository is private (founder, 2026-11-04, krizaka-internal#2364).",
+        "kridoc": "OpenSSF Scorecard and its public results are for public repositories only; this repository is private (founder, 2026-11-04, krizaka-internal#2364).",
         "krizaka-infra": "OpenSSF Scorecard and its public results are for public repositories only; this repository is private (founder, 2026-11-04, krizaka-internal#2364).",
         "krizaka-agents": "OpenSSF Scorecard and its public results are for public repositories only; this repository is private (founder, 2026-11-04, krizaka-internal#2364).",
         "krizaka-coming-soon": "OpenSSF Scorecard and its public results are for public repositories only; this repository is private (founder, 2026-11-04, krizaka-internal#2364)."
@@ -175,8 +175,8 @@
         ]
       },
       "exempt": {
-        "template-next-app": "A template has no journeys of its own (they are written per app, docs/standards/visual-regression.md); an app made from it adds the workflow with its first journey.",
-        "orazaka-mobile-client": "A React Native app: the shared workflow compares Playwright screenshots of web pages in a Linux container, which cannot render it; its journeys are Maestro flows (mobile-e2e.yml)."
+        "krizaka-template-web": "A template has no journeys of its own (they are written per app, docs/standards/visual-regression.md); an app made from it adds the workflow with its first journey.",
+        "sovkora-mobile": "A React Native app: the shared workflow compares Playwright screenshots of web pages in a Linux container, which cannot render it; its journeys are Maestro flows (mobile-e2e.yml)."
       },
       "fix": {
         "type": "manual",
@@ -252,14 +252,14 @@
     },
     {
       "id": "maven-family-current",
-      "title": "The Java family is current: krizaka-parent and krizaka-bom are not behind a krizaka-build release out for 3 days",
+      "title": "The Java family is current: krizaka-parent and krizaka-bom are not behind a krizaka-java release out for 3 days",
       "issue": "krizaka/.github#388",
       "applies": {
         "kinds": [
           "maven"
         ],
         "notRepos": [
-          "krizaka-build"
+          "krizaka-java"
         ]
       },
       "check": {
@@ -271,7 +271,7 @@
       },
       "fix": {
         "type": "manual",
-        "note": "Move krizaka-parent and krizaka-bom (orazaka-build: the krizaka.version property) to the latest krizaka-build release; the bump lands through the train."
+        "note": "Move krizaka-parent and krizaka-bom (sovkora-build: the krizaka.version property) to the latest krizaka-java release; the bump lands through the train."
       }
     },
     {
@@ -314,7 +314,7 @@
         "pattern": "actions/expo-sdk|check-expo-sdk"
       },
       "exempt": {
-        "orazaka-mobile-client": "Expo SDK 53 and no pinned Xcode image: the guard would fail until the move to the family's SDK, which krizaka/orazaka-mobile-client#96 (App Store rejects build 5) carries; the guard is added in that same change."
+        "sovkora-mobile": "Expo SDK 53 and no pinned Xcode image: the guard would fail until the move to the family's SDK, which krizaka/sovkora-mobile#96 (App Store rejects build 5) carries; the guard is added in that same change."
       },
       "fix": {
         "type": "manual",
@@ -374,7 +374,7 @@
         "patternBase64": "b3JvY2hpYXx5YXNha2lhfHlhemFraWF8eW9yb3Jpcw==",
         "allow": [],
         "allowIn": {
-          "krizaka-build": [
+          "krizaka-java": [
             "krizaka-users/krizaka-users-persistence/src/main/resources/db/migration/V4__organizations.sql"
           ]
         }
@@ -419,10 +419,10 @@
         "onlyRepos": [
           "krizaka-com",
           "krizaka-coming-soon",
-          "kachizaka",
-          "yomizaka",
-          "akinaza",
-          "orazaka-web-client",
+          "kridoc",
+          "verikora",
+          "folioviv",
+          "sovkora-web",
           "krizaka-blog"
         ]
       },
@@ -512,14 +512,14 @@
       "issue": "krizaka/.github#439",
       "applies": {
         "onlyRepos": [
-          "orazaka",
-          "orazaka-web-client",
+          "sovkora",
+          "sovkora-web",
           "orazaka-web-admin",
-          "orazaka-mobile-client",
-          "orazaka-cli",
-          "orazaka-contracts",
-          "yomizaka",
-          "akinaza"
+          "sovkora-mobile",
+          "sovkora-cli",
+          "sovkora-contracts",
+          "verikora",
+          "folioviv"
         ]
       },
       "check": {
@@ -619,9 +619,9 @@
       "issue": "krizaka/krizaka-internal#1939",
       "applies": {
         "onlyRepos": [
-          "akinaza",
-          "yomizaka",
-          "orazaka-web-client"
+          "folioviv",
+          "verikora",
+          "sovkora-web"
         ]
       },
       "check": {
@@ -700,7 +700,7 @@
               "name": "Sonar",
               "pattern": "^SonarCloud Code Analysis$",
               "skipRepos": [
-                "kachizaka",
+                "kridoc",
                 "krizaka-infra"
               ],
               "skipWhy": "SonarCloud analyses public repositories only: on a private repository the same code rules run in the repository's own CI (eslint-plugin-sonarjs through krizakaStack for TS/JS; shellcheck, ruff, tflint and checkov for infra) under the CI gate."
@@ -724,7 +724,7 @@
               "name": "Sonar",
               "pattern": "^SonarCloud Code Analysis$",
               "skipRepos": [
-                "kachizaka",
+                "kridoc",
                 "krizaka-infra"
               ],
               "skipWhy": "SonarCloud analyses public repositories only: on a private repository the same code rules run in the repository's own CI (eslint-plugin-sonarjs through krizakaStack for TS/JS; shellcheck, ruff, tflint and checkov for infra) under the CI gate."
@@ -748,7 +748,7 @@
               "name": "Sonar",
               "pattern": "^SonarCloud Code Analysis$",
               "skipRepos": [
-                "kachizaka",
+                "kridoc",
                 "krizaka-infra"
               ],
               "skipWhy": "SonarCloud analyses public repositories only: on a private repository the same code rules run in the repository's own CI (eslint-plugin-sonarjs through krizakaStack for TS/JS; shellcheck, ruff, tflint and checkov for infra) under the CI gate."
@@ -767,7 +767,7 @@
               "name": "Sonar",
               "pattern": "^SonarCloud Code Analysis$",
               "skipRepos": [
-                "kachizaka",
+                "kridoc",
                 "krizaka-infra"
               ],
               "skipWhy": "SonarCloud analyses public repositories only: on a private repository the same code rules run in the repository's own CI (eslint-plugin-sonarjs through krizakaStack for TS/JS; shellcheck, ruff, tflint and checkov for infra) under the CI gate."
@@ -786,7 +786,7 @@
               "name": "Sonar",
               "pattern": "^SonarCloud Code Analysis$",
               "skipRepos": [
-                "kachizaka",
+                "kridoc",
                 "krizaka-infra"
               ],
               "skipWhy": "SonarCloud analyses public repositories only: on a private repository the same code rules run in the repository's own CI (eslint-plugin-sonarjs through krizakaStack for TS/JS; shellcheck, ruff, tflint and checkov for infra) under the CI gate."
@@ -805,7 +805,7 @@
               "name": "Sonar",
               "pattern": "^SonarCloud Code Analysis$",
               "skipRepos": [
-                "kachizaka",
+                "kridoc",
                 "krizaka-infra"
               ],
               "skipWhy": "SonarCloud analyses public repositories only: on a private repository the same code rules run in the repository's own CI (eslint-plugin-sonarjs through krizakaStack for TS/JS; shellcheck, ruff, tflint and checkov for infra) under the CI gate."
@@ -824,7 +824,7 @@
               "name": "Sonar",
               "pattern": "^SonarCloud Code Analysis$",
               "skipRepos": [
-                "kachizaka",
+                "kridoc",
                 "krizaka-infra"
               ],
               "skipWhy": "SonarCloud analyses public repositories only: on a private repository the same code rules run in the repository's own CI (eslint-plugin-sonarjs through krizakaStack for TS/JS; shellcheck, ruff, tflint and checkov for infra) under the CI gate."
@@ -978,38 +978,38 @@
       "applies": {
         "onlyRepos": [
           ".github",
-          "akinaza",
+          "folioviv",
           "krizaka-agents",
           "krizaka-billing",
           "krizaka-blog",
-          "krizaka-build",
+          "krizaka-java",
           "krizaka-com",
           "krizaka-composer",
           "krizaka-internal",
           "krizaka-lab",
           "krizaka-notifications",
-          "krizaka-tauri-kit",
+          "krizaka-desktop",
           "krizaka-ts",
           "krizaka-ui",
-          "orazaka",
-          "orazaka-ai-engine",
-          "orazaka-automation-service",
-          "orazaka-build",
-          "orazaka-cli",
-          "orazaka-contracts",
-          "orazaka-conversation-service",
-          "orazaka-edge",
-          "orazaka-job-service",
-          "orazaka-knowledge-service",
-          "orazaka-mobile-client",
-          "orazaka-packs",
-          "orazaka-studio",
-          "orazaka-ui-kit",
-          "orazaka-web-client",
-          "orazaka-worker-media",
-          "template-next-app",
-          "template-tauri-app",
-          "yomizaka"
+          "sovkora",
+          "sovkora-engine",
+          "sovkora-automation-service",
+          "sovkora-build",
+          "sovkora-cli",
+          "sovkora-contracts",
+          "sovkora-conversation-service",
+          "sovkora-edge-service",
+          "sovkora-job-service",
+          "sovkora-knowledge-service",
+          "sovkora-mobile",
+          "sovkora-packs",
+          "sovkora-studio-service",
+          "sovkora-ui-kit",
+          "sovkora-web",
+          "sovkora-worker-media",
+          "krizaka-template-web",
+          "krizaka-template-desktop",
+          "verikora"
         ]
       },
       "check": {
@@ -1049,10 +1049,10 @@
         "onlyRepos": [
           "krizaka-com",
           "krizaka-coming-soon",
-          "kachizaka",
-          "yomizaka",
-          "akinaza",
-          "orazaka-web-client"
+          "kridoc",
+          "verikora",
+          "folioviv",
+          "sovkora-web"
         ]
       },
       "check": {
@@ -1076,10 +1076,10 @@
         "onlyRepos": [
           "krizaka-com",
           "krizaka-coming-soon",
-          "kachizaka",
-          "yomizaka",
-          "akinaza",
-          "orazaka-web-client"
+          "kridoc",
+          "verikora",
+          "folioviv",
+          "sovkora-web"
         ]
       },
       "check": {
@@ -1101,9 +1101,9 @@
           "app"
         ],
         "onlyRepos": [
-          "yomizaka",
-          "akinaza",
-          "orazaka-web-client"
+          "verikora",
+          "folioviv",
+          "sovkora-web"
         ]
       },
       "check": {
@@ -1153,10 +1153,10 @@
         "onlyRepos": [
           "krizaka-com",
           "krizaka-coming-soon",
-          "kachizaka",
-          "yomizaka",
-          "akinaza",
-          "orazaka-web-client"
+          "kridoc",
+          "verikora",
+          "folioviv",
+          "sovkora-web"
         ]
       },
       "check": {
@@ -1180,10 +1180,10 @@
         "onlyRepos": [
           "krizaka-com",
           "krizaka-coming-soon",
-          "kachizaka",
-          "yomizaka",
-          "akinaza",
-          "orazaka-web-client"
+          "kridoc",
+          "verikora",
+          "folioviv",
+          "sovkora-web"
         ]
       },
       "check": {

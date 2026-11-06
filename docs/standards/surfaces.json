@@ -7,53 +7,53 @@
         {
           "id": "web-client",
           "label": "Web client",
-          "repo": "orazaka-web-client"
+          "repo": "sovkora-web"
         },
         {
           "id": "web-admin",
           "label": "Web admin",
-          "repo": "orazaka-web-client",
+          "repo": "sovkora-web",
           "path": "src/console"
         },
         {
           "id": "mobile",
           "label": "Mobile",
-          "repo": "orazaka-mobile-client"
+          "repo": "sovkora-mobile"
         },
         {
           "id": "mac",
           "label": "Mac",
-          "repo": "orazaka",
+          "repo": "sovkora",
           "path": "apps/desktop"
         },
         {
           "id": "cli",
           "label": "CLI",
-          "repo": "orazaka-cli"
+          "repo": "sovkora-cli"
         },
         {
           "id": "api-sdk",
           "label": "API/SDK",
-          "repo": "orazaka-contracts"
+          "repo": "sovkora-contracts"
         }
       ],
       "repos": [
-        "orazaka",
-        "orazaka-build",
-        "orazaka-contracts",
-        "orazaka-studio",
-        "orazaka-ai-engine",
-        "orazaka-conversation-service",
-        "orazaka-job-service",
-        "orazaka-knowledge-service",
-        "orazaka-automation-service",
-        "orazaka-edge",
-        "orazaka-worker-media",
-        "orazaka-ui-kit",
-        "orazaka-web-client",
-        "orazaka-mobile-client",
-        "orazaka-cli",
-        "orazaka-packs"
+        "sovkora",
+        "sovkora-build",
+        "sovkora-contracts",
+        "sovkora-studio-service",
+        "sovkora-engine",
+        "sovkora-conversation-service",
+        "sovkora-job-service",
+        "sovkora-knowledge-service",
+        "sovkora-automation-service",
+        "sovkora-edge-service",
+        "sovkora-worker-media",
+        "sovkora-ui-kit",
+        "sovkora-web",
+        "sovkora-mobile",
+        "sovkora-cli",
+        "sovkora-packs"
       ]
     },
     "yomizaka": {
@@ -62,26 +62,26 @@
         {
           "id": "web",
           "label": "Web",
-          "repo": "yomizaka"
+          "repo": "verikora"
         },
         {
           "id": "admin",
           "label": "Admin",
-          "repo": "yomizaka"
+          "repo": "verikora"
         },
         {
           "id": "mobile",
           "label": "Mobile",
-          "repo": "yomizaka"
+          "repo": "verikora"
         },
         {
           "id": "mac",
           "label": "Mac",
-          "repo": "yomizaka"
+          "repo": "verikora"
         }
       ],
       "repos": [
-        "yomizaka"
+        "verikora"
       ]
     },
     "akinaza": {
@@ -90,26 +90,26 @@
         {
           "id": "web",
           "label": "Web",
-          "repo": "akinaza"
+          "repo": "folioviv"
         },
         {
           "id": "admin",
           "label": "Admin",
-          "repo": "akinaza"
+          "repo": "folioviv"
         },
         {
           "id": "mobile",
           "label": "Mobile",
-          "repo": "akinaza"
+          "repo": "folioviv"
         },
         {
           "id": "mac",
           "label": "Mac",
-          "repo": "akinaza"
+          "repo": "folioviv"
         }
       ],
       "repos": [
-        "akinaza"
+        "folioviv"
       ]
     }
   }

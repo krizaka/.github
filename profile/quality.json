@@ -2,8 +2,8 @@
   "organization": "krizaka",
   "sonarOrganization": "krizaka",
   "groups": [
-    { "label": "Products", "repos": ["yomizaka", "akinaza", "orazaka", "orazaka-ai-engine", "orazaka-web-client", "orazaka-packs"] },
-    { "label": "Building blocks", "repos": ["krizaka-ui", "krizaka-ts", "krizaka-build"] },
+    { "label": "Products", "repos": ["verikora", "folioviv", "sovkora", "sovkora-engine", "sovkora-web", "sovkora-packs"] },
+    { "label": "Building blocks", "repos": ["krizaka-ui", "krizaka-ts", "krizaka-java"] },
     { "label": "Sites", "repos": ["krizaka-com", "krizaka-blog"] }
   ],
   "metrics": [

@@ -7,7 +7,7 @@
 #       stack: node
 #       package-manager: pnpm
 #
-# Orazaka workspace (stack `workspace`): the caller checked krizaka/orazaka out at `workspace-path` and itself at
+# Orazaka workspace (stack `workspace`): the caller checked krizaka/sovkora out at `workspace-path` and itself at
 # `incoming-path` (component.yml's layout); the component is placed at its workspace path and every other repository is
 # cloned from its default branch, so `workspace.mjs ci` builds the upstreams from source.
 name: setup
@@ -73,7 +73,7 @@ inputs:
     description: "workspace: the repository name, as listed in orazaka.workspace.json."
     default: ""
   workspace-path:
-    description: "workspace: where krizaka/orazaka is checked out."
+    description: "workspace: where krizaka/sovkora is checked out."
     default: workspace
   incoming-path:
     description: "workspace: where the component under test is checked out."

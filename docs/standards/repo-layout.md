@@ -67,7 +67,7 @@ A guard is never silenced to get a PR green: move the file first, declare it onl
 ## Java
 
 The package layout inside a service is held by ArchUnit, not by this script: the shared `GovernanceRules`
-(`orazaka-test-support`, and the Krizaka test kit of `krizaka-build`) refuse a class at a package root that belongs in
+(`orazaka-test-support`, and the Krizaka test kit of `krizaka-java`) refuse a class at a package root that belongs in
 `domain`, `application` or `infrastructure`, and a `*Service` in `infrastructure/support`.
 ArchUnit's freeze store (`archunit_store/`) is declared in `.repo-layout.json` unless `freeze.store.path` points under
 `src/test/resources`.

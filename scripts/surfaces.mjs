@@ -23,7 +23,7 @@ export const loadConfig = (path = CONFIG) => JSON.parse(readFileSync(path, "utf8
 
 export const ORG = "krizaka";
 
-/** The product of a repository of the krizaka organisation, by the repository names of surfaces.json (`krizaka/orazaka-cli` -> orazaka), or null. */
+/** The product of a repository of the krizaka organisation, by the repository names of surfaces.json (`krizaka/sovkora-cli` -> orazaka), or null. */
 export function productOf(repoFullName, products) {
   const [owner, name] = repoFullName.split("/");
   if (owner !== ORG) return null;
