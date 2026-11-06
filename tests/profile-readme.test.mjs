@@ -38,8 +38,8 @@ const reader = ({ health = {}, npm = {}, java = null } = {}) => ({
 const fixtureData = {
   ...data,
   tiers: [{ id: "client-web", label: "Clients: web" }, { id: "client-mac", label: "Clients: Mac" }, { id: "bff", label: "BFF" }, { id: "service", label: "Services" }, { id: "worker", label: "Workers" }],
-  order: ["orazaka"],
-  products: { orazaka: { ...data.products.orazaka, bom: { repo: "b", file: "pom.xml", property: "krizaka.version", package: "com.krizaka.krizaka-bom" }, components: [
+  order: ["sovkora"],
+  products: { sovkora: { ...data.products.sovkora, bom: { repo: "b", file: "pom.xml", property: "krizaka.version", package: "com.krizaka.krizaka-bom" }, components: [
     { label: "Web", tier: "client-web", repo: "r", path: "apps/web" }, { label: "API", tier: "bff", repo: "r", path: "apps/web/app/api" }, { label: "Mac", tier: "client-mac", repo: "r", path: "apps/desktop" },
     { label: "Core", tier: "service", repo: "r", path: "svc" }, { label: "Media", tier: "worker", repo: "r", path: "worker" },
   ] } },
@@ -86,7 +86,7 @@ test("prod is « not open yet » without a link until its health check answers, 
   const up = envBadge("prod", { host: "www.verikora.com", up: true, version: "1.2.0+abc" });
   assert.match(up, /\]\(https:\/\/www\.verikora\.com\)$/);
   assert.match(up, /1\.2\.0/);
-  assert.match(envBadge("dev", { host: "www.yomizaka.com", up: false }), /Dev: down/);
+  assert.match(envBadge("dev", { host: "www.verikora.com", up: false }), /Dev: down/);
 });
 
 test("shields badges escape dashes, underscores and spaces", () => {
@@ -104,7 +104,7 @@ test("the data file: every product is in development, under its commercial name,
   for (const id of data.order) assert.equal(data.products[id].status, "development");
   assert.deepEqual(Object.values(data.statuses), ["In development"]);
   const script = readFileSync(new URL("../scripts/profile-readme.mjs", import.meta.url), "utf8");
-  assert.ok(!/\b(orazaka|yomizaka|akinaza|sovkora|verikora|folioviv)\.com/.test(script), "hosts live in profile/products.json");
+  assert.ok(!/\b(sovkora|verikora|folioviv|sovkora|verikora|folioviv)\.com/.test(script), "hosts live in profile/products.json");
 });
 
 test("an opened status needs a decision: an unknown status is refused, never shown as Available", () => {
@@ -118,10 +118,10 @@ test("the data file: every component has a tier of the tiers list, a repository 
     for (const c of data.products[id].components) assert.ok(tiers.has(c.tier) && c.repo && c.label, `${id}: ${c.label}`);
   }
   const tierOf = (id, label) => data.products[id].components.find((c) => c.label === label).tier;
-  assert.equal(tierOf("orazaka", "Edge"), "service");
-  assert.equal(tierOf("orazaka", "Media and GPU worker"), "worker");
-  assert.equal(tierOf("yomizaka", "API routes"), "bff");
-  assert.equal(tierOf("akinaza", "Mac app"), "client-mac");
+  assert.equal(tierOf("sovkora", "Edge"), "service");
+  assert.equal(tierOf("sovkora", "Media and GPU worker"), "worker");
+  assert.equal(tierOf("verikora", "API routes"), "bff");
+  assert.equal(tierOf("folioviv", "Mac app"), "client-mac");
 });
 
 test("a component with a tier that is not in the list is refused, never guessed", () => {
@@ -157,7 +157,7 @@ test("Rust: krizaka crates with the git tag as version, path crates are the work
 });
 
 test("the block groups the components by tier with language, repository and modules from every ecosystem", async () => {
-  const model = await readModel(fixtureData, reader({ health: { "www.orazaka.com": { up: true, version: "1.0.0+aaa" } } }));
+  const model = await readModel(fixtureData, reader({ health: { "dev.sovkora.com": { up: true, version: "1.0.0+aaa" } } }));
   const block = renderBlock(fixtureData, model);
   assert.ok(block.includes("**Sovkora**") && block.includes("<details><summary>Components (5)"));
   const order = ["Clients: web", "Clients: Mac", "**BFF**", "**Services**", "**Workers**"].map((t) => block.indexOf(t));

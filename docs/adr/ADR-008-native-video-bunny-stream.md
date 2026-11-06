@@ -7,7 +7,7 @@
 
 ## Context
 
-a former product's phone app plays and uploads creators' videos; Akinaza's shop walls will play reels (akinaza#234). Both are
+a former product's phone app plays and uploads creators' videos; Folioviv's shop walls will play reels (folioviv#234). Both are
 Expo apps (ADR-004). `@krizaka/ui/native` already ships a player: `native/video-player` and `native/vertical-video`, on
 `expo-video` (an optional peer), which plays MP4 and HLS from a URL with optional headers. The web keeps its own player.
 
@@ -60,7 +60,7 @@ private playback with an **embed view token signed by the server** (client-side 
      the upload part of the trial waits for a release that passes it, the playback part may run alone).
    A failed point keeps `expo-video` and a JS TUS client behind the same port; nothing else changes.
 5. **Libraries per product and environment.** a former product uses its own Stream library (a retired export, krizaka-com AGENTS §5.2);
-   Akinaza gets its own when its reels ship. Which library is configuration read by the backend, per environment, that the
+   Folioviv gets its own when its reels ship. Which library is configuration read by the backend, per environment, that the
    admin sees. The library **id** is not a secret, and the native adapter cannot do without it (`initialize`, a player's
    `source.libraryId`, the upload options all take it): the backend returns it with what it signs — `{ libraryId, videoId,
    token, expires }` for a playback, `{ libraryId, videoId, signature, expires }` for an upload — and the app holds the id

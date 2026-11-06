@@ -8,7 +8,7 @@ import { specDrift } from "./drift.mjs";
 
 const raw = (repo, spec) => `https://raw.githubusercontent.com/${repo}/main/${spec}`;
 
-/** A private repository's spec (kachizaka) answers 404 to an anonymous read: the token is sent when the run has one. */
+/** A private repository's spec (kridoc) answers 404 to an anonymous read: the token is sent when the run has one. */
 const readHeaders = (env) => {
   const token = env.GITHUB_TOKEN || env.GH_TOKEN;
   return { "user-agent": "krizaka-deploy", ...(token ? { authorization: `Bearer ${token}` } : {}) };

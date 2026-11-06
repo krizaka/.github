@@ -65,7 +65,7 @@ export function workflowJobs(src) {
 /** The reusable workflows whose jobs are listed, with the sentence that says whom each one serves. */
 export const SHARED = [
   ["node-ci.yml", "Next.js, Node, monorepos"],
-  ["java-ci.yml", "Maven, Orazaka services (workspace flow)"],
+  ["java-ci.yml", "Maven, Sovkora services (workspace flow)"],
   ["maven.yml", "JVM repositories published to Maven Central"],
   ["expo-ci.yml", "Expo apps"],
   ["python-ci.yml", "workers, scripts"],

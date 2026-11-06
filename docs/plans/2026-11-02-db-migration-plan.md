@@ -1,11 +1,11 @@
 # Database migration plan: Flyway on, migrations in the deploy, dev data reset in one click
 
 - **Date:** 2026-11-02. **Epic:** krizaka/krizaka-internal#2255. **Owner:** platform lane. **Status:** approved by the founder (go for the dev reset given, no dev data to keep).
-- **Reads:** orazaka `docs/PRODUCTION_READINESS_AUDIT.md` §2.2, `docs/DEV_DATABASE.md`, `docs/ARCHITECTURE_ASSESSMENT.md` (Flyway, T2), krizaka-build branch `feat/flyway-baseline-2255` (ae30aa3), yomizaka#705, ADR-022, ADR-023.
+- **Reads:** sovkora `docs/PRODUCTION_READINESS_AUDIT.md` §2.2, `docs/DEV_DATABASE.md`, `docs/ARCHITECTURE_ASSESSMENT.md` (Flyway, T2), krizaka-build branch `feat/flyway-baseline-2255` (ae30aa3), verikora#705, ADR-022, ADR-023.
 
 ## 0. Decisions this plan applies
 
-1. **Flyway is on** in every Java service. yomizaka keeps its own migrator (`apps/web/lib/db.ts`, `migrate()` under a lock), akinaza keeps Drizzle (`packages/db/drizzle`).
+1. **Flyway is on** in every Java service. verikora keeps its own migrator (`apps/web/lib/db.ts`, `migrate()` under a lock), folioviv keeps Drizzle (`packages/db/drizzle`).
 2. **The deploy applies the migrations, never a person.** `psql -f`, `scripts/dev-db-migrate.sh` and the hand ledger `dev_migration_ledger` are retired once the reset is done.
 3. **Dev data is disposable.** The 8 product databases start again from zero, then a seed loads the **dev prototype dataset**. The founder gave the go. The backup is a cheap safety net, not a gate.
 4. **"Reset dev" is a repeatable one-click operation**, the same locally and on dev, and it can never reach prod. It is not a one-time window.
@@ -25,12 +25,12 @@
 |---|---|---|---|---|
 | `krizaka_users_db` | users (krizaka-build `krizaka-users`) | Flyway · `flyway_schema_history` (V1..V6 exist) | `V1__users_baseline.sql` (branch ae30aa3); V2–V6 stay | none |
 | `krizaka_billing_db` | billing (krizaka-build `krizaka-billing`) | Flyway · `flyway_schema_history` | `V1__billing_baseline.sql` (branch): 70-billing + the folded `infra/migrations` (incl. `2026-10-30-offers-versioned`) | none |
-| `orazaka_db` | conversation, job, ai-engine governance (3 repos, one database) | Flyway, **one history table per context**: `flyway_history_conversation`, `flyway_history_job`, `flyway_history_governance` | 20-conversation, 30-jobs-config, 60-governance + the folded workspace `infra/migrations/*` of each context | `vector` (job) |
-| `orazaka_studio_db` | studio (orazaka-studio) | Flyway · `flyway_schema_history` | 80-studio + its 3 migrations | none |
-| `orazaka_knowledge_db` | knowledge (orazaka-knowledge-service) | Flyway · `flyway_schema_history` | 40-knowledge + migrations | `vector` |
-| `orazaka_automation_db` | automation (orazaka-automation-service) | Flyway · `flyway_schema_history` | 50-automation + migrations | none |
-| `yomizaka_db` | yomizaka web (+ mobile backend) | yomizaka `migrate()` · its own history | `0001_baseline` (exists since #697/#705) | per its baseline |
-| `akinaza_db` | akinaza web | Drizzle · `drizzle.__drizzle_migrations` | `0000_baseline.sql` (exists) | `btree_gist`, `pg_trgm`, `unaccent` (moved from the baseline to the bootstrap) |
+| `sovkora_db` | conversation, job, ai-engine governance (3 repos, one database) | Flyway, **one history table per context**: `flyway_history_conversation`, `flyway_history_job`, `flyway_history_governance` | 20-conversation, 30-jobs-config, 60-governance + the folded workspace `infra/migrations/*` of each context | `vector` (job) |
+| `sovkora_studio_db` | studio (sovkora-studio) | Flyway · `flyway_schema_history` | 80-studio + its 3 migrations | none |
+| `sovkora_knowledge_db` | knowledge (sovkora-knowledge-service) | Flyway · `flyway_schema_history` | 40-knowledge + migrations | `vector` |
+| `sovkora_automation_db` | automation (sovkora-automation-service) | Flyway · `flyway_schema_history` | 50-automation + migrations | none |
+| `verikora_db` | verikora web (+ mobile backend) | verikora `migrate()` · its own history | `0001_baseline` (exists since #697/#705) | per its baseline |
+| `folioviv_db` | folioviv web | Drizzle · `drizzle.__drizzle_migrations` | `0000_baseline.sql` (exists) | `btree_gist`, `pg_trgm`, `unaccent` (moved from the baseline to the bootstrap) |
 
 The platform kit's JDBC stores (`KrizakaMigrations`, history `krizaka_schema_history`, Java migrations) stay where they are and run **after** the service's Flyway (`@DependsOnDatabaseInitialization`, branch ae30aa3). Any service that uses the kit therefore has two history tables, and they never mix.
 
@@ -42,7 +42,7 @@ The platform kit's JDBC stores (`KrizakaMigrations`, history `krizaka_schema_his
 - `baseline-on-migrate: true` **only until the first reset** (it adopts today's databases while the slices land). It becomes `false` in the post-reset PR: from then on, a non-empty database without history is an error, not something to adopt.
 - `spring.flyway.url/user/password` are the **migrator** credentials (direct, owner role). They are distinct from `spring.datasource` (runtime role, pool). The variables are named by context and declared once (`DATABASE_<CTX>_MIGRATOR_URL`, `DATABASE_<CTX>_URL`, …; the org naming rule).
 
-**Cross-context foreign keys (SEAM-001).** There is no FK between two contexts, including the three contexts that share `orazaka_db`. A reference to another context is an id column with no constraint, and the link is checked by the service. `SqlBoundaryRules` (orazaka-build) scans `src/main/resources/db/migration/**` in addition to `infra/initdb/**`. A `REFERENCES` to a table that another context's V files create fails the build. There are no cross-database FKs (PostgreSQL cannot have them).
+**Cross-context foreign keys (SEAM-001).** There is no FK between two contexts, including the three contexts that share `sovkora_db`. A reference to another context is an id column with no constraint, and the link is checked by the service. `SqlBoundaryRules` (sovkora-build) scans `src/main/resources/db/migration/**` in addition to `infra/initdb/**`. A `REFERENCES` to a table that another context's V files create fails the build. There are no cross-database FKs (PostgreSQL cannot have them).
 
 ## 2. The steps, in order
 
@@ -54,11 +54,11 @@ Each step has an entry and an exit. Until step E, everything is undone by revert
 |---|---|---|---|
 | A0 | krizaka-infra | `database` module: runtime role `<db>_app` + default privileges, extensions in the bootstrap, outputs `migrator_url`/`app_url` per database; `prevent_destroy` kept (the reset never drops a database, see E) | platform |
 | A1 | krizaka-build | **the existing branch `feat/flyway-baseline-2255`**: users + billing V1, Flyway flags, kit after the service, empty-DB-twice ITs; plus the shared Flyway default and the migrator/runtime split in `krizaka-persistence` | platform |
-| A2 | orazaka-build | `SqlBoundaryRules` on `db/migration/**`; `SeedBootstrapIT` applies the V files instead of initdb; a reusable `MigrationContract` test fixture (empty twice, upgrade from the previous release, validate); BOM bump to A1's release | platform |
-| A3–A8 | orazaka-conversation-service, orazaka-job-service, orazaka-ai-engine, orazaka-knowledge-service, orazaka-automation-service, orazaka-studio | V1 = initdb + folded migrations − fixtures; Flyway on with their history table; `infra/initdb` keeps only role, database and extension creation for local compose; `MigrationContract` IT | orazaka |
-| A9 | orazaka (workspace) | `dev-redeploy`: migrations before traffic + post-deploy schema-version check (C); local compose = same Flyway; `dev-reset` (step R); `DEV_DATABASE.md` rewritten; `dev-db-migrate.sh`, `dev-migrations.mjs` and the ledger retired after E; orazaka#575 log net kept | platform |
-| A10 | yomizaka | migrations in the pre-deploy job on the direct URL (already started by #705), runtime role on the pool, `dev:seed --cast` completed for § 7, empty-DB + upgrade tests kept | yomizaka |
-| A11 | akinaza | `drizzle migrate` in a pre-deploy job (owner, direct), extensions moved out of the baseline, empty-DB-twice + upgrade test, `dev:seed` completed for § 7 | akinaza |
+| A2 | sovkora-build | `SqlBoundaryRules` on `db/migration/**`; `SeedBootstrapIT` applies the V files instead of initdb; a reusable `MigrationContract` test fixture (empty twice, upgrade from the previous release, validate); BOM bump to A1's release | platform |
+| A3–A8 | sovkora-conversation-service, sovkora-job-service, sovkora-engine, sovkora-knowledge-service, sovkora-automation-service, sovkora-studio | V1 = initdb + folded migrations − fixtures; Flyway on with their history table; `infra/initdb` keeps only role, database and extension creation for local compose; `MigrationContract` IT | sovkora |
+| A9 | sovkora (workspace) | `dev-redeploy`: migrations before traffic + post-deploy schema-version check (C); local compose = same Flyway; `dev-reset` (step R); `DEV_DATABASE.md` rewritten; `dev-db-migrate.sh`, `dev-migrations.mjs` and the ledger retired after E; sovkora#575 log net kept | platform |
+| A10 | verikora | migrations in the pre-deploy job on the direct URL (already started by #705), runtime role on the pool, `dev:seed --cast` completed for § 7, empty-DB + upgrade tests kept | verikora |
+| A11 | folioviv | `drizzle migrate` in a pre-deploy job (owner, direct), extensions moved out of the baseline, empty-DB-twice + upgrade test, `dev:seed` completed for § 7 | folioviv |
 | A12 | krizaka/.github | the cast file `personas/dev-cast.json` (names, roles, product, the vault key of each credential; no secret), its schema test; this plan | platform |
 
 **Entry:** this plan is merged. **Exit:** every PR is merged, green, and released (the Java modules on Central, the BOM bumped).
@@ -70,31 +70,31 @@ Each step has an entry and an exit. Until step E, everything is undone by revert
 1. **Empty database, applied twice.** Migrate, start the service, migrate again: 0 pending, `validate` OK.
 2. **Upgrade path.** Build the schema from the **previous release** (Java: the `db/migration` of the previous version's jar, resolved from Central; apps: the migration folder of the previous tag), insert a few rows from the seed, then apply the new files. The service starts, and the seed rows are still readable. Every migration must be expand/contract: the previous release must still run on the new schema, because a failed deploy keeps the previous release running on that schema.
 3. **`validate-on-migrate`** is on in tests, and editing an applied file fails (checksum).
-4. **Release guard:** a release fails if a migration file in the tree is missing from what the migrator lists (`flyway info` / the Drizzle journal / yomizaka's list).
+4. **Release guard:** a release fails if a migration file in the tree is missing from what the migrator lists (`flyway info` / the Drizzle journal / verikora's list).
 5. **SEAM-001:** `SqlBoundaryRules` on `db/migration/**`.
 
-**Exit:** the 5 checks are required on main of krizaka-build, orazaka-build, the 6 services, yomizaka and akinaza.
+**Exit:** the 5 checks are required on main of krizaka-build, sovkora-build, the 6 services, verikora and folioviv.
 
 ### C. Deploy pipeline
 
 - **Migrations before traffic.**
   - Java: Flyway runs at startup on the migrator URL, before the readiness probe. A failure means no health, so DigitalOcean keeps the previous deployment and the deploy fails.
-  - yomizaka and akinaza: a `PRE_DEPLOY` job. A failure stops the deploy.
+  - verikora and folioviv: a `PRE_DEPLOY` job. A failure stops the deploy.
 - **Connection budget.** The migrator opens one direct connection per service at boot and closes it. Startups are sequential inside `core`. `DEV_DATABASE.md` reserves the slot (22/22 today: the `doadmin` slot is the one migrations use, so this must be measured by `db-connections.mjs` during the first reset).
-- **Post-deploy check** (`dev-redeploy.mjs --check`, and the same step in the yomizaka/akinaza deploy workflows): for each database, the highest successful version in the history equals the highest version in the released artifact. A mismatch fails the run and opens an alert. `/health` exposes `schemaVersion` per service (admin "Health" page, #885).
+- **Post-deploy check** (`dev-redeploy.mjs --check`, and the same step in the verikora/folioviv deploy workflows): for each database, the highest successful version in the history equals the highest version in the released artifact. A mismatch fails the run and opens an alert. `/health` exposes `schemaVersion` per service (admin "Health" page, #885).
 - **Exit:** a deliberately broken migration in a test branch fails the dev deploy, and dev keeps serving the previous version.
 
 ### D. Backup (safety net, not a gate)
 
-`pg_dump -Fc` of the 8 databases is written to `~/.krizaka-private/backups/dev-2026-11-02/` (private, never in a repo or a public bucket), with one test `pg_restore` of `orazaka_db` into a scratch database. If it costs more than 10 minutes, skip it: the founder accepted the loss.
+`pg_dump -Fc` of the 8 databases is written to `~/.krizaka-private/backups/dev-2026-11-02/` (private, never in a repo or a public bucket), with one test `pg_restore` of `sovkora_db` into a scratch database. If it costs more than 10 minutes, skip it: the founder accepted the loss.
 
 ### E. The first reset of DEV, run with the reset tool (R)
 
 - **Entry:** A0–A12 merged and deployed, B required, C live, the schema diff explained.
 - **Order:**
   1. `krizaka_users_db`, `krizaka_billing_db`
-  2. `orazaka_db`, `orazaka_studio_db`, `orazaka_knowledge_db`, `orazaka_automation_db`
-  3. `yomizaka_db`, `akinaza_db`
+  2. `sovkora_db`, `sovkora_studio_db`, `sovkora_knowledge_db`, `sovkora_automation_db`
+  3. `verikora_db`, `folioviv_db`
 
   There are no cross-database FKs. The order exists for the seed: identities, then plans and grants, then the engine, then the apps.
 - **How the data is cleared.** Connected as the **owner** role in each database: `DROP OWNED BY <owner> CASCADE`, then `CREATE SCHEMA public AUTHORIZATION <owner>`.
@@ -102,7 +102,7 @@ Each step has an entry and an exit. Until step E, everything is undone by revert
   - The owner credentials cannot reach `krizaka_newsletter` or `krizaka_accounts`.
 - **Duration and impact.**
   - It takes about 20 min, mostly the `core` rebuild.
-  - Unavailable meanwhile: the dev sites of the products being reset (dev.orazaka.com, dev.yomizaka.com, dev.akinaza.com), their APIs and the mobile builds pointed at them.
+  - Unavailable meanwhile: the dev sites of the products being reset (dev.sovkora.com, dev.verikora.com, dev.folioviv.com), their APIs and the mobile builds pointed at them.
   - Not affected: www.krizaka.com, the blog and its newsletter, ui./java./ts., accounts, the cockpit.
 - **Exit:** § 2 F, G and H are green.
 
@@ -136,7 +136,7 @@ The products' own seeds load the cast and the demo data (§ 7), idempotently. It
 
 ### R. Deliverable: "Reset dev data" in one click (built in A9, used in E, kept for good)
 
-- **One command:** `node scripts/dev-reset.mjs <yomizaka|akinaza|orazaka|all> --target <local|dev>`, wrapped in a `workflow_dispatch` called "Reset dev data" in the orazaka workspace (input: product). It runs in the GitHub environment `dev`, which holds only `@<p>-dev` owner credentials.
+- **One command:** `node scripts/dev-reset.mjs <verikora|folioviv|sovkora|all> --target <local|dev>`, wrapped in a `workflow_dispatch` called "Reset dev data" in the sovkora workspace (input: product). It runs in the GitHub environment `dev`, which holds only `@<p>-dev` owner credentials.
 - **Steps per product:**
   1. clear the product's databases (E's statement)
   2. trigger the product's deploy and wait for health; locally, `docker compose up` and the services' Flyway
@@ -156,7 +156,7 @@ The products' own seeds load the cast and the demo data (§ 7), idempotently. It
 
 | Risk | Cover |
 |---|---|
-| A cross-context FK (inside `orazaka_db`) | SEAM-001 on `db/migration/**` (A2), plus a schema test that lists `pg_constraint` FKs per history table |
+| A cross-context FK (inside `sovkora_db`) | SEAM-001 on `db/migration/**` (A2), plus a schema test that lists `pg_constraint` FKs per history table |
 | Sequences and identity columns after the seed | the seed uses stable UUIDs; the few serial tables get `setval(max)` in the seed; the empty-twice test reads `nextval` |
 | Extensions (non-trusted pgvector) | created by the bootstrap as `doadmin`; V files assert; reset keeps them (owned by `doadmin`) |
 | Roles and grants | runtime role with default privileges from the owner; a test connects as the runtime role and proves DML works and DDL fails |
@@ -164,7 +164,7 @@ The products' own seeds load the cast and the demo data (§ 7), idempotently. It
 | Flyway behind the transaction pooler | migrator on the direct port only; test config is the same |
 | Connection ceiling (22/22) | one short direct connection per service, sequential; measured during E |
 | Two migrators in one database (service + kit) | separate history tables; kit after the service (branch ae30aa3) |
-| A deploy running ahead of its database (the billing 500 of 2026-11-02) | migrations in the deploy + C's version check + orazaka#575 log net |
+| A deploy running ahead of its database (the billing 500 of 2026-11-02) | migrations in the deploy + C's version check + sovkora#575 log net |
 | Secrets | no rotation: owners keep theirs; only the new runtime roles get new vault entries |
 | Newsletter and accounts | outside the closed list; the owner credentials used cannot reach them |
 | Data the founder might want | answered: none on dev (go of 2026-11-02) |
@@ -190,9 +190,9 @@ What differs:
 | Step | Lane | Oussama |
 |---|---|---|
 | A0, A1, A2, A9, A12, R | platform | — |
-| A3–A8 | orazaka | — |
-| A10 | yomizaka | — |
-| A11 | akinaza | — |
+| A3–A8 | sovkora | — |
+| A10 | verikora | — |
+| A11 | folioviv | — |
 | B | each lane, in its PRs; the platform lane makes them required | — |
 | C, D, E, F, G, H, I | platform (executor), with the product lanes for H | go already given (2026-11-02) |
 | Review of roles, grants and the R guards | security | — |
@@ -201,11 +201,11 @@ What differs:
 
 - [ ] A0 krizaka-infra: runtime roles, bootstrap extensions, migrator/app URLs
 - [ ] A1 krizaka-build: users + billing on Flyway (branch `feat/flyway-baseline-2255`)
-- [ ] A2 orazaka-build: SEAM-001 on db/migration, MigrationContract fixture, BOM
-- [ ] A3–A8 the 6 Orazaka services on Flyway (V1 baselines)
-- [ ] A9 orazaka workspace: deploy order, version check, dev-reset, docs
-- [ ] A10 yomizaka: pre-deploy migrations, runtime role, seed for § 7
-- [ ] A11 akinaza: pre-deploy Drizzle, extensions out, seed for § 7
+- [ ] A2 sovkora-build: SEAM-001 on db/migration, MigrationContract fixture, BOM
+- [ ] A3–A8 the 6 Sovkora services on Flyway (V1 baselines)
+- [ ] A9 sovkora workspace: deploy order, version check, dev-reset, docs
+- [ ] A10 verikora: pre-deploy migrations, runtime role, seed for § 7
+- [ ] A11 folioviv: pre-deploy Drizzle, extensions out, seed for § 7
 - [ ] A12 .github: dev cast file + schema test
 - [ ] B the five CI proofs required everywhere
 - [ ] C deploy: migrations before traffic, failure stops, version check
@@ -225,9 +225,9 @@ What differs:
 
 **Per product data.** Each product seeds coherent demo data, marked as demo, from files reviewed in its repo:
 
-- yomizaka: `scripts/demo-seed`
-- akinaza: `packages/db/src/seed*.ts`
-- Orazaka: the seed in the workspace, through its admin APIs
+- verikora: `scripts/demo-seed`
+- folioviv: `packages/db/src/seed*.ts`
+- Sovkora: the seed in the workspace, through its admin APIs
 
 The seeds are idempotent upserts on stable ids, and running one twice changes nothing.
 
@@ -235,9 +235,9 @@ The seeds are idempotent upserts on stable ids, and running one twice changes no
 
 | Product | Journey |
 |---|---|
-| **Verikora** (yomizaka) | sign in → upload a document → the check runs → report → signed PDF downloaded |
-| **Folioviv** (akinaza) | public shop page → book a slot (no double booking) → invoice with GST/QST → owner dashboard shows the booking and the tax ledger |
-| **Sovkora** (orazaka) | sign in → a chat turn → a Studio run with its result → admin settings, including `brand.displayName`, saved and shown |
+| **Verikora** (verikora) | sign in → upload a document → the check runs → report → signed PDF downloaded |
+| **Folioviv** (folioviv) | public shop page → book a slot (no double booking) → invoice with GST/QST → owner dashboard shows the booking and the tax ledger |
+| **Sovkora** (sovkora) | sign in → a chat turn → a Studio run with its result → admin settings, including `brand.displayName`, saved and shown |
 | All | each persona signs in on each product where the cast gives them an account; the cockpit is unaffected |
 
 The reset is done only when every journey is green.

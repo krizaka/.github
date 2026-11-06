@@ -53,7 +53,7 @@ test("a red run is still feedback (the author waited for it)", () => {
 });
 
 test("budgets: the organisation's, a repository may tighten or loosen one event", () => {
-  assert.deepEqual(budgetsFor("akinaza", cfg), { pull_request: 10, merge_group: 15 });
+  assert.deepEqual(budgetsFor("folioviv", cfg), { pull_request: 10, merge_group: 15 });
   const own = { ...cfg, repos: { x: { profiles: ["library"], budgets: { merge_group: 20 } } } };
   assert.deepEqual(budgetsFor("x", own), { pull_request: 10, merge_group: 20 });
   assert.deepEqual(profilesOf("x", own), ["library"]);
@@ -62,13 +62,13 @@ test("budgets: the organisation's, a repository may tighten or loosen one event"
 test("measure: over budget at the 90th percentile, with the workflow that is usually the slowest", () => {
   const runs = [];
   for (let i = 0; i < 10; i++) runs.push(run(`s${i}`, "pull_request", 0, i < 8 ? 6 : 26, { name: i < 8 ? "CI" : "Mobile CI" }));
-  const [row] = measure("akinaza", runs, cfg);
+  const [row] = measure("folioviv", runs, cfg);
   assert.equal(row.n, 10);
   assert.equal(row.p50, 6);
   assert.equal(row.p90, 26);
   assert.equal(row.over, true);
   assert.equal(row.slowest, "CI");
-  assert.match(render([row], { days: 7 }), /\*\*1 over budget\*\*: akinaza \(pull_request\)/);
+  assert.match(render([row], { days: 7 }), /\*\*1 over budget\*\*: folioviv \(pull_request\)/);
 });
 
 test("every active repository of the registry has a profile, and every profile exists", () => {
@@ -80,7 +80,7 @@ test("every active repository of the registry has a profile, and every profile e
   }
 });
 
-test("node-ci: in parallel mode the build leg does not run the tests again (9 minutes of akinaza's critical path, ADR-018)", () => {
+test("node-ci: in parallel mode the build leg does not run the tests again (9 minutes of folioviv's critical path, ADR-018)", () => {
   const src = readFileSync(new URL("../.github/workflows/node-ci.yml", import.meta.url), "utf8");
   const verify = src.slice(src.indexOf("\n  verify:\n"), src.indexOf("\n  e2e:\n"));
   const testScript = verify.match(/^ {10}test-script: (.*)$/m)[1];

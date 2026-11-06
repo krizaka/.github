@@ -10,17 +10,17 @@
 #         - uses: actions/checkout@<sha>
 #         - uses: krizaka/.github/actions/agent-setup@<sha> # v2
 #
-# The stack is detected as in CI (actions/detect). For an Orazaka component, exactly as copilot-workspace: Java 21 and Node 22,
+# The stack is detected as in CI (actions/detect). For a Sovkora component, exactly as copilot-workspace: Java 21 and Node 22,
 # the workspace cloned at its default branch, every upstream of the component installed into ~/.m2 (tests skipped), and the
 # workspace root's manifest and packs linked beside the agent's checkout so `Workspace.root()` finds them. For Node and
 # Python, the dependencies are installed; for Maven, the JDK is ready (the build resolves the rest); for OpenTofu, `tofu`.
 name: agent-setup
-description: Prepares a coding agent's sandbox for a Krizaka repository (toolchains, dependencies, the Orazaka workspace).
+description: Prepares a coding agent's sandbox for a Krizaka repository (toolchains, dependencies, the Sovkora workspace).
 author: Krizaka
 
 inputs:
   component:
-    description: "An Orazaka repository name (orazaka.workspace.json). Empty: detected from the repository's name."
+    description: "A Sovkora repository name (orazaka.workspace.json). Empty: detected from the repository's name."
     default: ""
   repository:
     description: "owner/name of the repository."
@@ -81,14 +81,14 @@ runs:
       with:
         tofu_wrapper: false
 
-    - name: Clone the Orazaka workspace and install the upstreams
+    - name: Clone the Sovkora workspace and install the upstreams
       if: ${{ steps.detect.outputs.stack == 'workspace' }}
       shell: bash
       env:
         COMPONENT: ${{ fromJSON(steps.detect.outputs.plan).component }}
       run: |
         set -euo pipefail
-        ws="$RUNNER_TEMP/orazaka-workspace"
+        ws="$RUNNER_TEMP/sovkora-workspace"
         git clone --depth 1 https://github.com/krizaka/sovkora.git "$ws"
         cd "$ws"
         node scripts/workspace.mjs clone --depth 1

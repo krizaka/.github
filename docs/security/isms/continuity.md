@@ -12,7 +12,7 @@
 
 ## Degraded modes
 
-Each product says what still works when a supplier is down: the public site stays up from the CDN, an Orazaka run that cannot reach the GPU workers fails cleanly and is retried, payments wait for the processor. The founder decides when to declare a disruption and tells users on the status page (krizaka-infra#13, planned).
+Each product says what still works when a supplier is down: the public site stays up from the CDN, a Sovkora run that cannot reach the GPU workers fails cleanly and is retried, payments wait for the processor. The founder decides when to declare a disruption and tells users on the status page (krizaka-infra#13, planned).
 
 ## Review
 

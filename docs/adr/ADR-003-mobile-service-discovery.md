@@ -2,12 +2,12 @@
 
 - **Status**: Accepted
 - **Date**: 2026-10-21
-- **Scope**: every Krizaka mobile app (a former repository, orazaka-mobile-client, a former repository, then the next ones) and krizaka.com
+- **Scope**: every Krizaka mobile app (a former repository, sovkora-mobile, a former repository, then the next ones) and krizaka.com
 - **Issue**: [krizaka/.github#120](https://github.com/krizaka/.github/issues/120), part of epic #119
 
 ## Context
 
-The mobile apps hard-code their backend (`a former repository `https://dev.orazaka.com/edge`, `a former repository),
+The mobile apps hard-code their backend (`a former repository `https://dev.sovkora.com/edge`, `a former repository),
 inlined at build time through `EXPO_PUBLIC_*`. The products just moved from `dev.<product>.com` to `www.<product>.com` (#119):
 every such move would force a new build and a store review, and the old build would break in the meantime. An address
 is operations data; it must change without a release.

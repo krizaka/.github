@@ -7,7 +7,7 @@
 #       stack: node
 #       package-manager: pnpm
 #
-# Orazaka workspace (stack `workspace`): the caller checked krizaka/sovkora out at `workspace-path` and itself at
+# Sovkora workspace (stack `workspace`): the caller checked krizaka/sovkora out at `workspace-path` and itself at
 # `incoming-path` (component.yml's layout); the component is placed at its workspace path and every other repository is
 # cloned from its default branch, so `workspace.mjs ci` builds the upstreams from source.
 name: setup
@@ -95,7 +95,7 @@ runs:
         case "$STACK" in python) case "$PY_PM" in pip|uv) ;; *) echo "::error::python-manager must be pip or uv, got '$PY_PM'"; exit 1 ;; esac ;; *) ;; esac
         if [ "$STACK" = workspace ] && [ -z "$COMPONENT" ]; then echo "::error::the workspace stack needs a component"; exit 1; fi
 
-    # ── the Orazaka workspace (component.yml's flow) ─────────────────────────────────────────────────────────────────
+    # ── the Sovkora workspace (component.yml's flow) ─────────────────────────────────────────────────────────────────
     - name: Place ${{ inputs.component }} at its workspace path
       if: ${{ inputs.stack == 'workspace' }}
       shell: bash

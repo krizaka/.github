@@ -2,7 +2,7 @@
   "note": "Records of processing, one entry per product (ISO/IEC 27701; P-39.1). Public level: categories only, no figures. 'to-complete' marks what the product issues still have to confirm.",
   "products": [
     {
-      "id": "yomizaka",
+      "id": "verikora",
       "role": ["processor", "controller"],
       "purposes": ["lease verification for a property firm", "tenant screening on the owner's request", "account and billing"],
       "categories": ["identity", "lease documents", "pay stubs", "applicant files", "billing"],
@@ -11,10 +11,10 @@
       "transfers": "to-complete",
       "suppliers": ["hosting", "CDN", "payments", "e-mail", "GPU compute"],
       "rights": "rights-requests.md",
-      "pia": "yomizaka#365"
+      "pia": "verikora#365"
     },
     {
-      "id": "akinaza",
+      "id": "folioviv",
       "role": ["controller", "processor"],
       "purposes": ["shop account", "appointments and invoices for the shop's clients", "billing"],
       "categories": ["identity", "contact", "appointments", "invoices"],
@@ -23,10 +23,10 @@
       "transfers": "to-complete",
       "suppliers": ["hosting", "CDN", "payments", "e-mail"],
       "rights": "rights-requests.md",
-      "pia": "akinaza#369"
+      "pia": "folioviv#369"
     },
     {
-      "id": "orazaka",
+      "id": "sovkora",
       "role": ["controller"],
       "purposes": ["dev-site accounts", "runs and uploaded files on the dev site"],
       "categories": ["account", "uploaded files", "run metadata"],

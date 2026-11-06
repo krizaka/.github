@@ -30,7 +30,7 @@ test("no workflow or script opens an issue in the repository it runs in", () => 
 });
 
 // The org-wide rule: the matrix refuses it in every active repository (krizaka-internal#2267), and its pattern really matches what the
-// product repositories wrote (orazaka main-is-red, krizaka-infra DNS drift) and none of what is allowed.
+// product repositories wrote (sovkora main-is-red, krizaka-infra DNS drift) and none of what is allowed.
 test("the conformance rule no-self-issues refuses a self-issue and accepts the internal one", () => {
   const rule = loadRules().find((r) => r.id === "no-self-issues");
   assert.ok(rule, "rules.json carries no-self-issues");

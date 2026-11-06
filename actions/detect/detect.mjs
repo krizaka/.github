@@ -319,13 +319,13 @@ function basePlan(config, workingDirectory) {
   };
 }
 
-/** A component of the Orazaka workspace: `workspace.mjs ci` is the whole pipeline. */
+/** A component of the Sovkora workspace: `workspace.mjs ci` is the whole pipeline. */
 function detectWorkspace(plan, config, name) {
   plan.stack = "workspace";
   plan.component = name;
   plan.rewrite = config.rewrite ?? false; // component.yml: opt-in, turned on in the pull request that applies rewrite:run
   // The component is verified inside the workspace: `workspace.mjs ci` is the whole pipeline.
-  if (config.afterBuild) throw new Error('.krizaka/ci.json: "afterBuild" does not apply to an Orazaka workspace component (workspace.mjs ci runs everything)');
+  if (config.afterBuild) throw new Error('.krizaka/ci.json: "afterBuild" does not apply to a Sovkora workspace component (workspace.mjs ci runs everything)');
 }
 
 /** A Maven project: Spotless and OpenRewrite come from the pom itself or from the parents that declare them. */
@@ -431,7 +431,7 @@ export async function loadManifest(source, { fetchImpl = fetch, waitMs = 1000 } 
       if (attempt < 3) await new Promise((r) => setTimeout(r, attempt * waitMs));
     }
   }
-  throw new Error(`cannot read the Orazaka workspace manifest (${source}): ${last.message}`);
+  throw new Error(`cannot read the Sovkora workspace manifest (${source}): ${last.message}`);
 }
 
 function arg(argv, name, fallback) {

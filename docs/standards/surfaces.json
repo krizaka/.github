@@ -1,8 +1,8 @@
 {
   "_": "Where a feature must land before it is « done » (krizaka/.github#439, founder 2026-10-30). Per product: its `repos` (repository names in the krizaka organisation, where its features are filed) and its surfaces (`repo` = where a surface lives, `path` = the folder in it). A feature issue lists them in a « Surfaces » checklist generated from this file (scripts/surfaces.mjs); each is ticked with the PR that ships it or marked `n/a — <reason>`, else the closing check reopens the issue. Add a surface here and every template and check follows.",
   "products": {
-    "orazaka": {
-      "title": "Orazaka",
+    "sovkora": {
+      "title": "Sovkora",
       "surfaces": [
         {
           "id": "web-client",
@@ -56,8 +56,8 @@
         "sovkora-packs"
       ]
     },
-    "yomizaka": {
-      "title": "Yomizaka",
+    "verikora": {
+      "title": "Verikora",
       "surfaces": [
         {
           "id": "web",
@@ -84,8 +84,8 @@
         "verikora"
       ]
     },
-    "akinaza": {
-      "title": "Akinaza",
+    "folioviv": {
+      "title": "Folioviv",
       "surfaces": [
         {
           "id": "web",

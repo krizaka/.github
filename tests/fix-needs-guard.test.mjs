@@ -12,7 +12,7 @@ test("pass: each guard family counts", () => {
   for (const f of ["rules/no-x.yml", "eslint.config.mjs", "sg-ratchet.json", "web/e2e/a.ts", "app/page-audit.mjs", "x/src/test/java/A.java", ".dependency-cruiser.cjs", "pkg/test_a.py"])
     assert.ok(check({ ...fix, files: [f] }).ok, f);
 });
-test("pass: guard configs of a workspace package count too (akinaza#551: apps/web/eslint.config.mjs was ignored)", () => {
+test("pass: guard configs of a workspace package count too (folioviv#551: apps/web/eslint.config.mjs was ignored)", () => {
   for (const f of ["apps/web/eslint.config.mjs", "packages/ui/.dependency-cruiser.cjs", "apps/web/rules/no-x.yml"])
     assert.ok(check({ ...fix, files: [f] }).ok, f);
 });

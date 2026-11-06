@@ -5,7 +5,7 @@ import { readFileSync, existsSync } from "node:fs";
 const rec = JSON.parse(readFileSync("docs/privacy/pims/records-of-processing.json", "utf8"));
 
 test("every product has a record with the fields Law 25 and 27701 need", () => {
-  assert.deepEqual(rec.products.map((p) => p.id).sort(), ["akinaza", "orazaka", "yomizaka"]);
+  assert.deepEqual(rec.products.map((p) => p.id).sort(), ["folioviv", "sovkora", "verikora"]);
   for (const p of rec.products) {
     for (const k of ["purposes", "categories", "persons", "suppliers"]) assert.ok(Array.isArray(p[k]) && p[k].length, `${p.id}.${k}`);
     for (const k of ["retention", "transfers", "rights", "pia"]) assert.ok(typeof p[k] === "string" && p[k], `${p.id}.${k}`);

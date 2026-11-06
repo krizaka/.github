@@ -81,11 +81,21 @@
     "com.krizaka/",
     "pkg:maven/com.orazaka",
     "com.orazaka",
+    "pkg:maven/com.sovkora",
+    "com.sovkora",
     "@yomizaka",
     "@akinaza",
     "@orazaka",
+    "@verikora",
+    "@folioviv",
+    "@sovkora",
+    "@kridoc",
     "pkg:npm/%40yomizaka/",
     "pkg:npm/%40akinaza/",
-    "pkg:npm/%40orazaka/"
+    "pkg:npm/%40orazaka/",
+    "pkg:npm/%40verikora/",
+    "pkg:npm/%40folioviv/",
+    "pkg:npm/%40sovkora/",
+    "pkg:npm/%40kridoc/"
   ]
 }

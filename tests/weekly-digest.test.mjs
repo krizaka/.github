@@ -17,8 +17,8 @@ test("bulletsOf reads one language's section, or every bullet of a body without 
 });
 
 test("renderDigest groups by product, each language with its own lines; an empty week says so", () => {
-  const md = renderDigest([{ product: "Yomizaka", tag: "yomizaka 2026.10.22.1", url: "https://example.test/r", body: BODY }]);
-  assert.match(md, /## Cette semaine chez Krizaka\n\n### Yomizaka[\s\S]*Lit un bail[\s\S]*## This week at Krizaka[\s\S]*Reads a lease/);
+  const md = renderDigest([{ product: "Verikora", tag: "verikora 2026.10.22.1", url: "https://example.test/r", body: BODY }]);
+  assert.match(md, /## Cette semaine chez Krizaka\n\n### Verikora[\s\S]*Lit un bail[\s\S]*## This week at Krizaka[\s\S]*Reads a lease/);
   assert.match(renderDigest([]), /Aucune livraison cette semaine\.[\s\S]*No release this week\./);
 });
 

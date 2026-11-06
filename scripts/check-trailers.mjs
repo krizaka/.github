@@ -1,5 +1,5 @@
 // Commit identities are an allow-list (founder 2026-11-04, krizaka-internal#2433): a made-up e-mail in a `Co-authored-by:` line once
-// listed a stranger as an akinaza contributor (2026-10-31). Now no e-mail can be invented: the author, the committer and every
+// listed a stranger as an folioviv contributor (2026-10-31). Now no e-mail can be invented: the author, the committer and every
 // co-author trailer must be in scripts/commit-identities.json (the Krizaka apps' bots and the founder). Nothing else passes; a
 // refused e-mail is masked in the output. The local hooks of krizaka-agents read the same file, pinned to the same sha.
 // Run by security-scan.yml on pull requests (the PR's commits) and in the merge queue (the squash commit itself).

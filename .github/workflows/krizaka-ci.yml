@@ -5,7 +5,7 @@
 #       uses: krizaka/.github/.github/workflows/krizaka-ci.yml@v2
 #       secrets: inherit
 #
-# The stack is detected from the caller's checkout (actions/detect), in this order: membership in the Orazaka workspace
+# The stack is detected from the caller's checkout (actions/detect), in this order: membership in the Sovkora workspace
 # (orazaka.workspace.json) · pom.xml · package.json / pnpm-workspace.yaml (with an MDX content/ folder: the blog) ·
 # pyproject.toml · *.tf. A repository may keep `.krizaka/ci.json` (its Postgres image, test env values, ignored paths,
 # the after-build script); it never lists steps. See docs/standards/ci-and-deploy.md.
@@ -107,7 +107,7 @@ jobs:
         if: ${{ needs.detect.outputs.stack != 'workspace' }}
         uses: krizaka/.github/actions/repo-layout@d701b569b15617609b890102bc0be9978759909c # main
 
-      - name: Check out the Orazaka workspace
+      - name: Check out the Sovkora workspace
         if: ${{ needs.detect.outputs.stack == 'workspace' }}
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

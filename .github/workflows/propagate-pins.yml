@@ -15,10 +15,10 @@ on:
   workflow_dispatch:
     inputs:
       source:
-        description: "The repository whose pins move (.github, or orazaka for the component.yml pins of the orazaka-* repositories)"
+        description: "The repository whose pins move (.github, or sovkora for the component.yml pins of the sovkora-* repositories)"
         default: ".github"
       sha:
-        description: "The commit the pins move to (default: this ref's head; for orazaka, its main sha)"
+        description: "The commit the pins move to (default: this ref's head; for sovkora, its main sha)"
         default: ""
 
 permissions:

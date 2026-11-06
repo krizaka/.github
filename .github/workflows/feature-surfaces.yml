@@ -58,7 +58,7 @@ jobs:
           app-id: ${{ vars.RELEASE_APP_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
           owner: krizaka
-          repositories: yomizaka,akinaza,orazaka,sovkora-cli,sovkora-web,sovkora-mobile,sovkora-contracts
+          repositories: verikora,folioviv,sovkora,sovkora-cli,sovkora-web,sovkora-mobile,sovkora-contracts
           permission-issues: write
           permission-metadata: read
         continue-on-error: true

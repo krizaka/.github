@@ -10,8 +10,8 @@
 //
 // `--source <repo>` moves the pins of another repository's reusable workflows instead (default `.github`). The one
 // that exists today is `sovkora`: every sovkora-* repository calls krizaka/sovkora/.github/workflows/component.yml@<sha>,
-// and a change to it reaches them with `node scripts/propagate-pins.mjs <orazaka main sha> --source orazaka`
-// (default repositories: the active orazaka-* ones of the org). The pull request is opened by the app, one per repository.
+// and a change to it reaches them with `node scripts/propagate-pins.mjs <sovkora main sha> --source sovkora`
+// (default repositories: the active sovkora-* ones of the org). The pull request is opened by the app, one per repository.
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, readFileSync, readdirSync, writeFileSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";

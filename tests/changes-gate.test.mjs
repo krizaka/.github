@@ -37,8 +37,8 @@ test("a markdown file below a package is code for the site (not ignored by the r
 });
 
 test("`relevant` is an allow-list", () => {
-  assert.equal(gate({ RELEVANT: "^(pom\\.xml|orazaka-end2end/)", GATE_TEST_FILES: JSON.stringify(["docs/a.md", "scripts/x.mjs"]) }), "false");
-  assert.equal(gate({ RELEVANT: "^(pom\\.xml|orazaka-end2end/)", GATE_TEST_FILES: JSON.stringify(["docs/a.md", "orazaka-end2end/A.java"]) }), "true");
+  assert.equal(gate({ RELEVANT: "^(pom\\.xml|sovkora-end2end/)", GATE_TEST_FILES: JSON.stringify(["docs/a.md", "scripts/x.mjs"]) }), "false");
+  assert.equal(gate({ RELEVANT: "^(pom\\.xml|sovkora-end2end/)", GATE_TEST_FILES: JSON.stringify(["docs/a.md", "sovkora-end2end/A.java"]) }), "true");
 });
 
 test("an empty file list runs everything (an empty « ci: trigger checks » commit)", () => {

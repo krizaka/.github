@@ -3,10 +3,10 @@
 // One issue per guard, found by its exact title: red opens it or comments on it, green closes it.
 //
 //   node scripts/red-run-issue.mjs --guard audit-guards --state red|green --run-url <url> [--log file] [--repo krizaka/krizaka-internal] [--dry-run]
-//   node scripts/red-run-issue.mjs --title "<repo> · fix(ci): main is red" --labels repo:orazaka,type:fix --body-file body.md --state red --run-url <url>
+//   node scripts/red-run-issue.mjs --title "<repo> · fix(ci): main is red" --labels repo:sovkora,type:fix --body-file body.md --state red --run-url <url>
 //     (any alert, not only a guard: an exact title, a body written by the caller, labels on open; the action `actions/alert-issue` wraps it)
-//   ... --alert-key main-red/orazaka   ONE issue per key, whatever its title does (ADR-001 §A.4, krizaka-internal#2282, #2023): the key is stored in
-//     the body as `<!-- alert-key: main-red/orazaka -->` and the issue carries the label `alert`. red: an open issue of the key gets a comment with the run,
+//   ... --alert-key main-red/sovkora   ONE issue per key, whatever its title does (ADR-001 §A.4, krizaka-internal#2282, #2023): the key is stored in
+//     the body as `<!-- alert-key: main-red/sovkora -->` and the issue carries the label `alert`. red: an open issue of the key gets a comment with the run,
 //     a closed one is reopened, none is opened (an open issue of the same title with no key adopts it); green closes the open one with the run as proof.
 //     The same contract as krizaka-agents `tools/alerts.py` (`issue-new --alert-key`), the tool the sessions use: keep the marker and the label identical.
 //
@@ -27,7 +27,7 @@ const KEY = /^[A-Za-z0-9][A-Za-z0-9._/-]{2,119}$/;
 
 /** The line that stores an alert key in an issue body; refused (throws) when the key is not a plain path-like word. */
 export function markerOf(key) {
-  if (!KEY.test(key ?? "")) throw new Error("--alert-key: 3 to 120 characters of letters, digits and . _ / - (e.g. main-red/orazaka)");
+  if (!KEY.test(key ?? "")) throw new Error("--alert-key: 3 to 120 characters of letters, digits and . _ / - (e.g. main-red/sovkora)");
   return `<!-- alert-key: ${key} -->`;
 }
 

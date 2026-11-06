@@ -43,7 +43,7 @@ test("workflow-calls reads the called workflows, per stack", async () => {
   assert.equal((await runCheck(check, snap("m", "maven", { ".github/workflows/ci.yml": call("java-ci.yml") }))).ok, true);
 });
 
-test("an Orazaka component calls component.yml of krizaka/sovkora", async () => {
+test("a Sovkora component calls component.yml of krizaka/sovkora", async () => {
   const text = "uses: krizaka/sovkora/.github/workflows/component.yml@" + "b".repeat(40);
   const check = { type: "workflow-calls", byKind: { maven: ["component.yml"] } };
   assert.equal((await runCheck(check, snap("c", "maven", { ".github/workflows/ci.yml": text }))).ok, true);
@@ -221,7 +221,7 @@ test("kachizaka is the managed storage's code name, not a departed product (kriz
 test("commercial-names: a repository that runs the code-name guard passes, one without it fails", async () => {
   const rule = loadRules().find((r) => r.id === "commercial-names");
   assert.equal(rule.issue, "krizaka/krizaka-internal#2036");
-  const pkg = (scripts) => snapshotOf("yomizaka", "app", ["package.json"], async () => JSON.stringify({ scripts }));
+  const pkg = (scripts) => snapshotOf("verikora", "app", ["package.json"], async () => JSON.stringify({ scripts }));
   assert.equal((await runCheck(rule.check, pkg({ "lint:names": "krizaka-code-names .next/server/app messages" }))).ok, true);
   assert.equal((await runCheck(rule.check, pkg({ lint: "eslint ." }))).ok, false);
 });
@@ -229,14 +229,14 @@ test("commercial-names: a repository that runs the code-name guard passes, one w
 test("journeys: both callers and `journeys / gate` required on main; a missing one is red, offline proves nothing", async () => {
   const rule = loadRules().find((r) => r.id === "journeys");
   const files = { ".github/workflows/ci.yml": call("journeys.yml") + call("post-deploy-journeys.yml") };
-  const withChecks = (list) => snapshotOf("akinaza", "app", Object.keys(files), async (p) => files[p], { requiredChecks: async () => list });
+  const withChecks = (list) => snapshotOf("folioviv", "app", Object.keys(files), async (p) => files[p], { requiredChecks: async () => list });
   assert.equal((await runCheck(rule.check, withChecks(["journeys / gate"]))).ok, true);
   const red = await runCheck(rule.check, withChecks(["ci / CI gate"]));
   assert.equal(red.ok, false);
   assert.match(red.why, /journeys \/ gate/);
-  assert.equal((await runCheck(rule.check, snap("akinaza", "app", files))).ok, null); // offline: unknown, never pass
+  assert.equal((await runCheck(rule.check, snap("folioviv", "app", files))).ok, null); // offline: unknown, never pass
   const noPost = { ".github/workflows/ci.yml": call("journeys.yml") };
-  assert.equal((await runCheck(rule.check, snap("akinaza", "app", noPost))).ok, false);
+  assert.equal((await runCheck(rule.check, snap("folioviv", "app", noPost))).ok, false);
   assert.deepEqual(rule.applies.onlyRepos, ["folioviv", "verikora", "sovkora-web"]);
 });
 

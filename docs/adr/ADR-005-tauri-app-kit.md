@@ -2,16 +2,16 @@
 
 - **Status**: Accepted
 - **Date**: 2026-10-22
-- **Scope**: every Krizaka macOS app (Orazaka Desktop, then Yomizaka and Akinaza for Mac)
+- **Scope**: every Krizaka macOS app (Sovkora Desktop, then Verikora and Folioviv for Mac)
 - **Issue**: [krizaka/.github#178](https://github.com/krizaka/.github/issues/178), epic #179
 
 ## Context
 
-Orazaka Desktop (Tauri 2, a `.dmg` on the orazaka releases) holds generic desktop work inside the product: canonical-path
+Sovkora Desktop (Tauri 2, a `.dmg` on the sovkora releases) holds generic desktop work inside the product: canonical-path
 folder grants (`scope.rs`), listing and previewing inside a grant (`files.rs`), settings persistence, the menu-bar item, the
-navigation guard, and the build / sign / notarise workflow. Yomizaka (local-folder libraries, drag and drop from Finder) and
-Akinaza (a back office in a native window) need the same, with the same security posture. Only the CLI sidecar and the
-`automation/` runner are Orazaka's.
+navigation guard, and the build / sign / notarise workflow. Verikora (local-folder libraries, drag and drop from Finder) and
+Folioviv (a back office in a native window) need the same, with the same security posture. Only the CLI sidecar and the
+`automation/` runner are Sovkora's.
 
 ## Decision
 
@@ -29,7 +29,7 @@ Akinaza (a back office in a native window) need the same, with the same security
 5. **`krizaka/krizaka-tauri-kit/template` (ex `template-tauri-app`, merged 2026-10-30) only wires**: `tauri.conf.json`, `capabilities/main.json`, `entitlements.plist`
    (hardened runtime, opts out of nothing), `desktop.yml` (build, sign, notarise when the secrets exist, attach the `.dmg`).
 6. **Signing is configuration**: the Developer ID and notarisation credentials are repository secrets; the code never changes.
-7. **Orazaka Desktop adopts the kit** in a separate PR of the Orazaka lane, after the kit is proven by the first new app.
+7. **Sovkora Desktop adopts the kit** in a separate PR of the Sovkora lane, after the kit is proven by the first new app.
 
 ## Consequences
 

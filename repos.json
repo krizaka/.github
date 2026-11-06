@@ -19,7 +19,7 @@
       "team": "folioviv",
       "kind": "app",
       "deploy": [
-        "akinaza-dev"
+        "folioviv-dev"
       ],
       "archived": false,
       "visibility": "public",
@@ -32,7 +32,7 @@
       "team": "krizaka",
       "kind": "site",
       "deploy": [
-        "kachizaka"
+        "kridoc"
       ],
       "archived": false,
       "visibility": "private",
@@ -235,7 +235,7 @@
       "team": "sovkora",
       "kind": "maven",
       "deploy": [
-        "orazaka-dev"
+        "sovkora-dev"
       ],
       "archived": false,
       "visibility": "public",
@@ -414,7 +414,7 @@
       "team": "verikora",
       "kind": "app",
       "deploy": [
-        "yomizaka-dev"
+        "verikora-dev"
       ],
       "archived": false,
       "visibility": "public",
