@@ -80,3 +80,30 @@ test("external tools run with a fixed set of system directories, never the calle
   assert.match(source, /runTool\("curl"/);
   for (const dir of TOOL_DIRS.split(":")) assert.ok(dir.startsWith("/"), `${dir} must be absolute`);
 });
+
+test("docs-current: on a pull request from a branch of this repository the CI regenerates and pushes `chore: regenerate`; elsewhere it fails (rules review 2026-11-05)", () => {
+  const wf = repoFile(".github/workflows/docs-current.yml");
+  const check = wf.slice(wf.indexOf("\n  check:\n"), wf.indexOf("\n  refresh:\n"));
+  const same = "github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository";
+  // The generator runs on the pull request's head, with no credential in the checkout.
+  assert.match(check, /ref: \$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}/);
+  assert.match(check, /persist-credentials: false/);
+  assert.doesNotMatch(check, /persist-credentials: true/);
+  const regen = check.indexOf("id: regen");
+  const token = check.indexOf("id: app");
+  assert.ok(regen > 0 && token > regen, "the app token is minted after the generator ran, so the generator never sees it");
+  assert.ok(check.includes(`if: \${{ ${same} }}`), "regenerate only on a same-repository pull request");
+  assert.match(check, /if: \$\{\{ steps\.regen\.outputs\.changed == 'true' && steps\.app\.outputs\.token != '' \}\}/);
+  // One commit, by the bot, pushed to the branch through env (no template injection), never twice in a row.
+  assert.match(check, /git commit -q -m "chore: regenerate"/);
+  assert.match(check, /HEAD_REF: \$\{\{ github\.head_ref \}\}/);
+  assert.match(check, /HEAD:refs\/heads\/\$HEAD_REF/);
+  assert.match(check, /"\$\(git log -1 --format=%s\)" = "chore: regenerate"/, "a second regeneration in a row fails instead of looping");
+  // The check itself still runs, and still fails, on merge_group, main and forks.
+  assert.match(check, /- run: node scripts\/gen-docs\.mjs --check/);
+  // The caller hands the app key by name, never `secrets: inherit`.
+  const gate = repoFile(".github/workflows/ci-gate.yml");
+  const docs = gate.slice(gate.indexOf("\n  docs:\n"), gate.indexOf("\n  publicissues:\n"));
+  assert.match(docs, /RELEASE_APP_PRIVATE_KEY: \$\{\{ secrets\.RELEASE_APP_PRIVATE_KEY \}\}/);
+  assert.doesNotMatch(gate, /secrets: inherit/);
+});
