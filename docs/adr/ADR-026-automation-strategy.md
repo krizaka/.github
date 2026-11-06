@@ -59,7 +59,8 @@ its 5–8 workflows.
    the site release train (`promote-production.mjs`, `production.yml`, `release-please.yml`) ×3; the pre-push hook ×3;
    `runpod-guard.py` ×2 (krizaka-agents and sovkora, 95 % alike); `update-behind-prs.sh`, `publish-packages.sh`,
    `npm-publish-error.mjs`, `check-template-drift.mjs` ×2 each. 14 more are **diverged twins** (same name and job, 35–76 % alike):
-   `check-app-links.mjs` ×3, `check-overflow.mjs` ×6, the folioviv/verikora e2e and visual scripts. sovkora-build ships a second
+   `check-app-links.mjs` ×3, `check-overflow.mjs` ×6 (only folioviv's and verikora's use the shared `@krizaka/page-audit`), the
+   folioviv/verikora e2e and visual scripts. sovkora-build ships a second
    `AbstractContainerIntegrationTest` (30 % alike) beside krizaka-test-support's. Separately, 174 files in 11 groups are the
    caller stubs of `workflow-templates/` (dependabot-automerge ×32, merge-resolution ×31, security ×33, scorecard ×30, …):
    GitHub needs one caller file per repository, so these are copies by design, and conformance already writes them.
@@ -275,7 +276,7 @@ E1 can start with phase A: the guards of phase F read its output.
 | B1 | krizaka-ts | `krizaka-sg-fix` bin in `@krizaka/config` (8 copies of `sg-fix.mjs`) | S |
 | B2 | .github | one reusable site release (release-please, production branch, promotion) for the three site repositories | M |
 | B3 | .github | one `check-app-links` action for the web and mobile apps (3 diverged copies) | M |
-| B4 | krizaka-ui | the page containment and overlap audit in one package (6 diverged `check-overflow.mjs`, ADR-013 §5) | M |
+| B4 | krizaka-ts | `@krizaka/page-audit` takes what the four other `check-overflow.mjs` still add (ADR-013 §5); folioviv and verikora already use it | S |
 | B5 | .github | one npm publish action (`publish-packages.sh`, `npm-publish-error.mjs` of krizaka-ts and krizaka-ui) | M |
 | B6 | sovkora-build | the services extend krizaka-test-support's `AbstractContainerIntegrationTest`; the second base goes | M |
 | B7–B18 | kridoc, krizaka-blog, krizaka-com, krizaka-coming-soon, krizaka-template-web, krizaka-java, krizaka-ts, krizaka-ui, krizaka-lab, sovkora-web, folioviv, verikora | one issue per repository: call the shared bins and workflows (B1–B5, `krizaka-seo-family`, the visual-regression workflow), delete its copies and its unused `sync-brand-icons.mjs` | S each (M for krizaka-com) |
@@ -328,5 +329,5 @@ of their own.
 | F3 | krizaka-agents | regex length and file size for the Python tools in the complexity guard | S |
 | F4 | krizaka-ts | `scripts/` and `tools/` inside the shared ESLint layer of every consumer (the sonarjs regex rules then cover them) | S |
 
-56 issues: 37 S, 17 M, 2 L. Done when the four `automation-*` rules pass in every active repository and the cockpit view
+56 issues: 38 S, 16 M, 2 L. Done when the four `automation-*` rules pass in every active repository and the cockpit view
 shows no unreferenced, copied or untested core unit outside its baseline.
