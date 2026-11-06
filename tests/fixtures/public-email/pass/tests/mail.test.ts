@@ -1,2 +1,4 @@
 // A test may spell an address.
-export const sample = "contact@krizaka.com";
+test("spells an address", () => {
+  expect("contact@krizaka.com").toContain("@");
+});
