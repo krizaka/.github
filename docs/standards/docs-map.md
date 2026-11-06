@@ -40,10 +40,24 @@ repository fails.
 
 ## How a pull request is held to it
 
-On each pull request, for each category its changed files match, one of the category's documents of the same repository is in
-the diff, or the body has a line `Docs: <the pull request or issue that updates them>` (the documents are in another
-repository) or `Docs: not needed, <why>`. The check is [krizaka-internal#2758](https://github.com/krizaka/krizaka-internal/issues/2758);
-the rule that makes every active repository run it is [krizaka-internal#2759](https://github.com/krizaka/krizaka-internal/issues/2759).
+The check `docs-map / check` ([docs-map.yml](../../.github/workflows/docs-map.yml), called from each repository by the template
+[workflow-templates/docs-map.yml](../../workflow-templates/docs-map.yml); logic in `scripts/docs-map-check.mjs`, fixtures in
+`tests/docs-map-check.test.mjs`) runs on each pull request, and again when its description is edited. For each category whose `when`
+globs match a changed file of the repository, it passes when one of these holds:
+
+1. **A document of the category, in this repository, is in the diff.**
+2. **`Docs: <link>`** in the description: a link to the pull request or issue that updates the documents (they are in another
+   repository, or the work is in a pull request of its own). One word of link, `https://…` or `owner/repo#12`.
+3. **`Docs: not needed, <why>`** in the description: the change does not alter what the documents say. The reason is required.
+
+Otherwise it names the category, the files that matched, the documents of this repository to update and the two `Docs:` forms.
+A local page (`local: true`) is never asked for.
+
+**Rollout.** The registry of rules has no « warning » state, so the check has its own: the input `mode` of the reusable workflow
+is `warn` (default: the problem is a warning in the job and its summary, the check stays green) or `required` (red). The check is
+first rolled out in `warn`; once it has run clean on the org's pull requests, the default is changed to `required` in
+`docs-map.yml` and the check is added to the required checks of the profile. The conformance rule
+[krizaka-internal#2759](https://github.com/krizaka/krizaka-internal/issues/2759) makes every active repository call it.
 
 ## Add a category
 
