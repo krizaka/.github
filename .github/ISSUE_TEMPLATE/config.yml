@@ -4,8 +4,8 @@ contact_links:
     url: https://docs.github.com/code-security/security-advisories/guidance-on-reporting-and-writing-information-about-vulnerabilities/privately-reporting-a-security-vulnerability
     about: Report it privately (Security → Report a vulnerability), never in a public issue.
   - name: Questions & ideas — Krizaka Java building blocks
-    url: https://github.com/krizaka/krizaka-platform-kit/discussions
-    about: krizaka-build, krizaka-platform-kit, krizaka-users, krizaka-billing — one forum, one BOM.
+    url: https://github.com/krizaka/krizaka-build/discussions
+    about: krizaka-build (platform-kit and users folders included), krizaka-billing — one forum, one BOM.
   - name: Questions & ideas — Krizaka UI
     url: https://github.com/krizaka/krizaka-ui/discussions
     about: "@krizaka/tokens, tailwind, ui, icons, i18n, intl, config."

@@ -36,7 +36,7 @@ The platform kit's JDBC stores (`KrizakaMigrations`, history `krizaka_schema_his
 
 **What a V1 holds.** The schema, plus the **reference data the product needs in every environment** (plans, pricebook, model registry, grants, consent statements). It holds no persona, no demo row and no `90-dev-fixtures`. Those belong to the seed (§ 7).
 
-**Flyway settings** (every Java service, one shared default in krizaka-platform-kit `krizaka-persistence` so the services do not repeat it):
+**Flyway settings** (every Java service, one shared default in krizaka-build `krizaka-platform-kit/krizaka-persistence` so the services do not repeat it):
 
 - `enabled: true`, `validate-on-migrate: true`, `clean-disabled: true`, `out-of-order: false`.
 - `baseline-on-migrate: true` **only until the first reset** (it adopts today's databases while the slices land). It becomes `false` in the post-reset PR: from then on, a non-empty database without history is an error, not something to adopt.

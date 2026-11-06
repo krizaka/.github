@@ -51,8 +51,8 @@ test("is idempotent", () => {
 });
 
 test("one server and one repository per Krizaka repository", () => {
-  const xml = mergeSettings("", { repositories: ["krizaka-build", "krizaka-users"], username: "octo" });
-  assert.match(xml, /krizaka-users<\/id>/);
+  const xml = mergeSettings("", { repositories: ["krizaka-build", "krizaka-billing"], username: "octo" });
+  assert.match(xml, /krizaka-billing<\/id>/);
   assert.equal(xml.match(/<server>/g).length, 2);
 });
 

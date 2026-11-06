@@ -50,17 +50,6 @@
       "status": "Complies"
     },
     {
-      "name": "krizaka-accounts",
-      "owner": "krizaka",
-      "role": "Shared accounts site (accounts.krizaka.com)",
-      "team": "krizaka",
-      "kind": "none",
-      "deploy": [],
-      "archived": false,
-      "visibility": "public",
-      "status": "Complies"
-    },
-    {
       "name": "krizaka-agents",
       "owner": "krizaka",
       "role": "How the agents work: rules, scripts, skills (private)",
@@ -193,18 +182,6 @@
       "foldInto": "krizaka-build"
     },
     {
-      "name": "krizaka-platform-kit",
-      "owner": "krizaka",
-      "role": "Java cross-cutting blocks",
-      "team": "krizaka",
-      "kind": "maven",
-      "deploy": [],
-      "archived": false,
-      "visibility": "public",
-      "status": "Rename → krizaka-platform",
-      "renameTo": "krizaka-platform"
-    },
-    {
       "name": "krizaka-skills",
       "owner": "krizaka",
       "role": "Former agents' skills, moved into `krizaka-agents`",
@@ -249,17 +226,6 @@
       "deploy": [
         "krizaka-ui-site"
       ],
-      "archived": false,
-      "visibility": "public",
-      "status": "Complies"
-    },
-    {
-      "name": "krizaka-users",
-      "owner": "krizaka",
-      "role": "Shared capability service",
-      "team": "krizaka",
-      "kind": "maven",
-      "deploy": [],
       "archived": false,
       "visibility": "public",
       "status": "Complies"
