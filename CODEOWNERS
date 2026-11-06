@@ -1,0 +1,5 @@
+# The org policy changes by a pull request the founder reviews (krizaka-internal#2781; docs/standards/policy.md).
+# The CTO works through the app identities and the founder's account approves: no other CODEOWNERS entry exists in the org yet.
+/policy.json                           @oussamaABID
+/docs/standards/policy.schema.json     @oussamaABID
+/CODEOWNERS                            @oussamaABID
