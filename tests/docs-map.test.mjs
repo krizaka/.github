@@ -17,9 +17,9 @@ const withDoc = (doc) => mapOf({ ...category(), docs: [doc] });
 describe("the committed map", () => {
   const map = loadMap();
   it("is valid", () => assert.deepEqual(mapProblems(map), []));
-  it("holds the eight seed categories", () => {
+  it("holds the seed categories", () => {
     const ids = map.categories.map((c) => c.id);
-    for (const id of ["way-of-working", "java-norm", "typescript-norm", "new-repository", "product-rename", "automation", "release-process", "board-lanes"]) {
+    for (const id of ["way-of-working", "java-norm", "typescript-norm", "new-repository", "product-rename", "automation", "release-process", "board-lanes", "org-policy"]) {
       assert.ok(ids.includes(id), id);
     }
   });

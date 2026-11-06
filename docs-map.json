@@ -111,6 +111,17 @@
         { "repo": "krizaka-internal", "path": "docs/onboarding/with-claude-code.md" },
         { "repo": "krizaka-internal", "path": "docs/onboarding/with-claude-code.fr.md" }
       ]
+    },
+    {
+      "id": "org-policy",
+      "title": "The org policy: policy.json, its schema and its readers",
+      "when": [
+        { "repo": ".github", "globs": ["policy.json", "docs/standards/policy.schema.json", "scripts/policy.mjs", "scripts/pr-cap.mjs"] },
+        { "repo": "krizaka-agents", "globs": ["tools/policy.py"] }
+      ],
+      "docs": [
+        { "repo": ".github", "path": "docs/standards/policy.md" }
+      ]
     }
   ]
 }

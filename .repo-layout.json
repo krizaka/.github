@@ -1,6 +1,10 @@
 {
   "allow": [
     {
+      "path": "policy.json",
+      "why": "the org policy, one source of truth read by every guard, cron and CI job, validated by docs/standards/policy.schema.json (krizaka-internal#2781)"
+    },
+    {
       "path": ".pre-commit-hooks.yaml",
       "why": "the hooks of the org, read by the pre-commit framework from the repository root (krizaka/.github#324)"
     },
