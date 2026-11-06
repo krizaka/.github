@@ -126,3 +126,15 @@ Every rule set has **one** home. A repo only consumes it.
 <!-- gen:config-exports:start -->
 `@krizaka/config` 0.20.0 ships 7 commands (`krizaka-edit-check`, `krizaka-known-violations`, `krizaka-ratchet`, `krizaka-seo-family`, `krizaka-server-client-boundary`, `krizaka-sg-ratchet`, `krizaka-workspace-guard`) and 22 entry points: `./covered-domains`, `./covered-domains.json`, `./dependency-cruiser`, `./editorconfig`, `./eslint`, `./eslint/code-rules`, `./eslint/env-names`, `./eslint/krizaka-ui`, `./eslint/next`, `./eslint/no-locale-ternary`, `./eslint/plugin`, `./eslint/stack`, `./eslint/ui-warnings`, `./known-violations`, `./patterns`, `./prettier`, `./ratchet`, `./server-client-boundary`, `./tsconfig/base.json`, `./tsconfig/next.json`, `./tsconfig/react-library.json`, `./tsconfig/react-native.json`.
 <!-- gen:config-exports:end -->
+
+## 4. Matching a person can read (ADR-026 principle 4, phase D)
+
+A regex over 80 characters is rewritten as one of three things, with a test that pins the old answers (a fixture recorded from the old code):
+
+| It was | It becomes | Example |
+| :-- | :-- | :-- |
+| a list of words as one alternation | data (an array) and one matcher | `scripts/public-issue-rules.mjs` (the lists) read by `scripts/signal-match.mjs` (`|word|` = word edges, `?` = any one character) |
+| a structured input (path, HTML, XML, source) | a parser, or segments of the input each checked by a small named pattern | krizaka-com `scripts/bunny-layout-grammar.mjs` |
+| a real pattern (a lookbehind, a digit run) | named, commented parts, one test per part | `SONAR_WITH_VULNERABILITIES`, `DOLLAR_AMOUNT` in `scripts/public-issue-rules.mjs` |
+
+A script keeps one job per function, a header (why, what, how to run, owner) and at most 400 lines per file.
