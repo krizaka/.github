@@ -10,7 +10,7 @@
 
 export const ORG = "krizaka";
 export const INTERNAL = "krizaka-internal";
-export const APPS = new Set(["krizaka-agents[bot]", "orazaka[bot]"]);
+export const APPS = new Set(["krizaka-agents[bot]", "sovkora[bot]"]);
 export const REPORT_LABEL = "scan-report";
 
 /** Title patterns per category (strong signals), then body patterns that need `min` hits. */
