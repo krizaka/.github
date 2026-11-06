@@ -86,8 +86,17 @@ test("--exact makes a version comment exact, keeps the rest of the comment and l
   assert.match(unresolved[0], /# v2: no release tag/);
 });
 
-test("--refresh reads the branch as the first word of the comment", () => {
-  const src = `    uses: o/r/.github/workflows/w.yml@${A} # main (light scan)`;
-  const { text } = pinWorkflowText(src, (_repo, ref) => (ref === "main" ? { sha: B, label: "main" } : assert.fail(ref)), { refresh: true });
-  assert.equal(text, `    uses: o/r/.github/workflows/w.yml@${B} # main`);
+test("--refresh moves the pin and keeps the reason of its comment", () => {
+  const src = [`    uses: o/r/.github/workflows/w.yml@${A} # main (krizaka/.github#303)`, `    uses: o/r/.github/workflows/x.yml@${A} # main`].join("\n");
+  const resolve = (_repo, ref) => (ref === "main" ? { sha: B, label: "main" } : assert.fail(ref));
+  const { text } = pinWorkflowText(src, resolve, { refresh: true });
+  assert.deepEqual(text.split("\n"), [`    uses: o/r/.github/workflows/w.yml@${B} # main (krizaka/.github#303)`, `    uses: o/r/.github/workflows/x.yml@${B} # main`]);
+  const unchanged = `    uses: o/r/.github/workflows/w.yml@${B} # main (krizaka/.github#303)`;
+  assert.equal(pinWorkflowText(unchanged, resolve, { refresh: true }).text, unchanged);
+});
+
+test("--exact keeps the reason after a version comment", () => {
+  const src = `      - uses: a/b@${A} # v7 (pinned for the cache fix)`;
+  const { text } = pinWorkflowText(src, () => assert.fail("no resolve"), { tagsAt: () => ["v7", "v7.0.1"] });
+  assert.equal(text, `      - uses: a/b@${A} # v7.0.1 (pinned for the cache fix)`);
 });
