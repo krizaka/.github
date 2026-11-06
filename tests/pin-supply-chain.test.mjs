@@ -85,3 +85,9 @@ test("--exact makes a version comment exact, keeps the rest of the comment and l
   assert.equal(unresolved.length, 1);
   assert.match(unresolved[0], /# v2: no release tag/);
 });
+
+test("--refresh reads the branch as the first word of the comment", () => {
+  const src = `    uses: o/r/.github/workflows/w.yml@${A} # main (light scan)`;
+  const { text } = pinWorkflowText(src, (_repo, ref) => (ref === "main" ? { sha: B, label: "main" } : assert.fail(ref)), { refresh: true });
+  assert.equal(text, `    uses: o/r/.github/workflows/w.yml@${B} # main`);
+});

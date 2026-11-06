@@ -108,8 +108,8 @@ export function pinWorkflowText(text, resolve, { refresh = false, tagsAt = null 
         if (fixed.change) changes.push(`${path} ${fixed.change}`);
         return fixed.line;
       }
-      if (!refresh || !branch || /^v?\d/.test(branch)) return line;
-      pinned = branch;
+      if (!refresh || !word || /^v?\d/.test(word)) return line;
+      pinned = word; // `# main (why)`: the branch is the first word
     }
     const { sha, label } = resolve(repo, pinned);
     if (SHA.test(ref) && sha === ref) return line;
