@@ -2,24 +2,24 @@
 
 - **Status**: Accepted (design; the packages are not published yet)
 - **Date**: 2026-10-26
-- **Scope**: every Krizaka product that keeps files (Yomizaka, Akinaza, Orazaka, then the others)
-- **Issues**: [krizaka/.github#248](https://github.com/krizaka/.github/issues/248); TypeScript package [krizaka/krizaka-ts#44](https://github.com/krizaka/krizaka-ts/issues/44). Legal questions: akinaza#364, orazaka#393 (they do not block the code).
+- **Scope**: every Krizaka product that keeps files (Verikora, Folioviv, Sovkora, then the others)
+- **Issues**: [krizaka/.github#248](https://github.com/krizaka/.github/issues/248); TypeScript package [krizaka/krizaka-ts#44](https://github.com/krizaka/krizaka-ts/issues/44). Legal questions: folioviv#364, sovkora#393 (they do not block the code).
 
 ## Context
 
-Each product re-implements storage. Yomizaka has the most complete one (`apps/web/lib/storage/`): a `DocumentStore` port
-(`@yomizaka/core`), adapters for Bunny, S3-compatible services and memory, the customer's own storage with a connection test,
+Each product re-implements storage. Verikora has the most complete one (`apps/web/lib/storage/`): a `DocumentStore` port
+(`@verikora/core`), adapters for Bunny, S3-compatible services and memory, the customer's own storage with a connection test,
 encryption at rest with a vault, a region-to-country table (`regions.ts`, `where.ts`), the settings in its database, a contract
-test kit and `residency-claims.test.ts`, which refuses a public sentence the configuration does not prove. Akinaza keeps photos
+test kit and `residency-claims.test.ts`, which refuses a public sentence the configuration does not prove. Folioviv keeps photos
 and files on Bunny (New York) through its own `media-upload.ts`; it had to remove every « Canada » sentence about them
-(akinaza#362) and a test now keeps the text true. If the admin could choose a Canadian store, a product could say « Canada » truthfully,
-because the sentence would follow the setting. Yomizaka's kept documents are in its own database (Toronto).
+(folioviv#362) and a test now keeps the text true. If the admin could choose a Canadian store, a product could say « Canada » truthfully,
+because the sentence would follow the setting. Verikora's kept documents are in its own database (Toronto).
 
 ## Decision
 
 One name, two implementations, one source of truth for the region list.
 
-1. **TypeScript: `@krizaka/storage` in krizaka-ts**, extracted from Yomizaka, not rewritten.
+1. **TypeScript: `@krizaka/storage` in krizaka-ts**, extracted from Verikora, not rewritten.
    - Port: `put`, `get`, `head`, `delete`, `list(prefix)`, `signedUrl`, plus `verify` (write, read, delete a probe object).
    - Adapters, named by what they speak: `s3` (any S3-compatible service: DigitalOcean Spaces, AWS, MinIO, Azure through S3; endpoint,
      region, bucket, keys, path or virtual-host style), `http` (a provider's own REST API such as Bunny Storage, or a generic
@@ -47,7 +47,7 @@ One name, two implementations, one source of truth for the region list.
    `residency-claims` moves into the package and every app runs it. No sentence claims a legal conformity; only facts such as
    « stored in Canada (Toronto) ».
 8. **A CDN in front** (Bunny) may have a Canadian origin. The edge caches outside Canada, so the sentence names the origin
-   (« stored in Canada (Toronto), served through a CDN ») until the lawyer answers akinaza#364.
+   (« stored in Canada (Toronto), served through a CDN ») until the lawyer answers folioviv#364.
 
 ## Costs and limits
 
@@ -57,12 +57,12 @@ by the product and set by the admin, not typed in the adapter.
 
 ## What each product does to adopt
 
-Issues: Spring block krizaka-build#94, Yomizaka yomizaka#430, Akinaza akinaza#397.
+Issues: Spring block krizaka-build#94, Verikora verikora#430, Folioviv folioviv#397.
 
-1. **Yomizaka** first: swap its local module for the package, no behaviour change, its tests unchanged and green.
-2. **Akinaza**: photos and files move behind the port; a Toronto option is configured by the admin; its public text goes back to
+1. **Verikora** first: swap its local module for the package, no behaviour change, its tests unchanged and green.
+2. **Folioviv**: photos and files move behind the port; a Toronto option is configured by the admin; its public text goes back to
    « Canada » only where the configuration proves it.
-3. **Orazaka** (Java `krizaka-storage` for the services, the package for the web client), then the others.
+3. **Sovkora** (Java `krizaka-storage` for the services, the package for the web client), then the others.
 
 ## Consequences
 
@@ -70,4 +70,4 @@ Issues: Spring block krizaka-build#94, Yomizaka yomizaka#430, Akinaza akinaza#39
 - A Canadian claim becomes possible and checkable instead of removed.
 - Two implementations to keep in step: the contract tests and the shared `regions.json` are what keeps them honest.
 - Migration of existing files is real work and is its own job, not a side effect of changing a setting.
-- Not decided here: legal wording about CDN edges and the disclosure of the processor (akinaza#364, orazaka#393).
+- Not decided here: legal wording about CDN edges and the disclosure of the processor (folioviv#364, sovkora#393).

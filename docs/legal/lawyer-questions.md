@@ -24,11 +24,11 @@ How to add one: a row in the right table with the topic, the law cited (statute,
 | AI-assisted authorship | *Copyright Act* s. 5; *CCH Canadian Ltd. v. Law Society of Upper Canada*, 2004 SCC 13 | [ai-authorship.md](ai-authorship.md): Oussama's direction, selection and review make him the author; the trail is kept | Is that enough for authorship of agent-written code; can Krizaka enforce the licence on the whole repository if fragments have no author; do the AI providers' terms leave every right to Krizaka? | .github#250 |
 | Trademarks | *Trademarks Act*, R.S.C. 1985, c. T-13, ss. 7, 16, 30 | [TRADEMARKS.md](../../TRADEMARKS.md); filings listed in the private folder | Clearance of each name, the classes and the goods and services wording, ownership of marks used before incorporation | .github#250 |
 | Model weights | Licences of the weights (CreativeML OpenRAIL-M, CC-BY-NC-4.0) | [Licence audit](licence-audit-2026-10.md) finding 1: non-commercial weights refused in production | Must the OpenRAIL-M use restrictions be repeated in our terms of use? | .github#250 |
-| Terms of use: IP and acceptable use | *Copyright Act* s. 27; C.c.Q. arts. 1435-1437, 1474 | Yomizaka and Akinaza terms to gain an « intellectual property and acceptable use » section | Wording of the reservation of rights, no resale or white-label, no automated extraction, no circumvention of quotas, consistent with source-available code | yomizaka#439, akinaza#409 |
+| Terms of use: IP and acceptable use | *Copyright Act* s. 27; C.c.Q. arts. 1435-1437, 1474 | Verikora and Folioviv terms to gain an « intellectual property and acceptable use » section | Wording of the reservation of rights, no resale or white-label, no automated extraction, no circumvention of quotas, consistent with source-available code | verikora#439, folioviv#409 |
 
 ## Products
 
-The product tables (Yomizaka, Akinaza, Orazaka) live in the issue; they are not copied here to avoid two sources of truth. The Akinaza terms of use (akinaza#379) carry eight questions of their own, listed in a comment on the issue: consumer or business, the citations, price changes on a renewed subscription, refunds, the liability cap, holding no funds, the founder price, click-through acceptance.
+The product tables (Verikora, Folioviv, Sovkora) live in the issue; they are not copied here to avoid two sources of truth. The Folioviv terms of use (folioviv#379) carry eight questions of their own, listed in a comment on the issue: consumer or business, the citations, price changes on a renewed subscription, refunds, the liability cap, holding no funds, the founder price, click-through acceptance.
 
 ## Done when
 

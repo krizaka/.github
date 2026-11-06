@@ -8,10 +8,10 @@
 #     uses: krizaka/.github/.github/workflows/post-deploy-journeys.yml@<sha> # main
 #     permissions: { contents: read, issues: write }
 #     with:
-#       product: akinaza
-#       lane: akinaza
+#       product: folioviv
+#       lane: folioviv
 #       environment: dev                       # dev | prod
-#       site-url: https://dev.akinaza.com
+#       site-url: https://dev.folioviv.com
 #       ref: ${{ github.event.workflow_run.head_sha }}
 #       personas: "lea.beaulieu@demo,camille.tremblay@demo"
 #     secrets:
@@ -23,7 +23,7 @@ on:
   workflow_call:
     inputs:
       product:
-        description: "The product id (akinaza, yomizaka, orazaka)."
+        description: "The product id (folioviv, verikora, sovkora)."
         type: string
         required: true
       lane:

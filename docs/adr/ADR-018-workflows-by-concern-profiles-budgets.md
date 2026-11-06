@@ -19,10 +19,10 @@ are reproducible with `scripts/ci-speed.mjs` (the feedback times) and the billin
 | :--- | :--- |
 | Workflow runs | **16,003** in 7 days: 5,515 `pull_request`, 4,117 `dynamic` (CodeQL default setup, Dependabot, Pages), 2,547 `push`, 2,542 `pull_request_target`, 710 `merge_group`, 287 `repository_dispatch`, 125 `schedule` |
 | Runner minutes | **224,320 Linux + 938 macOS** (Oct 24–30): $1,398 at list price, **$0 net** (public repositories). The bill is zero; the *time* is not — it is the lanes' waiting. |
-| Where | yomizaka 55k · akinaza 50k · krizaka-ui 49k · .github 18k · krizaka-ts 13k · orazaka 11k · krizaka-com 7k |
+| Where | verikora 55k · folioviv 50k · krizaka-ui 49k · .github 18k · krizaka-ts 13k · sovkora 11k · krizaka-com 7k |
 | Conclusions | 11,902 success · 2,495 skipped · 1,083 failure · 423 cancelled (superseded) · 47 startup failures |
-| Runs that did nothing | 2,495 skipped `pull_request_target` runs of `dependabot-automerge` (one per PR in 37 repositories, 0 minutes but one more check row each); 103 of 167 « Docs regenerate » runs of orazaka and 82 of 134 « Security scan » runs under 45 s; **287 « Changelog rebuild » runs (31.8 h)** — one forced krizaka.com rebuild per product release, 253 in three days, each runner waiting `--wait` ≈ 6.6 min |
-| Red | krizaka-ui `CI` 115 failures of 262 runs (44 %); orazaka-web-client « Dev preview live » 45 of 50 |
+| Runs that did nothing | 2,495 skipped `pull_request_target` runs of `dependabot-automerge` (one per PR in 37 repositories, 0 minutes but one more check row each); 103 of 167 « Docs regenerate » runs of sovkora and 82 of 134 « Security scan » runs under 45 s; **287 « Changelog rebuild » runs (31.8 h)** — one forced krizaka.com rebuild per product release, 253 in three days, each runner waiting `--wait` ≈ 6.6 min |
+| Red | krizaka-ui `CI` 115 failures of 262 runs (44 %); sovkora-web « Dev preview live » 45 of 50 |
 
 ### The reusable workflows and their callers
 
@@ -35,8 +35,8 @@ are reproducible with `scripts/ci-speed.mjs` (the feedback times) and the billin
 | `bump-krizaka.yml` | 9 | 4 |
 | `python-ci.yml` (2 repos) · `maven.yml` 7 · `tauri-macos.yml` (4 repos) · `mobile-e2e.yml` (4) · `visual-regression.yml` (3) · `post-deploy.yml` 4 · `app-videos.yml` 4 · `expo-ci.yml` 4 · `java-ci.yml` 2 · `maven-github-packages.yml` 2 · `deploy-watch.yml` 1 · `krizaka-ci.yml` 1 | | 1–3 |
 
-The Orazaka components (13 repositories) call `component.yml` of krizaka/orazaka, not this repository. Five
-repositories run on a merge queue (krizaka-com, krizaka-ui, yomizaka, akinaza, krizaka-ts); the required checks of
+The Sovkora components (13 repositories) call `component.yml` of krizaka/sovkora, not this repository. Five
+repositories run on a merge queue (krizaka-com, krizaka-ui, verikora, folioviv, krizaka-ts); the required checks of
 each repository are in the scorecard (§ 7) rather than copied here.
 
 ### Speed: feedback at the 90th percentile (minutes; budget: PR 10, merge queue 15)
@@ -46,18 +46,18 @@ budget.** The worst, with the critical path read from three green queue runs' jo
 
 | Repository | PR p50 | PR p90 | Queue p50 | Queue p90 | Critical path |
 | :--- | --: | --: | --: | --: | :--- |
-| akinaza | 21.2 | **27.5** | 23.5 | **28.5** | `Verify (build)` 24.9 min = after-build crawls 14.6 + **the tests again, 8.9** + build 0.7; Maestro (Android) 19.9 |
+| folioviv | 21.2 | **27.5** | 23.5 | **28.5** | `Verify (build)` 24.9 min = after-build crawls 14.6 + **the tests again, 8.9** + build 0.7; Maestro (Android) 19.9 |
 | krizaka-ui | 17.2 | **24.9** | 27.2 | **29.5** | one serial job « Type-check, test, build » 24.1 min (not on node-ci); three documentation crawls ≈ 10 min each |
-| yomizaka | 15.5 | **20.8** | 15.6 | **18.8** | `Verify (build)` 10.5 min = after-build 4.8 + **the tests again, 4.1**; Mobile CI |
-| orazaka | 1.3 | **26.8** | — | — | the workspace build of the upstreams |
+| verikora | 15.5 | **20.8** | 15.6 | **18.8** | `Verify (build)` 10.5 min = after-build 4.8 + **the tests again, 4.1**; Mobile CI |
+| sovkora | 1.3 | **26.8** | — | — | the workspace build of the upstreams |
 | krizaka-com | 9.7 | **16.7** | 10.6 | 13.6 | `Container image` 7.9 min (the image smoke 5.3) |
-| Orazaka services (job, conversation, automation, studio, ai-engine, edge, knowledge) | 4.5–10.2 | 10.5–17.6 | — | — | the Maven workspace (`component / verify`) |
+| Sovkora services (job, conversation, automation, studio, ai-engine, edge, knowledge) | 4.5–10.2 | 10.5–17.6 | — | — | the Maven workspace (`component / verify`) |
 | krizaka-lab | 9.1 | 111.9 | — | — | runs waiting for a runner or an approval |
-| within budget | | ≤ 9.5 | | ≤ 13.6 | krizaka-ts, krizaka-build, krizaka-billing, krizaka-notifications, orazaka-web-client, orazaka-cli, orazaka-build, orazaka-contracts, orazaka-ui-kit, template-next-app, template-tauri-app, krizaka-tauri-kit, krizaka-infra, krizaka-accounts, .github |
+| within budget | | ≤ 9.5 | | ≤ 13.6 | krizaka-ts, krizaka-build, krizaka-billing, krizaka-notifications, sovkora-web, sovkora-cli, sovkora-build, sovkora-contracts, sovkora-ui-kit, template-next-app, template-tauri-app, krizaka-tauri-kit, krizaka-infra, krizaka-accounts, .github |
 
 **The first win is a bug.** Since the build pack (2026-10-25, #224) the `build` leg of `node-ci.yml` in
 `parallel: true` mode runs the test script again after the `test` leg already ran it (v1.3 ran it once). It costs
-akinaza 8.9 minutes and yomizaka 4.1 minutes on the critical path of every PR and every queue entry. Slice 1 removes it
+folioviv 8.9 minutes and verikora 4.1 minutes on the critical path of every PR and every queue entry. Slice 1 removes it
 (§ 9).
 
 ### Rules checked by reading today, and their automated check
@@ -126,7 +126,7 @@ legacy shims still required by name, listed for the CTO (protection change, foun
 
 `docs/standards/ci-profiles.json` declares the profiles (`library`, `app-web`, `app-mobile`, `app-desktop`,
 `java-service`, `worker`, `site`, `docs`, `infra`, `org`), each with its default workflows and its optional ones, and
-maps every active repository of `repos.json` to one or more profiles (akinaza is `app-web` + `app-mobile`; a test
+maps every active repository of `repos.json` to one or more profiles (folioviv is `app-web` + `app-mobile`; a test
 refuses an active repository without a profile). A repository composes what it needs: every workflow keeps inputs for
 the jobs it runs, `relevant` / `ignore` (path filters through the fail-open gate), `timeout-minutes`, shards
 (`e2e-shards`), `parallel`, caches (`turbo-cache`, `next-cache-paths`). Slice 3 adds a caller template per profile
@@ -161,14 +161,14 @@ the jobs it runs, `relevant` / `ignore` (path filters through the fail-open gate
   plain `docker build` (94 s vs 77 s) and competes for the 10 GB; it stays off.
 - **Cloud Native Buildpacks where they fit** (SBOM inside the image, reproducible, cached layers, no Dockerfile to
   maintain): the Spring services build with `spring-boot:build-image` (Paketo, already in Spring Boot) — first
-  `orazaka-conversation-service`, whose Dockerfile goes; the Next.js apps (krizaka-com, akinaza, yomizaka,
+  `sovkora-conversation-service`, whose Dockerfile goes; the Next.js apps (krizaka-com, folioviv, verikora,
   template-next-app) trial the Paketo Node.js buildpack on template-next-app first, adopted only if build time and image
   size are not worse than the Dockerfile by more than 20 % (measured in the PR). DigitalOcean App Platform builds CNB
   natively, so the deploy path does not change.
-- **Dockerfiles kept, with their reason**: `orazaka-worker-media/Dockerfile.cuda` and `orazaka/infra/compute-nodes`
-  (CUDA base images and the NVIDIA runtime, no buildpack covers them); `orazaka/infra/deploy/gpu-relay` (a tiny relay on
-  a pinned distroless base); `yomizaka/deploy/backup` (database tooling installed from apt, outside the buildpacks'
-  model); `orazaka-packs/.../forensics` (native forensics libraries).
+- **Dockerfiles kept, with their reason**: `sovkora-worker-media/Dockerfile.cuda` and `sovkora/infra/compute-nodes`
+  (CUDA base images and the NVIDIA runtime, no buildpack covers them); `sovkora/infra/deploy/gpu-relay` (a tiny relay on
+  a pinned distroless base); `verikora/deploy/backup` (database tooling installed from apt, outside the buildpacks'
+  model); `sovkora-packs/.../forensics` (native forensics libraries).
 
 ## 7. The repository health scorecard (founder, 2026-10-30)
 
@@ -213,8 +213,8 @@ and the scorecard's composition.
 3. **Slice 3:** the renames of § 2 — new files, the old names kept as generated identical copies (a test asserts
    identity) for one release, then deleted; one fan-out PR per repository (joined to its open fan-out PR), in landing
    order: pins → formatter → conformance; profile caller templates + the `ci-profile` rule — krizaka-internal#823.
-4. **Slice 4:** the over-budget repositories: akinaza (shard the after-build crawls, narrow Maestro's `relevant`),
-   krizaka-ui (onto ci-node, parallel legs, the shim renames above), yomizaka — krizaka-internal#825 (akinaza), #827 (krizaka-ui).
+4. **Slice 4:** the over-budget repositories: folioviv (shard the after-build crawls, narrow Maestro's `relevant`),
+   krizaka-ui (onto ci-node, parallel legs, the shim renames above), verikora — krizaka-internal#825 (folioviv), #827 (krizaka-ui).
 5. **Slice 5:** `release-changelog` coalesced (one rebuild per window, no runner waiting on `--wait`) — krizaka-internal#830.
 6. **Slice 6:** the manual rules of § 1 still without a check — krizaka-internal#832.
 7. **Slice 7:** buildpacks (§ 6), measured — krizaka-internal#834.

@@ -50,12 +50,12 @@ pr-assets/<repo>/<pr-or-topic>/[<sub>/]<file>       review evidence (scripts/pr-
 ```
 
 - `<site>`: `www` (krizaka.com), `blog`, `ui` (ui.krizaka.com), `java` (java.krizaka.com) and each product's dev site
-  (`orazaka`, retired exports, `yomizaka`, a retired export, `akinaza`). `<kind>` says what the media are
+  (`sovkora`, retired exports, `verikora`, a retired export, `folioviv`). `<kind>` says what the media are
   for: `home`, `tour`, `gallery`, `gallery-video`, `video`, `cinema`, `compare`, `showcase`, `web`, `mobile`, `docs`,
   `personas`, `download`, `demo`, `demo-stories`, `films`, `landing`, `maps`, `shop`; the blog has `posts/<post>/` and
   `shared/`. The list is code (`SITE_KINDS`); a new kind is added there with its test.
 - `<app>`: one per product, only when the application itself reads or stores media of its own: `defaults` (its own
-  default art, read at runtime — Akinaza's trades), `uploads` (what its users send), `generated` (what it produces).
+  default art, read at runtime — Folioviv's trades), `uploads` (what its users send), `generated` (what it produces).
   An app with nothing of its own has no folder. a former product keeps its own zone (a retired export, a former product's issue).
 - **Depth**: no object of `org/`, `sites/` or `apps/` sits under more than five folders; the audit refuses deeper.
 - **One writer per prefix**; `org/` only by the generators above, never a hand upload.
@@ -73,13 +73,13 @@ pr-assets/<repo>/<pr-or-topic>/[<sub>/]<file>       review evidence (scripts/pr-
 | `people/defaults/v1/<brand>/` | `org/v1/defaults/tones/<brand>/` — the org offers them too, beside the illustrated `person/` set | krizaka-ts#200, krizaka-ui#817 |
 | `people/personas/` | deleted — the human-name mirror; `people/personas/ui/` kept until a former product reads `sites/ui/personas/` | a former product's issue |
 | `products/` | deleted — the human-name mirror of `site/` | — |
-| `maps/v1/` | `org/v1/maps/` | krizaka-ui#817, akinaza#493 (its `/maps/v1` proxy) |
+| `maps/v1/` | `org/v1/maps/` | krizaka-ui#817, folioviv#493 (its `/maps/v1` proxy) |
 | `discovery/` | `org/v1/discovery/` | krizaka-com#450, then @krizaka/discovery |
 | `ui/<area>/` | `sites/ui/<area>/` | krizaka-ui#817 |
 | `site/home/` | `sites/www/home/` | krizaka-com#450 |
 | `site/blog/<post>/` · `site/blog/shared/` | `sites/blog/posts/<post>/` · `sites/blog/shared/` | krizaka-blog#176 |
-| `site/products/<p>/<kind>/` | `sites/<p>/<kind>/` | each product's issue (akinaza#493, yomizaka#494, a former product's issue, a former product's issue, a former product's issue, a former product's issue, orazaka-web-client#320) |
-| `site/products/akinaza/defaults/` | `apps/akinaza/defaults/` — trade art the app shows at runtime | akinaza#493 |
+| `site/products/<p>/<kind>/` | `sites/<p>/<kind>/` | each product's issue (folioviv#493, verikora#494, a former product's issue, a former product's issue, a former product's issue, a former product's issue, sovkora-web#320) |
+| `site/products/folioviv/defaults/` | `apps/folioviv/defaults/` — trade art the app shows at runtime | folioviv#493 |
 | `site/docs/<p>/` | `sites/<p>/docs/` | krizaka-com#450 (manifest), the product's issue |
 | `site/people/ui/` · `site/people/<p>/` | `sites/ui/personas/` · `sites/<p>/personas/` | krizaka-ui#817 · the product's issue |
 | `site/brand-films/<series>/` | `org/v1/films/<series>/` | krizaka-ui#817, krizaka-com#450 |
@@ -109,7 +109,7 @@ Published npm versions, store binaries and live sites name the old URLs, and has
 3. **Switch the writers and readers**, one PR per repository with tests and a changeset: `@krizaka/org` (krizaka-ts:
    URLs of brand, defaults, tones), `@krizaka/ui` (krizaka-ui: `map/assets.ts`, export-defaults, export-brand,
    map-assets, brand-films, its `ui/` media → `sites/ui/`), krizaka-com (`lib/cdn.ts` on `sites/`, `proxy.ts` maps
-   rewrite, sign-services), akinaza (the `/maps/v1` proxy, `lib/tour.ts`, its defaults under `apps/akinaza/`), each
+   rewrite, sign-services), folioviv (the `/maps/v1` proxy, `lib/tour.ts`, its defaults under `apps/folioviv/`), each
    product site and the blog (their media maps on `sites/<site>/`).
 4. **Freeze the legacy roots**: no writer writes them once its PR is released.
 5. **Prune** a legacy folder as soon as nothing names it (§2b) — checked by the scan, not by memory. `site/` keeps its

@@ -197,14 +197,15 @@ test("java gate: red on failure, cancellation, or an unasked skip; open when the
 });
 
 // The daily SEO check (epic #119): the products' public addresses are www.<product>.com (indexed),
-// every dev.<product>.com is checked as a development host that sends its pages to www.
-test("the daily SEO check covers the www addresses and the dev hosts (--redirects-to www)", () => {
+// every live dev.<product>.com is checked as a development host that sends its pages to www.
+// dev.sovkora.com retired 2026-11-05 (#2600): sovkora keeps its www row, its dev host is gone and must not come back.
+test("the daily SEO check covers the www addresses and the dev hosts, never indexed (krizaka-internal#2659)", () => {
   const yml = readFileSync(new URL("../.github/workflows/seo-family.yml", import.meta.url), "utf8");
-  for (const p of ["orazaka", "yomizaka", "akinaza"]) {
+  for (const p of ["sovkora", "verikora", "folioviv"]) {
     assert.match(yml, new RegExp(`host: www\\.${p}\\.com,`), `www.${p}.com`);
-    assert.match(yml, new RegExp(`host: dev\\.${p}\\.com, args: "--index off --redirects-to https://www\\.${p}\\.com"`), `dev.${p}.com`);
+    assert.match(yml, new RegExp(`host: dev\\.${p}\\.com, args: "--index off"`), `dev.${p}.com`);
   }
-  assert.deepEqual([...yml.matchAll(/host: dev\.([a-z]+)\.com/g)].map((m) => m[1]).sort(), ["akinaza", "orazaka", "yomizaka"], "only the three products are checked");
+  assert.doesNotMatch(yml, /orazaka|yomizaka|akinaza|kachizaka/i, "no code-name host is checked");
   assert.doesNotMatch(yml, /^\s+- dev\./m, "no dev host is checked as an indexed site");
 });
 
@@ -499,7 +500,7 @@ test("org CI throughput: the shared visual regression is gated by changes.yml an
 
 test("java-ci: the workspace flow resolves a released krizaka-parent from GitHub Packages (a parent is read before the pom's own repositories)", () => {
   const src = read("java-ci");
-  assert.match(src, /maven-packages-registry:\n(?: {8}.*\n)*? {8}default: "https:\/\/maven\.pkg\.github\.com\/krizaka\/krizaka-build"/);
+  assert.match(src, /maven-packages-registry:\n(?: {8}.*\n)*? {8}default: "https:\/\/maven\.pkg\.github\.com\/krizaka\/krizaka-java"/);
   const step = src.slice(src.indexOf("- name: Maven settings, released parents from GitHub Packages"));
   assert.match(step, /if: \$\{\{ inputs\.workspace-component != '' && inputs\.maven-packages-registry != '' \}\}/);
   assert.match(step, /<id>github<\/id>/, "the repository id is the server id setup-java writes credentials for");
@@ -533,7 +534,7 @@ test("java-ci's verify reads GitHub Packages, and every job that calls java-ci, 
 
 // settings.xml names the server `github` with ${env.GITHUB_TOKEN} (setup-java `server-password`): a step that runs Maven
 // without that variable reads GitHub Packages anonymously and gets 401 on the released krizaka-parent family
-// (orazaka-knowledge-service#59: rewrite:dryRun could not read krizaka-rewrite-style 0.9.0).
+// (sovkora-knowledge-service#59: rewrite:dryRun could not read krizaka-rewrite-style 0.9.0).
 test("java-ci: every step that runs Maven passes GITHUB_TOKEN, the password settings.xml reads", () => {
   const steps = read("java-ci").split(/\n {6}- /).slice(1);
   const maven = steps.filter((s) => /\$mvn_cmd"|scripts\/workspace\.mjs ci /.test(s));

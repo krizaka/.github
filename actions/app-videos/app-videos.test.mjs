@@ -15,9 +15,9 @@ test("names follow <platform>-<flow>", () => {
 });
 
 test("the path is sites/<product>/download/<platform>-<flow>.<hash>.<ext> (layout v2, ADR-014), never the legacy site/ prefix", () => {
-  assert.equal(objectPath("yomizaka", "web", "binder", "0123456789", "webm"), "sites/yomizaka/download/web-binder.0123456789.webm");
+  assert.equal(objectPath("verikora", "web", "binder", "0123456789", "webm"), "sites/verikora/download/web-binder.0123456789.webm");
   assert.throws(() => folder("../x"));
-  assert.doesNotMatch(objectPath("yomizaka", "web", "binder", "0123456789", "mp4"), /^site\//);
+  assert.doesNotMatch(objectPath("verikora", "web", "binder", "0123456789", "mp4"), /^site\//);
 });
 
 test("collect keeps one recording per flow and lists the files it ignores", () => {
@@ -44,27 +44,27 @@ test("send puts the file under its hash and returns the path from the zone root"
   const f = join(mkdtempSync(join(tmpdir(), "av-")), "x.webm");
   writeFileSync(f, "video");
   let call;
-  const path = await send({ cfg, product: "yomizaka", platform: "web", flow: "binder", ext: "webm", file: f, fetchImpl: async (url, init) => ((call = { url, init }), { ok: true }) });
-  assert.equal(path, `sites/yomizaka/download/web-binder.${hashOf(Buffer.from("video"))}.webm`);
+  const path = await send({ cfg, product: "verikora", platform: "web", flow: "binder", ext: "webm", file: f, fetchImpl: async (url, init) => ((call = { url, init }), { ok: true }) });
+  assert.equal(path, `sites/verikora/download/web-binder.${hashOf(Buffer.from("video"))}.webm`);
   assert.equal(call.init.method, "PUT");
-  assert.match(call.url, /^https:\/\/storage\.example\/zone\/sites\/yomizaka\/download\//);
+  assert.match(call.url, /^https:\/\/storage\.example\/zone\/sites\/verikora\/download\//);
 });
 
 test("prune is a preview: it lists the unnamed objects and never calls DELETE", async () => {
-  const manifest = { product: "yomizaka", videos: [{ platform: "web", flow: "binder", files: { mp4: "sites/yomizaka/download/web-binder.aaaaaaaaaa.mp4" } }] };
+  const manifest = { product: "verikora", videos: [{ platform: "web", flow: "binder", files: { mp4: "sites/verikora/download/web-binder.aaaaaaaaaa.mp4" } }] };
   const methods = [];
   const lines = [];
   const stale = await prunePreview({
     cfg,
-    product: "yomizaka",
+    product: "verikora",
     manifest,
     log: (l) => lines.push(l),
     fetchImpl: async (_u, init = {}) => (methods.push(init.method ?? "GET"), { ok: true, status: 200, json: async () => [{ ObjectName: "web-binder.aaaaaaaaaa.mp4" }, { ObjectName: "web-binder.bbbbbbbbbb.mp4" }] }),
   });
-  assert.deepEqual(stale, ["sites/yomizaka/download/web-binder.bbbbbbbbbb.mp4"]);
+  assert.deepEqual(stale, ["sites/verikora/download/web-binder.bbbbbbbbbb.mp4"]);
   assert.ok(!methods.includes("DELETE"));
   assert.ok(lines.some((l) => l.startsWith("would delete")));
-  assert.deepEqual([...named(manifest)], ["sites/yomizaka/download/web-binder.aaaaaaaaaa.mp4"]);
+  assert.deepEqual([...named(manifest)], ["sites/verikora/download/web-binder.aaaaaaaaaa.mp4"]);
 });
 
 test("publish transcodes, uploads, writes the manifest and never prints the key", async () => {
@@ -75,7 +75,7 @@ test("publish transcodes, uploads, writes the manifest and never prints the key"
   // a fake ffmpeg that writes its last argument; a fake ffprobe that answers 12.34
   const run = (bin, args) => (bin === "ffprobe" ? "12.34\n" : (writeFileSync(args.at(-1), `out:${args.at(-1)}`), ""));
   const res = await publish({
-    product: "yomizaka",
+    product: "verikora",
     inputs: [d],
     manifestFile,
     env: { MEDIA_STORAGE_API_KEY: "test-key-value", MEDIA_STORAGE_ZONE: "z" },
@@ -103,9 +103,9 @@ test("arguments", () => {
 });
 
 test("a manifest written before layout v2 is read with its paths moved to sites/<product>/download/", () => {
-  assert.equal(toV2("products/yomizaka/download/web-binder.aaaaaaaaaa.mp4"), "sites/yomizaka/download/web-binder.aaaaaaaaaa.mp4");
-  assert.equal(toV2("sites/yomizaka/download/x.mp4"), "sites/yomizaka/download/x.mp4");
+  assert.equal(toV2("products/verikora/download/web-binder.aaaaaaaaaa.mp4"), "sites/verikora/download/web-binder.aaaaaaaaaa.mp4");
+  assert.equal(toV2("sites/verikora/download/x.mp4"), "sites/verikora/download/x.mp4");
   const f = join(mkdtempSync(join(tmpdir(), "av-")), "m.json");
-  writeFileSync(f, JSON.stringify({ product: "yomizaka", cdn: "https://x/site", videos: [{ platform: "web", flow: "b", files: { mp4: "products/yomizaka/download/web-b.aaaaaaaaaa.mp4" } }] }));
-  assert.equal(readManifest(f, "yomizaka").videos[0].files.mp4, "sites/yomizaka/download/web-b.aaaaaaaaaa.mp4");
+  writeFileSync(f, JSON.stringify({ product: "verikora", cdn: "https://x/site", videos: [{ platform: "web", flow: "b", files: { mp4: "products/verikora/download/web-b.aaaaaaaaaa.mp4" } }] }));
+  assert.equal(readManifest(f, "verikora").videos[0].files.mp4, "sites/verikora/download/web-b.aaaaaaaaaa.mp4");
 });

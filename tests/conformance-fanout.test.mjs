@@ -42,9 +42,9 @@ test("the edit hook is merged into settings.json, once, keeping what is there", 
 test("the plan: one pull request per red repository, manual rules listed apart", () => {
   const rules = loadRules();
   const cells = {
-    a: { "security-scan": { status: "red" }, "shared-ci": { status: "red" }, scorecard: { status: "green" } },
-    b: { "security-scan": { status: "green" } },
-    c: { "shared-ci": { status: "red" } },
+    a: { "security-scan": { status: "fail" }, "shared-ci": { status: "fail" }, scorecard: { status: "pass" } },
+    b: { "security-scan": { status: "pass" } },
+    c: { "shared-ci": { status: "fail" } },
   };
   assert.deepEqual(planOf(rules, cells), [
     { repo: "a", rules: ["security-scan"], manual: ["shared-ci"] },
@@ -63,4 +63,17 @@ test("every template job that runs on a runner has a timeout-minutes (krizaka-ts
       assert.match(job, /timeout-minutes:/, `${name}: ${job.split("\n")[0]}`);
     }
   }
+});
+
+test("rules review 2026-11-05: the fan-out opens pull requests for the security rules only; the others are reported", async () => {
+  const rules = loadRules();
+  const cells = { a: { "security-scan": { status: "fail" }, "agents-anti-slop": { status: "fail" } } };
+  assert.deepEqual(planOf(rules, cells, { securityOnly: true }), [{ repo: "a", rules: ["security-scan"], manual: [] }]);
+  const { main } = await import("../scripts/conformance-fanout.mjs");
+  const { mkdtempSync, writeFileSync } = await import("node:fs");
+  const { join } = await import("node:path");
+  const { tmpdir } = await import("node:os");
+  const matrix = join(mkdtempSync(join(tmpdir(), "fanout-")), "matrix.json");
+  writeFileSync(matrix, JSON.stringify({ cells }));
+  assert.equal(await main(["--matrix", matrix, "--rules", "agents-anti-slop", "--apply"]), 2, "a non-security rule is never fanned out");
 });

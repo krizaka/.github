@@ -40,7 +40,7 @@ inputs:
     description: "workspace: the repository name, as listed in orazaka.workspace.json."
     default: ""
   workspace-path:
-    description: "workspace: where krizaka/orazaka is checked out."
+    description: "workspace: where krizaka/sovkora is checked out."
     default: workspace
   python-lint:
     description: "python: lint command (e.g. `ruff check .`); empty skips it."

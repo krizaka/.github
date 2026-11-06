@@ -15,11 +15,15 @@ test("only high and critical CodeQL and Dependabot alerts block; Scorecard findi
   assert.deepEqual(r, { codeql: 1, dependabot: 1, secrets: 1 });
 });
 
-test("the products in focus are known, each with a dev host and at least one repository; the paused ones are not probed", () => {
-  assert.deepEqual(Object.keys(PRODUCTS).sort(), ["akinaza", "orazaka", "yomizaka"]);
+test("the products in focus are known, each with a host and at least one repository; the paused ones are not probed", () => {
+  assert.deepEqual(Object.keys(PRODUCTS).sort(), ["folioviv", "sovkora", "verikora"]);
   for (const [name, p] of Object.entries(PRODUCTS)) assert.ok(p.host.startsWith("dev.") && p.repos.length >= 1, name);
 });
 
+test("every app is probed on dev.<product>.com: www is the coming-soon face (krizaka-internal#2659)", () => {
+  assert.equal(PRODUCTS.sovkora.host, "dev.sovkora.com");
+});
+
 test("mobile.app-links: the probe knows which products have a native app", () => {
-  assert.equal(PRODUCTS.orazaka.mobile, true);
+  assert.equal(PRODUCTS.sovkora.mobile, true);
 });

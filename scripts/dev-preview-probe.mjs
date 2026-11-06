@@ -7,9 +7,9 @@ import { checkLive } from "./check-app-links.mjs";
 
 // The products in focus.
 export const PRODUCTS = {
-  orazaka: { host: "dev.orazaka.com", admin: "admin.orazaka.com", health: ["/api/healthz", "/api/health"], signup: ["/api/auth/register"], mobile: true, repos: ["orazaka", "orazaka-web-client", "orazaka-ui-kit", "orazaka-mobile-client", "orazaka-packs", "orazaka-studio", "orazaka-edge", "orazaka-ai-engine", "orazaka-worker-media", "orazaka-job-service", "orazaka-conversation-service", "orazaka-knowledge-service", "orazaka-automation-service", "krizaka-users", "krizaka-billing", "krizaka-notifications"], ci: "orazaka" },
-  yomizaka: { host: "dev.yomizaka.com", admin: "admin.yomizaka.com", health: ["/api/healthz"], signup: ["/api/auth/sign-up"], repos: ["yomizaka"], ci: "yomizaka" },
-  akinaza: { host: "dev.akinaza.com", admin: "admin.akinaza.com", health: ["/api/healthz"], signup: ["/api/auth/sign-up"], repos: ["akinaza"], ci: "akinaza" },
+  sovkora: { host: "dev.sovkora.com", admin: "admin.sovkora.com", health: ["/api/healthz", "/api/health"], signup: ["/api/auth/register"], mobile: true, repos: ["sovkora", "sovkora-web", "sovkora-ui-kit", "sovkora-mobile", "sovkora-packs", "sovkora-studio-service", "sovkora-edge-service", "sovkora-engine", "sovkora-worker-media", "sovkora-job-service", "sovkora-conversation-service", "sovkora-knowledge-service", "sovkora-automation-service", "krizaka-users", "krizaka-billing", "krizaka-notifications"], ci: "sovkora" },
+  verikora: { host: "dev.verikora.com", admin: "admin.verikora.com", health: ["/api/healthz"], signup: ["/api/auth/sign-up"], repos: ["verikora"], ci: "verikora" },
+  folioviv: { host: "dev.folioviv.com", admin: "admin.folioviv.com", health: ["/api/healthz"], signup: ["/api/auth/sign-up"], repos: ["folioviv"], ci: "folioviv" },
 };
 
 /** Count the alerts that block `security.alerts`: CodeQL high/critical, Dependabot high/critical, any secret alert. */

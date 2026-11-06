@@ -1,9 +1,10 @@
 {
-  "_": "The rule registry of the org (krizaka/.github#393): every org rule that must hold in every active repository, with the check that proves it. scripts/conformance.mjs runs it against repos.json (repo x rule). A rule without a check does not pass tests/conformance.test.mjs. Rolling a rule out to every active repo is part of the same work (AGENT-RULES, « A rule reaches every repo »); `node scripts/conformance-fanout.mjs` opens the conforming pull request in each red repo.",
-  "checks": "workflow-calls {workflows | byKind} | workflow-matches {pattern} | workflow-forbids {pattern} | file-exists {paths} | file-matches {path, pattern} | manifests-forbid {pattern} | published-no-mention {pattern, allow}: no file of the latest npm tarball of a public package of the repository matches (built CSS/JS included; `allow`: history files such as CHANGELOG.md) | no-mention {pattern, allow, allowIn}: no tracked text file matches the pattern (path prefixes in `allow`, or in `allowIn[repo]`, are history). `applies`: kinds, notRepos, onlyRepos, when [{pathEndsWith}|{fileExists}|{fileMatches}|{inList}]. `fix`: copy {from, to} | append-section {file, from, heading} | manual {note}.",
+  "_": "The rule registry of the org (krizaka/.github#393): every org rule that must hold in every active repository, with the check that proves it. scripts/conformance.mjs runs it against repos.json (repo x rule). A rule without a check does not pass tests/conformance.test.mjs. Rules review of 2026-11-05: the registry was frozen at its 35 rules during the moratorium; the founder's exception of 2026-11-06 (« la matrice est la référence », krizaka-internal#2635) adds the public-face rules of réunion 6 and the register's mirror, and every cell is deterministic (pass, fail, unknown, manual, n/a, with its commit and evidence), and the same-day rollout to every active repo (AGENT-RULES, « A rule reaches every repo »: `node scripts/conformance-fanout.mjs --apply`, the daily run's failure, the issue per red repo) holds only for the rules marked `\"security\": true`; the others are reported in the matrix, never fanned out.",
+  "checks": "path-matches {pattern, contains}: a tracked path matches (sorted, the first match is the evidence), and with contains one of them holds the text | lists-rule-ids {path}: the file names exactly the ids of this registry in its org-rules table | manual {note}: no deterministic check yet, the cell is manual and never pass | workflow-calls {workflows | byKind} | workflow-matches {pattern} | workflow-forbids {pattern} | file-exists {paths} | file-matches {path, pattern} | manifests-forbid {pattern} | published-no-mention {pattern, allow}: no file of the latest npm tarball of a public package of the repository matches (built CSS/JS included; `allow`: history files such as CHANGELOG.md) | no-mention {pattern, allow, allowIn}: no tracked text file matches the pattern (path prefixes in `allow`, or in `allowIn[repo]`, are history). `applies`: kinds, notRepos, onlyRepos, when [{pathEndsWith}|{fileExists}|{fileMatches}|{inList}]. `fix`: copy {from, to} | append-section {file, from, heading} | manual {note}.",
   "rules": [
     {
       "id": "security-scan",
+      "security": true,
       "title": "Security scan: gitleaks and zizmor through the shared workflow",
       "issue": "krizaka/.github#324",
       "applies": {},
@@ -74,13 +75,13 @@
       },
       "exempt": {
         "krizaka-infra": "OpenTofu stack pinned by .tool-versions that also runs tflint and checkov; krizaka-ci's iac flow (fmt, validate, test) runs neither, so moving would drop two checks.",
-        "krizaka-tauri-kit": "A Rust-only library workspace on macOS (fmt, clippy, test, generated-permissions diff); no shared Rust workflow exists (tauri-macos.yml builds apps), and its own rust.yml already ends in the standard `CI gate`.",
+        "krizaka-desktop": "A Rust-only library workspace on macOS (fmt, clippy, test, generated-permissions diff); no shared Rust workflow exists (tauri-macos.yml builds apps), and its own rust.yml already ends in the standard `CI gate`.",
         "krizaka-ui": "The component library's 20 KB CI (registries, size budgets, realtime adapters, docs-site crawl and layout shards) is specialised beyond node-ci's inputs; it already uses the shared changes.yml, sonar-scan and dup-check pieces and ends in `CI gate`.",
-        "orazaka": "The Orazaka workspace root: its ci.yml IS the workspace flow (clone every repository, workspace.mjs ci) that component.yml and krizaka-ci's workspace mode derive from, so it cannot call itself."
+        "sovkora": "The Sovkora workspace root: its ci.yml IS the workspace flow (clone every repository, workspace.mjs ci) that component.yml and krizaka-ci's workspace mode derive from, so it cannot call itself."
       },
       "fix": {
         "type": "manual",
-        "note": "call node-ci / maven / python-ci / krizaka-ci (or component.yml for an Orazaka component); site-specific checks stay a small local job"
+        "note": "call node-ci / maven / python-ci / krizaka-ci (or component.yml for a Sovkora component); site-specific checks stay a small local job"
       }
     },
     {
@@ -103,6 +104,7 @@
     },
     {
       "id": "scorecard",
+      "security": true,
       "title": "OpenSSF Scorecard workflow",
       "issue": "krizaka/.github#28",
       "applies": {},
@@ -116,12 +118,15 @@
         "to": ".github/workflows/scorecard.yml"
       },
       "exempt": {
-        "kachizaka": "OpenSSF Scorecard and its public results are for public repositories only; this repository is private (founder, 2026-11-04, krizaka-internal#2364).",
-        "krizaka-infra": "OpenSSF Scorecard and its public results are for public repositories only; this repository is private (founder, 2026-11-04, krizaka-internal#2364)."
+        "kridoc": "OpenSSF Scorecard and its public results are for public repositories only; this repository is private (founder, 2026-11-04, krizaka-internal#2364).",
+        "krizaka-infra": "OpenSSF Scorecard and its public results are for public repositories only; this repository is private (founder, 2026-11-04, krizaka-internal#2364).",
+        "krizaka-agents": "OpenSSF Scorecard and its public results are for public repositories only; this repository is private (founder, 2026-11-04, krizaka-internal#2364).",
+        "krizaka-coming-soon": "OpenSSF Scorecard and its public results are for public repositories only; this repository is private (founder, 2026-11-04, krizaka-internal#2364)."
       }
     },
     {
       "id": "dependabot-config",
+      "security": true,
       "title": "Dependabot configuration",
       "issue": "krizaka/.github#393",
       "applies": {},
@@ -156,7 +161,7 @@
     },
     {
       "id": "visual-regression",
-      "title": "Visual regression of the app's journeys (shared workflow)",
+      "title": "Visual regression of the app's journeys (shared workflow): it warns on a pull request, with the diff published on Bunny, and blocks only the release to production (rules review 2026-11-05, krizaka/.github#538)",
       "issue": "krizaka/.github#375",
       "applies": {
         "kinds": [
@@ -170,8 +175,8 @@
         ]
       },
       "exempt": {
-        "template-next-app": "A template has no journeys of its own (they are written per app, docs/standards/visual-regression.md); an app made from it adds the workflow with its first journey.",
-        "orazaka-mobile-client": "A React Native app: the shared workflow compares Playwright screenshots of web pages in a Linux container, which cannot render it; its journeys are Maestro flows (mobile-e2e.yml)."
+        "krizaka-template-web": "A template has no journeys of its own (they are written per app, docs/standards/visual-regression.md); an app made from it adds the workflow with its first journey.",
+        "sovkora-mobile": "A React Native app: the shared workflow compares Playwright screenshots of web pages in a Linux container, which cannot render it; its journeys are Maestro flows (mobile-e2e.yml)."
       },
       "fix": {
         "type": "manual",
@@ -247,14 +252,14 @@
     },
     {
       "id": "maven-family-current",
-      "title": "The Java family is current: krizaka-parent and krizaka-bom are not behind a krizaka-build release out for 3 days",
+      "title": "The Java family is current: krizaka-parent and krizaka-bom are not behind a krizaka-java release out for 3 days",
       "issue": "krizaka/.github#388",
       "applies": {
         "kinds": [
           "maven"
         ],
         "notRepos": [
-          "krizaka-build"
+          "krizaka-java"
         ]
       },
       "check": {
@@ -266,7 +271,7 @@
       },
       "fix": {
         "type": "manual",
-        "note": "Move krizaka-parent and krizaka-bom (orazaka-build: the krizaka.version property) to the latest krizaka-build release; the bump lands through the train."
+        "note": "Move krizaka-parent and krizaka-bom (sovkora-build: the krizaka.version property) to the latest krizaka-java release; the bump lands through the train."
       }
     },
     {
@@ -309,7 +314,7 @@
         "pattern": "actions/expo-sdk|check-expo-sdk"
       },
       "exempt": {
-        "orazaka-mobile-client": "Expo SDK 53 and no pinned Xcode image: the guard would fail until the move to the family's SDK, which krizaka/orazaka-mobile-client#96 (App Store rejects build 5) carries; the guard is added in that same change."
+        "sovkora-mobile": "Expo SDK 53 and no pinned Xcode image: the guard would fail until the move to the family's SDK, which krizaka/sovkora-mobile#96 (App Store rejects build 5) carries; the guard is added in that same change."
       },
       "fix": {
         "type": "manual",
@@ -318,6 +323,7 @@
     },
     {
       "id": "turnstile-server-side",
+      "security": true,
       "title": "Every public form with a Turnstile widget verifies the token server-side (fail closed)",
       "issue": "krizaka/krizaka-com#464",
       "applies": {
@@ -338,6 +344,7 @@
     },
     {
       "id": "email-verification",
+      "security": true,
       "title": "Public e-mail forms verify the address before anything is delivered (a mailed code or a confirmation link)",
       "issue": "krizaka/krizaka-com#464",
       "applies": {
@@ -367,7 +374,9 @@
         "patternBase64": "b3JvY2hpYXx5YXNha2lhfHlhemFraWF8eW9yb3Jpcw==",
         "allow": [],
         "allowIn": {
-          "krizaka-users": ["krizaka-users-persistence/src/main/resources/db/migration/V4__organizations.sql"]
+          "krizaka-java": [
+            "krizaka-users/krizaka-users-persistence/src/main/resources/db/migration/V4__organizations.sql"
+          ]
         }
       },
       "fix": {
@@ -379,11 +388,19 @@
       "id": "no-departed-published",
       "title": "No published package carries a departed product (the latest npm tarball of every public package, built CSS/JS included, never names one)",
       "issue": "krizaka/.github#413",
-      "applies": { "when": [{ "pathEndsWith": "package.json" }] },
+      "applies": {
+        "when": [
+          {
+            "pathEndsWith": "package.json"
+          }
+        ]
+      },
       "check": {
         "type": "published-no-mention",
         "patternBase64": "b3JvY2hpYXx5YXNha2lhfHlhemFraWF8eW9yb3Jpcw==",
-        "allow": ["CHANGELOG.md"]
+        "allow": [
+          "CHANGELOG.md"
+        ]
       },
       "fix": {
         "type": "manual",
@@ -392,10 +409,37 @@
     },
     {
       "id": "commercial-names",
-      "title": "A public surface shows the commercial name, never a code name (Verikora, Folioviv, Sovkora, Kridoc; the code names stay in repositories, packages, coordinates and the CLI)",
+      "title": "No code name on a public surface or in a public URL: the screens, the catalogues, the built HTML, the sitemap, llms.txt and every public link say the commercial name (Verikora, Folioviv, Sovkora, Kridoc) and the commercial www domain; the code names stay in repositories, packages, coordinates and the CLI (réunion 6, 2026-11-05)",
       "issue": "krizaka/krizaka-internal#2036",
-      "applies": { "onlyRepos": [] },
-      "check": { "type": "file-matches", "path": "package.json", "pattern": "krizaka-code-names" },
+      "applies": {
+        "kinds": [
+          "site",
+          "app"
+        ],
+        "onlyRepos": [
+          "krizaka-com",
+          "krizaka-coming-soon",
+          "kridoc",
+          "verikora",
+          "folioviv",
+          "sovkora-web",
+          "krizaka-blog"
+        ]
+      },
+      "check": {
+        "type": "any-of",
+        "checks": [
+          {
+            "type": "path-matches",
+            "pattern": "(^|/)package\\.json$",
+            "contains": "krizaka-code-names"
+          },
+          {
+            "type": "path-matches",
+            "pattern": "(^|/)[^/]*(public-no-code-name|commercial-names|code-names)[^/]*\\.(test|spec)\\.[cm]?[jt]sx?$"
+          }
+        ]
+      },
       "fix": {
         "type": "manual",
         "note": "run `krizaka-code-names` (bin of @krizaka/org, krizaka-ts#318) in CI over the built public HTML, the EN/FR catalogues, the email and receipt templates, stores/*.json and llms.txt (`--allow` for internal and developer pages); names come from `brandOf` / `displayName` of @krizaka/org. A repository joins onlyRepos when its product slice has landed (yomizaka, akinaza, the orazaka public repos, krizaka-com, krizaka-blog): report first, then required"
@@ -405,85 +449,205 @@
       "id": "lab-isolation",
       "title": "Nothing outside the lab depends on the lab (krizaka-lab publishes nothing; a proven piece is promoted by an ADR, never imported)",
       "issue": "krizaka/krizaka-motion#69",
-      "applies": { "notRepos": ["krizaka-lab", "krizaka-motion"] },
-      "check": { "type": "manifests-forbid", "pattern": "krizaka-lab|krizaka-motion|@krizaka/(lab|motion)\\b" },
-      "fix": { "type": "manual", "note": "promote the piece into @krizaka/ui, krizaka-ts or Krizaka Java by an ADR (rebuilt with its tests) and depend on that package; the lab is private and has no published name to import" }
+      "applies": {
+        "notRepos": [
+          "krizaka-lab",
+          "krizaka-motion"
+        ]
+      },
+      "check": {
+        "type": "manifests-forbid",
+        "pattern": "krizaka-lab|krizaka-motion|@krizaka/(lab|motion)\\b"
+      },
+      "fix": {
+        "type": "manual",
+        "note": "promote the piece into @krizaka/ui, krizaka-ts or Krizaka Java by an ADR (rebuilt with its tests) and depend on that package; the lab is private and has no published name to import"
+      }
     },
     {
       "id": "code-rules-ratchet",
       "title": "Code rules in the lint ratchet: braces always, max-depth 2, max-nested-callbacks 3, no console in runtime (@krizaka/config krizakaCodeRules, code/<rule> counters)",
       "issue": "krizaka/.github#422",
-      "applies": { "when": [{ "fileExists": "lint-ratchet.json" }] },
-      "check": { "type": "file-matches", "path": "lint-ratchet.json", "pattern": "\"codeRules\"" },
-      "fix": { "type": "manual", "note": "bump @krizaka/config to the release with krizakaCodeRules, then `npx krizaka-ratchet --update` (records the code/<rule> counters at today's counts); pass `codeRules: \"warn\"` to krizakaStack() while there is debt" }
+      "applies": {
+        "when": [
+          {
+            "fileExists": "lint-ratchet.json"
+          }
+        ]
+      },
+      "check": {
+        "type": "file-matches",
+        "path": "lint-ratchet.json",
+        "pattern": "\"codeRules\""
+      },
+      "fix": {
+        "type": "manual",
+        "note": "bump @krizaka/config to the release with krizakaCodeRules, then `npx krizaka-ratchet --update` (records the code/<rule> counters at today's counts); pass `codeRules: \"warn\"` to krizakaStack() while there is debt"
+      }
     },
     {
       "id": "code-rules-sg",
       "title": "ast-grep code rules in the sg ratchet: no-sync-fs-in-runtime, no-hand-written-validation-regex (@krizaka/config ast-grep core)",
       "issue": "krizaka/.github#422",
-      "applies": { "when": [{ "fileExists": "sg-ratchet.json" }] },
-      "check": { "type": "file-matches", "path": "sg-ratchet.json", "pattern": "no-sync-fs-in-runtime" },
-      "fix": { "type": "manual", "note": "bump @krizaka/config, then `npx krizaka-sg-ratchet --update` (a repository with its own copy of the rules adopts the pack's core set instead)" }
+      "applies": {
+        "when": [
+          {
+            "fileExists": "sg-ratchet.json"
+          }
+        ]
+      },
+      "check": {
+        "type": "file-matches",
+        "path": "sg-ratchet.json",
+        "pattern": "no-sync-fs-in-runtime"
+      },
+      "fix": {
+        "type": "manual",
+        "note": "bump @krizaka/config, then `npx krizaka-sg-ratchet --update` (a repository with its own copy of the rules adopts the pack's core set instead)"
+      }
     },
     {
       "id": "feature-surfaces",
       "title": "« Done » covers every surface: the feature issue template has the Surfaces checklist and the repository calls the closing check (feature-surfaces.yml)",
       "issue": "krizaka/.github#439",
       "applies": {
-        "onlyRepos": ["orazaka", "orazaka-web-client", "orazaka-web-admin", "orazaka-mobile-client", "orazaka-cli", "orazaka-contracts", "yomizaka", "akinaza"]
+        "onlyRepos": [
+          "sovkora",
+          "sovkora-web",
+          "sovkora-mobile",
+          "sovkora-cli",
+          "sovkora-contracts",
+          "verikora",
+          "folioviv"
+        ]
       },
       "check": {
         "type": "all-of",
         "checks": [
-          { "type": "file-matches", "path": ".github/ISSUE_TEMPLATE/feature_request.yml", "pattern": "label: Surfaces" },
-          { "type": "workflow-calls", "workflows": ["feature-surfaces.yml"] }
+          {
+            "type": "file-matches",
+            "path": ".github/ISSUE_TEMPLATE/feature_request.yml",
+            "pattern": "label: Surfaces"
+          },
+          {
+            "type": "workflow-calls",
+            "workflows": [
+              "feature-surfaces.yml"
+            ]
+          }
         ]
       },
-      "fix": { "type": "manual", "note": "copy docs/standards/surfaces/feature_request.<product>.yml to .github/ISSUE_TEMPLATE/feature_request.yml (generated from docs/standards/surfaces.json by scripts/surfaces.mjs) and add a workflow on `issues: [closed]` that calls krizaka/.github/.github/workflows/feature-surfaces.yml@<sha> with `permissions: issues: write` (one PR per repo, joined to its open fan-out PR)" }
+      "fix": {
+        "type": "manual",
+        "note": "copy docs/standards/surfaces/feature_request.<product>.yml to .github/ISSUE_TEMPLATE/feature_request.yml (generated from docs/standards/surfaces.json by scripts/surfaces.mjs) and add a workflow on `issues: [closed]` that calls krizaka/.github/.github/workflows/feature-surfaces.yml@<sha> with `permissions: issues: write` (one PR per repo, joined to its open fan-out PR)"
+      }
     },
     {
       "id": "formatter",
       "title": "Prettier with @krizaka/config/prettier in every TS/JS repository: config, format and format:check scripts, checked in CI (google-java-format stays for Java)",
       "issue": "krizaka/.github#427",
-      "applies": { "when": [{ "fileExists": "package.json" }] },
+      "applies": {
+        "when": [
+          {
+            "fileExists": "package.json"
+          }
+        ]
+      },
       "check": {
         "type": "all-of",
         "checks": [
-          { "type": "file-exists", "paths": ["prettier.config.js", "prettier.config.mjs", "prettier.config.cjs"] },
-          { "type": "file-matches", "path": "package.json", "pattern": "\"format:check\"\\s*:\\s*\"prettier --check" },
+          {
+            "type": "file-exists",
+            "paths": [
+              "prettier.config.js",
+              "prettier.config.mjs",
+              "prettier.config.cjs"
+            ]
+          },
+          {
+            "type": "file-matches",
+            "path": "package.json",
+            "pattern": "\"format:check\"\\s*:\\s*\"prettier --check"
+          },
           {
             "type": "any-of",
             "checks": [
-              { "type": "workflow-matches", "pattern": "format:check" },
-              { "type": "file-matches", "path": "package.json", "pattern": "\"(lint|check|ci)[\\w:.-]*\"\\s*:\\s*\"[^\"]*format:check" }
+              {
+                "type": "workflow-matches",
+                "pattern": "format:check"
+              },
+              {
+                "type": "file-matches",
+                "path": "package.json",
+                "pattern": "\"(lint|check|ci)[\\w:.-]*\"\\s*:\\s*\"[^\"]*format:check"
+              }
             ]
           }
         ]
       },
-      "fix": { "type": "manual", "note": "add prettier + `prettier.config.js` (`export { default } from \"@krizaka/config/prettier\";`) + `.prettierignore` (generated files, lockfiles, vendored), the `format` / `format:check` scripts, commit one `chore(format): prettier` change that only formats and put its SHA in `.git-blame-ignore-revs`, and run `format:check` in CI: `format-script: format:check` of node-ci, or the lint script (`... && <pm> run format:check`) when the repository's pipeline is not node-ci. Open PRs are rebased with `prettier --write`, never left conflicting on formatting" }
+      "fix": {
+        "type": "manual",
+        "note": "add prettier + `prettier.config.js` (`export { default } from \"@krizaka/config/prettier\";`) + `.prettierignore` (generated files, lockfiles, vendored), the `format` / `format:check` scripts, commit one `chore(format): prettier` change that only formats and put its SHA in `.git-blame-ignore-revs`, and run `format:check` in CI: `format-script: format:check` of node-ci, or the lint script (`... && <pm> run format:check`) when the repository's pipeline is not node-ci. Open PRs are rebased with `prettier --write`, never left conflicting on formatting"
+      }
     },
     {
       "id": "agents-template",
       "title": "AGENTS.md is the org template (docs/standards/agents-template.md): purpose, profile, commands, the 10 rules, the krizaka-engineering skill; at most 80 lines, links resolve",
       "issue": "krizaka/krizaka-internal#876",
-      "applies": { "kinds": ["npm", "site", "app", "maven", "python", "rust", "iac"] },
-      "check": { "type": "agents-template" },
-      "fix": { "type": "agents-template" }
+      "applies": {
+        "kinds": [
+          "npm",
+          "site",
+          "app",
+          "maven",
+          "python",
+          "rust",
+          "iac"
+        ]
+      },
+      "check": {
+        "type": "agents-template"
+      },
+      "fix": {
+        "type": "agents-template"
+      }
     },
     {
       "id": "journeys",
       "title": "The product's critical journeys run on every PR and merge group (journeys / gate, required on main) and after every deploy, dev and prod (post-deploy-journeys)",
       "issue": "krizaka/krizaka-internal#1939",
-      "applies": { "onlyRepos": ["akinaza", "yomizaka", "orazaka-web-client"] },
+      "applies": {
+        "onlyRepos": [
+          "folioviv",
+          "verikora",
+          "sovkora-web"
+        ]
+      },
       "check": {
         "type": "all-of",
         "checks": [
-          { "type": "workflow-calls", "workflows": ["journeys.yml"] },
-          { "type": "workflow-calls", "workflows": ["post-deploy-journeys.yml"] },
-          { "type": "required-check", "context": "journeys / gate" }
+          {
+            "type": "workflow-calls",
+            "workflows": [
+              "journeys.yml"
+            ]
+          },
+          {
+            "type": "workflow-calls",
+            "workflows": [
+              "post-deploy-journeys.yml"
+            ]
+          },
+          {
+            "type": "required-check",
+            "context": "journeys / gate"
+          }
         ]
       },
-      "fix": { "type": "manual", "note": "declare the `critical` Playwright project, call journeys.yml as the job `journeys` (check `journeys / gate`) and post-deploy-journeys.yml from the deploy's workflow_run for dev and prod; require `journeys / gate` on main and in the merge queue (docs/standards/journeys.md)" }
+      "fix": {
+        "type": "manual",
+        "note": "declare the `critical` Playwright project, call journeys.yml as the job `journeys` (check `journeys / gate`) and post-deploy-journeys.yml from the deploy's workflow_run for dev and prod; require `journeys / gate` on main and in the merge queue (docs/standards/journeys.md)"
+      }
     },
     {
       "id": "merged-result-tested",
@@ -510,7 +674,7 @@
     },
     {
       "id": "required-checks-profile",
-      "title": "The checks required on main match the repository profile: apps CI gate, Sonar, security scan, journeys gate where it has journeys, visual where it has UI; libraries CI gate, Sonar, security scan",
+      "title": "The checks required on main match the repository profile: apps CI gate, Sonar (blocking a pull request only on its Security rating, krizaka/.github#542), security scan, journeys gate where it has journeys; libraries CI gate, Sonar, security scan. Visual regression is not a required check of a pull request: it blocks the release only (rules review 2026-11-05)",
       "issue": "krizaka/krizaka-internal#2000",
       "applies": {
         "kinds": [
@@ -534,7 +698,10 @@
             {
               "name": "Sonar",
               "pattern": "^SonarCloud Code Analysis$",
-              "skipRepos": ["kachizaka", "krizaka-infra"],
+              "skipRepos": [
+                "kridoc",
+                "krizaka-infra"
+              ],
               "skipWhy": "SonarCloud analyses public repositories only: on a private repository the same code rules run in the repository's own CI (eslint-plugin-sonarjs through krizakaStack for TS/JS; shellcheck, ruff, tflint and checkov for infra) under the CI gate."
             },
             {
@@ -545,11 +712,6 @@
               "name": "journeys gate",
               "pattern": "^journeys / gate$",
               "when": "journeys.yml"
-            },
-            {
-              "name": "visual regression",
-              "pattern": "^visual / ",
-              "when": "visual-regression.yml"
             }
           ],
           "site": [
@@ -560,7 +722,10 @@
             {
               "name": "Sonar",
               "pattern": "^SonarCloud Code Analysis$",
-              "skipRepos": ["kachizaka", "krizaka-infra"],
+              "skipRepos": [
+                "kridoc",
+                "krizaka-infra"
+              ],
               "skipWhy": "SonarCloud analyses public repositories only: on a private repository the same code rules run in the repository's own CI (eslint-plugin-sonarjs through krizakaStack for TS/JS; shellcheck, ruff, tflint and checkov for infra) under the CI gate."
             },
             {
@@ -571,11 +736,6 @@
               "name": "journeys gate",
               "pattern": "^journeys / gate$",
               "when": "journeys.yml"
-            },
-            {
-              "name": "visual regression",
-              "pattern": "^visual / ",
-              "when": "visual-regression.yml"
             }
           ],
           "npm": [
@@ -586,7 +746,10 @@
             {
               "name": "Sonar",
               "pattern": "^SonarCloud Code Analysis$",
-              "skipRepos": ["kachizaka", "krizaka-infra"],
+              "skipRepos": [
+                "kridoc",
+                "krizaka-infra"
+              ],
               "skipWhy": "SonarCloud analyses public repositories only: on a private repository the same code rules run in the repository's own CI (eslint-plugin-sonarjs through krizakaStack for TS/JS; shellcheck, ruff, tflint and checkov for infra) under the CI gate."
             },
             {
@@ -602,7 +765,10 @@
             {
               "name": "Sonar",
               "pattern": "^SonarCloud Code Analysis$",
-              "skipRepos": ["kachizaka", "krizaka-infra"],
+              "skipRepos": [
+                "kridoc",
+                "krizaka-infra"
+              ],
               "skipWhy": "SonarCloud analyses public repositories only: on a private repository the same code rules run in the repository's own CI (eslint-plugin-sonarjs through krizakaStack for TS/JS; shellcheck, ruff, tflint and checkov for infra) under the CI gate."
             },
             {
@@ -618,7 +784,10 @@
             {
               "name": "Sonar",
               "pattern": "^SonarCloud Code Analysis$",
-              "skipRepos": ["kachizaka", "krizaka-infra"],
+              "skipRepos": [
+                "kridoc",
+                "krizaka-infra"
+              ],
               "skipWhy": "SonarCloud analyses public repositories only: on a private repository the same code rules run in the repository's own CI (eslint-plugin-sonarjs through krizakaStack for TS/JS; shellcheck, ruff, tflint and checkov for infra) under the CI gate."
             },
             {
@@ -634,7 +803,10 @@
             {
               "name": "Sonar",
               "pattern": "^SonarCloud Code Analysis$",
-              "skipRepos": ["kachizaka", "krizaka-infra"],
+              "skipRepos": [
+                "kridoc",
+                "krizaka-infra"
+              ],
               "skipWhy": "SonarCloud analyses public repositories only: on a private repository the same code rules run in the repository's own CI (eslint-plugin-sonarjs through krizakaStack for TS/JS; shellcheck, ruff, tflint and checkov for infra) under the CI gate."
             },
             {
@@ -650,7 +822,10 @@
             {
               "name": "Sonar",
               "pattern": "^SonarCloud Code Analysis$",
-              "skipRepos": ["kachizaka", "krizaka-infra"],
+              "skipRepos": [
+                "kridoc",
+                "krizaka-infra"
+              ],
               "skipWhy": "SonarCloud analyses public repositories only: on a private repository the same code rules run in the repository's own CI (eslint-plugin-sonarjs through krizakaStack for TS/JS; shellcheck, ruff, tflint and checkov for infra) under the CI gate."
             },
             {
@@ -692,13 +867,38 @@
         "to": ".github/workflows/merge-resolution.yml"
       }
     },
-    {"id": "fail-closed-sg", "title": "Fail-closed ast-grep rules in the sg ratchet: no-fail-open-secret, no-bare-skip, no-unchecked-sent-log, no-swallowed-catch-success (@krizaka/config ast-grep core; a check never passes without proof)", "issue": "krizaka/krizaka-internal#1972", "applies": {"when": [{"fileExists": "sg-ratchet.json"}]}, "check": {"type": "file-matches", "path": "sg-ratchet.json", "pattern": "no-fail-open-secret"}, "fix": {"type": "manual", "note": "bump @krizaka/config to the release with the fail-closed rules, add \"*.mjs\" to the Tsx languageGlobs of sgconfig.yml, then `npx krizaka-sg-ratchet --update`; fix the hits (a secret read as an empty string, a bare skip, a swallowed catch) rather than recording them where they are cheap"}},
+    {
+      "id": "fail-closed-sg",
+      "title": "Fail-closed ast-grep rules in the sg ratchet: no-fail-open-secret, no-bare-skip, no-unchecked-sent-log, no-swallowed-catch-success (@krizaka/config ast-grep core; a check never passes without proof)",
+      "issue": "krizaka/krizaka-internal#1972",
+      "applies": {
+        "when": [
+          {
+            "fileExists": "sg-ratchet.json"
+          }
+        ]
+      },
+      "check": {
+        "type": "file-matches",
+        "path": "sg-ratchet.json",
+        "pattern": "no-fail-open-secret"
+      },
+      "fix": {
+        "type": "manual",
+        "note": "bump @krizaka/config to the release with the fail-closed rules, add \"*.mjs\" to the Tsx languageGlobs of sgconfig.yml, then `npx krizaka-sg-ratchet --update`; fix the hits (a secret read as an empty string, a bare skip, a swallowed catch) rather than recording them where they are cheap"
+      }
+    },
     {
       "id": "time-limits",
       "title": "Time limits everywhere: timeout-minutes on every workflow job, a per-test timeout (2 min default) in every test runner config - better to fail and calibrate than to run in the void",
       "issue": "krizaka/krizaka-internal#2007",
-      "check": { "type": "time-limits" },
-      "fix": { "type": "manual", "note": "add `timeout-minutes` close to the measured duration to each job (PR < 10 min, merge_group < 15 min); set the runner's per-test timeout to 2 min (node --test-timeout=120000 --test-force-exit, Vitest/Jest testTimeout, Playwright timeout, JUnit junit.jupiter.execution.timeout.default = 2 m, Maestro per-flow, pytest-timeout); a longer value only with a comment giving the reason" }
+      "check": {
+        "type": "time-limits"
+      },
+      "fix": {
+        "type": "manual",
+        "note": "add `timeout-minutes` close to the measured duration to each job (PR < 10 min, merge_group < 15 min); set the runner's per-test timeout to 2 min (node --test-timeout=120000 --test-force-exit, Vitest/Jest testTimeout, Playwright timeout, JUnit junit.jupiter.execution.timeout.default = 2 m, Maestro per-flow, pytest-timeout); a longer value only with a comment giving the reason"
+      }
     },
     {
       "id": "required-checks-report-in-queue",
@@ -727,19 +927,404 @@
       "id": "rust-guards",
       "title": "Rust is tool-checked, not reviewed: rustfmt, clippy (pedantic, ratcheted per lint in lang-ratchet.json), cargo-deny (advisories, licences, bans) and timed tests through rust-quality.yml",
       "issue": "krizaka/krizaka-internal#2115",
-      "applies": { "when": [{ "pathEndsWith": "Cargo.toml" }] },
-      "check": { "type": "workflow-calls", "workflows": ["rust-quality.yml"] },
-      "fix": { "type": "manual", "note": "call krizaka/.github rust-quality.yml (working-directory: the crate; triggers pull_request, merge_group, push), then record today's clippy debt with `node lang-ratchet.mjs clippy <report> --update`; the debt only goes down" }
+      "applies": {
+        "when": [
+          {
+            "pathEndsWith": "Cargo.toml"
+          }
+        ]
+      },
+      "check": {
+        "type": "workflow-calls",
+        "workflows": [
+          "rust-quality.yml"
+        ]
+      },
+      "fix": {
+        "type": "manual",
+        "note": "call krizaka/.github rust-quality.yml (working-directory: the crate; triggers pull_request, merge_group, push), then record today's clippy debt with `node lang-ratchet.mjs clippy <report> --update`; the debt only goes down"
+      }
     },
     {
       "id": "python-guards",
       "title": "Python is tool-checked, not reviewed: ruff (bugbear, bandit), pyright, import-linter, pip-audit, deptry (ratcheted per rule in lang-ratchet.json) through python-quality.yml; pytest runs with pytest-timeout",
       "issue": "krizaka/krizaka-internal#2115",
-      "applies": { "notRepos": [".github"], "when": [{ "pathEndsWith": "requirements.txt" }] },
-      "check": { "type": "workflow-calls", "workflows": ["python-quality.yml"] },
-      "fix": { "type": "manual", "note": "call krizaka/.github python-quality.yml (requirements, paths, pyright-paths; triggers pull_request, merge_group, push), then record today's ruff debt with `node lang-ratchet.mjs ruff <report> --update`; add pytest-timeout to extra-packages and `--timeout=120` to the test command" }
+      "applies": {
+        "notRepos": [
+          ".github"
+        ],
+        "when": [
+          {
+            "pathEndsWith": "requirements.txt"
+          }
+        ]
+      },
+      "check": {
+        "type": "workflow-calls",
+        "workflows": [
+          "python-quality.yml"
+        ]
+      },
+      "fix": {
+        "type": "manual",
+        "note": "call krizaka/.github python-quality.yml (requirements, paths, pyright-paths; triggers pull_request, merge_group, push), then record today's ruff debt with `node lang-ratchet.mjs ruff <report> --update`; add pytest-timeout to extra-packages and `--timeout=120` to the test command"
+      }
     },
-    {"id": "sonar-ratchet", "title": "The overall SonarCloud counts (bugs, vulnerabilities, hotspots, smells per severity) may only go down: sonar-ratchet.json at the root, checked after the scan by actions/sonar-ratchet", "issue": "krizaka/krizaka-internal#2162", "applies": {"onlyRepos": [".github", "akinaza", "krizaka-agents", "krizaka-billing", "krizaka-blog", "krizaka-build", "krizaka-com", "krizaka-composer", "krizaka-internal", "krizaka-lab", "krizaka-notifications", "krizaka-platform-kit", "krizaka-tauri-kit", "krizaka-ts", "krizaka-ui", "krizaka-users", "orazaka", "orazaka-ai-engine", "orazaka-automation-service", "orazaka-build", "orazaka-cli", "orazaka-contracts", "orazaka-conversation-service", "orazaka-edge", "orazaka-job-service", "orazaka-knowledge-service", "orazaka-mobile-client", "orazaka-packs", "orazaka-studio", "orazaka-ui-kit", "orazaka-web-client", "orazaka-worker-media", "template-next-app", "template-tauri-app", "yomizaka"]}, "check": {"type": "file-exists", "paths": ["sonar-ratchet.json"]}, "fix": {"type": "manual", "note": "with SONAR_TOKEN set, run `node actions/sonar-ratchet/sonar-ratchet.mjs --update` from a krizaka/.github checkout inside the repository and commit sonar-ratchet.json; after fixing findings run it again to lower the baseline (it never raises one)"}},
-    {"id": "no-self-issues", "title": "No workflow opens an issue in the repository it runs in (our alerts live in the private krizaka-internal: actions/alert-issue, app token)", "issue": "krizaka/krizaka-internal#2267", "applies": {}, "check": {"type": "workflow-forbids", "pattern": "gh\\s+issue\\s+create(?![^\\n]*krizaka-internal)|gh\\s+api\\s+\"?repos/(?:\\$\\{?GITHUB_REPOSITORY\\}?|\\$\\{\\{\\s*github\\.repository\\s*\\}\\})/issues\"?\\s+-[fF]|issues\\.create\\(\\s*\\{(?![^}]*repo:\\s*[\"']krizaka-internal[\"'])|peter-evans/create-issue|JasonEtco/create-an-issue"}, "fix": {"type": "manual", "note": "replace the step by `uses: krizaka/.github/actions/alert-issue@<sha>` (app-id: vars.RELEASE_APP_ID, private-key: secrets.RELEASE_APP_PRIVATE_KEY, title `<repo> · fix(<scope>): …`, body-file, labels repo:<name>,type:fix); a script that files the issue is called by that action, never with github.token"}}
+    {
+      "id": "sonar-ratchet",
+      "title": "The overall SonarCloud counts may only go down, but only the security counts (vulnerabilities, hotspots to review) block; bugs and smells rising is a warning (rules review 2026-11-05: Sonar blocks only on the Security rating): sonar-ratchet.json at the root, checked after the scan by actions/sonar-ratchet",
+      "issue": "krizaka/krizaka-internal#2162",
+      "applies": {
+        "onlyRepos": [
+          ".github",
+          "folioviv",
+          "krizaka-agents",
+          "krizaka-billing",
+          "krizaka-blog",
+          "krizaka-java",
+          "krizaka-com",
+          "krizaka-composer",
+          "krizaka-internal",
+          "krizaka-lab",
+          "krizaka-notifications",
+          "krizaka-desktop",
+          "krizaka-ts",
+          "krizaka-ui",
+          "sovkora",
+          "sovkora-engine",
+          "sovkora-automation-service",
+          "sovkora-build",
+          "sovkora-cli",
+          "sovkora-contracts",
+          "sovkora-conversation-service",
+          "sovkora-edge-service",
+          "sovkora-job-service",
+          "sovkora-knowledge-service",
+          "sovkora-mobile",
+          "sovkora-packs",
+          "sovkora-studio-service",
+          "sovkora-ui-kit",
+          "sovkora-web",
+          "sovkora-worker-media",
+          "krizaka-template-web",
+          "krizaka-template-desktop",
+          "verikora"
+        ]
+      },
+      "check": {
+        "type": "file-exists",
+        "paths": [
+          "sonar-ratchet.json"
+        ]
+      },
+      "fix": {
+        "type": "manual",
+        "note": "with SONAR_TOKEN set, run `node actions/sonar-ratchet/sonar-ratchet.mjs --update` from a krizaka/.github checkout inside the repository and commit sonar-ratchet.json; after fixing findings run it again to lower the baseline (it never raises one)"
+      }
+    },
+    {
+      "id": "no-self-issues",
+      "title": "No workflow opens an issue in the repository it runs in (our alerts live in the private krizaka-internal: actions/alert-issue, app token)",
+      "issue": "krizaka/krizaka-internal#2267",
+      "applies": {},
+      "check": {
+        "type": "workflow-forbids",
+        "pattern": "gh\\s+issue\\s+create(?![^\\n]*krizaka-internal)|gh\\s+api\\s+\"?repos/(?:\\$\\{?GITHUB_REPOSITORY\\}?|\\$\\{\\{\\s*github\\.repository\\s*\\}\\})/issues\"?\\s+-[fF]|issues\\.create\\(\\s*\\{(?![^}]*repo:\\s*[\"']krizaka-internal[\"'])|peter-evans/create-issue|JasonEtco/create-an-issue"
+      },
+      "fix": {
+        "type": "manual",
+        "note": "replace the step by `uses: krizaka/.github/actions/alert-issue@<sha>` (app-id: vars.RELEASE_APP_ID, private-key: secrets.RELEASE_APP_PRIVATE_KEY, title `<repo> · fix(<scope>): …`, body-file, labels repo:<name>,type:fix); a script that files the issue is called by that action, never with github.token"
+      }
+    },
+    {
+      "id": "public-no-founder-name",
+      "title": "No founder name on a public page: « fondée à Montréal »; his signature stays on the blog only (réunion 6, 2026-11-05)",
+      "issue": "krizaka/krizaka-internal#2635",
+      "applies": {
+        "kinds": [
+          "site",
+          "app"
+        ],
+        "onlyRepos": [
+          "krizaka-com",
+          "krizaka-coming-soon",
+          "kridoc",
+          "verikora",
+          "folioviv",
+          "sovkora-web"
+        ]
+      },
+      "check": {
+        "type": "path-matches",
+        "pattern": "(^|/)[^/]*(public-no-founder-name|no-founder-name|no-public-signature)[^/]*\\.(test|spec)\\.[cm]?[jt]sx?$"
+      },
+      "fix": {
+        "type": "manual",
+        "note": "add a test named `public-no-founder-name.test.*` (or no-public-signature) that renders or reads the public pages and catalogues and refuses the founder's name; the blog is out of scope (his voice)"
+      }
+    },
+    {
+      "id": "public-no-amount",
+      "title": "No money amount in public words: no price, no « à partir de », no « sur devis » on the public pages and the code-name sites (founder 2026-11-03, réunion 6)",
+      "issue": "krizaka/krizaka-internal#2635",
+      "applies": {
+        "kinds": [
+          "site",
+          "app"
+        ],
+        "onlyRepos": [
+          "krizaka-com",
+          "krizaka-coming-soon",
+          "kridoc",
+          "verikora",
+          "folioviv",
+          "sovkora-web"
+        ]
+      },
+      "check": {
+        "type": "path-matches",
+        "pattern": "(^|/)[^/]*(public-no-amount|no-amount|no-public-price)[^/]*\\.(test|spec)\\.[cm]?[jt]sx?$"
+      },
+      "fix": {
+        "type": "manual",
+        "note": "add a test named `public-no-amount.test.*` (or no-amount) that reads the EN/FR catalogues and public content and refuses an amount or a currency (krizaka-com tests/no-amount.test.mjs is the model)"
+      }
+    },
+    {
+      "id": "code-name-hosts-noindex",
+      "title": "The code-name hosts (www.yomizaka.com, www.akinaza.com, www.orazaka.com, dev.<code>.com) are noindex: robots Disallow and X-Robots-Tag noindex, proven by the app's indexing test (réunion 6, 2026-11-05)",
+      "issue": "krizaka/krizaka-internal#2635",
+      "applies": {
+        "kinds": [
+          "site",
+          "app"
+        ],
+        "onlyRepos": [
+          "verikora",
+          "folioviv",
+          "sovkora-web"
+        ]
+      },
+      "check": {
+        "type": "path-matches",
+        "pattern": "(^|/)[^/]*(indexing|noindex|code-name-host)[^/]*\\.(test|spec)\\.[cm]?[jt]sx?$",
+        "contains": "noindex"
+      },
+      "fix": {
+        "type": "manual",
+        "note": "add a test named `indexing.test.*` that asserts a code-name host answers noindex (robots and X-Robots-Tag) and the commercial www host is indexed"
+      }
+    },
+    {
+      "id": "privacy-officer",
+      "title": "Every privacy page names the Law 25 person in charge (the role, no personal name) and confidentialite@krizaka.com (réunion 6, 2026-11-05)",
+      "issue": "krizaka/krizaka-internal#2635",
+      "applies": {
+        "kinds": [
+          "site",
+          "app"
+        ],
+        "when": [
+          {
+            "pathMatches": "(^|/)(privacy|confidentialite)/page\\.[jt]sx?$"
+          }
+        ]
+      },
+      "check": {
+        "type": "path-matches",
+        "pattern": "(^|/)[^/]*(privacy-officer|privacy-person-in-charge)[^/]*\\.(test|spec)\\.[cm]?[jt]sx?$",
+        "contains": "confidentialite@"
+      },
+      "fix": {
+        "type": "manual",
+        "note": "add a test named `privacy-officer.test.*` that reads the privacy page in both languages and asserts the person in charge and confidentialite@krizaka.com"
+      }
+    },
+    {
+      "id": "product-status-word",
+      "title": "One public status per product, the same word everywhere and equal to krizaka.com's: « En développement » Verikora and Sovkora, « En pause » Folioviv, « En conception » Kridoc (réunion 6, 2026-11-05)",
+      "issue": "krizaka/krizaka-internal#2635",
+      "applies": {
+        "kinds": [
+          "site",
+          "app"
+        ],
+        "onlyRepos": [
+          "krizaka-com",
+          "krizaka-coming-soon",
+          "kridoc",
+          "verikora",
+          "folioviv",
+          "sovkora-web"
+        ]
+      },
+      "check": {
+        "type": "path-matches",
+        "pattern": "(^|/)[^/]*(product-status|status-word)[^/]*\\.(test|spec)\\.[cm]?[jt]sx?$"
+      },
+      "fix": {
+        "type": "manual",
+        "note": "add a test named `product-status.test.*` that asserts the product's status word equals the one krizaka.com shows (read from @krizaka/org once it carries it)"
+      }
+    },
+    {
+      "id": "one-contact-path",
+      "title": "One contact path: « Nous écrire » / « Write to us » leads to krizaka.com/{fr|en}/contact with the topic and the source site (réunion 6, 2026-11-05)",
+      "issue": "krizaka/krizaka-internal#2635",
+      "applies": {
+        "kinds": [
+          "site",
+          "app"
+        ],
+        "onlyRepos": [
+          "krizaka-com",
+          "krizaka-coming-soon",
+          "kridoc",
+          "verikora",
+          "folioviv",
+          "sovkora-web"
+        ]
+      },
+      "check": {
+        "type": "path-matches",
+        "pattern": "(^|/)[^/]*(contact-href|contact-source|contact-path)[^/]*\\.(test|spec)\\.[cm]?[jt]sx?$",
+        "contains": "contact"
+      },
+      "fix": {
+        "type": "manual",
+        "note": "add a test named `contact-href.test.*` that asserts every contact link goes to krizaka.com/<locale>/contact with topic and source"
+      }
+    },
+    {
+      "id": "docs-map",
+      "title": "Every repository runs the docs-map check: a pull request that changes what docs-map.json lists updates the documents of its category, or says « Docs: <link> » or « Docs: not needed, <why> » (ADR-026, founder 2026-11-06). Rolled out in warn mode, then required",
+      "issue": "krizaka/krizaka-internal#2759",
+      "applies": {
+        "kinds": ["npm", "site", "app", "maven", "python", "rust", "iac"]
+      },
+      "check": {
+        "type": "workflow-calls",
+        "workflows": ["docs-map.yml"]
+      },
+      "fix": {
+        "type": "copy",
+        "from": "workflow-templates/docs-map.yml",
+        "to": ".github/workflows/docs-map.yml"
+      }
+    },
+    {
+      "id": "rules-register",
+      "title": "The rules register of krizaka-agents (docs/rules-register.md, its org-rules table) names exactly the rules of this registry: the register and the matrix are the same list (founder 2026-11-06)",
+      "issue": "krizaka/krizaka-internal#2635",
+      "applies": {
+        "onlyRepos": [
+          "krizaka-agents"
+        ]
+      },
+      "check": {
+        "type": "lists-rule-ids",
+        "path": "docs/rules-register.md"
+      },
+      "fix": {
+        "type": "manual",
+        "note": "add or remove the line of the rule in the table between <!-- org-rules:start --> and <!-- org-rules:end --> of docs/rules-register.md, in the same work as the change of rules.json"
+      }
+    },
+    {
+      "id": "no-public-email",
+      "title": "No Krizaka e-mail address on a public page of a site or an app: Support and Contact lead to the contact form of krizaka.com (kind and product in the link). Written exceptions: the privacy officer on privacy text (Quebec Act respecting the protection of personal information in the private sector, s. 3.1, as amended by Law 25: the person in charge's title and contact are published) and the data a customer publishes about itself (a Folioviv shop's own publicEmail) (founder 2026-11-06)",
+      "issue": "krizaka/krizaka-internal#2764",
+      "applies": {
+        "kinds": [
+          "site",
+          "app"
+        ],
+        "onlyRepos": [
+          "krizaka-com",
+          "krizaka-coming-soon",
+          "krizaka-blog",
+          "kridoc",
+          "verikora",
+          "folioviv",
+          "sovkora-web"
+        ]
+      },
+      "check": {
+        "type": "no-public-email",
+        "domains": [
+          "krizaka.com",
+          "verikora.com",
+          "folioviv.com",
+          "sovkora.com",
+          "kridoc.com"
+        ],
+        "extensions": [
+          "ts",
+          "tsx",
+          "js",
+          "jsx",
+          "mjs",
+          "mdx",
+          "md",
+          "json",
+          "html",
+          "txt"
+        ],
+        "publicSegments": [
+          "app",
+          "pages",
+          "components",
+          "src",
+          "messages",
+          "content",
+          "public",
+          "lib",
+          "locales"
+        ],
+        "publicFiles": [
+          "llms.txt",
+          "llms-full.txt"
+        ],
+        "skipSegments": [
+          "node_modules",
+          "test",
+          "tests",
+          "__tests__",
+          "e2e",
+          "fixtures",
+          "seed",
+          "seeds",
+          "scripts",
+          "docs",
+          "api",
+          "emails",
+          "email",
+          "mail",
+          ".github",
+          ".claude",
+          ".next",
+          "dist",
+          "build"
+        ],
+        "skipPaths": [
+          "\\.(test|spec)\\.[cm]?[jt]sx?$",
+          "(^|/)(SECURITY|SUPPORT|README|CHANGELOG|AGENTS|CODE_OF_CONDUCT)\\.md$",
+          "(^|/)package(-lock)?\\.json$",
+          "\\.env(\\.[\\w-]+)?$"
+        ],
+        "privacyPaths": [
+          "(^|/)(privacy|confidentialit)[^/]*(/|\\.)"
+        ],
+        "customerData": [
+          "publicEmail",
+          "shop.email",
+          "client.email"
+        ]
+      },
+      "fix": {
+        "type": "manual",
+        "note": "replace the address by the contact form link (krizaka.com/<locale>/contact with kind and product, see one-contact-path); an address of ours stays only in the privacy officer's text on a privacy page, or as data a customer published about itself (a variable such as shop.publicEmail, never a literal of ours). Server-side senders, tests, seeds, scripts and SECURITY.md are not public sources"
+      }
+    }
   ]
 }

@@ -8,7 +8,7 @@
 #     permissions: { contents: write, pull-requests: write }
 #     uses: krizaka/.github/.github/workflows/app-videos.yml@<sha> # main
 #     with:
-#       product: yomizaka
+#       product: verikora
 #       manifest: apps/web/content/app-videos.json
 #       artifacts: |
 #         maestro-e2e        # Maestro: `startRecording: android-documents` … `stopRecording` (files named <platform>-<flow>.mp4)
@@ -27,7 +27,7 @@ on:
   workflow_call:
     inputs:
       product:
-        description: "The product id (yomizaka, akinaza, orazaka)."
+        description: "The product id (verikora, folioviv, sovkora)."
         type: string
         required: true
       manifest:

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { failure, fetchPinState, movePins, openPrsToWait, pinBranch, pinFiles, pinPattern, pinPrDecision, publishPinPr, pushArgs } from "./propagate-pins.mjs";
+import { failure, fetchPinState, movePins, pinBranch, pinFiles, pinPattern, pinPrDecision, publishPinPr, pushArgs } from "./propagate-pins.mjs";
 
 const OLD = "a".repeat(40);
 const NEW = "b".repeat(40);
@@ -25,20 +25,20 @@ test("movePins moves only the pins of krizaka/.github, in workflows and local ac
   assert.equal(movePins(root, NEW).length, 0, "idempotent");
 });
 
-test("--source moves the component.yml pins of krizaka/orazaka and leaves the org's own pins alone", () => {
+test("--source moves the component.yml pins of krizaka/sovkora and leaves the org's own pins alone", () => {
   const root = mkdtempSync(join(tmpdir(), "pins-src-"));
   mkdirSync(join(root, ".github/workflows"), { recursive: true });
   writeFileSync(
     join(root, ".github/workflows/ci.yml"),
-    `uses: krizaka/orazaka/.github/workflows/component.yml@${OLD} # main\n  uses: krizaka/.github/.github/workflows/node-ci.yml@${OLD} # main\n`,
+    `uses: krizaka/sovkora/.github/workflows/component.yml@${OLD} # main\n  uses: krizaka/.github/.github/workflows/node-ci.yml@${OLD} # main\n`,
   );
-  assert.equal(movePins(root, NEW, "orazaka").length, 1);
+  assert.equal(movePins(root, NEW, "sovkora").length, 1);
   const after = readFileSync(join(root, ".github/workflows/ci.yml"), "utf8");
-  assert.match(after, new RegExp(`krizaka/orazaka/.github/workflows/component.yml@${NEW} # main`));
+  assert.match(after, new RegExp(`krizaka/sovkora/.github/workflows/component.yml@${NEW} # main`));
   assert.match(after, new RegExp(`krizaka/.github/.github/workflows/node-ci.yml@${OLD} # main`));
-  assert.equal(movePins(root, NEW, "orazaka").length, 0, "idempotent");
+  assert.equal(movePins(root, NEW, "sovkora").length, 0, "idempotent");
   assert.ok(pinPattern(".github").test("krizaka/.github/x@" + OLD), "the default source is the org's .github");
-  assert.ok(!pinPattern("orazaka").test("krizaka/orazaka-edge/x@" + OLD), "the source name is exact");
+  assert.ok(!pinPattern("sovkora").test("krizaka/sovkora-edge-service/x@" + OLD), "the source name is exact");
 });
 
 test("the push carries the app's token through gh's credential helper (a runner has none: every push of 2026-10-29 failed), and a failure says why", () => {
@@ -84,15 +84,10 @@ test("without an open PR one is created, and the older sha-named PRs are closed 
   assert.ok(!calls.some((c) => c.some((x) => String(x).includes("/3"))), "unrelated PRs are left alone");
 });
 
-test("the org pins wait while .github has open pull requests, and only then", () => {
-  const run = (n) => (cmd, args) => {
-    assert.ok(args.includes("repos/krizaka/.github/pulls?state=open&per_page=100"));
-    return `${n}\n`;
-  };
-  assert.equal(openPrsToWait(".github", run(3)), 3);
-  assert.equal(openPrsToWait(".github", run(0)), 0);
-  // another source (orazaka) has its own rule: it never waits on .github
-  assert.equal(openPrsToWait("orazaka", () => assert.fail("no API call")), 0);
+test("the org pins never wait for .github to be at 0 open pull requests (CTO rules review 2026-11-05)", () => {
+  const src = readFileSync(new URL("./propagate-pins.mjs", import.meta.url), "utf8");
+  assert.ok(!src.includes("repos/krizaka/.github/pulls"), "no count of .github's open pull requests");
+  assert.ok(!/openPrsToWait/.test(src));
 });
 
 test("any other open pin PR of the repository is closed as superseded, whatever its head", () => {
@@ -152,14 +147,14 @@ test("pinPrDecision: a pin PR created today and already merged or closed → ski
 });
 
 test("pinPrDecision: another source's pin PR open in the repository → skip (one pin PR per repository at a time)", () => {
-  const other = pr(8, "deps/orazaka-workflow-pins", "open", "2026-11-01", "ci(deps): the orazaka workflow pins move to krizaka/orazaka@cccccccc");
+  const other = pr(8, "deps/sovkora-workflow-pins", "open", "2026-11-01", "ci(deps): the sovkora workflow pins move to krizaka/sovkora@cccccccc");
   const d = pinPrDecision({ ...ORG, prs: [other], today: TODAY, headDates: { 8: "2026-11-01T00:00:00Z" } });
   assert.equal(d.action, "skip");
   assert.match(d.reason, /#8/);
 });
 
 test("pinPrDecision: another source's pin PR created today (merged) counts for the day too", () => {
-  const other = pr(8, "deps/orazaka-workflow-pins", "merged", TODAY, "ci(deps): the orazaka workflow pins move to krizaka/orazaka@cccccccc");
+  const other = pr(8, "deps/sovkora-workflow-pins", "merged", TODAY, "ci(deps): the sovkora workflow pins move to krizaka/sovkora@cccccccc");
   assert.equal(pinPrDecision({ ...ORG, prs: [other], today: TODAY, headDates: {} }).action, "skip");
   const mine = pr(4, ORG.branch, "open", "2026-11-02");
   assert.equal(pinPrDecision({ ...ORG, prs: [other, mine], today: TODAY, headDates: { 4: "2026-11-02T00:00:00Z" } }).action, "skip", "no update the day another pin PR went out");

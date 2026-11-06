@@ -9,13 +9,13 @@
 #         packages: read   # the released krizaka-parent family comes from GitHub Packages
 #       uses: krizaka/.github/.github/workflows/java-ci.yml@<sha> # v1.0.0
 #       with:
-#         workspace-component: orazaka-knowledge-service   # an Orazaka service: verified inside the workspace
+#         workspace-component: sovkora-knowledge-service   # a Sovkora service: verified inside the workspace
 #         rewrite: true
 #
 # What it owns (same shape as node-ci.yml):
 #   changes   the changes.yml gate: a docs-only change skips the heavy job (fail-open).
-#   verify    JDK + the Maven repository cache (~/.m2), then either `mvnw verify` in the repository, or — for an Orazaka
-#             service — the workspace flow: the Orazaka workspace is checked out, every other repository is cloned at its
+#   verify    JDK + the Maven repository cache (~/.m2), then either `mvnw verify` in the repository, or — for a Sovkora
+#             service — the workspace flow: the Sovkora workspace is checked out, every other repository is cloned at its
 #             path, this one is placed at the commit under test, and `scripts/workspace.mjs ci <component>` builds its
 #             upstream repositories from source before verifying it (the cross-repository rules run exactly as locally).
 #   sonar     optional, after verify: the SonarCloud CI analysis (JaCoCo report + compiled classes uploaded by verify), quality gate awaited.
@@ -49,13 +49,13 @@ on:
         type: string
         default: ""
       workspace-component:
-        description: "An Orazaka repository name (orazaka.workspace.json): verify it inside the workspace instead of alone."
+        description: "A Sovkora repository name (orazaka.workspace.json): verify it inside the workspace instead of alone."
         type: string
         default: ""
       maven-packages-registry:
-        description: "Workspace flow: the GitHub Packages Maven registry that serves a RELEASED com.krizaka parent (`relativePath` empty) the cloned krizaka-build is no longer at, since a parent is resolved before the repositories of the pom that names it. Empty: none."
+        description: "Workspace flow: the GitHub Packages Maven registry that serves a RELEASED com.krizaka parent (`relativePath` empty) the cloned krizaka-java is no longer at, since a parent is resolved before the repositories of the pom that names it. Empty: none."
         type: string
-        default: "https://maven.pkg.github.com/krizaka/krizaka-build"
+        default: "https://maven.pkg.github.com/krizaka/krizaka-java"
       rewrite:
         description: "Fail when an OpenRewrite recipe of krizaka-parent would change code (rewrite:dryRun)."
         type: boolean
@@ -135,12 +135,12 @@ jobs:
     env:
       COMPONENT: ${{ inputs.workspace-component }}
     steps:
-      # ── the workspace flow (an Orazaka service) ────────────────────────────────────────────────────────────────
-      - name: Check out the Orazaka workspace
+      # ── the workspace flow (a Sovkora service) ────────────────────────────────────────────────────────────────
+      - name: Check out the Sovkora workspace
         if: ${{ inputs.workspace-component != '' }}
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          repository: krizaka/orazaka
+          repository: krizaka/sovkora
           path: workspace
           persist-credentials: false
 
@@ -181,7 +181,7 @@ jobs:
         if: ${{ inputs.workspace-component == '' }}
         uses: krizaka/.github/actions/repo-layout@d701b569b15617609b890102bc0be9978759909c # main
 
-      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: ${{ inputs.java-distribution }}
           java-version: ${{ inputs.java-version }}
@@ -194,7 +194,7 @@ jobs:
           server-username: GITHUB_ACTOR
           server-password: GITHUB_TOKEN
 
-      # A repository of the workspace may name a released krizaka-parent (e.g. 0.7.1) while krizaka-build's default branch has moved on
+      # A repository of the workspace may name a released krizaka-parent (e.g. 0.7.1) while krizaka-java's default branch has moved on
       # (0.8.0): Maven reads a parent before any repository declared in the pom, and Central holds only the first releases. The
       # registry goes in settings.xml (server `github`, written by setup-java above), so the released parent resolves from GitHub Packages; the plugins' own dependencies (krizaka-quality for PMD) come from the same registry.
       - name: Maven settings, released parents from GitHub Packages
@@ -222,7 +222,7 @@ jobs:
         with:
           node-version: "22"
 
-      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         if: ${{ inputs.workspace-component != '' }}
         with:
           python-version: "3.12"
@@ -361,12 +361,32 @@ jobs:
           fetch-depth: 0  # blame and new-code detection need the history
           persist-credentials: false
 
-      - uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
+      # Rules review of 2026-11-05: on a pull request only the Security rating blocks (sonar-gate.mjs reads the gate); elsewhere the full gate fails.
+      - id: scan
+        continue-on-error: ${{ github.event_name == 'pull_request' }}
+        uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
         env:
           SONAR_HOST_URL: https://sonarcloud.io
         with:
           projectBaseDir: ${{ inputs.working-directory }}
           args: -Dsonar.projectVersion=ci-${{ github.run_number }} -Dsonar.qualitygate.wait=true -Dsonar.java.binaries=. ${{ inputs.sonar-args }}
+      - name: Sonar on a pull request, the Security rating only
+        if: ${{ github.event_name == 'pull_request' && steps.scan.outcome == 'failure' }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/.github
+          ref: main
+          path: .krizaka-sonar-gate
+          sparse-checkout: scripts/sonar-gate.mjs
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - name: The Security rating blocks, the other conditions warn
+        if: ${{ github.event_name == 'pull_request' && steps.scan.outcome == 'failure' }}
+        env:
+          REPORT: ${{ inputs.working-directory }}/.scannerwork/report-task.txt
+        run: |
+          if [ ! -f .krizaka-sonar-gate/scripts/sonar-gate.mjs ]; then echo "::error::scripts/sonar-gate.mjs is not on krizaka/.github main: the full quality gate failed"; exit 1; fi
+          node .krizaka-sonar-gate/scripts/sonar-gate.mjs --report "$REPORT"
 
   sonar:
     name: SonarCloud
@@ -401,12 +421,32 @@ jobs:
 
       # CI analysis: the SonarCloud app still decorates the pull request and posts « SonarCloud Code Analysis »; the quality gate is awaited
       # here so the CI gate carries its verdict too.
-      - uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
+      # Rules review of 2026-11-05: on a pull request only the Security rating blocks (sonar-gate.mjs reads the gate); elsewhere the full gate fails.
+      - id: scan
+        continue-on-error: ${{ github.event_name == 'pull_request' }}
+        uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
         env:
           SONAR_HOST_URL: https://sonarcloud.io
         with:
           projectBaseDir: ${{ inputs.working-directory }}
           args: -Dsonar.projectVersion=ci-${{ github.run_number }} -Dsonar.qualitygate.wait=true ${{ inputs.sonar-args }}
+      - name: Sonar on a pull request, the Security rating only
+        if: ${{ github.event_name == 'pull_request' && steps.scan.outcome == 'failure' }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/.github
+          ref: main
+          path: .krizaka-sonar-gate
+          sparse-checkout: scripts/sonar-gate.mjs
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - name: The Security rating blocks, the other conditions warn
+        if: ${{ github.event_name == 'pull_request' && steps.scan.outcome == 'failure' }}
+        env:
+          REPORT: ${{ inputs.working-directory }}/.scannerwork/report-task.txt
+        run: |
+          if [ ! -f .krizaka-sonar-gate/scripts/sonar-gate.mjs ]; then echo "::error::scripts/sonar-gate.mjs is not on krizaka/.github main: the full quality gate failed"; exit 1; fi
+          node .krizaka-sonar-gate/scripts/sonar-gate.mjs --report "$REPORT"
 
   gate:
     name: CI gate

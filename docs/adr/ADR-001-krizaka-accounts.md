@@ -3,7 +3,7 @@
 - **Status**: Accepted (the runtime waits on Oussama's cost approval, see *Cost*)
 - **Date**: 2026-10-16
 - **Scope**: the sign-in standard of the family ([krizaka/.github#76](https://github.com/krizaka/.github/issues/76)):
-  every product but a former product (Orazaka web/mobile/Mac, Yomizaka, the former products, Akinaza and their admin
+  every product but a former product (Sovkora web/mobile/Mac, Verikora, the former products, Folioviv and their admin
   consoles) and Krizaka's own accounts for the krizaka.com properties, whose first consumer is blog.krizaka.com.
   Amended 2026-10-16 (wider scope, account linking by verified e-mail, native PKCE, `SignInProviders`).
 - **Update 2026-10-30 (krizaka-internal#752)**: the `krizaka-accounts` repository held no code and was deleted; its design moved to `krizaka-users/docs/adr/ADR-001-accounts.md`, and the host is recreated (or added as a module of `krizaka-users`) when accounts.krizaka.com is approved.
@@ -14,7 +14,7 @@
 
 blog.krizaka.com is Krizaka's own voice, not a product. Readers should be able to share a post, save it, comment and
 get replies, so the people who come once come back. Signing in with GitHub, Google, Apple or Facebook creates a
-**Krizaka account**: one per person for the krizaka.com properties, separate from every product's users (Orazaka,
+**Krizaka account**: one per person for the krizaka.com properties, separate from every product's users (Sovkora,
 a former product… keep theirs; House of Brands, addendum 2026-10-15). Oussama asked for a dedicated, reusable module ("like
 Passport, with a thin Krizaka layer"), on the existing PostgreSQL cluster `krizaka-dev-pg`, with its own database.
 
@@ -22,7 +22,7 @@ What exists:
 
 - **`krizaka/krizaka-users`** (Krizaka Java, Apache-2.0, on Maven Central): registration, e-mail verification, password,
   Google/GitHub token exchange, profiles, API keys, RBAC, HS256 session JWT, Loi 25 export and erasure (admin), auth
-  rate limiting and lockout. Orazaka dev runs it (one JVM of its `core` container, database `krizaka_users_db`).
+  rate limiting and lockout. Sovkora dev runs it (one JVM of its `core` container, database `krizaka_users_db`).
 - **The blog** is a static export on App Platform's free tier, plus two DigitalOcean Functions for the editors' GitHub
   sign-in (Decap CMS). It has no server and no database.
 - **krizaka-com** already verifies Cloudflare Turnstile (`ABUSE_CAPTCHA_*`) and sends mail through `MAIL_*` (Mailgun).
@@ -40,7 +40,7 @@ What exists:
 | 5 | Only token exchange from a front end (`POST /api/v1/auth/oauth`); no browser sign-in flow | A static site cannot sign anyone in with it. |
 | 6 | No Apple, no Facebook, no passkeys, no magic link (issue `krizaka-users#21`) | Apple is mandatory for the products' iOS apps anyway. |
 
-Findings 1–4 also affect Orazaka (its sign-up is closed today, which is why nobody has hit them).
+Findings 1–4 also affect Sovkora (its sign-up is closed today, which is why nobody has hit them).
 
 ## Options
 
@@ -57,7 +57,7 @@ family, and the blog is its showcase.
 
 Better Auth is the turnkey TypeScript standard (it absorbed Auth.js): GitHub, Google, Apple, Facebook, passkeys, magic
 links and a Postgres adapter. The blog has no server, so it would live in krizaka-com's Next.js server: **$0 more**.
-But it is a second identity stack the JVM products cannot use, krizaka-users keeps its defects (Orazaka still depends
+But it is a second identity stack the JVM products cannot use, krizaka-users keeps its defects (Sovkora still depends
 on it), and the family's module never becomes reusable.
 
 ### (C) giscus (GitHub Discussions) for comments only
@@ -89,17 +89,17 @@ does not depend on the server, so swapping the server does not touch the blog's 
 4. **Environment** (bounded context `AUTH_`, the vendor is part of the OAuth client's name as the blog already does):
    `AUTH_GITHUB_CLIENT_ID/SECRET`, `AUTH_GOOGLE_CLIENT_ID/SECRET`, `AUTH_APPLE_CLIENT_ID`, `AUTH_APPLE_TEAM_ID`,
    `AUTH_APPLE_KEY_ID`, `AUTH_APPLE_PRIVATE_KEY`, `AUTH_FACEBOOK_CLIENT_ID/SECRET`, `AUTH_ALLOWED_ORIGINS`,
-   `AUTH_PUBLIC_URL`. krizaka-users' `GOOGLE_CLIENT_ID` / `GITHUB_CLIENT_ID` are renamed (no compatibility layer; Orazaka
+   `AUTH_PUBLIC_URL`. krizaka-users' `GOOGLE_CLIENT_ID` / `GITHUB_CLIENT_ID` are renamed (no compatibility layer; Sovkora
    does not set them).
 
 ### The family standard (krizaka/.github#76)
 
 One implementation, many deployments. **The code is shared, the identities are not** (House of Brands): each
 product runs krizaka-users (embedded or as its service) with **its own database and its own OAuth apps**; a person
-who uses Orazaka and the blog has two unrelated accounts. a former product keeps its own flow (age gating).
+who uses Sovkora and the blog has two unrelated accounts. a former product keeps its own flow (age gating).
 
 1. **Providers, in this order everywhere**: Apple, Google, GitHub, Facebook — then e-mail (magic link or password)
-   and passkeys where cheap. On a developer-facing surface (the blog, Krizaka UI/Java sites, Orazaka's console)
+   and passkeys where cheap. On a developer-facing surface (the blog, Krizaka UI/Java sites, Sovkora's console)
    GitHub may come first. Each product turns on the providers whose credentials it has; the code for all four
    ships once in krizaka-users.
 2. **Buttons**: `@krizaka/ui` `SignInProviders` (web and native), drawn to each provider's official guidelines
@@ -114,7 +114,7 @@ who uses Orazaka and the blog has two unrelated accounts. a former product keeps
    verification signal: it never links automatically. Otherwise a separate account is created; a signed-in person can
    link a provider from their account page. One account holds several identities (`user_identities`).
 5. **PKCE on mobile and desktop** (RFC 8252): the app opens the system browser on the same `/api/v1/auth/web/{p}/start`
-   with its own PKCE challenge and an allowed app redirect (`orazaka://auth`, a claimed https link on iOS); the
+   with its own PKCE challenge and an allowed app redirect (`sovkora://auth`, a claimed https link on iOS); the
    service redirects back with a one-time code, which the app exchanges with its verifier at
    `POST /api/v1/auth/web/token` for a session token. No embedded web view, no provider secret in an app.
 6. **Loi 25**: the same consent text under the buttons (what is kept, why, link to the product's privacy page),
@@ -123,8 +123,8 @@ who uses Orazaka and the blog has two unrelated accounts. a former product keeps
    `_KEY_ID`, `_PRIVATE_KEY`) in the product's env file and its App Platform secrets. Callback:
    `https://<product's auth host>/api/v1/auth/web/<provider>/callback`. The click-by-click steps for each product's
    OAuth apps are in its wiring issue (label `dev-preview`, org project 4).
-8. **Where it runs for the TypeScript products.** Orazaka already runs krizaka-users (a JVM of its `core`). Yomizaka,
-   the former products and Akinaza have hand-built Node auth on their own databases. Options measured against the
+8. **Where it runs for the TypeScript products.** Sovkora already runs krizaka-users (a JVM of its `core`). Verikora,
+   the former products and Folioviv have hand-built Node auth on their own databases. Options measured against the
    cost gate: a JVM per product (≈ 290 MiB each, $5/month × 4 = $20/month — refused without Oussama); a TypeScript port
    (two implementations of the same rules — refused); **one multi-tenant krizaka-users** (chosen): the
    accounts.krizaka.com service gains *tenants* — per tenant its own database (the product's existing database and
@@ -186,14 +186,14 @@ service starts without a broker (measured), but its health would report DOWN, so
 
 ## Cost
 
-**Measured** on 2026-10-16: `krizaka-users-service` (the same JVM flags as Orazaka dev: serial GC, C1, `-Xmx160m`)
+**Measured** on 2026-10-16: `krizaka-users-service` (the same JVM flags as Sovkora dev: serial GC, C1, `-Xmx160m`)
 against `krizaka_accounts` through `pool-accounts`: started in 8 s, **289 MiB resident** after 300 sign-in attempts and
 300 health checks. The community module adds a few entities and controllers to the same JVM.
 
 | Where | Monthly | Verdict |
 |---|---|---|
 | A new App Platform service, `apps-s-1vcpu-0.5gb` (512 MiB) | **$5** | Fits (≈ 220 MiB headroom). The recommended runtime. |
-| A sixth JVM in Orazaka dev's `core` container | $0 | Rejected: ties Krizaka's identity to Orazaka's deploys (one JVM down restarts all five), eats the memory budget of five JVMs and the pack workers, and breaks House of Brands. |
+| A sixth JVM in Sovkora dev's `core` container | $0 | Rejected: ties Krizaka's identity to Sovkora's deploys (one JVM down restarts all five), eats the memory budget of five JVMs and the pack workers, and breaks House of Brands. |
 | A second component of the `krizaka-com` app | $5 | Same price as its own app (App Platform bills per container), more coupling. |
 | Option (B) inside krizaka-com's Node server | $0 | The fallback. |
 
@@ -205,10 +205,10 @@ the secrets, point `accounts.krizaka.com` (Porkbun CNAME) at it, then set `APP_A
 ## Consequences
 
 - The blog's comments, sync and sign-in stay hidden until `APP_ACCOUNTS_URL` is set at build; share and save work today.
-- krizaka-users gains what every product needs (fixed federation, browser flow, Apple, Facebook); Orazaka and the
+- krizaka-users gains what every product needs (fixed federation, browser flow, Apple, Facebook); Sovkora and the
   products' mobile apps benefit when they upgrade.
 - Maven Central releases are paused until November: `krizaka-accounts` builds `krizaka-users` from source in CI
-  (`upstreams`) and in its Docker image, as Orazaka does.
+  (`upstreams`) and in its Docker image, as Sovkora does.
 - Asymmetric session tokens (ES256 with a JWKS, `krizaka-users#22`) would let www and other hosts verify the session
   without sharing the HS256 secret; not needed while only accounts.krizaka.com reads the cookie.
 - Waiting on Oussama: the $5/month approval, the GitHub and Google OAuth apps (steps in the orchestration file), later

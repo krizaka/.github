@@ -1,5 +1,5 @@
 // Commit identities are an allow-list (founder 2026-11-04, krizaka-internal#2433): a made-up e-mail in a `Co-authored-by:` line once
-// listed a stranger as an akinaza contributor (2026-10-31). Now no e-mail can be invented: the author, the committer and every
+// listed a stranger as an folioviv contributor (2026-10-31). Now no e-mail can be invented: the author, the committer and every
 // co-author trailer must be in scripts/commit-identities.json (the Krizaka apps' bots and the founder). Nothing else passes; a
 // refused e-mail is masked in the output. The local hooks of krizaka-agents read the same file, pinned to the same sha.
 // Run by security-scan.yml on pull requests (the PR's commits) and in the merge queue (the squash commit itself).
@@ -124,7 +124,7 @@ function noreplyLogin(local) {
  * allow-listed login but NOT its exact e-mail (the bare, prefix-less or wrong-id form). A direct author or committer
  * needs the `<id>+<login>@users.noreply.github.com` of scripts/commit-identities.json; the bare form only ever passes
  * as a squash-merge co-author trailer, so an automation that commits with it is refused by the commit check above —
- * the whole org at once (krizaka/akinaza#691, the propagate-pins fan-out, 2026-11-05). This catches that at the
+ * the whole org at once (krizaka/folioviv#691, the propagate-pins fan-out, 2026-11-05). This catches that at the
  * source. An unknown login (a bot not on the list) is a different matter, left to the commit check; a non-noreply
  * e-mail is none of this guard's business.
  */

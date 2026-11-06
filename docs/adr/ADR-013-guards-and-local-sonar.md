@@ -25,7 +25,7 @@ Meanwhile, guards are copied from repo to repo (`sg-ratchet.mjs` ×6, `check-seo
 - ✕ **New OpenRewrite recipes as guards.** → OpenRewrite rewrites code; it does not check it. It stays for the import layout and migrations (krizaka-build#101).
 - ✓ **IDE:** SonarQube for IDE in connected mode, with `.sonarlint/connectedMode.json` committed per repo ([.github#327](https://github.com/krizaka/.github/issues/327)).
   - → This is the only early place where the taint findings show up.
-- ✓ **The Sonar gate is required on all 13 focus repos.** It was added to orazaka-conversation-service and krizaka-platform-kit on 2026-10-27; both were green on `main`.
+- ✓ **The Sonar gate is required on all 13 focus repos.** It was added to sovkora-conversation-service and krizaka-platform-kit on 2026-10-27; both were green on `main`.
 
 ### 2. Boundaries, secrets, workflows
 
@@ -44,11 +44,11 @@ The order is IDE → pre-commit → pre-push → PR CI → Sonar. CI always runs
 | Cognitive complexity, TS | PR CI (0.11) | IDE + pre-push | .github#326 |
 | Java smells (S1192, S3776…) | Sonar | `mvn verify` locally (PMD) | krizaka-build#105 |
 | Taint vulnerabilities | Sonar | IDE (connected mode); Sonar stays the gate | .github#327 |
-| ESLint, the ratchets, ast-grep, depcruise | PR CI (pre-push in yomizaka only) | pre-push everywhere | .github#326 |
+| ESLint, the ratchets, ast-grep, depcruise | PR CI (pre-push in verikora only) | pre-push everywhere | .github#326 |
 | Secrets | GitHub push protection (provider patterns only) | pre-commit (gitleaks) | .github#324 |
 | Workflow security | Sonar | pre-push + PR CI (zizmor) | .github#325 |
 | Duplication | PR CI **and** Sonar (duplicated) | pre-push (dup-ratchet); Sonar's condition informative | .github#329 |
-| Docs-only Sonar status | full CI (akinaza#456) | a light Sonar scan, no build | .github#330 |
+| Docs-only Sonar status | full CI (folioviv#456) | a light Sonar scan, no build | .github#330 |
 
 - ✓ **Docs-only PRs get a light Sonar scan** (checkout plus scan, about 1 min) in the reusable workflows.
   - → The required status is a real gate, and nothing is built.

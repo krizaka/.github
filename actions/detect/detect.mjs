@@ -5,7 +5,7 @@
 //   node detect.mjs --tofu-guard <dir>       # refuse a `tofu test` whose run blocks may apply
 //
 // Order (the first that matches wins):
-//   workspace  the repository is listed in krizaka/orazaka's orazaka.workspace.json (component.yml's flow)
+//   workspace  the repository is listed in krizaka/sovkora's orazaka.workspace.json (component.yml's flow)
 //   maven      pom.xml
 //   blog       package.json (or pnpm-workspace.yaml) and an MDX `content/` folder: the Node pipeline, labelled blog
 //   node       pnpm-workspace.yaml or package.json
@@ -18,7 +18,7 @@ import { appendFileSync, existsSync, readdirSync, readFileSync, statSync } from 
 import { join, posix, relative } from "node:path";
 import { pathToFileURL } from "node:url";
 
-export const MANIFEST_URL = "https://raw.githubusercontent.com/krizaka/orazaka/main/orazaka.workspace.json";
+export const MANIFEST_URL = "https://raw.githubusercontent.com/krizaka/sovkora/main/orazaka.workspace.json";
 
 /** The values `.krizaka/ci.json` may hold, with their type. It never lists steps. */
 export const CONFIG_KEYS = {
@@ -43,7 +43,7 @@ export const DEFAULT_IGNORE = {
   node: "^\\.changeset/|^(LICENSE|SECURITY|CODE_OF_CONDUCT|SUPPORT)(\\.md)?$|^\\.github/(ISSUE_TEMPLATE/|pull_request_template\\.md$|FUNDING\\.yml$|dependabot\\.yml$)",
   // java-ci.yml and python-ci.yml
   maven: "^[^/]+\\.md$|^docs/|^\\.changeset/|^(LICENSE|NOTICE)$|^\\.github/(ISSUE_TEMPLATE/|pull_request_template\\.md$|FUNDING\\.yml$|dependabot\\.yml$)",
-  // krizaka/orazaka component.yml (the governance rules read AGENTS.md, docs and READMEs)
+  // krizaka/sovkora component.yml (the governance rules read AGENTS.md, docs and READMEs)
   workspace: "^\\.changeset/|^(LICENSE|NOTICE|SECURITY|CODE_OF_CONDUCT|SUPPORT)(\\.md)?$|^\\.github/(ISSUE_TEMPLATE/|pull_request_template\\.md$|FUNDING\\.yml$|dependabot\\.yml$)",
 };
 DEFAULT_IGNORE.blog = DEFAULT_IGNORE.node;
@@ -319,20 +319,20 @@ function basePlan(config, workingDirectory) {
   };
 }
 
-/** A component of the Orazaka workspace: `workspace.mjs ci` is the whole pipeline. */
+/** A component of the Sovkora workspace: `workspace.mjs ci` is the whole pipeline. */
 function detectWorkspace(plan, config, name) {
   plan.stack = "workspace";
   plan.component = name;
   plan.rewrite = config.rewrite ?? false; // component.yml: opt-in, turned on in the pull request that applies rewrite:run
   // The component is verified inside the workspace: `workspace.mjs ci` is the whole pipeline.
-  if (config.afterBuild) throw new Error('.krizaka/ci.json: "afterBuild" does not apply to an Orazaka workspace component (workspace.mjs ci runs everything)');
+  if (config.afterBuild) throw new Error('.krizaka/ci.json: "afterBuild" does not apply to a Sovkora workspace component (workspace.mjs ci runs everything)');
 }
 
 /** A Maven project: Spotless and OpenRewrite come from the pom itself or from the parents that declare them. */
 function detectMaven(plan, dir, config) {
   plan.stack = "maven";
   const pom = readFileSync(join(dir, "pom.xml"), "utf8");
-  const inherits = /<artifactId>\s*(krizaka-parent|orazaka-build|orazaka-parent)\s*<\/artifactId>/.test(pom);
+  const inherits = /<artifactId>\s*(krizaka-parent|sovkora-build|sovkora-parent|orazaka-build|orazaka-parent)\s*<\/artifactId>/.test(pom);
   plan.spotless = inherits || /spotless-maven-plugin/.test(pom);
   plan.rewrite = (inherits || /rewrite-maven-plugin/.test(pom)) && (config.rewrite ?? true);
 }
@@ -431,7 +431,7 @@ export async function loadManifest(source, { fetchImpl = fetch, waitMs = 1000 } 
       if (attempt < 3) await new Promise((r) => setTimeout(r, attempt * waitMs));
     }
   }
-  throw new Error(`cannot read the Orazaka workspace manifest (${source}): ${last.message}`);
+  throw new Error(`cannot read the Sovkora workspace manifest (${source}): ${last.message}`);
 }
 
 function arg(argv, name, fallback) {

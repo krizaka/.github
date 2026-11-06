@@ -6,7 +6,7 @@
 // where CI publishes it first. The repositories are declared here, in the settings, never in a POM: a POM that named them
 // would make every consumer of Central need a GitHub credential.
 //
-//   node maven-github-packages-settings.mjs --settings ~/.m2/settings.xml --repositories "krizaka-build" --username "$GITHUB_ACTOR"
+//   node maven-github-packages-settings.mjs --settings ~/.m2/settings.xml --repositories "krizaka-java" --username "$GITHUB_ACTOR"
 //
 // The credential comes from the CREDENTIAL environment variable (never an argument, never printed) and is written to the
 // settings file of the ephemeral runner, mode 0600. Without it the file holds an environment reference.
@@ -66,7 +66,7 @@ function option(argv, name, fallback) {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const settings = option(process.argv, "settings", `${process.env.HOME}/.m2/settings.xml`);
-  const repositories = option(process.argv, "repositories", "krizaka-build").split(/[\s,]+/).filter(Boolean);
+  const repositories = option(process.argv, "repositories", "krizaka-java").split(/[\s,]+/).filter(Boolean);
   const username = option(process.argv, "username", process.env.GITHUB_ACTOR ?? "krizaka-agents[bot]");
   const xml = existsSync(settings) ? readFileSync(settings, "utf8") : "";
   mkdirSync(dirname(settings), { recursive: true });

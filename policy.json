@@ -1,0 +1,9 @@
+{
+  "$schema": "./docs/standards/policy.schema.json",
+  "version": 1,
+  "train": {
+    "prCapPerLane": 5,
+    "capScope": "lane-per-repository",
+    "fixMainExempt": true
+  }
+}

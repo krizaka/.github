@@ -13,51 +13,29 @@
       "status": "Reserved"
     },
     {
-      "name": "akinaza",
-      "owner": "akinaza",
-      "role": "Main product repository",
-      "team": "akinaza",
+      "name": "folioviv",
+      "owner": "folioviv",
+      "role": "Main product repository (Folioviv)",
+      "team": "folioviv",
       "kind": "app",
       "deploy": [
-        "akinaza-dev"
+        "folioviv-dev"
       ],
       "archived": false,
       "visibility": "public",
       "status": "Complies"
     },
     {
-      "name": "cla-signatures",
+      "name": "kridoc",
       "owner": "krizaka",
-      "role": "Signatures of the CLA, written by the CLA workflow",
-      "team": "krizaka",
-      "kind": "none",
-      "deploy": [],
-      "archived": false,
-      "visibility": "private",
-      "status": "Paused (data only, no code: out of the matrix)"
-    },
-    {
-      "name": "kachizaka",
-      "owner": "krizaka",
-      "role": "Kridoc (code name kachizaka): product repository, a web app (www.kridoc.com) whose coming-soon page is its stable face while the product is in design; mobile and macOS apps follow",
+      "role": "Kridoc: product repository, a web app (www.kridoc.com) whose coming-soon page is its stable face while the product is in design; mobile and macOS apps follow",
       "team": "krizaka",
       "kind": "site",
       "deploy": [
-        "kachizaka"
+        "kridoc"
       ],
       "archived": false,
       "visibility": "private",
-      "status": "Complies"
-    },
-    {
-      "name": "krizaka-accounts",
-      "owner": "krizaka",
-      "role": "Shared accounts site (accounts.krizaka.com)",
-      "team": "krizaka",
-      "kind": "none",
-      "deploy": [],
-      "archived": false,
-      "visibility": "public",
       "status": "Complies"
     },
     {
@@ -69,17 +47,6 @@
       "deploy": [],
       "archived": false,
       "visibility": "private",
-      "status": "Complies"
-    },
-    {
-      "name": "krizaka-billing",
-      "owner": "krizaka",
-      "role": "Shared capability service",
-      "team": "krizaka",
-      "kind": "maven",
-      "deploy": [],
-      "archived": true,
-      "visibility": "public",
       "status": "Complies"
     },
     {
@@ -96,17 +63,15 @@
       "status": "Complies"
     },
     {
-      "name": "krizaka-build",
+      "name": "krizaka-cla-signatures",
       "owner": "krizaka",
-      "role": "Shared Java build",
+      "role": "Signatures of the CLA, written by the CLA workflow",
       "team": "krizaka",
-      "kind": "maven",
-      "deploy": [
-        "krizaka-java-site"
-      ],
+      "kind": "none",
+      "deploy": [],
       "archived": false,
-      "visibility": "public",
-      "status": "Complies"
+      "visibility": "private",
+      "status": "Paused (data only, no code: out of the matrix)"
     },
     {
       "name": "krizaka-com",
@@ -148,6 +113,17 @@
       "status": "Complies"
     },
     {
+      "name": "krizaka-desktop",
+      "owner": "krizaka",
+      "role": "Shared Tauri crate",
+      "team": "krizaka",
+      "kind": "rust",
+      "deploy": [],
+      "archived": false,
+      "visibility": "public",
+      "status": "Complies"
+    },
+    {
       "name": "krizaka-infra",
       "owner": "krizaka",
       "role": "Shared infrastructure as code",
@@ -170,6 +146,19 @@
       "status": "Paused (issues only, no code: out of the matrix)"
     },
     {
+      "name": "krizaka-java",
+      "owner": "krizaka",
+      "role": "Shared Java build",
+      "team": "krizaka",
+      "kind": "maven",
+      "deploy": [
+        "krizaka-java-site"
+      ],
+      "archived": false,
+      "visibility": "public",
+      "status": "Complies"
+    },
+    {
       "name": "krizaka-lab",
       "owner": "krizaka",
       "role": "The family lab: UI, motion, Java, AI and data experiments; publishes nothing (formerly krizaka-motion)",
@@ -181,58 +170,44 @@
       "status": "Complies"
     },
     {
-      "name": "krizaka-notifications",
+      "name": "krizaka-restricted",
       "owner": "krizaka",
-      "role": "Shared capability service",
+      "role": "Restricted issues (founder and company bots only)",
       "team": "krizaka",
-      "kind": "maven",
+      "kind": "none",
+      "deploy": [],
+      "archived": false,
+      "visibility": "private",
+      "status": "Paused (issues only, no code: out of the matrix)"
+    },
+    {
+      "name": "krizaka-template-desktop",
+      "owner": "krizaka",
+      "role": "Template",
+      "team": "krizaka",
+      "kind": "app",
       "deploy": [],
       "archived": false,
       "visibility": "public",
-      "status": "Fold into krizaka-build (ADR-021), then archive",
-      "foldInto": "krizaka-build"
+      "status": "Complies"
     },
     {
-      "name": "krizaka-platform-kit",
+      "name": "krizaka-template-web",
       "owner": "krizaka",
-      "role": "Java cross-cutting blocks",
+      "role": "Template",
       "team": "krizaka",
-      "kind": "maven",
+      "kind": "app",
       "deploy": [],
       "archived": false,
       "visibility": "public",
-      "status": "Rename → krizaka-platform",
-      "renameTo": "krizaka-platform"
-    },
-    {
-      "name": "krizaka-skills",
-      "owner": "krizaka",
-      "role": "Former agents' skills, moved into `krizaka-agents`",
-      "team": "krizaka",
-      "kind": "npm",
-      "deploy": [],
-      "archived": true,
-      "visibility": "public",
-      "status": "Archive"
-    },
-    {
-      "name": "krizaka-tauri-kit",
-      "owner": "krizaka",
-      "role": "Shared Tauri crate",
-      "team": "krizaka",
-      "kind": "rust",
-      "deploy": [],
-      "archived": false,
-      "visibility": "public",
-      "status": "Rename → krizaka-desktop",
-      "renameTo": "krizaka-desktop"
+      "status": "Complies"
     },
     {
       "name": "krizaka-ts",
       "owner": "krizaka",
       "role": "Shared TypeScript building blocks",
       "team": "krizaka",
-      "kind": "npm",
+      "kind": "site",
       "deploy": [
         "krizaka-ts-site"
       ],
@@ -254,46 +229,23 @@
       "status": "Complies"
     },
     {
-      "name": "krizaka-users",
-      "owner": "krizaka",
-      "role": "Shared capability service",
-      "team": "krizaka",
-      "kind": "maven",
-      "deploy": [],
-      "archived": false,
-      "visibility": "public",
-      "status": "Complies"
-    },
-    {
-      "name": "orazaka",
-      "owner": "orazaka",
+      "name": "sovkora",
+      "owner": "sovkora",
       "role": "Main product repository",
-      "team": "orazaka",
+      "team": "sovkora",
       "kind": "maven",
       "deploy": [
-        "orazaka-dev"
+        "sovkora-dev"
       ],
       "archived": false,
       "visibility": "public",
       "status": "Complies"
     },
     {
-      "name": "orazaka-ai-engine",
-      "owner": "orazaka",
-      "role": "The engine's core library",
-      "team": "orazaka",
-      "kind": "maven",
-      "deploy": [],
-      "archived": false,
-      "visibility": "public",
-      "status": "Rename → orazaka-engine",
-      "renameTo": "orazaka-engine"
-    },
-    {
-      "name": "orazaka-automation-service",
-      "owner": "orazaka",
+      "name": "sovkora-automation-service",
+      "owner": "sovkora",
       "role": "Deployable backend service",
-      "team": "orazaka",
+      "team": "sovkora",
       "kind": "maven",
       "deploy": [],
       "archived": false,
@@ -301,10 +253,10 @@
       "status": "Complies"
     },
     {
-      "name": "orazaka-build",
-      "owner": "orazaka",
+      "name": "sovkora-build",
+      "owner": "sovkora",
       "role": "Product build repository",
-      "team": "orazaka",
+      "team": "sovkora",
       "kind": "maven",
       "deploy": [],
       "archived": false,
@@ -312,10 +264,10 @@
       "status": "Complies"
     },
     {
-      "name": "orazaka-cli",
-      "owner": "orazaka",
+      "name": "sovkora-cli",
+      "owner": "sovkora",
       "role": "CLI",
-      "team": "orazaka",
+      "team": "sovkora",
       "kind": "npm",
       "deploy": [],
       "archived": false,
@@ -323,10 +275,10 @@
       "status": "Complies"
     },
     {
-      "name": "orazaka-contracts",
-      "owner": "orazaka",
+      "name": "sovkora-contracts",
+      "owner": "sovkora",
       "role": "Contracts",
-      "team": "orazaka",
+      "team": "sovkora",
       "kind": "maven",
       "deploy": [],
       "archived": false,
@@ -334,10 +286,10 @@
       "status": "Complies"
     },
     {
-      "name": "orazaka-conversation-service",
-      "owner": "orazaka",
+      "name": "sovkora-conversation-service",
+      "owner": "sovkora",
       "role": "Deployable backend service",
-      "team": "orazaka",
+      "team": "sovkora",
       "kind": "maven",
       "deploy": [],
       "archived": false,
@@ -345,22 +297,10 @@
       "status": "Complies"
     },
     {
-      "name": "orazaka-edge",
-      "owner": "orazaka",
+      "name": "sovkora-edge-service",
+      "owner": "sovkora",
       "role": "The HTTP edge service",
-      "team": "orazaka",
-      "kind": "maven",
-      "deploy": [],
-      "archived": false,
-      "visibility": "public",
-      "status": "Rename → orazaka-edge-service",
-      "renameTo": "orazaka-edge-service"
-    },
-    {
-      "name": "orazaka-job-service",
-      "owner": "orazaka",
-      "role": "Deployable backend service",
-      "team": "orazaka",
+      "team": "sovkora",
       "kind": "maven",
       "deploy": [],
       "archived": false,
@@ -368,10 +308,10 @@
       "status": "Complies"
     },
     {
-      "name": "orazaka-knowledge-service",
-      "owner": "orazaka",
-      "role": "Deployable backend service",
-      "team": "orazaka",
+      "name": "sovkora-engine",
+      "owner": "sovkora",
+      "role": "The engine's core library",
+      "team": "sovkora",
       "kind": "maven",
       "deploy": [],
       "archived": false,
@@ -379,22 +319,43 @@
       "status": "Complies"
     },
     {
-      "name": "orazaka-mobile-client",
-      "owner": "orazaka",
+      "name": "sovkora-job-service",
+      "owner": "sovkora",
+      "role": "Deployable backend service",
+      "team": "sovkora",
+      "kind": "maven",
+      "deploy": [],
+      "archived": false,
+      "visibility": "public",
+      "status": "Complies"
+    },
+    {
+      "name": "sovkora-knowledge-service",
+      "owner": "sovkora",
+      "role": "Deployable backend service",
+      "team": "sovkora",
+      "kind": "maven",
+      "deploy": [],
+      "archived": false,
+      "visibility": "public",
+      "status": "Complies"
+    },
+    {
+      "name": "sovkora-mobile",
+      "owner": "sovkora",
       "role": "Mobile app",
-      "team": "orazaka",
+      "team": "sovkora",
       "kind": "app",
       "deploy": [],
       "archived": false,
       "visibility": "public",
-      "status": "Rename → orazaka-mobile",
-      "renameTo": "orazaka-mobile"
+      "status": "Complies"
     },
     {
-      "name": "orazaka-packs",
-      "owner": "orazaka",
+      "name": "sovkora-packs",
+      "owner": "sovkora",
       "role": "Packs",
-      "team": "orazaka",
+      "team": "sovkora",
       "kind": "npm",
       "deploy": [],
       "archived": false,
@@ -402,22 +363,21 @@
       "status": "Complies"
     },
     {
-      "name": "orazaka-studio",
-      "owner": "orazaka",
+      "name": "sovkora-studio-service",
+      "owner": "sovkora",
       "role": "The Studio service (with its API and client modules)",
-      "team": "orazaka",
+      "team": "sovkora",
       "kind": "maven",
       "deploy": [],
       "archived": false,
       "visibility": "public",
-      "status": "Rename → orazaka-studio-service",
-      "renameTo": "orazaka-studio-service"
+      "status": "Complies"
     },
     {
-      "name": "orazaka-ui-kit",
-      "owner": "orazaka",
-      "role": "Orazaka's UI packages",
-      "team": "orazaka",
+      "name": "sovkora-ui-kit",
+      "owner": "sovkora",
+      "role": "Sovkora's UI packages",
+      "team": "sovkora",
       "kind": "npm",
       "deploy": [],
       "archived": false,
@@ -426,33 +386,21 @@
       "foldInto": "krizaka-ui"
     },
     {
-      "name": "orazaka-web-admin",
-      "owner": "orazaka",
-      "role": "Former admin console, merged into `orazaka-web-client` (served on admin.orazaka.com by host routing)",
-      "team": "orazaka",
-      "kind": "none",
-      "deploy": [],
-      "archived": null,
-      "visibility": "private",
-      "status": "Archive"
-    },
-    {
-      "name": "orazaka-web-client",
-      "owner": "orazaka",
+      "name": "sovkora-web",
+      "owner": "sovkora",
       "role": "Web app",
-      "team": "orazaka",
+      "team": "sovkora",
       "kind": "app",
       "deploy": [],
       "archived": false,
       "visibility": "public",
-      "status": "Rename → orazaka-web",
-      "renameTo": "orazaka-web"
+      "status": "Complies"
     },
     {
-      "name": "orazaka-worker-media",
-      "owner": "orazaka",
+      "name": "sovkora-worker-media",
+      "owner": "sovkora",
       "role": "Worker",
-      "team": "orazaka",
+      "team": "sovkora",
       "kind": "python",
       "deploy": [],
       "archived": false,
@@ -460,35 +408,13 @@
       "status": "Complies"
     },
     {
-      "name": "template-next-app",
-      "owner": "krizaka",
-      "role": "Template",
-      "team": "krizaka",
-      "kind": "app",
-      "deploy": [],
-      "archived": false,
-      "visibility": "public",
-      "status": "Complies"
-    },
-    {
-      "name": "template-tauri-app",
-      "owner": "krizaka",
-      "role": "Template",
-      "team": "krizaka",
-      "kind": "app",
-      "deploy": [],
-      "archived": false,
-      "visibility": "public",
-      "status": "Complies"
-    },
-    {
-      "name": "yomizaka",
-      "owner": "yomizaka",
-      "role": "Main product repository",
-      "team": "yomizaka",
+      "name": "verikora",
+      "owner": "verikora",
+      "role": "Main product repository (Verikora)",
+      "team": "verikora",
       "kind": "app",
       "deploy": [
-        "yomizaka-dev"
+        "verikora-dev"
       ],
       "archived": false,
       "visibility": "public",

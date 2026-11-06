@@ -86,6 +86,8 @@ test/               # mirrors src/ (section 5)
 3. No function above 35 lines; every export documented.
 4. Light and dark themes work (`useTheme()`); accessibility roles and labels are present.
 5. The pull request is merged with green CI (no merge with a pending check).
+6. The documents follow the change: when the pull request matches a category of the [docs map](https://github.com/krizaka/.github/blob/main/docs-map.json), it updates that category's documents, or its body says `Docs: <link to the docs pull request>` or `Docs: not needed, <why>`.
+7. No Krizaka e-mail address on a public page of a site or an app: Support and Contact lead to krizaka.com's contact form. Only the privacy officer on privacy pages and a customer's own published data are exceptions ([`no-public-email`](docs/standards/no-public-email.md)).
 
 ## 8. Coding agents (GitHub Copilot, Claude, any agent)
 
@@ -112,6 +114,20 @@ reasons are in [docs/standards/coding-agents.md](docs/standards/coding-agents.md
    secrets are committed: captures go to Bunny, secrets stay in the environment.
 10. **The root stays clean.** The repository follows [docs/standards/repo-layout.md](docs/standards/repo-layout.md): no stray
    file at the root, nothing generated or local tracked, an extra declared in `.repo-layout.json` with its « why ».
+
+## 8a. Java (Spring Boot 4) — Java repositories only
+
+How Krizaka writes Java: the `krizaka-java` skill (krizaka-agents `skills/krizaka-java`) and, with the tests that enforce each rule,
+[krizaka-java `AGENTS.md`](https://github.com/krizaka/krizaka-java/blob/main/AGENTS.md#http-clients-spring-boot-4-and-archunit). In short:
+
+- **ArchUnit is the law.** Every module's `ArchitectureTest` calls `KrizakaArchitecture.assertStandard(classes, basePackage)`; a rule is
+  never weakened, and existing debt is frozen only through `FrozenRules`, with its issue.
+- **Test first, pragmatically.** A failing test of the port's contract, then the smallest code, then the refactor; a fix starts with the test
+  that reproduces the bug; a refactor starts with characterization tests.
+- **HTTP clients are declared**: a package-private `@HttpExchange` interface per feature, registered with `@ImportHttpServices`; no
+  `RestClient`, `RestTemplate` or `WebClient` outside `config`.
+- **Package by feature**, at most 7 top-level classes per package, the feature's `*Configuration` as its only public type, every package
+  `@NullMarked`. `./mvnw -pl <module> -am verify` green is « done ».
 
 ## 9. Anti-slop (ADR-015)
 

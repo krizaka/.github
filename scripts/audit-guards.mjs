@@ -8,8 +8,8 @@
 import { pathToFileURL } from "node:url";
 
 export const FOCUS_REPOS = [
-  "krizaka-com", "krizaka-ui", "krizaka-ts", "krizaka-build", "yomizaka", "akinaza",
-  "orazaka", "orazaka-web-client", ".github",
+  "krizaka-com", "krizaka-ui", "krizaka-ts", "krizaka-java", "verikora", "folioviv",
+  "sovkora", "sovkora-web", ".github",
 ];
 export const REQUIRED_CHECKS = [
   { label: "CI gate", re: /^CI gate$/ },

@@ -15,11 +15,11 @@ regexes = ['''sk_live_[A-Za-z0-9]+''']
 # Test fixtures and CI-only dummies found by the first scan of the focus repositories (2026-10-27). Each is a path-scoped
 # exception with its reason; a real credential is never allowlisted: it is rotated.
 [[allowlists]]
-description = "yomizaka: fake hash/token/password constants of the auth and redaction unit tests"
+description = "verikora: fake hash/token/password constants of the auth and redaction unit tests"
 paths = ['''apps/web/lib/auth-compat\.test\.ts''', '''apps/web/lib/redact\.test\.ts''']
 
 [[allowlists]]
-description = "akinaza: CI-only build/e2e environment (the sibling secret is named ci-only-...), set after the build; production keys come from the deployment environment"
+description = "folioviv: CI-only build/e2e environment (the sibling secret is named ci-only-...), set after the build; production keys come from the deployment environment"
 paths = ['''scripts/ci-after-build\.sh''']
 
 [[allowlists]]
@@ -35,3 +35,7 @@ description = "krizaka-composer: the Puck fork keeps the upstream history; one u
 condition = "AND"
 commits = ["d94428819a958b4f566e5d0e8cd29b3bf1107881"]
 paths = ['''packages/field-contentful/README\.md''']
+
+[[allowlists]]
+description = "krizaka-java: the published test vector of the Standard Webhooks specification (secret and message id from the spec, not a credential); the file moved with krizaka-platform-kit → krizaka-service-kit (krizaka-internal#2665)"
+paths = ['''krizaka-service-kit/krizaka-webhooks/src/test/java/com/krizaka/webhooks/WebhookSignatureTest\.java''']

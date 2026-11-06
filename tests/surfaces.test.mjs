@@ -8,47 +8,47 @@ const products = loadConfig();
 const ids = (p) => products[p].surfaces.map((s) => s.id);
 
 test("the founder's surfaces per product", () => {
-  assert.deepEqual(ids("orazaka"), ["web-client", "web-admin", "mobile", "mac", "cli", "api-sdk"]);
-  assert.deepEqual(ids("yomizaka"), ["web", "admin", "mobile", "mac"]);
-  assert.deepEqual(ids("akinaza"), ["web", "admin", "mobile", "mac"]);
+  assert.deepEqual(ids("sovkora"), ["web-client", "web-admin", "mobile", "mac", "cli", "api-sdk"]);
+  assert.deepEqual(ids("verikora"), ["web", "admin", "mobile", "mac"]);
+  assert.deepEqual(ids("folioviv"), ["web", "admin", "mobile", "mac"]);
 });
 
 test("a product is its repositories of the krizaka organisation, named in surfaces.json", () => {
-  assert.equal(productOf("krizaka/orazaka-cli", products), "orazaka");
-  assert.equal(productOf("krizaka/orazaka", products), "orazaka");
-  assert.equal(productOf("krizaka/yomizaka", products), "yomizaka");
-  assert.equal(productOf("krizaka/akinaza", products), "akinaza");
+  assert.equal(productOf("krizaka/sovkora-cli", products), "sovkora");
+  assert.equal(productOf("krizaka/sovkora", products), "sovkora");
+  assert.equal(productOf("krizaka/verikora", products), "verikora");
+  assert.equal(productOf("krizaka/folioviv", products), "folioviv");
   assert.equal(productOf("krizaka/krizaka-ui", products), null);
-  assert.equal(productOf("yomizaka/yomizaka", products), null, "there is no product organisation");
+  assert.equal(productOf("verikora/verikora", products), null, "there is no product organisation");
 });
 
 test("the sweep reads krizaka/<repo> for every repo of surfaces.json, never an organisation of a product", () => {
   const repos = productRepos(products);
   assert.ok(repos.length >= 3 && repos.every((r) => r.startsWith("krizaka/")), repos.join());
-  for (const r of ["krizaka/yomizaka", "krizaka/akinaza", "krizaka/orazaka", "krizaka/orazaka-cli"]) assert.ok(repos.includes(r), r);
+  for (const r of ["krizaka/verikora", "krizaka/folioviv", "krizaka/sovkora", "krizaka/sovkora-cli"]) assert.ok(repos.includes(r), r);
   const flow = readFileSync(".github/workflows/feature-surfaces.yml", "utf8");
   assert.doesNotMatch(flow, /matrix:|owner: \[/);
   assert.doesNotMatch(readFileSync("scripts/surfaces.mjs", "utf8"), /orgs\//);
 });
 
-test("Orazaka's Mac surface is apps/desktop of krizaka/orazaka", () => {
-  const mac = products.orazaka.surfaces.find((s) => s.id === "mac");
-  assert.deepEqual([mac.repo, mac.path], ["orazaka", "apps/desktop"]);
+test("Sovkora's Mac surface is apps/desktop of krizaka/sovkora", () => {
+  const mac = products.sovkora.surfaces.find((s) => s.id === "mac");
+  assert.deepEqual([mac.repo, mac.path], ["sovkora", "apps/desktop"]);
 });
 
 const done = (lines) => `### The problem\n\nx\n\n### Surfaces\n\n${lines.join("\n")}\n\n### Privacy by design\n\nnone`;
-const yomizakaDone = ["- [x] Web — yomizaka/yomizaka#12", "- [x] Admin — https://github.com/yomizaka/yomizaka/pull/13", "- [x] Mobile — n/a — no mobile screen for this", "- [x] Mac — n/a: the Mac app has no such page"];
+const verikoraDone = ["- [x] Web — verikora/verikora#12", "- [x] Admin — https://github.com/verikora/verikora/pull/13", "- [x] Mobile — n/a — no mobile screen for this", "- [x] Mac — n/a: the Mac app has no such page"];
 
 test("every surface shipped or justified passes", () => {
-  assert.deepEqual(surfaceProblems(done(yomizakaDone), products.yomizaka.surfaces), []);
+  assert.deepEqual(surfaceProblems(done(verikoraDone), products.verikora.surfaces), []);
 });
 
 test("an open box, a bare tick, a missing line and a missing section are all named", () => {
-  const surfaces = products.yomizaka.surfaces;
-  assert.match(surfaceProblems(done(["- [ ] Web — ", ...yomizakaDone.slice(1)]), surfaces).join(), /Web: not ticked/);
-  assert.match(surfaceProblems(done(["- [x] Web — ", ...yomizakaDone.slice(1)]), surfaces).join(), /Web: ticked without a PR link/);
-  assert.match(surfaceProblems(done(["- [x] Web — n/a — ", ...yomizakaDone.slice(1)]), surfaces).join(), /Web: ticked without/, "n/a needs a reason");
-  assert.match(surfaceProblems(done(yomizakaDone.slice(0, 3)), surfaces).join(), /Mac: missing/);
+  const surfaces = products.verikora.surfaces;
+  assert.match(surfaceProblems(done(["- [ ] Web — ", ...verikoraDone.slice(1)]), surfaces).join(), /Web: not ticked/);
+  assert.match(surfaceProblems(done(["- [x] Web — ", ...verikoraDone.slice(1)]), surfaces).join(), /Web: ticked without a PR link/);
+  assert.match(surfaceProblems(done(["- [x] Web — n/a — ", ...verikoraDone.slice(1)]), surfaces).join(), /Web: ticked without/, "n/a needs a reason");
+  assert.match(surfaceProblems(done(verikoraDone.slice(0, 3)), surfaces).join(), /Mac: missing/);
   assert.match(surfaceProblems("no section", surfaces).join(), /no « Surfaces » checklist/);
 });
 
@@ -56,22 +56,22 @@ test("the section stops at the next heading and reads only checklist lines", () 
   assert.deepEqual(surfacesSection("## Surfaces\n- [x] a #1\ntext\n## Other\n- [ ] b"), ["- [x] a #1"]);
 });
 
-test("the CLI is a surface of Orazaka only", () => {
-  assert.match(surfaceProblems(done(yomizakaDone.slice(0, 2)), products.orazaka.surfaces).join(), /CLI: missing/);
+test("the CLI is a surface of Sovkora only", () => {
+  assert.match(surfaceProblems(done(verikoraDone.slice(0, 2)), products.sovkora.surfaces).join(), /CLI: missing/);
 });
 
 const closed = (extra) => ({ number: 7, state: "closed", labels: [{ name: "type:feature" }], body: done([]), ...extra });
 
 test("the closing check: a feature of a product with a gap fails, anything else is skipped", () => {
-  assert.equal(evaluate(closed(), "krizaka/yomizaka", products).ok, false);
-  assert.equal(evaluate(closed({ body: done(yomizakaDone) }), "krizaka/yomizaka", products).ok, true);
-  assert.equal(evaluate(closed({ type: { name: "Feature" }, labels: [] }), "krizaka/orazaka-cli", products).ok, false, "the org issue type counts");
+  assert.equal(evaluate(closed(), "krizaka/verikora", products).ok, false);
+  assert.equal(evaluate(closed({ body: done(verikoraDone) }), "krizaka/verikora", products).ok, true);
+  assert.equal(evaluate(closed({ type: { name: "Feature" }, labels: [] }), "krizaka/sovkora-cli", products).ok, false, "the org issue type counts");
   for (const [issue, repo] of [
-    [closed({ labels: [{ name: "type:bug" }] }), "krizaka/yomizaka"],
+    [closed({ labels: [{ name: "type:bug" }] }), "krizaka/verikora"],
     [closed(), "krizaka/krizaka-ui"],
-    [closed({ state: "open" }), "krizaka/yomizaka"],
-    [closed({ state_reason: "not_planned" }), "krizaka/yomizaka"],
-    [closed({ pull_request: {} }), "krizaka/yomizaka"],
+    [closed({ state: "open" }), "krizaka/verikora"],
+    [closed({ state_reason: "not_planned" }), "krizaka/verikora"],
+    [closed({ pull_request: {} }), "krizaka/verikora"],
   ]) assert.equal(evaluate(issue, repo, products).skipped, true);
 });
 
@@ -83,9 +83,9 @@ test("the reopen comment names every gap and carries the marker", () => {
 });
 
 test("the template block lists every surface of its product, the org default every product", () => {
-  const one = surfacesBlock(products, "akinaza");
-  for (const s of products.akinaza.surfaces) assert.match(one, new RegExp(`- \\[ \\] ${s.label} — `));
-  assert.doesNotMatch(one, /Orazaka/);
+  const one = surfacesBlock(products, "folioviv");
+  for (const s of products.folioviv.surfaces) assert.match(one, new RegExp(`- \\[ \\] ${s.label} — `));
+  assert.doesNotMatch(one, /Sovkora/);
   const all = surfacesBlock(products);
   for (const p of Object.values(products)) assert.match(all, new RegExp(p.title));
   assert.match(all, /CLI/);
@@ -93,9 +93,9 @@ test("the template block lists every surface of its product, the org default eve
 
 test("withSurfaces replaces the generated block and is stable", () => {
   const base = "name: x\nbody:\n  - type: input\n    id: a\n";
-  const once = withSurfaces(base, products, "yomizaka");
-  assert.equal(withSurfaces(once, products, "yomizaka"), once);
-  assert.notEqual(withSurfaces(once, products, "orazaka"), once);
+  const once = withSurfaces(base, products, "verikora");
+  assert.equal(withSurfaces(once, products, "verikora"), once);
+  assert.notEqual(withSurfaces(once, products, "sovkora"), once);
 });
 
 test("the committed templates are the generated ones, and the org default has the Surfaces textarea", () => {

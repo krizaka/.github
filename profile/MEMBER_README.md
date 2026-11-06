@@ -22,11 +22,11 @@ and where the work is tracked. The public face of the organisation is the [profi
 
 | Product | Workspace | What it is | Contract |
 | :--- | :--- | :--- | :--- |
-| **Orazaka** | [`krizaka/orazaka`](https://github.com/krizaka/orazaka) — clones every component; the [`orazaka` CLI](https://github.com/krizaka/orazaka-cli) installs, starts and seeds the demo (`orazaka demo seed`) | Multimodal AI orchestration — chat, RAG, agents, image, audio, video — on **local** models, behind a deterministic interceptor pipeline | [`AGENTS.md`](https://github.com/krizaka/orazaka/blob/main/AGENTS.md) |
+| **Sovkora** | [`krizaka/sovkora`](https://github.com/krizaka/sovkora) — clones every component; the [`sovkora` CLI](https://github.com/krizaka/sovkora-cli) installs, starts and seeds the demo (`sovkora demo seed`) | Multimodal AI orchestration — chat, RAG, agents, image, audio, video — on **local** models, behind a deterministic interceptor pipeline | [`AGENTS.md`](https://github.com/krizaka/sovkora/blob/main/AGENTS.md) |
 | **krizaka.com** | [`krizaka/krizaka-com`](https://github.com/krizaka/krizaka-com) | The site: products, demos, the single docs site, interactive architecture views — dark and light, English and French | [`AGENTS.md`](https://github.com/krizaka/krizaka-com/blob/main/AGENTS.md) |
 
-Running environments: [dev.orazaka.com](https://dev.orazaka.com), [dev.yomizaka.com](https://dev.yomizaka.com),
-[dev.akinaza.com](https://dev.akinaza.com) · the site at [krizaka.com](https://www.krizaka.com).
+Running environments: [dev.sovkora.com](https://dev.sovkora.com), [dev.verikora.com](https://dev.verikora.com),
+[dev.folioviv.com](https://dev.folioviv.com) · the site at [krizaka.com](https://www.krizaka.com).
 
 ## Building blocks
 
@@ -36,10 +36,10 @@ released, then adopted.
 **Java — `com.krizaka` on Maven Central.** The BOM [`com.krizaka:krizaka-bom`](https://central.sonatype.com/artifact/com.krizaka/krizaka-bom)
 **0.2.0** aligns everything: the parent POM, `krizaka-web`, `krizaka-security`, `krizaka-messaging`,
 `krizaka-observability`, `krizaka-test-support` and their Spring Boot starters are at 0.2.0; `krizaka-users`,
-`krizaka-notifications` (a module of `krizaka-platform-kit`) and `krizaka-billing` are published at **0.1.0** until their 0.2.0 (declare them with
-`<version>0.1.0</version>`). Sources: [`krizaka-build`](https://github.com/krizaka/krizaka-build) ·
-[`krizaka-platform-kit`](https://github.com/krizaka/krizaka-platform-kit) · [`krizaka-users`](https://github.com/krizaka/krizaka-users) ·
-[`krizaka-notifications`](https://github.com/krizaka/krizaka-platform-kit/blob/main/docs/notifications.md) · [`krizaka-billing`](https://github.com/krizaka/krizaka-billing);
+`krizaka-notifications` (modules of `krizaka-java`) and `krizaka-billing` are published at **0.1.0** until their 0.2.0 (declare them with
+`<version>0.1.0</version>`). Sources: [`krizaka-java`](https://github.com/krizaka/krizaka-java) (with its
+[`krizaka-platform-kit`](https://github.com/krizaka/krizaka-java/tree/main/krizaka-platform-kit) and [`krizaka-users`](https://github.com/krizaka/krizaka-java/tree/main/krizaka-users) folders) ·
+[`krizaka-notifications`](https://github.com/krizaka/krizaka-java/blob/main/krizaka-platform-kit/docs/notifications.md) · [`krizaka-billing`](https://github.com/krizaka/krizaka-billing);
 the release pipeline is [`maven.yml`](https://github.com/krizaka/.github/blob/main/.github/workflows/maven.yml) in this
 repository (parent first, signed).
 
@@ -51,10 +51,10 @@ Prettier, `krizaka-ratchet`). Product identities: `@krizaka/orazaka-design-syste
 
 ## Documentation — one place
 
-[krizaka.com/docs](https://www.krizaka.com/docs): [Orazaka](https://www.krizaka.com/docs/orazaka) ·
+[krizaka.com/docs](https://www.krizaka.com/docs): [Sovkora](https://www.sovkora.com) ·
 [UI components](https://www.krizaka.com/docs/ui) (interactive previews and
 prop tables read from `@krizaka/ui`) · [Java building blocks](https://www.krizaka.com/docs/java).
-Product docs are generated from the code (`orazaka docs sync`) and published
+Product docs are generated from the code (`sovkora docs sync`) and published
 through krizaka.com's manifest — never edited by hand on the site.
 
 ## How we work
@@ -71,7 +71,7 @@ through krizaka.com's manifest — never edited by hand on the site.
   message catalogues (English and French on the site); the UI debt ratchet only goes down.
 - **Money is a ledger.** Payments are recorded once on an append-only,
   double-entry ledger; payments are confirmed by the gateway, never by the client.
-- **Demos are honest.** A credible persona with a first name (Eric for Orazaka), never an
+- **Demos are honest.** A credible persona with a first name (Eric for Sovkora), never an
   "admin" account; real application, real flows, figures from the data on screen.
 
 ## Where the work is tracked
@@ -85,7 +85,7 @@ product) are closed; their issues live here.
 | :--- | :--- |
 | [Board](https://github.com/orgs/krizaka/projects/4/views/2) · [Roadmap](https://github.com/orgs/krizaka/projects/4/views/3) | Every open issue by status, and on a timeline by milestone |
 | [P0 / P1](https://github.com/orgs/krizaka/projects/4/views/5) · [Epics](https://github.com/orgs/krizaka/projects/4/views/6) | What blocks a launch, and the large initiatives |
-| [Orazaka](https://github.com/orgs/krizaka/projects/4/views/9) · [Krizaka](https://github.com/orgs/krizaka/projects/4/views/10) · [Site](https://github.com/orgs/krizaka/projects/4/views/11) | One product at a time |
+| [Sovkora](https://github.com/orgs/krizaka/projects/4/views/9) · [Krizaka](https://github.com/orgs/krizaka/projects/4/views/10) · [Site](https://github.com/orgs/krizaka/projects/4/views/11) | One product at a time |
 | [Oussama's actions](https://github.com/orgs/krizaka/projects/4/views/4) | `owner:oussama` — accounts, money, DNS: what only the owner can do |
 
 ## Funding and sponsorship
@@ -102,8 +102,8 @@ product) are closed; their issues live here.
 
 - [Contributing](https://github.com/krizaka/.github/blob/main/CONTRIBUTING.md) · [Code of conduct](https://github.com/krizaka/.github/blob/main/CODE_OF_CONDUCT.md) · [Support](https://github.com/krizaka/.github/blob/main/SUPPORT.md)
 - [Security policy](https://github.com/krizaka/.github/blob/main/SECURITY.md) — vulnerabilities are reported privately, never in an issue
-- Contracts: [krizaka-com](https://github.com/krizaka/krizaka-com/blob/main/AGENTS.md) · [orazaka](https://github.com/krizaka/orazaka/blob/main/AGENTS.md) · [krizaka-ui](https://github.com/krizaka/krizaka-ui/blob/main/AGENTS.md)
-- Run locally: Orazaka through the [`orazaka` CLI](https://github.com/krizaka/orazaka-cli)
+- Contracts: [krizaka-com](https://github.com/krizaka/krizaka-com/blob/main/AGENTS.md) · [sovkora](https://github.com/krizaka/sovkora/blob/main/AGENTS.md) · [krizaka-ui](https://github.com/krizaka/krizaka-ui/blob/main/AGENTS.md)
+- Run locally: Sovkora through the [`sovkora` CLI](https://github.com/krizaka/sovkora-cli)
 - Support policy for the packages: [`krizaka-ui/SUPPORT.md`](https://github.com/krizaka/krizaka-ui/blob/main/SUPPORT.md) — N and N-1 supported, deprecated for a full minor before removal
 
 <sub>Made in Montréal · Open by default · Sovereign by design · Apache-2.0</sub>

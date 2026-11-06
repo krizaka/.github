@@ -29,9 +29,9 @@ The checkouts have no `node_modules`, so the TypeScript type-aware counts are a 
 
 | Repo | null checks | `requireNonNull` | together, per kLOC | methods with ≥ 3 null checks |
 |---|---:|---:|---:|---:|
-| orazaka-ai-engine | 767 | 463 | 31 | 41 |
+| sovkora-engine | 767 | 463 | 31 | 41 |
 | krizaka-users | 174 | 296 | 47 | 7 |
-| orazaka-conversation-service | 188 | 133 | 34 | 12 |
+| sovkora-conversation-service | 188 | 133 | 34 | 12 |
 
 - No package anywhere carries `@NullMarked`, JSpecify or any nullness annotation, so nobody can tell which checks are needed.
 - Only 5 checks are provably redundant: they test an injected constructor argument or a final field of a Spring bean. For example, `IdentityReconciliationServiceImpl.java:53` reads `verifiers != null ? List.copyOf(verifiers) : List.of()` on an injected list.
@@ -41,15 +41,15 @@ The checkouts have no `node_modules`, so the TypeScript type-aware counts are a 
 
 | Rule | Hits | Most per kLOC |
 |---|---:|---|
-| `no-unnecessary-condition` | 599 | yomizaka, 5.1 |
-| `prefer-nullish-coalescing` | 441 | orazaka-web-client, 4.2 |
+| `no-unnecessary-condition` | 599 | verikora, 5.1 |
+| `prefer-nullish-coalescing` | 441 | sovkora-web, 4.2 |
 | `prefer-optional-chain` | 31 | |
 
-**Request validation (right).** 34 of the 35 DTO `@RequestBody` parameters have no `@Valid`: krizaka-users 15, orazaka-conversation-service 19.
+**Request validation (right).** 34 of the 35 DTO `@RequestBody` parameters have no `@Valid`: krizaka-users 15, sovkora-conversation-service 19.
 
 - krizaka-users validates by hand in record compact constructors (`OAuthRequest`), which throw a domain exception.
 - Its `AuthController.java:105–121` catches `IllegalArgumentException` and answers `Map.of(ERROR_KEY, …)` instead of a `ProblemDetail`.
-- krizaka-users has 0 `ProblemDetail`. orazaka-conversation-service already uses it (10).
+- krizaka-users has 0 `ProblemDetail`. sovkora-conversation-service already uses it (10).
 
 **OAuth provider ladders (overstated for Java and `@krizaka/auth`, right for one BFF):**
 
@@ -61,13 +61,13 @@ The checkouts have no `node_modules`, so the TypeScript type-aware counts are a 
   - the provider is a `String`, matched with `equalsIgnoreCase` in a linear scan (`AbstractProviderVerifier.supports`);
   - a duplicate or unknown provider fails only at request time.
 - `@krizaka/auth` (krizaka-ts) has a closed union, `FederatedProvider` (`federation.ts:8`), behind a port. There is no ladder.
-- The ladder is in **orazaka-web-client**, `src/core/auth/auth-options.ts`:
+- The ladder is in **sovkora-web**, `src/core/auth/auth-options.ts`:
   - `account.provider === "github" || account.provider === "google"` (line 100);
   - `data && data.token` / `||` chains (lines 68–79);
   - an env fallback chain, `ROUTER_URL || GATEWAY_URL || "http://localhost:8080"`.
 - Reading it showed a contract defect. The OAuth just-in-time call posts `{ email, username }` to `/api/v1/auth/oauth`, but krizaka-users' `OAuthRequest` requires `provider` and `idToken`. This is folded into the TypeScript slice, failing test first.
 - Across the Java repositories:
-  - string or constant `if` ladders of 3 or more branches: 1 (orazaka-ai-engine);
+  - string or constant `if` ladders of 3 or more branches: 1 (sovkora-engine);
   - string `switch` statements: 2;
   - string `switch` expressions: 7.
 
@@ -76,12 +76,12 @@ The checkouts have no `node_modules`, so the TypeScript type-aware counts are a 
 | Repo | Java cyclomatic > 10 | Java cognitive > 15 | Java NPath > 200 |
 |---|---:|---:|---:|
 | krizaka-users | 3 | 0 | 0 |
-| orazaka-conversation-service | 8 | 2 | 2 |
-| orazaka-ai-engine | 24 | 5 | 4 |
+| sovkora-conversation-service | 8 | 2 | 2 |
+| sovkora-engine | 24 | 5 | 4 |
 
 - Java p95 cyclomatic is 4–7; PMD cognitive 15 is already in `krizaka-parent` with baselines.
 - TypeScript: 560 of 21,765 functions are cyclomatic > 10, mostly JSX components, where every `&&` render counts. 75 are cognitive > 15, and all of those are frozen by the existing ratchet (`sonarjs/cognitive-complexity`, threshold 15).
-- The outliers are real: krizaka-ui `data-table.tsx:563` (cognitive 137), orazaka-web-client `useChatStreamClient.ts:30` (69), orazaka-ai-engine `PublicAddresses.java:68` (NPath 2480).
+- The outliers are real: krizaka-ui `data-table.tsx:563` (cognitive 137), sovkora-web `useChatStreamClient.ts:30` (69), sovkora-engine `PublicAddresses.java:68` (NPath 2480).
 - They are tens of functions, not a pattern. That is a ratchet, not a flag day.
 
 **Spring structure (the audit is wrong here):**
@@ -91,7 +91,7 @@ The checkouts have no `node_modules`, so the TypeScript type-aware counts are a 
 | `@Autowired` fields | 0 |
 | non-final service fields | 2 |
 | controllers touching persistence | 1 (conversation-service) |
-| `*Utils/*Helper` classes | 4, all in orazaka-ai-engine: `PipelineUtils`, `CosineSimilarityUtil`, `LocalProcessorUtil`, `SecurityContextUtil` |
+| `*Utils/*Helper` classes | 4, all in sovkora-engine: `PipelineUtils`, `CosineSimilarityUtil`, `LocalProcessorUtil`, `SecurityContextUtil` |
 | `*Manager` classes | 0 |
 
 **Java 21 use (half right):**
@@ -213,7 +213,7 @@ Each lever is marked ✓ adopt, ≈ adjust or ✕ reject. → gives the reason a
    - `ProblemDetail` through the advice;
    - `@NullMarked` on the federation and application packages;
    - baselines recorded.
-3. **TypeScript strict preset** ([krizaka-ts#234](https://github.com/krizaka/krizaka-ts/issues/234)) in `@krizaka/config` (krizaka-ts), with the ratchet. Adopted in yomizaka, akinaza and orazaka-web-client, plus the `auth-options.ts` contract fix (failing test first).
+3. **TypeScript strict preset** ([krizaka-ts#234](https://github.com/krizaka/krizaka-ts/issues/234)) in `@krizaka/config` (krizaka-ts), with the ratchet. Adopted in verikora, folioviv and sovkora-web, plus the `auth-options.ts` contract fix (failing test first).
 4. **Agents** ([.github#385](https://github.com/krizaka/.github/issues/385)): the anti-slop section in `AGENTS.template.md`, and the `krizaka-edit-check` hook with its `.claude/settings.json` snippet.
 5. **Ratchet in CI and the checkpoint** ([.github#386](https://github.com/krizaka/.github/issues/386)):
    - every focus repository's CI fails on a ratchet regression (Java repositories adopt slice 1);

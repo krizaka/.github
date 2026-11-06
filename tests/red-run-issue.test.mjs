@@ -17,7 +17,7 @@ test("green closes the open issue, and does nothing otherwise", () => {
 
 test("the issue follows the title standard and carries the run and the end of the log", () => {
   assert.match(titleOf("audit-guards"), /^\.github · fix\(guards\): /);
-  const body = bodyOf({ guard: "audit-guards", runUrl: "https://x/run/1", log: "a\n- krizaka-build: CI gate is not a required check of main\n" });
+  const body = bodyOf({ guard: "audit-guards", runUrl: "https://x/run/1", log: "a\n- krizaka-java: CI gate is not a required check of main\n" });
   assert.match(body, /https:\/\/x\/run\/1/);
   assert.match(body, /CI gate is not a required check/);
 });
@@ -39,9 +39,9 @@ test("the scheduled guards are wired: audit-guards opens its issue, the matrix r
 });
 
 test("any alert can name its own title, labels and body (the product repositories open theirs in krizaka-internal)", () => {
-  assert.equal(titleFor({ title: "orazaka · fix(ci): main is red" }), "orazaka · fix(ci): main is red");
+  assert.equal(titleFor({ title: "sovkora · fix(ci): main is red" }), "sovkora · fix(ci): main is red");
   assert.equal(titleFor({ guard: "audit-guards" }), titleOf("audit-guards"));
-  assert.deepEqual(labelsOf("repo:orazaka, type:fix,"), ["repo:orazaka", "type:fix"]);
+  assert.deepEqual(labelsOf("repo:sovkora, type:fix,"), ["repo:sovkora", "type:fix"]);
   assert.deepEqual(labelsOf(), []);
 });
 
@@ -56,7 +56,7 @@ test("actions/alert-issue files the alert in krizaka-internal with the app token
 
 // ---- alert key (ADR-001 §A.4, krizaka-internal#2282): one issue per key, whatever its title does. Same contract as krizaka-agents tools/alerts.py.
 const REPO = "krizaka/krizaka-internal";
-const KEY = "main-red/orazaka";
+const KEY = "main-red/sovkora";
 
 /** A fake GitHub for krizaka-internal issues: list by label/state (newest first), search by title, create, comment, patch, labels. */
 function fakeGitHub(seed = []) {
@@ -87,11 +87,11 @@ function fakeGitHub(seed = []) {
   return { api, issues, calls };
 }
 
-const red = (gh, extra = {}) => alertByKey({ api: gh.api, repo: REPO, key: KEY, state: "red", title: "orazaka · fix(ci): main is red", body: "Run 1", labels: ["repo:orazaka"], runUrl: "https://x/run/1", ...extra });
-const green = (gh) => alertByKey({ api: gh.api, repo: REPO, key: KEY, state: "green", title: "orazaka · fix(ci): main is red", body: "", labels: [], runUrl: "https://x/run/9" });
+const red = (gh, extra = {}) => alertByKey({ api: gh.api, repo: REPO, key: KEY, state: "red", title: "sovkora · fix(ci): main is red", body: "Run 1", labels: ["repo:sovkora"], runUrl: "https://x/run/1", ...extra });
+const green = (gh) => alertByKey({ api: gh.api, repo: REPO, key: KEY, state: "green", title: "sovkora · fix(ci): main is red", body: "", labels: [], runUrl: "https://x/run/9" });
 
 test("the key is stored in the body as a marker, and a bad key is refused", () => {
-  assert.equal(markerOf("seo-family/dev.orazaka.com"), "<!-- alert-key: seo-family/dev.orazaka.com -->");
+  assert.equal(markerOf("seo-family/dev.sovkora.com"), "<!-- alert-key: seo-family/dev.sovkora.com -->");
   for (const bad of ["", "a", "has space", "x-->y", "-lead", "a".repeat(121)]) assert.throws(() => markerOf(bad), /--alert-key/);
   assert.equal(withMarker("Run 1\n", KEY), `Run 1\n\n<!-- alert-key: ${KEY} -->\n`);
 });
@@ -108,7 +108,7 @@ test("the plan by key: red opens, comments or reopens; green closes only an open
 test("findByKey reads the most recent issue of the key and never a pull request", () => {
   const issues = [{ number: 9, body: `x\n<!-- alert-key: other/key -->` }, { number: 8, pull_request: {}, body: withMarker("", KEY) }, { number: 7, body: withMarker("old", KEY) }];
   assert.equal(findByKey(issues, KEY).number, 7);
-  assert.equal(findByKey(issues, "main-red/yomizaka"), undefined);
+  assert.equal(findByKey(issues, "main-red/verikora"), undefined);
 });
 
 test("first red run opens one issue with the marker and the alert label; the second comments it", async () => {
@@ -116,8 +116,8 @@ test("first red run opens one issue with the marker and the alert label; the sec
   assert.deepEqual(await red(gh), { action: "open" });
   assert.equal(gh.issues.length, 1);
   assert.match(gh.issues[0].body, new RegExp(`<!-- alert-key: ${KEY} -->`));
-  assert.deepEqual(gh.issues[0].labels, ["repo:orazaka", "alert"]);
-  await red(gh, { body: "Run 2: still red", title: "orazaka · fix(ci): the title moved" });  // the title moved: the key still finds it
+  assert.deepEqual(gh.issues[0].labels, ["repo:sovkora", "alert"]);
+  await red(gh, { body: "Run 2: still red", title: "sovkora · fix(ci): the title moved" });  // the title moved: the key still finds it
   assert.equal(gh.issues.length, 1);
   assert.deepEqual(gh.issues[0].comments, ["Run 2: still red"]);
 });
@@ -142,7 +142,7 @@ test("green closes the open issue with the green run as proof, and a second gree
 });
 
 test("an open issue of the same title without a key adopts it (the alerts filed before the key); another key's issue is never taken", async () => {
-  const gh = fakeGitHub([{ number: 1, state: "open", title: "orazaka · fix(ci): main is red", body: "old alert" }]);
+  const gh = fakeGitHub([{ number: 1, state: "open", title: "sovkora · fix(ci): main is red", body: "old alert" }]);
   assert.equal((await red(gh, { body: "Run 2" })).action, "comment");
   assert.equal(gh.issues.length, 1);
   assert.match(gh.issues[0].body, new RegExp(`<!-- alert-key: ${KEY} -->`));
@@ -150,14 +150,14 @@ test("an open issue of the same title without a key adopts it (the alerts filed 
   assert.deepEqual(gh.issues[0].comments, ["Run 2"]);
   await red(gh, { body: "Run 3" });  // now found by its key
   assert.equal(gh.issues[0].comments.length, 2);
-  const other = fakeGitHub([{ number: 1, state: "open", title: "orazaka · fix(ci): main is red", body: withMarker("x", "main-red/other"), labels: ["alert"] }]);
+  const other = fakeGitHub([{ number: 1, state: "open", title: "sovkora · fix(ci): main is red", body: withMarker("x", "main-red/other"), labels: ["alert"] }]);
   assert.equal((await red(other)).action, "open");
   assert.equal(other.issues.length, 2);
 });
 
 test("main --alert-key goes through the key path; a dry run writes nothing", async () => {
   const gh = fakeGitHub();
-  const argv = ["--title", "orazaka · fix(ci): main is red", "--state", "red", "--run-url", "https://x/run/1", "--alert-key", KEY, "--labels", "repo:orazaka"];
+  const argv = ["--title", "sovkora · fix(ci): main is red", "--state", "red", "--run-url", "https://x/run/1", "--alert-key", KEY, "--labels", "repo:sovkora"];
   assert.equal(await main([...argv, "--dry-run"], gh.api), 0);
   assert.equal(gh.issues.length, 0);
   assert.equal(await main(argv, gh.api), 0);

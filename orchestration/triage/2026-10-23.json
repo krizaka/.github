@@ -1,6 +1,6 @@
 [
   {
-    "repo": "akinaza",
+    "repo": "folioviv",
     "issue": 260,
     "action": "label",
     "add": [
@@ -9,7 +9,7 @@
     "remove": []
   },
   {
-    "repo": "akinaza",
+    "repo": "folioviv",
     "issue": 265,
     "action": "label",
     "add": [
@@ -144,7 +144,7 @@
     "remove": []
   },
   {
-    "repo": "orazaka-web-client",
+    "repo": "sovkora-web",
     "issue": 265,
     "action": "label",
     "add": [
@@ -153,7 +153,7 @@
     "remove": []
   },
   {
-    "repo": "orazaka-web-client",
+    "repo": "sovkora-web",
     "issue": 264,
     "action": "label",
     "add": [
@@ -162,7 +162,7 @@
     "remove": []
   },
   {
-    "repo": "akinaza",
+    "repo": "folioviv",
     "issue": 261,
     "action": "label",
     "add": [
@@ -351,7 +351,7 @@
     "remove": []
   },
   {
-    "repo": "orazaka-web-client",
+    "repo": "sovkora-web",
     "issue": 265,
     "action": "label",
     "add": [
@@ -360,7 +360,7 @@
     "remove": []
   },
   {
-    "repo": "orazaka-web-client",
+    "repo": "sovkora-web",
     "issue": 264,
     "action": "label",
     "add": [
@@ -421,83 +421,83 @@
     "body": "Adopts SiteCahier, which is built by https://github.com/krizaka/krizaka-ui/issues/548 (named in this issue's title). Blocked until krizaka-ui#548 ships. Source: https://github.com/krizaka/krizaka-motion/issues/53"
   },
   {
-    "repo": "akinaza",
+    "repo": "folioviv",
     "issue": 260,
     "action": "link",
     "to": "krizaka-ui#558",
     "relation": "blocked_by"
   },
   {
-    "repo": "akinaza",
+    "repo": "folioviv",
     "issue": 260,
     "action": "comment",
     "body": "The explained-figure blocks (meaning, formula, source, freshness, next action, glossary) are built by https://github.com/krizaka/krizaka-ui/issues/558, running on Copilot per the Checkpoint report 2026-10-23 (evening), krizaka/.github#220. Blocked by krizaka-ui#558 for the shared blocks."
   },
   {
-    "repo": "akinaza",
+    "repo": "folioviv",
     "issue": 261,
     "action": "link",
-    "to": "akinaza#236",
+    "to": "folioviv#236",
     "relation": "part_of"
   },
   {
-    "repo": "akinaza",
+    "repo": "folioviv",
     "issue": 261,
     "action": "comment",
-    "body": "Part of the epic https://github.com/krizaka/akinaza/issues/236 (named in the title). ADR first, CTO validation, then code (report decision « Les études avant le code »). Storefront text styling comes from https://github.com/krizaka/krizaka-ui/issues/561 (TextStylePicker, « Akinaza storefronts »)."
+    "body": "Part of the epic https://github.com/krizaka/folioviv/issues/236 (named in the title). ADR first, CTO validation, then code (report decision « Les études avant le code »). Storefront text styling comes from https://github.com/krizaka/krizaka-ui/issues/561 (TextStylePicker, « Folioviv storefronts »)."
   },
   {
-    "repo": "orazaka-web-client",
+    "repo": "sovkora-web",
     "issue": 265,
     "action": "link",
     "to": "krizaka-ui#505",
     "relation": "blocked_by"
   },
   {
-    "repo": "orazaka-web-client",
+    "repo": "sovkora-web",
     "issue": 265,
     "action": "comment",
     "body": "Same product-bar change as https://github.com/krizaka/krizaka-ui/issues/505 (« using the app is the primary action; Contact moves to the footer », ProductBarActions). Run krizaka-ui#505 first, then adopt it here. Evidence: both titles."
   },
   {
-    "repo": "orazaka-web-client",
+    "repo": "sovkora-web",
     "issue": 270,
     "action": "link",
-    "to": "orazaka#389",
+    "to": "sovkora#389",
     "relation": "blocked_by"
   },
   {
-    "repo": "orazaka-web-client",
+    "repo": "sovkora-web",
     "issue": 270,
     "action": "comment",
-    "body": "Title says « after ADR-088 »; the report names orazaka#389 as ADR-088 (running on the Claude agent). Blocked by orazaka#389 and the CTO validation of the ADR. Checkpoint report 2026-10-23 (evening), krizaka/.github#220"
+    "body": "Title says « after ADR-088 »; the report names sovkora#389 as ADR-088 (running on the Claude agent). Blocked by sovkora#389 and the CTO validation of the ADR. Checkpoint report 2026-10-23 (evening), krizaka/.github#220"
   },
   {
-    "repo": "orazaka",
+    "repo": "sovkora",
     "issue": 389,
     "action": "link",
-    "to": "orazaka#388",
+    "to": "sovkora#388",
     "relation": "part_of"
   },
   {
-    "repo": "orazaka-cli",
+    "repo": "sovkora-cli",
     "issue": 90,
     "action": "link",
-    "to": "orazaka#388",
+    "to": "sovkora#388",
     "relation": "part_of"
   },
   {
-    "repo": "orazaka-web-client",
+    "repo": "sovkora-web",
     "issue": 270,
     "action": "link",
-    "to": "orazaka#388",
+    "to": "sovkora#388",
     "relation": "part_of"
   },
   {
     "repo": "krizaka-tauri-kit",
     "issue": 4,
     "action": "link",
-    "to": "orazaka#388",
+    "to": "sovkora#388",
     "relation": "part_of"
   },
   {
@@ -628,16 +628,16 @@
     "body": "Status: queued for Copilot, run at most 5 at a time (Opus counts double). Labelled ready-for-agent. Order is in orchestration/triage/2026-10-23.md. Source: Checkpoint report 2026-10-23 (evening), krizaka/.github#220; https://github.com/krizaka/krizaka-motion/issues/45"
   },
   {
-    "repo": "orazaka-web-client",
+    "repo": "sovkora-web",
     "issue": 265,
     "action": "comment",
-    "body": "Status: queued for Copilot, run at most 5 at a time (Opus counts double). Labelled ready-for-agent. Order is in orchestration/triage/2026-10-23.md. Source: Checkpoint report 2026-10-23 (evening), krizaka/.github#220; https://github.com/krizaka/orazaka-web-client/issues/265"
+    "body": "Status: queued for Copilot, run at most 5 at a time (Opus counts double). Labelled ready-for-agent. Order is in orchestration/triage/2026-10-23.md. Source: Checkpoint report 2026-10-23 (evening), krizaka/.github#220; https://github.com/krizaka/sovkora-web/issues/265"
   },
   {
-    "repo": "orazaka-web-client",
+    "repo": "sovkora-web",
     "issue": 264,
     "action": "comment",
-    "body": "Status: queued for Copilot, run at most 5 at a time (Opus counts double). Labelled ready-for-agent. Order is in orchestration/triage/2026-10-23.md. Source: Checkpoint report 2026-10-23 (evening), krizaka/.github#220; https://github.com/krizaka/orazaka-web-client/issues/264"
+    "body": "Status: queued for Copilot, run at most 5 at a time (Opus counts double). Labelled ready-for-agent. Order is in orchestration/triage/2026-10-23.md. Source: Checkpoint report 2026-10-23 (evening), krizaka/.github#220; https://github.com/krizaka/sovkora-web/issues/264"
   },
   {
     "repo": "krizaka-build",
@@ -646,16 +646,16 @@
     "body": "Critical CVEs in the Spring stack (Spring Boot 4.0.8, Tomcat 11.0.25 in krizaka-parent): labelled priority:p0 because a security alert at zero is an org epic (krizaka/.github#88). Running now per the report. Source: https://github.com/krizaka/krizaka-build/issues/18"
   },
   {
-    "repo": "orazaka",
+    "repo": "sovkora",
     "issue": 388,
     "action": "comment",
-    "body": "New Orazaka epic per the Checkpoint report 2026-10-23 (evening), krizaka/.github#220: children orazaka#389 (ADR-088), orazaka-cli#90, orazaka-web-client#270, krizaka-tauri-kit#4. ADR first, CTO validation, then code. Could not be read through the public API (orazaka issues are not readable by the agent): status unverified."
+    "body": "New Sovkora epic per the Checkpoint report 2026-10-23 (evening), krizaka/.github#220: children sovkora#389 (ADR-088), sovkora-cli#90, sovkora-web#270, krizaka-tauri-kit#4. ADR first, CTO validation, then code. Could not be read through the public API (sovkora issues are not readable by the agent): status unverified."
   },
   {
-    "repo": "akinaza",
+    "repo": "folioviv",
     "issue": 265,
     "action": "comment",
-    "body": "New issue from the Checkpoint report 2026-10-23 (evening), krizaka/.github#220: the shop editor « My shop page » in sections, with « add a shop ». Active on a Claude session with akinaza#260, #259 and #261 phase 1. Source: https://github.com/krizaka/akinaza/issues/265"
+    "body": "New issue from the Checkpoint report 2026-10-23 (evening), krizaka/.github#220: the shop editor « My shop page » in sections, with « add a shop ». Active on a Claude session with folioviv#260, #259 and #261 phase 1. Source: https://github.com/krizaka/folioviv/issues/265"
   },
   {
     "repo": ".github",

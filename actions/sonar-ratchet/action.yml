@@ -5,7 +5,8 @@
 #       token: ${{ secrets.SONAR_TOKEN }}
 #
 # It reads `sonar-ratchet.json` at the repository root (project key + the counts of bugs, vulnerabilities, hotspots and smells per
-# severity) and fails when a count of the default branch, plus the pull request's own new issues, is above it. First time in a repository:
+# severity) and fails when a security count (vulnerabilities, hotspots) of the default branch, plus the pull request's own new issues,
+# is above it; a bug or smell count above it is a warning (rules review 2026-11-05: Sonar blocks only on the Security rating). First time in a repository:
 # `node sonar-ratchet.mjs --update` with SONAR_TOKEN set, commit the file. After a fix: the same command lowers it, never raises it.
 # A merge-group run has no pull request: it compares the default branch alone. Needs only Node (on every runner).
 name: sonar-ratchet

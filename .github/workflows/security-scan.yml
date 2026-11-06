@@ -106,5 +106,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           ZIZMOR_GITHUB_TOKEN: ${{ github.token }}
         run: |
+          cp .krizaka-guards/actions/security-tools/zizmor.yml "$RUNNER_TEMP/zizmor.yml"
           rm -rf .krizaka-guards
-          zizmor --offline --min-severity medium --no-progress .
+          # Online: the token lets zizmor ask GitHub about known vulnerable actions, impostor commits and ref confusion.
+          zizmor --config "$RUNNER_TEMP/zizmor.yml" --min-severity medium --no-progress .

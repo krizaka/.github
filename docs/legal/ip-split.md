@@ -11,7 +11,7 @@ A services offer that promises both « built on the Krizaka standards » and « 
 
 | | Background IP | Foreground IP |
 | :--- | :--- | :--- |
-| What | Everything that existed before the mandate or is built to be reused across clients: the open-source Krizaka libraries (today @krizaka/ui, krizaka-platform-kit, krizaka-billing, orazaka-packs, krizaka-ts, krizaka-build — all Apache-2.0), templates, internal tools, know-how, and the improvements made to any of them during a mandate | What is specific to the client: custom screens, its business logic, its data schemas, its content |
+| What | Everything that existed before the mandate or is built to be reused across clients: the open-source Krizaka libraries (today @krizaka/ui, krizaka-platform-kit, krizaka-billing, sovkora-packs, krizaka-ts, krizaka-java — all Apache-2.0), templates, internal tools, know-how, and the improvements made to any of them during a mandate | What is specific to the client: custom screens, its business logic, its data schemas, its content |
 | Owner | Krizaka | The client, **when the mandate is fully paid** |
 | Client's right | Open-source: the library's own licence (Apache-2.0 s. 2: perpetual, worldwide, non-exclusive, royalty-free, irrevocable). Not open-source: a **perpetual, irrevocable, worldwide, non-exclusive, royalty-free licence** to use, host, modify and evolve it for the client's own business, by its own teams or any supplier it chooses (no vendor lock-in) | Before full payment: a licence for the work delivered so far. After: assignment of all economic rights |
 

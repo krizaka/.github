@@ -6,7 +6,7 @@
 #     maven:
 #       uses: krizaka/.github/.github/workflows/maven.yml@main
 #       with:
-#         upstreams: "krizaka-build krizaka-platform-kit"   # repositories built first, in order
+#         upstreams: "krizaka-java"                       # repositories built first, in order
 #         rewrite: true                                     # OpenRewrite dry run must find nothing to change
 #         registry: github                                  # github | central (default) | "github,central"
 #       secrets: inherit
@@ -23,7 +23,7 @@
 #   `central`: every artifact is signed (OpenPGP, Bouncy Castle — no gpg binary) and uploaded to the Central Portal.
 #   The parent POM keeps autoPublish=false, so the deployment is validated and then WAITS in central.sonatype.com for a
 #   human to press Publish: a release on Central can never be deleted. Central validates a POM against its parent ON
-#   CENTRAL: tag krizaka-build first and publish it before tagging the repositories that inherit krizaka-parent.
+#   CENTRAL: tag krizaka-java first and publish it before tagging the repositories that inherit krizaka-parent.
 #   Switching the registry = this input + a release; both at once is allowed. `verify` dry-runs the GitHub deployment
 #   (to a local folder) on every pull request, so the release path is exercised before release day.
 #
@@ -148,7 +148,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -175,7 +175,7 @@ jobs:
       # The repository's folders stay clean (docs/standards/repo-layout.md).
       - uses: krizaka/.github/actions/repo-layout@d701b569b15617609b890102bc0be9978759909c # main
 
-      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
           java-version: ${{ inputs.java-version }}
@@ -186,7 +186,7 @@ jobs:
         uses: krizaka/.github/actions/maven-github-packages@d701b569b15617609b890102bc0be9978759909c # main
         with:
           token: ${{ github.token }}
-          repositories: krizaka-build krizaka-platform-kit krizaka-users krizaka-notifications krizaka-billing
+          repositories: krizaka-java
 
       - name: Build the upstream Krizaka repositories
         if: inputs.upstreams != ''
@@ -198,7 +198,7 @@ jobs:
             # -DskipTests alone still runs the Failsafe integration tests (Testcontainers): an upstream is built to be installed.
             # NullAway (krizaka-parent profile krizaka-nullaway) checks the repository's own code in its own CI; an upstream
             # is only installed here, and its modules that declare their own annotationProcessorPaths cannot host Error Prone
-            # ("plug-in not found: ErrorProne", seen on krizaka-security once krizaka-build#121 was on main).
+            # ("plug-in not found: ErrorProne", seen on krizaka-security once krizaka-java#121 was on main).
             (cd "../${repository}" && ./mvnw -B -ntp install -DskipTests -DskipITs -Dkrizaka.nullaway.skip=true)
           done
 
@@ -259,10 +259,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "22"
       - uses: krizaka/.github/actions/dup-check@d701b569b15617609b890102bc0be9978759909c # main
@@ -290,12 +290,32 @@ jobs:
           fetch-depth: 0  # blame and new-code detection need the history
           persist-credentials: false
 
-      - uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
+      # Rules review of 2026-11-05: on a pull request only the Security rating blocks (sonar-gate.mjs reads the gate); elsewhere the full gate fails.
+      - id: scan
+        continue-on-error: ${{ github.event_name == 'pull_request' }}
+        uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
         env:
           SONAR_HOST_URL: https://sonarcloud.io
         with:
           projectBaseDir: .
           args: -Dsonar.projectVersion=ci-${{ github.run_number }} -Dsonar.qualitygate.wait=true -Dsonar.java.binaries=. ${{ inputs.sonar-args }}
+      - name: Sonar on a pull request, the Security rating only
+        if: ${{ github.event_name == 'pull_request' && steps.scan.outcome == 'failure' }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/.github
+          ref: main
+          path: .krizaka-sonar-gate
+          sparse-checkout: scripts/sonar-gate.mjs
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - name: The Security rating blocks, the other conditions warn
+        if: ${{ github.event_name == 'pull_request' && steps.scan.outcome == 'failure' }}
+        env:
+          REPORT: .scannerwork/report-task.txt
+        run: |
+          if [ ! -f .krizaka-sonar-gate/scripts/sonar-gate.mjs ]; then echo "::error::scripts/sonar-gate.mjs is not on krizaka/.github main: the full quality gate failed"; exit 1; fi
+          node .krizaka-sonar-gate/scripts/sonar-gate.mjs --report "$REPORT"
 
   sonar:
     name: SonarCloud
@@ -329,12 +349,32 @@ jobs:
 
       # CI analysis: the SonarCloud app still decorates the pull request and posts « SonarCloud Code Analysis »; the quality gate is awaited
       # here so the CI gate carries its verdict too.
-      - uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
+      # Rules review of 2026-11-05: on a pull request only the Security rating blocks (sonar-gate.mjs reads the gate); elsewhere the full gate fails.
+      - id: scan
+        continue-on-error: ${{ github.event_name == 'pull_request' }}
+        uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
         env:
           SONAR_HOST_URL: https://sonarcloud.io
         with:
           projectBaseDir: .
           args: -Dsonar.projectVersion=ci-${{ github.run_number }} -Dsonar.qualitygate.wait=true ${{ inputs.sonar-args }}
+      - name: Sonar on a pull request, the Security rating only
+        if: ${{ github.event_name == 'pull_request' && steps.scan.outcome == 'failure' }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/.github
+          ref: main
+          path: .krizaka-sonar-gate
+          sparse-checkout: scripts/sonar-gate.mjs
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - name: The Security rating blocks, the other conditions warn
+        if: ${{ github.event_name == 'pull_request' && steps.scan.outcome == 'failure' }}
+        env:
+          REPORT: .scannerwork/report-task.txt
+        run: |
+          if [ ! -f .krizaka-sonar-gate/scripts/sonar-gate.mjs ]; then echo "::error::scripts/sonar-gate.mjs is not on krizaka/.github main: the full quality gate failed"; exit 1; fi
+          node .krizaka-sonar-gate/scripts/sonar-gate.mjs --report "$REPORT"
 
   # ALWAYS reports (see java-ci.yml): green when verify succeeded or the changes gate legitimately skipped it; the merge queue
   # and branch protection can require this one name whatever the change.
@@ -429,11 +469,11 @@ jobs:
     # `packages: write` here would stop every caller that stays on `central` (startup failure). A repository that
     # chooses `github` grants `packages: write` on its `maven` job (read is enough for pull requests).
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
           java-version: ${{ inputs.java-version }}
@@ -445,7 +485,7 @@ jobs:
       - uses: krizaka/.github/actions/maven-github-packages@d701b569b15617609b890102bc0be9978759909c # main
         with:
           token: ${{ github.token }}
-          repositories: krizaka-build krizaka-platform-kit krizaka-users krizaka-notifications krizaka-billing
+          repositories: krizaka-java
 
       - name: Version from the tag
         run: |
@@ -453,7 +493,7 @@ jobs:
           snapshot="$(./mvnw -B -q -ntp help:evaluate -Dexpression=project.version -DforceStdout)"
           # Every Krizaka JVM artifact is released at one version (krizaka-bom): the repository's own
           # modules and the krizaka-parent it inherits all carry the same SNAPSHOT, so one literal
-          # substitution sets both. versions:set cannot: krizaka-build's root inherits its version
+          # substitution sets both. versions:set cannot: krizaka-java's root inherits its version
           # from one of its own modules and the plugin refuses it.
           find . -name pom.xml -not -path '*/target/*' -exec \
             sed -i "s|<version>${snapshot}</version>|<version>${version}</version>|g" {} +
@@ -511,11 +551,11 @@ jobs:
     timeout-minutes: 45
     environment: maven-central
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
           java-version: ${{ inputs.java-version }}
@@ -530,7 +570,7 @@ jobs:
           snapshot="$(./mvnw -B -q -ntp help:evaluate -Dexpression=project.version -DforceStdout)"
           # Every Krizaka JVM artifact is released at one version (krizaka-bom): the repository's own
           # modules and the krizaka-parent it inherits all carry the same SNAPSHOT, so one literal
-          # substitution sets both. versions:set cannot: krizaka-build's root inherits its version
+          # substitution sets both. versions:set cannot: krizaka-java's root inherits its version
           # from one of its own modules and the plugin refuses it.
           find . -name pom.xml -not -path '*/target/*' -exec \
             sed -i "s|<version>${snapshot}</version>|<version>${version}</version>|g" {} +

@@ -35,7 +35,7 @@ body:
       label: Surfaces
       description: "Tick each surface with the PR that ships it (`- [x] Web — owner/repo#12`) or mark it `- [x] Web — n/a — <reason>`. An issue with a surface left open or without a PR or a reason is reopened when closed. Keep the block of your product, delete the others."
       value: |
-        Orazaka
+        Sovkora
         - [ ] Web client — 
         - [ ] Web admin — 
         - [ ] Mobile — 
@@ -43,13 +43,13 @@ body:
         - [ ] CLI — 
         - [ ] API/SDK — 
 
-        Yomizaka
+        Verikora
         - [ ] Web — 
         - [ ] Admin — 
         - [ ] Mobile — 
         - [ ] Mac — 
 
-        Akinaza
+        Folioviv
         - [ ] Web — 
         - [ ] Admin — 
         - [ ] Mobile — 

@@ -11,27 +11,27 @@ This is the standard behind [ADR-007](../adr/ADR-007-shared-rules.md) (krizaka/.
 
 | Piece | Files | Distinct | Kind | Where |
 |---|---|---|---|---|
-| `sgconfig.yml` | 10 | 1 | **copy** | akinaza, a former product, krizaka-com, krizaka-ts, krizaka-ui, orazaka-web-client, a former product, template-next-app, a former product, yomizaka |
+| `sgconfig.yml` | 10 | 1 | **copy** | folioviv, a former product, krizaka-com, krizaka-ts, krizaka-ui, sovkora-web, a former product, krizaka-template-web, a former product, verikora |
 | ast-grep `rules/*.yml` | 149 | 46 | **variant**: same bodies; `files:`/`ignores:` follow each layout | the same 10 |
 | `rule-tests/*-test.yml` | 139 | 17 | **copy** | the same 10 |
 | `scripts/sg-ratchet.mjs` | 10 | 2 | **copy** (krizaka-com +1 line) | the same 10 |
 | `scripts/sg-fix.mjs` | 10 | 2 | **copy** (krizaka-com +1 line) | the same 10 |
 | `sg-ratchet.test.mjs` | 11 | 3 | copy | the same 10 (krizaka-com has two) |
 | `sg-ratchet.json` | 10 | 10 | **truly local** (debt) | the same 10 |
-| `lint-ratchet.json` (`krizaka-ratchet`) | 6 | 6 | **truly local** | krizaka-com, orazaka-web-client, the former products, orazaka-ui-kit, a former repository |
+| `lint-ratchet.json` (`krizaka-ratchet`) | 6 | 6 | **truly local** | krizaka-com, sovkora-web, the former products, sovkora-ui-kit, a former repository |
 | `dup-ratchet.json` (jscpd) | 20 | 14 | **truly local** | 20 repositories |
-| `scripts/check-seo-family.mjs` | 13 | 2 | **drifted copy**: 255 lines in 9, 235 in 4; 34 lines differ | 255: akinaza, a former product, krizaka-blog, krizaka-build `site/`, krizaka-com, krizaka-ts `site/`, krizaka-ui `apps/site/`, a former product, template-next-app; 235: orazaka-web-client, a former product, yomizaka, a former product `site/` |
+| `scripts/check-seo-family.mjs` | 13 | 2 | **drifted copy**: 255 lines in 9, 235 in 4; 34 lines differ | 255: folioviv, a former product, krizaka-blog, krizaka-java `site/`, krizaka-com, krizaka-ts `site/`, krizaka-ui `apps/site/`, a former product, krizaka-template-web; 235: sovkora-web, a former product, verikora, a former product `site/` |
 | `scripts/check-file-names.mjs` | 1 | 1 | local today, generic by nature | krizaka-ts |
-| `.githooks/pre-push` | 4 | 1 | copy | akinaza, a former product, krizaka-ts, yomizaka |
+| `.githooks/pre-push` | 4 | 1 | copy | folioviv, a former product, krizaka-ts, verikora |
 | `eslint.config.*` | 26 | 16 | thin variants over `@krizaka/config` | 18 repositories |
-| `@krizaka/config` version | 15 | — | **drift** `^0.1.0` … `^0.7.0` | 0.7: akinaza, krizaka-ts, orazaka-web-client, the former products, yomizaka · 0.6: a former product, krizaka-com, a former product · 0.4: krizaka-blog, krizaka-build, krizaka-ts `site/`, orazaka-ui-kit, template-next-app · 0.1: a former repository |
-| `.dependency-cruiser.cjs` | 3 | 3 | variant over `@krizaka/config/dependency-cruiser` | krizaka-com, orazaka-cli, orazaka-web-client |
-| ArchUnit governance tests | 33 | 33 | local wiring of two libraries | krizaka-*: `CodeRules`/`ArchitectureRules` (krizaka-build `krizaka-test-support`); orazaka-*: `GovernanceRules` (orazaka-build `orazaka-test-support`, 1,181 lines, 17 rule names duplicated from `CodeRules`) |
-| `archunit_store/` (`FrozenRules`) | 6 | — | **truly local** (frozen debt) | orazaka-automation-service, orazaka-conversation-service, orazaka-job-service, krizaka-users (core, persistence), krizaka-platform-kit (notifications) |
+| `@krizaka/config` version | 15 | — | **drift** `^0.1.0` … `^0.7.0` | 0.7: folioviv, krizaka-ts, sovkora-web, the former products, verikora · 0.6: a former product, krizaka-com, a former product · 0.4: krizaka-blog, krizaka-java, krizaka-ts `site/`, sovkora-ui-kit, krizaka-template-web · 0.1: a former repository |
+| `.dependency-cruiser.cjs` | 3 | 3 | variant over `@krizaka/config/dependency-cruiser` | krizaka-com, sovkora-cli, sovkora-web |
+| ArchUnit governance tests | 33 | 33 | local wiring of two libraries | krizaka-*: `CodeRules`/`ArchitectureRules` (krizaka-java `krizaka-test-support`); sovkora-*: `GovernanceRules` (sovkora-build `sovkora-test-support`, 1,181 lines, 17 rule names duplicated from `CodeRules`) |
+| `archunit_store/` (`FrozenRules`) | 6 | — | **truly local** (frozen debt) | sovkora-automation-service, sovkora-conversation-service, sovkora-job-service, krizaka-java (users core and persistence, platform-kit notifications) |
 | Spotless, OpenRewrite | 1 | 1 | **shared already** | `krizaka-parent/pom.xml:83-91,185-187` |
-| Rust (`cargo fmt`, `clippy -D warnings`) | — | — | shared within the Tauri kit's workflow | krizaka-tauri-kit `.github/workflows/rust.yml:24-25` |
-| Python (`ruff check .`) | 1 config | — | **shared already** (workflow input) | `python-ci.yml:10,48`, 5 callers; config `orazaka-worker-media/pyproject.toml:14-30` |
-| `copilot-setup-steps.yml` | 15 | 2 | copy | 14 Java/Orazaka repositories |
+| Rust (`cargo fmt`, `clippy -D warnings`) | — | — | shared within the Tauri kit's workflow | krizaka-desktop `.github/workflows/rust.yml:24-25` |
+| Python (`ruff check .`) | 1 config | — | **shared already** (workflow input) | `python-ci.yml:10,48`, 5 callers; config `sovkora-worker-media/pyproject.toml:14-30` |
+| `copilot-setup-steps.yml` | 15 | 2 | copy | 14 Java/Sovkora repositories |
 | AGENTS.md « Static rules » section | 21 | 7 | **restated**, 511 lines | every repository above |
 
 **The rules themselves** (the ast-grep set, as counted per rule):
@@ -41,7 +41,7 @@ This is the standard behind [ADR-007](../adr/ADR-007-shared-rules.md) (krizaka/.
 | `no-ambient-clock`, `no-env-in-domain`, `no-enum-string-compare`, `no-unjustified-numeric-export` | 10 | 6 | the `files:` globs; a former product's message (≤ 8 lines) |
 | `no-db-in-service-or-rules`, `no-get-time-arithmetic`, `no-get-time-difference`, `no-hand-ms-{days,hours,minutes,one-hour}` | 10 | 2 | a former product (2 lines) |
 | `no-ts-enum`, `no-types-at-package-root` | 10 | 1 | — |
-| `no-hand-made-nav` | 8 | 2 | yomizaka (2 lines) |
+| `no-hand-made-nav` | 8 | 2 | verikora (2 lines) |
 | `no-hand-made-language-switch` | 8 | 1 | — |
 | `no-hand-made-tab-bar` | 1 | 1 | local: a former product |
 | `no-hand-written-email` | 1 | 1 | local: krizaka-ui |
@@ -62,18 +62,18 @@ This is the standard behind [ADR-007](../adr/ADR-007-shared-rules.md) (krizaka/.
 
 ## 2. The profiles
 
-A repository declares one or more profiles. A monorepo declares one per folder: Yomizaka is `next-app` in `apps/web`, `expo-app` in `apps/mobile`, and `ts-library` in `packages/*`.
+A repository declares one or more profiles. A monorepo declares one per folder: Verikora is `next-app` in `apps/web`, `expo-app` in `apps/mobile`, and `ts-library` in `packages/*`.
 
 | Profile | Repositories today | Rules |
 |---|---|---|
-| `ts-library` | krizaka-ts `packages/*`, krizaka-ui `packages/*`, orazaka-ui-kit, a former repository, krizaka-lab, orazaka-cli, the products' `packages/*` | ESLint `krizakaBase` + `krizakaStack()` + `envNames`. dependency-cruiser boundary (no app import, no cycle). ast-grep: the time rules (`no-hand-ms-*`, `no-get-time-*`), `no-ambient-clock`, `no-env-in-domain`, `no-db-in-service-or-rules`, `no-ts-enum`, `no-enum-string-compare`, `no-types-at-package-root`, `no-unjustified-numeric-export`. File names by function. Ratchets: ast-grep, `krizaka-ratchet`, duplication. |
-| `next-app` (product or site) | yomizaka, akinaza, the former products, orazaka-web-client `apps/web` or root, krizaka-com, template-next-app | `ts-library`, plus ESLint `krizakaNext` + `krizakaUi()` + `noLocaleTernary()`, plus ast-grep `no-hand-made-nav`, `no-hand-made-language-switch`, `no-raw-inner-html` (from krizaka-com) |
-| `site` (public docs or blog) | krizaka-ui `apps/site`, krizaka-ts `site/`, krizaka-build `site/`, krizaka-blog, a former product `site/` | `next-app`, plus the SEO family check (`krizaka-rules seo-family`) |
-| `expo-app` | orazaka-mobile-client, former repositories, the products' `apps/mobile` | `ts-library`, plus ESLint for React Native, plus `no-hand-made-tab-bar` (from a former product), plus the charter §6 rules as they become rules |
-| `tauri-app` | krizaka-tauri-kit, template-tauri-app | its front end: `next-app` or `ts-library`; its Rust: `cargo fmt --check` and `clippy -D warnings` (`rust.yml:24-25`), unchanged |
-| `java-block` | krizaka-build, krizaka-platform-kit, krizaka-users, krizaka-billing, krizaka-notifications (libraries), orazaka-contracts, orazaka-build | `krizaka-parent` (Spotless, OpenRewrite dry run, javadoc, enforcer); `KrizakaRules.buildingBlock(classes)` (`CodeRules` + `ArchitectureRules` + `ConfigBindingRules` + `SourceRules`) |
-| `java-service` | orazaka-ai-engine, orazaka-automation-service, orazaka-conversation-service, orazaka-edge, orazaka-job-service, orazaka-knowledge-service, orazaka-studio, and the `*-service` modules of users, billing, notifications | `java-block`, plus `KrizakaRules.service(classes)` (layers, `@Transactional` only on services, configuration only in config). Orazaka's own rules stay in `orazaka-test-support`. |
-| `python-worker` | orazaka-worker-media, orazaka-packs | `ruff check .` (through `python-ci.yml`) with the repository's `[tool.ruff]` |
+| `ts-library` | krizaka-ts `packages/*`, krizaka-ui `packages/*`, sovkora-ui-kit, a former repository, krizaka-lab, sovkora-cli, the products' `packages/*` | ESLint `krizakaBase` + `krizakaStack()` + `envNames`. dependency-cruiser boundary (no app import, no cycle). ast-grep: the time rules (`no-hand-ms-*`, `no-get-time-*`), `no-ambient-clock`, `no-env-in-domain`, `no-db-in-service-or-rules`, `no-ts-enum`, `no-enum-string-compare`, `no-types-at-package-root`, `no-unjustified-numeric-export`. File names by function. Ratchets: ast-grep, `krizaka-ratchet`, duplication. |
+| `next-app` (product or site) | verikora, folioviv, the former products, sovkora-web `apps/web` or root, krizaka-com, krizaka-template-web | `ts-library`, plus ESLint `krizakaNext` + `krizakaUi()` + `noLocaleTernary()`, plus ast-grep `no-hand-made-nav`, `no-hand-made-language-switch`, `no-raw-inner-html` (from krizaka-com) |
+| `site` (public docs or blog) | krizaka-ui `apps/site`, krizaka-ts `site/`, krizaka-java `site/`, krizaka-blog, a former product `site/` | `next-app`, plus the SEO family check (`krizaka-rules seo-family`) |
+| `expo-app` | sovkora-mobile, former repositories, the products' `apps/mobile` | `ts-library`, plus ESLint for React Native, plus `no-hand-made-tab-bar` (from a former product), plus the charter §6 rules as they become rules |
+| `tauri-app` | krizaka-desktop, krizaka-template-desktop | its front end: `next-app` or `ts-library`; its Rust: `cargo fmt --check` and `clippy -D warnings` (`rust.yml:24-25`), unchanged |
+| `java-block` | krizaka-java (with its users and platform-kit folders), krizaka-billing, krizaka-notifications (libraries), sovkora-contracts, sovkora-build | `krizaka-parent` (Spotless, OpenRewrite dry run, javadoc, enforcer); `KrizakaRules.buildingBlock(classes)` (`CodeRules` + `ArchitectureRules` + `ConfigBindingRules` + `SourceRules`) |
+| `java-service` | sovkora-engine, sovkora-automation-service, sovkora-conversation-service, sovkora-edge-service, sovkora-job-service, sovkora-knowledge-service, sovkora-studio-service, and the `*-service` modules of users, billing, notifications | `java-block`, plus `KrizakaRules.service(classes)` (layers, `@Transactional` only on services, configuration only in config). Sovkora's own rules stay in `sovkora-test-support`. |
+| `python-worker` | sovkora-worker-media, sovkora-packs | `ruff check .` (through `python-ci.yml`) with the repository's `[tool.ruff]` |
 | `docs` | .github, krizaka-infra | markdown and workflow lint only (`lint-workflows.yml`) |
 
 **How a repository declares it** (`krizaka.rules.json`, read by `krizaka-rules sync`):
@@ -104,7 +104,7 @@ A repository declares one or more profiles. A monorepo declares one per folder: 
 | `sg-ratchet`, `sg-fix`, `check-file-names`, `check-seo-family` | `@krizaka/config` bins (`krizaka-rules ratchet\|fix\|names\|seo-family`) | nothing |
 | `sgconfig.yml` | generated by `krizaka-rules sync` (`ruleDirs: [.krizaka/ast-grep, rules]`) | nothing hand-written |
 | ArchUnit generic rules | `krizaka-test-support` (`CodeRules` absorbs `GovernanceRules`' 17 duplicates; `KrizakaRules` profiles) | the governance test (profile call + local rules), `archunit_store/` |
-| Orazaka-only rules (packs, capabilities, settlement, saga readers) | `orazaka-test-support` | — |
+| Sovkora-only rules (packs, capabilities, settlement, saga readers) | `sovkora-test-support` | — |
 | Spotless, OpenRewrite | `krizaka-parent` (unchanged) | — |
 | Running it all in CI | #113 `krizaka-ci.yml`, `quality` action: `krizaka-rules check`, `./mvnw verify` | `npm run lint` = `krizaka-rules check` |
 | `copilot-setup-steps.yml` | a workflow template in `workflow-templates/` (#113) | the file, generated from the template |
@@ -123,7 +123,7 @@ A repository declares one or more profiles. A monorepo declares one per folder: 
 
 ## 4. The slimmer agent files
 
-**Before**: Yomizaka's `AGENTS.md:93-120`, 28 lines (21 repositories carry a variant of it):
+**Before**: Verikora's `AGENTS.md:93-120`, 28 lines (21 repositories carry a variant of it):
 
 ```markdown
 ## Static rules & codemods (ast-grep)
@@ -174,10 +174,10 @@ One tool per language: **Prettier** with `@krizaka/config/prettier` in every TS/
 | # | Repository | PR | Specific acceptance |
 |---|---|---|---|
 | 1 | krizaka-ui | `@krizaka/config`: ast-grep rules (roles, not paths), their tests, `krizaka-rules` (`sync`, `check`, `ratchet`, `fix`, `doc`, `names`, `seo-family` = the 255-line version), `@ast-grep/cli` as dependency | every rule's tests pass in the package; `sync` reproduces each of the 10 repositories' current rule files from their `roles` (golden test per repo layout) |
-| 2 | krizaka-build | `krizaka-test-support`: `KrizakaRules.buildingBlock` / `.service`; the 17 generic rules from `GovernanceRules` merged into `CodeRules` where they differ | `ArchitectureRulesTest` extended; released with the next `krizaka-build` |
+| 2 | krizaka-java | `krizaka-test-support`: `KrizakaRules.buildingBlock` / `.service`; the 17 generic rules from `GovernanceRules` merged into `CodeRules` where they differ | `ArchitectureRulesTest` extended; released with the next `krizaka-java` |
 | 3 | **krizaka-com** (pilot) | `krizaka.rules.json` (`next-app`, `site`); delete `rules/`, `rule-tests/` (except `no-raw-inner-html`, promoted in #1), `scripts/sg-*.mjs`, `check-seo-family.mjs`; AGENTS §« Static rules » → 3 lines | same violations; same counts |
-| 4 | **yomizaka** (pilot) | three profiles (monorepo) | same; its `check-seo-family.mjs` moves from 235 to 255 lines (the drift): any new finding is fixed in this PR or counted |
-| 5 | **akinaza** (pilot) | same as yomizaka | same |
-| 6 | **krizaka-platform-kit** (Java pilot) | nine governance tests → `KrizakaRules.buildingBlock` + local rules | same test results |
-| 7 | **orazaka-build + one service** (orazaka-edge) | `GovernanceRules` drops the 17 duplicates (delegates to `CodeRules`); `EdgeGovernanceTest` on `KrizakaRules.service` + Orazaka's rules | same results; `archunit_store/` unchanged |
-| 8+ | the rest, one PR each: the former products, orazaka-web-client, template-next-app, krizaka-ts, krizaka-ui itself; then the repositories without ast-grep today (mobile, design systems, cli, blog, motion, a former product) at their current counts; then the Orazaka services; the AGENTS.template.md and CONTRIBUTING §10 change last | per row |
+| 4 | **verikora** (pilot) | three profiles (monorepo) | same; its `check-seo-family.mjs` moves from 235 to 255 lines (the drift): any new finding is fixed in this PR or counted |
+| 5 | **folioviv** (pilot) | same as verikora | same |
+| 6 | **krizaka-java** (Java pilot, the former krizaka-platform-kit) | nine governance tests → `KrizakaRules.buildingBlock` + local rules | same test results |
+| 7 | **sovkora-build + one service** (sovkora-edge-service) | `GovernanceRules` drops the 17 duplicates (delegates to `CodeRules`); `EdgeGovernanceTest` on `KrizakaRules.service` + Sovkora's rules | same results; `archunit_store/` unchanged |
+| 8+ | the rest, one PR each: the former products, sovkora-web, krizaka-template-web, krizaka-ts, krizaka-ui itself; then the repositories without ast-grep today (mobile, design systems, cli, blog, motion, a former product) at their current counts; then the Sovkora services; the AGENTS.template.md and CONTRIBUTING §10 change last | per row |

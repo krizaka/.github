@@ -1,0 +1,9 @@
+# The org's zizmor configuration (docs/standards/action-pinning.md), used by security-scan, lint-workflows, the
+# pre-commit hook and the weekly audit.
+#
+# ref-version-mismatch is off because of the first-party pins `uses: krizaka/.github/...@<sha> # main`: they trail main
+# between two runs of propagate-pins, by design. Version comments of third-party actions are checked, stronger, by
+# `scripts/pin-supply-chain.mjs --exact --check` (the comment must be a release tag that points at the pinned commit).
+rules:
+  ref-version-mismatch:
+    disable: true

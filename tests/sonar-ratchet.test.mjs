@@ -58,11 +58,17 @@ const run = async (argv, files, table = T) => {
 };
 const base = JSON.stringify({ project: "p", counts: { bugs: 2, vulnerabilities: 1, hotspots: 3, smells_major: 10, smells_minor: 5 } });
 
-test("the default branch passes at the baseline and a pull request that raises a count fails", async () => {
+test("the default branch passes at the baseline; a pull request that raises a smell warns, one that raises a security count fails", async () => {
   assert.equal((await run([], { "sonar-ratchet.json": base })).code, 0);
   const r = await run(["--pull-request", "7"], { "sonar-ratchet.json": base });
-  assert.equal(r.code, 1);
-  assert.match(r.out.join("\n"), /smells_minor is 6, baseline 5/);
+  assert.equal(r.code, 0, "rules review 2026-11-05: only the security counts block");
+  assert.match(r.out.join("\n"), /::warning::sonar ratchet: smells_minor is 6, baseline 5/);
+  const unsafe = { ...T, pr7: { ...T.pr7, vulnerabilities: 1 } };
+  const v = await run(["--pull-request", "7"], { "sonar-ratchet.json": base }, unsafe);
+  assert.equal(v.code, 1);
+  assert.match(v.out.join("\n"), /::error::sonar ratchet: vulnerabilities is 2, baseline 1/);
+  const hot = await run(["--pull-request", "7"], { "sonar-ratchet.json": base }, { ...T, pr7: { ...T.pr7, hotspots: 2 } });
+  assert.equal(hot.code, 1);
 });
 
 test("without a baseline file the check fails and says how to create it", async () => {

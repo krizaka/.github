@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { CONSUMERS_FILE, readDependencies } from "./krizaka-release.mjs";
 
 const REPOS = [
-  "akinaza", "yomizaka", "orazaka-web-client", "krizaka-com", "krizaka-blog", "krizaka-lab", "krizaka-build", "krizaka-ui", "krizaka-ts",
+  "folioviv", "verikora", "sovkora-web", "krizaka-com", "krizaka-blog", "krizaka-lab", "krizaka-java", "krizaka-ui", "krizaka-ts",
 ];
 const about =
   "The repositories that depend on @krizaka/* packages and learn of a release by repository_dispatch (krizaka/.github#388). " +

@@ -1,8 +1,9 @@
 # The conformance matrix (krizaka/.github#393): every rule of docs/standards/rules.json against every active repository.
 # Daily (krizaka-internal#883), on a pull request that adds or changes a rule (a rule without its check fails), and by hand. The pull
 # request run validates the registry and prints the matrix; the daily run reads main of every repository with the agents' app,
-# publishes the matrix on the branch conformance-matrix (conformance/matrix.md, .json), opens one issue per red repository and
-# fails while a cell is red.
+# publishes the matrix on the branch conformance-matrix (conformance/matrix.md, .json), opens one issue per repository red on a
+# security rule and fails while a security cell is red. Rules review of 2026-11-05: the same-day rollout holds only for the rules
+# marked `"security": true`; the other rules are reported in the matrix, never fanned out (and the registry is frozen at 35 rules).
 name: Conformance
 
 on:
@@ -56,6 +57,7 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
           EVENT: ${{ github.event_name }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           fail=()
           if [ "$EVENT" = schedule ]; then fail=(--fail); fi

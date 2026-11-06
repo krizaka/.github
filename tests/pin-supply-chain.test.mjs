@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { bestTag, parseRefs, pinDockerfileText, pinWorkflowText, resolveRef } from "../scripts/pin-supply-chain.mjs";
+import { bestTag, exactVersion, parseRefs, pinDockerfileText, pinWorkflowText, resolveRef } from "../scripts/pin-supply-chain.mjs";
 
 const A = "a".repeat(40);
 const B = "b".repeat(40);
@@ -21,7 +21,7 @@ test("pinWorkflowText pins uses lines, keeps pinned, local and docker ones", () 
   const src = [
     "      - uses: actions/checkout@v7",
     `      - uses: actions/setup-node@${B} # v4`,
-    "    uses: krizaka/orazaka/.github/workflows/component.yml@main",
+    "    uses: krizaka/sovkora/.github/workflows/component.yml@main",
     "      - uses: ./.github/actions/x",
     "      - uses: docker://alpine:3",
     "      - run: echo uses: foo@v1",
@@ -31,7 +31,7 @@ test("pinWorkflowText pins uses lines, keeps pinned, local and docker ones", () 
   const lines = text.split("\n");
   assert.equal(lines[0], `      - uses: actions/checkout@${A} # actions/checkout:v7`);
   assert.equal(lines[1], src.split("\n")[1]);
-  assert.equal(lines[2], `    uses: krizaka/orazaka/.github/workflows/component.yml@${A} # krizaka/orazaka:main`);
+  assert.equal(lines[2], `    uses: krizaka/sovkora/.github/workflows/component.yml@${A} # krizaka/sovkora:main`);
   assert.equal(lines.slice(3).join("\n"), src.split("\n").slice(3).join("\n"));
 });
 
@@ -58,4 +58,45 @@ test("--refresh moves branch-commented pins only", () => {
   assert.equal(text.split("\n")[0], `    uses: o/r/.github/workflows/w.yml@${B} # main`);
   assert.equal(text.split("\n")[1], src.split("\n")[1]);
   assert.equal(pinWorkflowText(src, () => assert.fail("no refresh without the flag")).changes.length, 0);
+});
+
+test("exactVersion keeps a backed full version, else the most precise tag, else null", () => {
+  assert.equal(exactVersion(["v7", "v7.0", "v7.0.1"], "v7"), "v7.0.1");
+  assert.equal(exactVersion(["v7.0.1", "v7.0.0"], "v7.0.0"), "v7.0.0");
+  assert.equal(exactVersion(["v7"], "v7"), null);
+  assert.equal(exactVersion([], "v1.5.2"), null);
+});
+
+test("--exact makes a version comment exact, keeps the rest of the comment and lists what no tag backs", () => {
+  const tags = { [A]: ["v7", "v7.0.1"], [B]: ["main"] };
+  const src = [
+    `      - uses: actions/checkout@${A} # v7`,
+    `      - uses: actions/checkout@${A} # v7 # zizmor: ignore[artipacked] reason`,
+    `      - uses: actions/setup-node@${A} # v7.0.1`,
+    `    uses: o/r/.github/workflows/w.yml@${B} # main`,
+    `      - uses: o/r@${B} # v2`,
+  ].join("\n");
+  const { text, changes, unresolved } = pinWorkflowText(src, () => assert.fail("pinned lines are not resolved"), { tagsAt: (_repo, sha) => tags[sha] });
+  const lines = text.split("\n");
+  assert.equal(lines[0], `      - uses: actions/checkout@${A} # v7.0.1`);
+  assert.equal(lines[1], `      - uses: actions/checkout@${A} # v7.0.1 # zizmor: ignore[artipacked] reason`);
+  assert.equal(lines.slice(2).join("\n"), src.split("\n").slice(2).join("\n"));
+  assert.equal(changes.length, 2);
+  assert.equal(unresolved.length, 1);
+  assert.match(unresolved[0], /# v2: no release tag/);
+});
+
+test("--refresh moves the pin and keeps the reason of its comment", () => {
+  const src = [`    uses: o/r/.github/workflows/w.yml@${A} # main (krizaka/.github#303)`, `    uses: o/r/.github/workflows/x.yml@${A} # main`].join("\n");
+  const resolve = (_repo, ref) => (ref === "main" ? { sha: B, label: "main" } : assert.fail(ref));
+  const { text } = pinWorkflowText(src, resolve, { refresh: true });
+  assert.deepEqual(text.split("\n"), [`    uses: o/r/.github/workflows/w.yml@${B} # main (krizaka/.github#303)`, `    uses: o/r/.github/workflows/x.yml@${B} # main`]);
+  const unchanged = `    uses: o/r/.github/workflows/w.yml@${B} # main (krizaka/.github#303)`;
+  assert.equal(pinWorkflowText(unchanged, resolve, { refresh: true }).text, unchanged);
+});
+
+test("--exact keeps the reason after a version comment", () => {
+  const src = `      - uses: a/b@${A} # v7 (pinned for the cache fix)`;
+  const { text } = pinWorkflowText(src, () => assert.fail("no resolve"), { tagsAt: () => ["v7", "v7.0.1"] });
+  assert.equal(text, `      - uses: a/b@${A} # v7.0.1 (pinned for the cache fix)`);
 });

@@ -8,13 +8,13 @@
   the configuration), [ADR-009](ADR-009-prices-are-data.md) (prices are data), [ADR-016](ADR-016-identity-federation-trusted-devices-risk.md)
   (tenants, trusted devices, secrets sealed under one vault key), [ADR-004](ADR-004-expo-app-shell.md) and
   [ADR-005](ADR-005-tauri-app-kit.md) (phone and Mac shells), krizaka-ts ADR-005 (providers as data, credentials sealed).
-- **Scope:** the apps that run on Orazaka: Yomizaka, Akinaza, Orazaka (web, Mac, phone). The engine's analysis packs read
+- **Scope:** the apps that run on Sovkora: Verikora, Folioviv, Sovkora (web, Mac, phone). The engine's analysis packs read
   documents only through the consent grant below.
 
 ## Context
 
-The founder wants (2026-10-31) a storage service **run by Krizaka** for the apps on Orazaka. Clients would keep their documents
-in one place, Orazaka's analysis packs would give better advice from them, and sharing and access would work well on Mac and
+The founder wants (2026-10-31) a storage service **run by Krizaka** for the apps on Sovkora. Clients would keep their documents
+in one place, Sovkora's analysis packs would give better advice from them, and sharing and access would work well on Mac and
 phone. Requirements: encryption at rest with per-tenant keys and in transit; Québec's Law 25 and federal PIPEDA by design;
 residency in Canada, Québec preferred; deletion on request; a breach register; access logs; disaster recovery and high
 availability **backed by numbers**.
@@ -35,8 +35,8 @@ trail. This ADR adds no copy of any of them: what is missing is added to those p
 
 ### The trade-off, said plainly
 
-With this option on, **Krizaka holds its clients' documents**. For a business client (a landlord on Yomizaka, a shop on
-Akinaza) we become their **service provider (mandataire)** for the personal information of *their* customers, under Law 25
+With this option on, **Krizaka holds its clients' documents**. For a business client (a landlord on Verikora, a shop on
+Folioviv) we become their **service provider (mandataire)** for the personal information of *their* customers, under Law 25
 s. 18.3 and PIPEDA principle 4.1.3. For an individual client we are the enterprise responsible. Both bring obligations
 that bring-your-own does not:
 
@@ -74,7 +74,7 @@ because they change and public documents stay neutral.
 
 - **Québec first.** The primary copy is in Beauharnois. The Toronto replica is the only copy that leaves Québec, and it stays
   in Canada, under PIPEDA. That replica is the one s. 17 assessment we must write (in the EFVP).
-- **Sovereignty fits the brand.** Orazaka sells sovereign AI. A provider with a non-US parent avoids the US CLOUD Act reach
+- **Sovereignty fits the brand.** Sovkora sells sovereign AI. A provider with a non-US parent avoids the US CLOUD Act reach
   that applies to AWS, Google and Microsoft. The encryption in Decision 3 makes the provider unable to read the documents
   anyway, whoever it is.
 - **No egress charges.** Sharing and Mac/phone sync are download-heavy, so egress dominates the bill elsewhere.
@@ -140,7 +140,7 @@ tenant KEK  ── wraps ──►  DEK (one per object version, AES-256-GCM)  �
   what, when, from which device or link). The owner sees their document's history; the admin exports it.
 - **End-to-end where possible:** a folder can be marked **Private**. Its tenant KEK is then wrapped to the members' device keys
   (Mac Keychain, phone Keystore / Secure Enclave, ADR-016 trusted devices), not to the root key. We cannot read it, and
-  **Orazaka packs cannot analyse it**. The screen says so before the switch. Links on Private folders carry the key in the URL
+  **Sovkora packs cannot analyse it**. The screen says so before the switch. Links on Private folders carry the key in the URL
   fragment, which never reaches the server.
 
 ## Decision 5 — Mac and phone: offline cache and sync
@@ -156,7 +156,7 @@ tenant KEK  ── wraps ──►  DEK (one per object version, AES-256-GCM)  �
   OS limits.
 - The web keeps no cache beyond the browser's.
 
-## Decision 6 — Orazaka packs read documents only with consent
+## Decision 6 — Sovkora packs read documents only with consent
 
 - A pack reads a document through a **grant**: `tenantId`, the scope (documents or folders), the purpose (« lease analysis »),
   the pack, the expiry, and who gave it. It is recorded as a consent by purpose in `@krizaka/privacy`, with the notice version

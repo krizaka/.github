@@ -2,12 +2,12 @@
 # .github/workflows/cla.yml calls it (template: workflow-templates/cla.yml) on pull_request_target and issue_comment.
 #
 # A contributor who has not signed gets a comment with the link to docs/CLA.md and the sentence to post; the check turns green
-# once they post it. Signatures are kept in one private repository of the org (krizaka/cla-signatures,
+# once they post it. Signatures are kept in one private repository of the org (krizaka/krizaka-cla-signatures,
 # signatures/v1/cla.json), written with a Krizaka Agents app token scoped to that repository only (no personal token, no extra secret).
 # Members of the org and the bots are allowlisted: their work is covered by the founder assignment and the subcontractor
 # assignments (docs/legal/ai-authorship.md), not by the CLA.
 #
-# krizaka/cla-signatures exists (private, created 2026-10-26). The caller passes `secrets: inherit` (RELEASE_APP_PRIVATE_KEY).
+# krizaka/krizaka-cla-signatures exists (private, created 2026-10-26). The caller passes `secrets: inherit` (RELEASE_APP_PRIVATE_KEY).
 name: cla
 
 on:
@@ -34,7 +34,7 @@ jobs:
           app-id: ${{ vars.RELEASE_APP_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
           owner: krizaka
-          repositories: cla-signatures
+          repositories: krizaka-cla-signatures
           permission-contents: write
       - name: CLA Assistant
         uses: contributor-assistant/github-action@ca4a40a7d1004f18d9960b404b97e5f30a505a08 # zizmor: ignore[archived-uses] v2.6.1; no maintained equivalent keeps signatures in a separate private repository; pinned by SHA, replaced when one exists
@@ -46,7 +46,7 @@ jobs:
           path-to-document: https://github.com/krizaka/.github/blob/main/docs/CLA.md
           branch: main
           remote-organization-name: krizaka
-          remote-repository-name: cla-signatures
+          remote-repository-name: krizaka-cla-signatures
           allowlist: Wu-sama,oussamaABID,krizaka-agents[bot],dependabot[bot],github-actions[bot],renovate[bot]
           custom-pr-sign-comment: I have read the Krizaka CLA Document and I hereby sign the CLA
           custom-notsigned-prcomment: >-

@@ -32,7 +32,7 @@
 ## Order
 
 `.github` at 0 open PRs (this ADR, the `maven.yml` release job) → `krizaka-build` (it holds `krizaka-parent`) →
-`krizaka-platform-kit` → `krizaka-users`, `krizaka-notifications`, `krizaka-billing` → the Orazaka services. One fan-out
+`krizaka-platform-kit` → `krizaka-users`, `krizaka-notifications`, `krizaka-billing` → the Sovkora services. One fan-out
 pull request per repository.
 
 ## Registry as configuration (implemented)

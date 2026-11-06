@@ -7,7 +7,7 @@
 | Identity | Used for | Rule |
 | :--- | :--- | :--- |
 | The founder's GitHub login | Approve, merge, administer | Multi-factor authentication; never used by an agent |
-| GitHub Apps (`krizaka-agents`, `orazaka`) | Agents push, comment, open pull requests | Installation tokens, short-lived, scoped per repository |
+| GitHub Apps (`krizaka-agents`, `sovkora`) | Agents push, comment, open pull requests | Installation tokens, short-lived, scoped per repository |
 | Supplier consoles (hosting, CDN, GPU, payments, e-mail) | Operate the services | One named account each, multi-factor authentication (to verify and record, A 8.5) |
 | Service tokens between apps | An admin console calling its product | One token per pair, stored as a secret of the app, rotated on the calendar below |
 

@@ -1,4 +1,4 @@
-# The CI and the release of a Krizaka macOS app (Tauri 2, krizaka-tauri-kit; ADR-005). Reusable: a product's
+# The CI and the release of a Krizaka macOS app (Tauri 2, krizaka-desktop; ADR-005). Reusable: a product's
 # .github/workflows/desktop.yml calls it and keeps its own triggers and permissions:
 #
 #   on: { pull_request: { paths: ["apps/desktop/**"] }, push: { tags: ["v*"] } }
@@ -6,12 +6,12 @@
 #     desktop-pr:                # pull_request: unsigned, no secret
 #       if: github.event_name == 'pull_request'
 #       uses: krizaka/.github/.github/workflows/tauri-macos.yml@<sha>
-#       with: { working-directory: apps/desktop, product-name: "Yomizaka", sign: false }
+#       with: { working-directory: apps/desktop, product-name: "Verikora", sign: false }
 #     desktop-release:           # push of a tag: signed, secrets passed by name
 #       if: github.event_name == 'push'
 #       permissions: { contents: write }
 #       uses: krizaka/.github/.github/workflows/tauri-macos.yml@<sha>
-#       with: { working-directory: apps/desktop, product-name: "Yomizaka", tag-prefix: "v", sign: true }
+#       with: { working-directory: apps/desktop, product-name: "Verikora", tag-prefix: "v", sign: true }
 #       secrets: { APPLE_CERTIFICATE: "${{ secrets.APPLE_CERTIFICATE }}", ... }
 #
 # Two modes, chosen by `sign` (default false):
@@ -30,7 +30,7 @@ on:
         type: string
         default: apps/desktop
       product-name:
-        description: "The product's name, for the release title (`Yomizaka`)."
+        description: "The product's name, for the release title (`Verikora`)."
         type: string
         required: true
       tag-prefix:
@@ -129,7 +129,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
         with:
           toolchain: stable
-      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
           workspaces: ${{ inputs.working-directory }}/src-tauri
       - run: pnpm install --frozen-lockfile
@@ -164,7 +164,7 @@ jobs:
         with:
           toolchain: stable
           targets: aarch64-apple-darwin
-      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
           workspaces: ${{ inputs.working-directory }}/src-tauri
       - run: pnpm install --frozen-lockfile
@@ -205,7 +205,7 @@ jobs:
         with:
           toolchain: stable
           targets: aarch64-apple-darwin
-      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
           workspaces: ${{ inputs.working-directory }}/src-tauri
       - run: pnpm install --frozen-lockfile

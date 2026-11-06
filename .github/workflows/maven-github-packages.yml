@@ -1,7 +1,7 @@
 # Publishes a Krizaka Maven repository to GitHub Packages (maven.pkg.github.com/<repository>) from a v* tag.
 #
 # Why: a release on Maven Central is a human pressing Publish and can never be deleted, so it is the last step. Every
-# development build (the Orazaka workspace, the Krizaka repositories) resolves the version just released from GitHub
+# development build (the Sovkora workspace, the Krizaka repositories) resolves the version just released from GitHub
 # Packages, where this workflow puts it first (actions/maven-github-packages adds the repositories to the runner's settings).
 #
 # A repository calls it from its own workflow; the caller grants `packages: write`:
@@ -61,12 +61,12 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.ref || format('refs/tags/{0}', inputs.tag) }}
           persist-credentials: false
 
-      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
           java-version: ${{ inputs.java-version }}

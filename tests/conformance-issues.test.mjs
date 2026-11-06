@@ -7,8 +7,8 @@ import { readFileSync } from "node:fs";
 
 const rules = loadRules();
 const cells = {
-  a: { "security-scan": { status: "red", why: "no security.yml" }, scorecard: { status: "green", why: "" }, "shared-ci": { status: "n/a", why: "" } },
-  b: { "security-scan": { status: "green", why: "" } },
+  a: { "security-scan": { status: "fail", why: "no security.yml" }, scorecard: { status: "pass", why: "" }, "shared-ci": { status: "n/a", why: "" } },
+  b: { "security-scan": { status: "pass", why: "" } },
 };
 
 test("only repositories with a red cell are listed, with the reason", () => {
@@ -42,7 +42,7 @@ test("a green repository closes its open issue", () => {
 
 test("the issue lives in the private krizaka-internal with the required labels, never in the red repository", () => {
   assert.equal(INTERNAL, "krizaka-internal");
-  assert.equal(repoOfTitle(titleOf([{ id: "x" }], "orazaka-cli")), "orazaka-cli");
+  assert.equal(repoOfTitle(titleOf([{ id: "x" }], "sovkora-cli")), "sovkora-cli");
   for (const prefix of ["repo:", "product:", "lane:", "type:"]) assert.ok(labelsOf("a").some((l) => l.startsWith(prefix)));
 });
 
@@ -51,4 +51,9 @@ test("the workflow's token reaches krizaka-internal, where the issues live (a 40
   const scope = yml.match(/repositories: \$\{\{ steps\.repos\.outputs\.list \}\}(.*)/);
   assert.ok(scope, "the app token is scoped to the repo list");
   assert.ok(scope[1].split(",").includes(INTERNAL), `the token's repositories include ${INTERNAL}`);
+});
+
+test("rules review 2026-11-05: the issue per red repository lists only the security rules; a repository red on other rules only has none", () => {
+  const mixed = { a: { "security-scan": { status: "fail", why: "x" }, "shared-ci": { status: "fail", why: "y" } }, c: { "shared-ci": { status: "fail", why: "y" } } };
+  assert.deepEqual(redByRepo(mixed, rules), { a: [{ id: "security-scan", why: "x" }] });
 });

@@ -9,14 +9,25 @@ matrix lists as out of scope. There are no exceptions.
   `file-matches`, `manifests-forbid {pattern}` (no manifest, workspace file, submodule list, POM or Gradle file names the pattern),
   `versions-current`, `agents-template` (AGENTS.md is rendered from [`agents-template.md`](agents-template.md) by `scripts/agents-md.mjs`: its marker, the five
   headings, at most 80 lines, the krizaka-engineering skill linked, every relative link resolves).
-- **Matrix**: `node scripts/conformance.mjs` (repo x rule, green / red / n/a, then the family versions each repository pins). **Daily**
+- **Deterministic** (founder 2026-11-06, « la matrice doit le prouver d'une façon déterministe », krizaka-internal#2635): each
+  repository is read at **one pinned commit** (its default branch SHA, recorded in every cell); every file a check reads is recorded
+  with the SHA-256 of what it judged (and the line that matched), a live setting (rulesets, npm) with its URL, HTTP status and
+  SHA-256. No judgement, no sampling. A cell is `pass`, `fail`, `unknown` (a fetch error or nothing to read, with its reason: never
+  pass, never fail), `manual` (no deterministic check exists yet: never shown as pass) or `n/a`. `tests/conformance.test.mjs` runs the
+  matrix twice on a fixture and asserts the same bytes. Per-repo tests a rule requires are found by file name (`path-matches`): the
+  name says the rule (`public-no-amount.test.*`, `privacy-officer.test.*`…).
+- **The matrix confirms**: a rule holds in a repository only if its cell says `pass`; cite rule id × repo × run date (× commit).
+- **Matrix**: `node scripts/conformance.mjs` (repo x rule, pass / fail / unknown / manual / n/a, then the family versions each repository pins). **Daily**
   against main of every active repository, and on every pull request that touches the rules (`.github/workflows/conformance.yml`);
   the 3-hour checkpoint prints it (`checkpoint-gen.sh`, « Conformance »).
 - **Where to read it**: the daily run publishes [`conformance/matrix.md`](https://github.com/krizaka/.github/blob/conformance-matrix/conformance/matrix.md)
-  and `conformance/matrix.json` on the data branch `conformance-matrix` (`scripts/conformance-publish.mjs`; the cockpit reads the JSON).
+  and `conformance/matrix.json` on the data branch `conformance-matrix` (`scripts/conformance-publish.mjs`; the cockpit and
+  `session-start` read the JSON, never GitHub per view). Its schema 2: `generatedAt`, `runUrl`, `rulesCommit`, `rules` (id, title,
+  issue, security, check type, link to its text), `repos` (commit), `summary` (pass, fail, unknown, manual per rule), `cells`, and
+  `results`: one line per cell with rule, repo, commit, check, status, why, evidence, runDate and link.
   It opens or refreshes one issue per red repository and closes it when the repository is green (`scripts/conformance-issues.mjs`).
 - **The rules really reach the repositories** (krizaka-internal#879): `versions-current {ecosystems, graceDays}` is red when a repository
-  still pins a family version (`@krizaka/*` on npm; `krizaka-parent` / `krizaka-bom` from the krizaka-build releases) older than one
+  still pins a family version (`@krizaka/*` on npm; `krizaka-parent` / `krizaka-bom` from the krizaka-java releases) older than one
   out for `graceDays`. `release-propagation` asks for the receiver **and** the landed bump; `maven-family-current` does it for Java.
 - **Scheduled guards are never red in silence**: a red scheduled run of `audit-guards` opens (or comments) one issue in
   krizaka-internal, and the next green run closes it (`scripts/red-run-issue.mjs`). Any alert passes `alert-key` to `actions/alert-issue`:

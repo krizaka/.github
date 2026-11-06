@@ -21,10 +21,10 @@ Thank you for helping. Every Krizaka repository follows the same rules.
 8. **Environment variables are named by bounded context**, not by product or vendor:
    - `<CONTEXT>_<THING>`, CONTEXT one of `APP_` (URL, environment, release), `DATABASE_`, `AUTH_` (session secret,
      OAuth, owner/operator), `MEDIA_` (streaming, storage, CDN, signing), `MAIL_`, `PUSH_`, `PAYMENTS_`, `REALTIME_`,
-     `ABUSE_` (bot challenge, quotas, rate limits), `OBSERVABILITY_`, `AI_` (the Orazaka client), `OPERATOR_` (admin console).
+     `ABUSE_` (bot challenge, quotas, rate limits), `OBSERVABILITY_`, `AI_` (the Sovkora client), `OPERATOR_` (admin console).
    - The vendor is a **value**: `MEDIA_STORAGE_PROVIDER=bunny`, `MAIL_PROVIDER=mailgun`, `PUSH_PROVIDER=expo`; its settings
      sit under the context (`MEDIA_STREAM_LIBRARY_ID`, `MAIL_API_KEY`). Never `BUNNY_…`, `MAILGUN_…`, `GOOGLE_…`.
-   - **No product name** (`YOMIZAKA_…`, `AKINAZA_…`): the deployment already says which product it is.
+   - **No product name** (`VERIKORA_…`, `FOLIOVIV_…`): the deployment already says which product it is.
    - `NEXT_PUBLIC_` / `EXPO_PUBLIC_` only where the framework requires a client-exposed value, then the context
      (`NEXT_PUBLIC_APP_URL`, `EXPO_PUBLIC_APP_URL`).
    - **One typed env module per app** (zod): every variable declared once with its context, whether production needs
@@ -56,11 +56,11 @@ Thank you for helping. Every Krizaka repository follows the same rules.
 
 Each repository says its licence in its `LICENSE` file ([ADR-012](docs/adr/ADR-012-licensing-libraries-open-products-fair-source.md)):
 
-- **Libraries (Apache-2.0)** — `krizaka-ui`, `krizaka-ts`, `krizaka-build`, `krizaka-platform-kit`, the building blocks and the
-  Orazaka SDK pieces. Your contribution is licensed under Apache-2.0 (its s. 5). Sign off every commit
+- **Libraries (Apache-2.0)** — `krizaka-ui`, `krizaka-ts`, `krizaka-java`, the building blocks and the
+  Sovkora SDK pieces. Your contribution is licensed under Apache-2.0 (its s. 5). Sign off every commit
   (`git commit -s`): the `Signed-off-by:` line certifies the [Developer Certificate of Origin](https://developercertificate.org) —
   that you wrote the change or have the right to submit it under the repository's licence.
-- **Products (FSL-1.1-ALv2, once their licence PR is merged)** — Yomizaka, Akinaza and the Orazaka engine. An external
+- **Products (FSL-1.1-ALv2, once their licence PR is merged)** — Verikora, Folioviv and the Sovkora engine. An external
   contribution also needs the Krizaka Contributor Licence Agreement, signed once from the PR (a bot asks). Until the CLA
   check is live, these repositories accept issues and discussions, not external code.
 - **Names and marks** are never licensed by either: see [TRADEMARKS.md](TRADEMARKS.md).

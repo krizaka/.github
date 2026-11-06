@@ -125,7 +125,7 @@ export function parseCargoDeps(text) {
 /** The krizaka packages pinned in a requirements file or a pyproject (`krizaka-x==1.2.3`, `>=`, `~=`). */
 export function parsePythonDeps(text) {
   const found = [];
-  for (const m of text.matchAll(/(?:^|["'\s])((?:krizaka|orazaka)[\w.-]*)\s*(?:==|>=|~=|\^)\s*(\d+\.\d+\.\d+[\w.+-]*)/gim)) found.push({ name: m[1].toLowerCase().replaceAll("_", "-"), used: m[2] });
+  for (const m of text.matchAll(/(?:^|["'\s])((?:krizaka|sovkora|orazaka)[\w.-]*)\s*(?:==|>=|~=|\^)\s*(\d+\.\d+\.\d+[\w.+-]*)/gim)) found.push({ name: m[1].toLowerCase().replaceAll("_", "-"), used: m[2] });
   return mergeHighest([found]);
 }
 
