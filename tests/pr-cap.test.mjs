@@ -1,7 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { exemptReason, laneOf, overCap, rulesFromPolicy, trackingBody, verdict } from "../scripts/pr-cap.mjs";
+import { exemptReason, laneOf, overCap, rulesFromPolicy, TRACKING_REPO, trackingBody, trackingWrite, verdict } from "../scripts/pr-cap.mjs";
+import { findByKey } from "../scripts/red-run-issue.mjs";
 
 const RULES = { cap: 5, fixMainExempt: true };
 const lane = (name) => [{ name: `lane:${name}` }];
@@ -77,4 +78,22 @@ test("the workflow runs the report on a schedule and the check as a reusable, li
   assert.match(text, /name: PR cap\n/);
   assert.match(text, /pr-cap\.mjs check/);
   assert.match(text, /pr-cap\.mjs report/);
+});
+
+test("the tracking issue lives in krizaka-internal, never in a public repository (krizaka-internal#2794)", () => {
+  assert.equal(TRACKING_REPO, "krizaka-internal");
+  const opened = trackingWrite({ org: "krizaka", issue: undefined, over: true, body: "table" });
+  assert.equal(opened.path, "repos/krizaka/krizaka-internal/issues");
+  assert.equal(opened.method, "POST");
+  assert.ok(opened.body.labels.includes("alert"), "the alert label keeps the lookup small");
+  const updated = trackingWrite({ org: "krizaka", issue: { number: 2792 }, over: false, body: "table" });
+  assert.deepEqual([updated.path, updated.method, updated.body.state], ["repos/krizaka/krizaka-internal/issues/2792", "PATCH", "closed"]);
+  for (const w of [opened, updated]) assert.doesNotMatch(w.path, /\/\.github\//);
+});
+
+test("the report finds its own tracking issue again by its key, and writes nothing when no lane is over and none exists", () => {
+  const written = trackingWrite({ org: "krizaka", issue: undefined, over: true, body: "table" });
+  const issues = [{ number: 9, body: "another alert" }, { number: 2792, body: written.body.body }];
+  assert.equal(findByKey(issues, "pr-cap").number, 2792);
+  assert.equal(trackingWrite({ org: "krizaka", issue: undefined, over: false, body: "table" }), null);
 });
