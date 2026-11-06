@@ -29,6 +29,11 @@ const TEST_CONFIG = /(^|\/)((playwright|vitest|jest)\.config\.[cm]?[jt]s|junit-p
 export const CHECK_TYPES = ["path-matches", "lists-rule-ids", "manual", "workflow-calls", "workflow-matches", "workflow-forbids", "file-exists", "file-matches", "manifests-forbid", "no-mention", "published-no-mention", "all-of", "any-of", "agents-template", "required-check", "merged-result", "queue-reports", "required-profile", "time-limits", "versions-current"];
 /** The states of a cell. `unknown` and `manual` are never counted as pass nor as fail. */
 export const STATUSES = ["pass", "fail", "unknown", "manual", "n/a"];
+/** A sort order that does not depend on the machine's locale (determinism). */
+export function byCodePoint(a, b) {
+  if (a < b) return -1;
+  return a > b ? 1 : 0;
+}
 export const sha256 = (text) => createHash("sha256").update(text ?? "").digest("hex");
 export const FIX_TYPES = ["copy", "append-section", "settings-hook", "agents-template", "manual"];
 const WORKFLOW_PATH = /^\.github\/workflows\/[^/]+\.ya?ml$/;
@@ -216,7 +221,7 @@ const CHECKS = {
   // that text. Paths are sorted, so the first match is always the same one.
   "path-matches": async (check, snap) => {
     const re = new RegExp(check.pattern);
-    const hits = snap.paths.filter((p) => re.test(p)).sort();
+    const hits = snap.paths.filter((p) => re.test(p)).sort(byCodePoint);
     if (hits.length === 0) return { ok: false, why: `no tracked file matches ${check.pattern}` };
     if (!check.contains) return { ok: true, why: "", evidence: [{ path: hits[0] }] };
     const body = new RegExp(check.contains);
@@ -279,7 +284,8 @@ const CHECKS = {
       results.push(result);
     }
     // One sub-check could not be read: the cell cannot be called a failure.
-    return { ok: results.some((r) => r.ok === null) ? null : false, why: results.map((r) => r.why).join("; or ") };
+    const unreadable = results.some((r) => r.ok !== false);
+    return { ok: unreadable ? null : false, why: results.map((r) => r.why).join("; or ") };
   },
   // AGENTS.md rendered from docs/standards/agents-template.md: the marker, the headings, at most 80 lines, the skill linked, relative links resolve.
   "agents-template": async (_check, snap) => {
@@ -399,7 +405,12 @@ export async function runCheck(check, snap) {
 }
 
 /** A check's answer as a cell state: true pass, false fail, null unknown (manual when the check is `manual`). */
-export const statusOf = ({ ok, manual }) => (manual ? "manual" : ok === true ? "pass" : ok === false ? "fail" : "unknown");
+export function statusOf({ ok, manual }) {
+  if (manual) return "manual";
+  if (ok === true) return "pass";
+  if (ok === false) return "fail";
+  return "unknown";
+}
 
 /** Evidence, sorted and without duplicates, so the same content gives the same text. */
 function evidenceOf(result, reads) {
@@ -410,7 +421,7 @@ function evidenceOf(result, reads) {
     const key = e.path ?? e.url;
     seen.set(key, { ...seen.get(key), ...e });
   }
-  return [...seen.values()].sort((a, b) => String(a.path ?? a.url).localeCompare(String(b.path ?? b.url)));
+  return [...seen.values()].sort((a, b) => byCodePoint(String(a.path ?? a.url), String(b.path ?? b.url)));
 }
 
 /**
@@ -457,14 +468,17 @@ export function summarise(rules, cells) {
 }
 
 /** Where a rule's text lives: rules.json at the registry's commit (or main), scrolled to its id. */
-export const ruleLink = (id, commit = "main") => `https://github.com/krizaka/.github/blob/${commit}/docs/standards/rules.json#:~:text=${encodeURIComponent(`"id": "${id}"`)}`;
+export function ruleLink(id, commit = "main") {
+  const anchor = encodeURIComponent(`"id": "${id}"`);
+  return `https://github.com/krizaka/.github/blob/${commit}/docs/standards/rules.json#:~:text=${anchor}`;
+}
 
 /**
  * The machine-readable matrix (what the cockpit, session-start and the checkpoint read): pure, so the same cells give the same text.
  * `results` is one line per cell: rule x repo x commit x check x status x evidence x run date x link to the rule.
  */
 export function reportOf({ rules, cells, summary, versions = {}, paused = [], generatedAt, runUrl = null, rulesCommit = null }) {
-  const repos = Object.keys(cells).sort();
+  const repos = Object.keys(cells).sort(byCodePoint);
   const link = (id) => ruleLink(id, rulesCommit ?? "main");
   const results = repos.flatMap((repo) =>
     rules
@@ -496,7 +510,7 @@ export function render(rules, cells, summary, paused = []) {
   for (const s of summary) lines.push(`| ${s.id} | ${s.pass} | ${s.fail} | ${s.unknown} | ${s.manual} |`);
   const total = summary.reduce((acc, s) => ({ p: acc.p + s.pass, f: acc.f + s.fail, u: acc.u + s.unknown, m: acc.m + s.manual }), { p: 0, f: 0, u: 0, m: 0 });
   lines.push(`| **all** | **${total.p}** | **${total.f}** | **${total.u}** | **${total.m}** |`, "", "| repo | commit | failing rules | unknown |", "|---|---|---|---|");
-  for (const repo of Object.keys(cells).sort()) {
+  for (const repo of Object.keys(cells).sort(byCodePoint)) {
     const row = cells[repo];
     const of = (st) => Object.entries(row).filter(([, c]) => c.status === st).map(([id]) => id);
     const commit = Object.values(row)[0]?.commit?.slice(0, 7) ?? "?";
@@ -555,7 +569,7 @@ export async function liveSnapshot({ name, kind }, org = "krizaka") {
     commit = (await api(`/repos/${org}/${name}/commits/HEAD`))?.sha ?? null;
     if (!commit) throw new Error("no default branch commit");
     const tree = await api(`/repos/${org}/${name}/git/trees/${commit}?recursive=1`);
-    paths = (tree?.tree ?? []).filter((e) => e.type === "blob").map((e) => e.path).sort();
+    paths = (tree?.tree ?? []).filter((e) => e.type === "blob").map((e) => e.path).sort(byCodePoint);
   } catch (error) {
     return { ...snapshotOf(name, kind, [], async () => null, { commit }), error: `could not read the repository: ${error.message}` };
   }
