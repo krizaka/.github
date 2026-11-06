@@ -1,6 +1,8 @@
 # ADR-026 — Automation strategy: one home per kind, one generated catalogue, checks a person can read
 
-- **Status:** Proposed (the founder reads it first; nothing changes before his answer)
+- **Status:** Accepted (founder, 2026-11-06). His three decisions: **one catalogue**, generated daily by the matrix (no file
+  committed per repository); **one hook chain**, delivered by the public `@krizaka/config` (not by the private krizaka-agents);
+  **phases A, C, E1 and G now**, during the freeze, then B, D and F once it lifts. He added the docs map (§ « The docs map »).
 - **Date:** 2026-11-06
 - **Issue:** krizaka-internal#2734. **Builds on:** [ADR-013](ADR-013-guards-and-local-sonar.md) (§3 shift-left, §4 one source
   per rule set, §5 less in-house), [ADR-018](ADR-018-workflows-by-concern-profiles-budgets.md) (workflows by concern), the
@@ -120,7 +122,8 @@ Copies folded in phase B are left out of this list (they are rewritten once, in 
    | A CI step for several repositories | a reusable workflow or composite action of krizaka/.github, pinned by SHA | a copied job |
    | The caller file GitHub requires | generated from `workflow-templates/` by conformance (`fix: copy`) | a hand edit |
    | A repository's own check, generator, deploy step or dev tool | its `scripts/` (a package's `scripts/` in a monorepo), the test beside it, run through an npm script (or Maven, uv) | a second folder |
-   | Machine automation: crons, LaunchAgents, git hooks, machine-wide agent hooks | krizaka-agents `tools/install.json`, always through `kz-run` | a crontab edit, a hand-made plist, a repository that installs hooks |
+   | Git hooks | the one chain of `@krizaka/config` (`krizaka-hooks install`, run by the repository's `prepare`); the repository says what to check in its `precheck` script | `.githooks/`, husky, a pre-commit configuration |
+   | Machine automation: crons, LaunchAgents, machine-wide agent hooks, the machine's hook extensions | krizaka-agents `tools/install.json`, always through `kz-run` | a crontab edit, a hand-made plist |
    | A repository's agent hook | `.claude/settings.json` calling a published bin, no logic | logic in the repository |
    | A one-off (migration, codemod, backfill) | the pull request that runs it; the next one deletes it; git keeps it | a file that stays |
 
@@ -137,22 +140,33 @@ Copies folded in phase B are left out of this list (they are rewritten once, in 
    commented parts, each part tested. The same measure covers JS/TS, Python and shell.
 5. **Tested by fixtures.** Every check, generator, deploy step, cron and hook has a test with at least one passing and one
    failing fixture. Dev tools are listed and owned but exempt.
-6. **One hook chain.** Git hooks run only through the chain krizaka-agents installs on each machine. A repository says what to
-   check before a push in its `precheck` npm script (which `krizaka-precheck` already reads) and never installs a hook: no
-   `core.hooksPath` in `prepare`, no `.pre-commit-config.yaml`, no husky. CI stays the gate (ADR-013 §3): a hook only saves time.
+6. **One hook chain, from the public package.** Every repository's `prepare` runs `krizaka-hooks install` (`@krizaka/config`;
+   a repository without npm gives the one `npx -y -p @krizaka/config krizaka-hooks install` line in its contributing guide). The
+   chain: pre-commit scans the staged diff for secrets, commit-msg checks the co-author trailers against the org's public
+   allow-list, pre-push runs the repository's `precheck` npm script. A machine adds its own steps as extensions
+   (`~/.config/krizaka/hooks.d/<hook>/`): krizaka-agents installs its secret scan and identity guard there and no longer sets
+   `core.hooksPath`. Repositories ship no hook mechanism of their own (no `.githooks/`, husky, `.pre-commit-config.yaml`,
+   lefthook). CI stays the last word (ADR-013 §3): a hook only saves time.
 7. **The machine matches the manifest.** Every cron, LaunchAgent and machine hook exists only through `install.json`. A pause is
    a field of the manifest (`"paused": "<why, since when>"`) that `install.py` writes as a commented line, never a hand edit. A
    drift check compares the crontab, the LaunchAgents and the agent settings with the manifest and reports in the cockpit.
 8. **Guards read the catalogue.** Each principle is a rule of the conformance matrix, ratcheted per repository (the counts only
    go down), plus one pull-request check that refuses a new violation. Nothing here depends on someone remembering it.
+9. **The documents follow the change.** A committed docs map says, for each kind of change, which documents it must update
+   (newcomer guides, README, AGENTS, skills…); a pull request that makes such a change updates them or says why not.
 
 ### Kept, changed, refused
 
-- ✓ **One catalogue generated centrally, not a committed `automation.json` in every repository.**
+- ✓ **One catalogue generated centrally, not a committed `automation.json` in every repository** (founder, 2026-11-06).
   - → Every fact is readable from the repository at a pinned SHA (the conformance reader already does it). A committed file per
     repository is 33 generated files and 33 staleness checks (one per active repository), and stale generated files already cause about 8 % of our CI reds
     (krizaka-precheck's analysis, krizaka-internal#2607).
   - ! A repository has no catalogue file of its own: `node scripts/automation-catalogue.mjs --repo <path>` prints it on demand.
+- ✓ **One hook chain in the public `@krizaka/config`, not in krizaka-agents** (founder, 2026-11-06).
+  - → krizaka-agents is private: a contributor could not install it. The package reaches every machine that runs the install.
+  - ! The machine's own steps (the central secret scan, the identity guard) become extensions of the chain.
+- ✓ **The docs map is committed in krizaka/.github; the local `krizaka.config.json` only points to it** (`docsMap`). → The
+  local config is never committed and differs per machine: a list kept there would differ too.
 - ✓ **The owner is the repository's team** (`repos.json`) or the krizaka-agents lane, not a tag in every file. → One owner
   per repository is what we have; a tag per file would drift.
 - ✓ **Thresholds: 80 characters per regex, 400 lines per file.** → 84 regexes and 26 files are over them today: enough to bite,
@@ -177,26 +191,31 @@ flowchart LR
     S["scripts/verb-object + its test"] --> NPM["npm script (or mvn, uv)"]
     STUB["caller stubs, generated"]
     PRE["precheck: what to check before a push"]
+    PREP["prepare: krizaka-hooks install"]
   end
   subgraph PKG["@krizaka/config on npm"]
     BIN["shared check bins"]
+    CHAIN["krizaka-hooks: the one git hook chain"]
   end
   subgraph ORG["krizaka/.github"]
     RW["reusable workflows and actions"]
     GATE["automation-check, in the PR gate"]
     CAT["automation-catalogue, daily"]
     MAT["rules.json, the matrix"]
+    DM["docs-map.json"] --> DMC["docs-map check, on each PR"]
   end
   subgraph M["krizaka-agents, on each machine"]
     INS["install.json"] --> RUN["kz-run"]
     RUN --> CRON["crons and LaunchAgents"]
-    RUN --> HOOK["one git hook chain, agent hooks"]
+    RUN --> EXT["hook extensions, agent hooks"]
     FEED["cockpit feed"]
   end
   NPM --> BIN
   STUB --> RW
   RW --> GATE
-  HOOK --> PRE
+  PREP --> CHAIN
+  CHAIN --> PRE
+  EXT --> CHAIN
   CAT --> MAT
   CAT --> FEED
   INS --> FEED
@@ -205,7 +224,7 @@ flowchart LR
 
 **Adding an automation — the path a newcomer follows:**
 
-1. Does it run on the machine, at a time or on an event (cron, git hook, agent hook)? → krizaka-agents:
+1. Does it run on the machine, at a time or on an event (cron, LaunchAgent, agent hook, a machine-only hook step)? → krizaka-agents:
    `tools/<verb>-<object>.py` and `tools/<name>.test.py`, an entry in `install.json`, its line in the README (the existing
    `check-tools-documented` guard asks for it), then `install.sh`.
 2. Does it apply to two repositories or more? → a check or generator: a bin in `@krizaka/config` with its test and README
@@ -213,7 +232,9 @@ flowchart LR
    here, with its test in `tests/`. Never a copy.
 3. Otherwise → `scripts/<verb>-<object>.mjs` (or `.py`, `.sh`) and `scripts/<name>.test.mjs` with one passing and one failing
    fixture, an npm script, called by `check` or by a workflow; a tool a person runs says « manual » in its header.
-4. Open the pull request: the automation check lists the new catalogue rows in the job summary and refuses a violation.
+4. Something to check before every push? → add it to the repository's `precheck` script; the chain runs it.
+5. Open the pull request: update the documents the docs map lists for the change's category (or write « Docs: not needed,
+   <why> »); the automation check lists the new catalogue rows in the job summary and refuses a violation.
 
 **How the catalogue is generated:**
 
@@ -235,6 +256,32 @@ flowchart LR
 | 4 conformance rules | `rules.json`, a new check type `catalogue` | `automation-one-home` (copies), `automation-listed` (unreferenced units), `automation-readable` (regexes over 80, files over 400), `automation-tested` (untested core units): each at most its baseline, lowered by the PR that pays the debt |
 | `install.py --check` | krizaka-agents, run by the watchdog cron | the crontab, the LaunchAgents or the agent settings differ from `install.json` |
 | Python measure | krizaka-agents complexity guard | regex length and file size in the Python tools (ruff has no such rule) |
+| `hook-chain` rule | `rules.json`, with a fan-out fix | a repository whose `prepare` does not run `krizaka-hooks install`, or that ships `.githooks/`, husky or a pre-commit configuration |
+| `docs-map` check and rule | a reusable workflow of this repository on every pull request; `rules.json` | a change that matches a category without touching its documents or a « Docs: » line; a repository that does not run the check |
+
+### The docs map
+
+`docs-map.json` (this repository's root, with its schema in `docs/standards/`) lists the kinds of change and, for each, the
+documents to update. A category has an id, `when` (repository and globs of the changed files, never regexes, principle 4) and
+`docs` (repository and path; `bump` when the document is a krizaka-agents skill, whose plugin version in
+`.claude-plugin/marketplace.json` moves with it; `local: true` for a page outside git, such as the cockpit's, printed but never
+required). The local `krizaka.config.json` holds only the key `docsMap`, the path of the map in the reference copy, in the
+krizaka-agents config schema; tools read the list through it, never from a copy.
+
+| Category | A pull request that touches | Updates |
+| :-- | :-- | :-- |
+| `way-of-working` | krizaka-agents `tools/`, `skills/`, `subagents/`, `AGENTS.md`; this repository's `docs/standards/` | the four newcomer guides (krizaka-internal `docs/onboarding/`), krizaka-agents README and AGENTS, the skill concerned (plugin version bumped), `AGENTS.template.md` |
+| `java-norm` | krizaka-java's parent, test-support and build rules | the `krizaka-java` skill (bumped), the Java section of `AGENTS.template.md`, krizaka-java README |
+| `typescript-norm` | krizaka-ts `packages/config/` | the `krizaka-typescript` skill (bumped), `AGENTS.template.md`, the config package README |
+| `new-repository` | `repos.json` (a new entry) | the org profile `profile/README.md`, the newcomer guides' repository map, `docs/standards/repositories.md` |
+| `product-rename` | `repos.json` names, `@krizaka/org`'s name table | the org profile, the newcomer guides, the products' READMEs, the renames record |
+| `automation` | workflows, `scripts/`, `tools/`, krizaka-agents `install.json` | the repository README's automation section; krizaka-agents README « Crons » for machine ones; the guide « with Claude Code » when a session's routine changes |
+| `release-process` | release-please files, release workflows, `release-repos.json`, `bump-krizaka` | `docs/standards/ci-and-deploy.md`, the repository's RELEASING or README, the `krizaka-landing` skill (bumped) |
+| `board-lanes` | krizaka-agents `tools/lanes/`, the board tools, the statuses and lanes of `kz.py` | the `krizaka-lane-session` and `krizaka-issue` skills (bumped), the newcomer guides, `LABELS.md` |
+
+The guard: on each pull request, for each category its changed files match, a listed document of the same repository is in
+the diff, or the body has « Docs: <the pull request or issue that updates them> » (a document of another repository), or
+« Docs: not needed, <why> ». The check has fixtures for every form; a conformance rule makes every active repository run it.
 
 ## Consequences
 
@@ -244,30 +291,37 @@ flowchart LR
 - ✓ The regex debt stops growing at once (phase F) and shrinks where it costs most (phase D).
 - ! Every change to a shared check becomes a release of `@krizaka/config` or a new SHA of this repository; consumers wait for
   the bump.
-- ! A contributor's machine without the krizaka-agents chain pushes without local checks; CI still refuses what is wrong.
+- ✓ A change of a given kind always updates the same documents; a newcomer's guide stays true.
+- ! A machine that skipped the install (or a repository without npm whose contributor skipped the `npx` line) pushes without
+  local checks; CI still refuses what is wrong.
+- ! A pull request that matches a category carries a « Docs: » line when it does not touch the documents.
 - ! The catalogue's discovery rules are heuristics (callers by name and path); a wrong « unreferenced » is fixed by naming the
   tool in its repository's README, never by an exception list.
-- ✕ Refused: copies kept « identical by hand », a per-file owner tag, a second regex lint plugin, hooks installed by
-  repositories.
+- ✕ Refused: copies kept « identical by hand », a per-file owner tag, a second regex lint plugin, a repository's own hook
+  mechanism, a docs list kept in a local config.
 
 ## Plan
 
 Phases in order of value. Each line is one issue (one repository, one theme); S is under half a day, M up to two days, L more.
-The issues are filed once this ADR is accepted, under krizaka-internal#2734; per repository they group into delivery blocks.
-E1 can start with phase A: the guards of phase F read its output.
+Every issue's « Done when » includes: **the documents of the docs map for this category are updated (newcomer guides,
+README, AGENTS, skills)**.
+
+Timing (founder, 2026-11-06): **A, C, E1 and G now**, during the freeze; **B, D and F once it lifts**. The issues of A, C, E1
+and G are filed as children of krizaka-internal#2734; the others are filed when their phase opens. Per repository they group
+into delivery blocks.
 
 ### A — delete what runs for nobody (8 issues)
 
 | # | Repository | Issue | Size |
 | :-- | :-- | :-- | :-- |
-| A1 | .github | remove the unused actions (`agent-setup`, `deploy`, `sonar-ratchet`), `maven-github-packages.yml` and the copy of `update-behind-prs.sh` | S |
-| A2 | .github | `journey-line.yml` and `post-deploy-journeys.yml`: adopt them in the three apps the `journeys` rule names (folioviv, verikora, sovkora-web), or drop them with the rule's clause | S |
-| A3 | sovkora | remove the `copilot-workspace` action; triage the 5 unreferenced scripts; call the desktop film action by the repository's current name | S |
-| A4 | folioviv | triage the 13 unreferenced scripts (recordings, demo shop): delete, or mark manual and name them in the README | S |
-| A5 | verikora | the same, 6 scripts | S |
-| A6 | sovkora-web | the same, 3 scripts; delete the finished codemod `scripts/codemods/roles.mjs` | S |
-| A7 | sovkora-mobile | the same, 4 scripts (among them a 384-line `check-app-links.mjs` nothing runs) | S |
-| A8 | krizaka-ui | the same, 4 files (brand-film orphans, an unused `sync-brand-icons.mjs`) | S |
+| A1 (krizaka-internal#2735) | .github | remove the unused actions (`agent-setup`, `deploy`, `sonar-ratchet`), `maven-github-packages.yml` and the copy of `update-behind-prs.sh` | S |
+| A2 (krizaka-internal#2736) | .github | `journey-line.yml` and `post-deploy-journeys.yml`: adopt them in the three apps the `journeys` rule names (folioviv, verikora, sovkora-web), or drop them with the rule's clause | S |
+| A3 (krizaka-internal#2737) | sovkora | remove the `copilot-workspace` action; triage the 5 unreferenced scripts; call the desktop film action by the repository's current name | S |
+| A4 (krizaka-internal#2738) | folioviv | triage the 13 unreferenced scripts (recordings, demo shop): delete, or mark manual and name them in the README | S |
+| A5 (krizaka-internal#2739) | verikora | the same, 6 scripts | S |
+| A6 (krizaka-internal#2740) | sovkora-web | the same, 3 scripts; delete the finished codemod `scripts/codemods/roles.mjs` | S |
+| A7 (krizaka-internal#2741) | sovkora-mobile | the same, 4 scripts (among them a 384-line `check-app-links.mjs` nothing runs) | S |
+| A8 (krizaka-internal#2742) | krizaka-ui | the same, 4 files (brand-film orphans, an unused `sync-brand-icons.mjs`) | S |
 
 ### B — fold the copies into their one home (18 issues)
 
@@ -281,18 +335,22 @@ E1 can start with phase A: the guards of phase F read its output.
 | B6 | sovkora-build | the services extend krizaka-test-support's `AbstractContainerIntegrationTest`; the second base goes | M |
 | B7–B18 | kridoc, krizaka-blog, krizaka-com, krizaka-coming-soon, krizaka-template-web, krizaka-java, krizaka-ts, krizaka-ui, krizaka-lab, sovkora-web, folioviv, verikora | one issue per repository: call the shared bins and workflows (B1–B5, `krizaka-seo-family`, the visual-regression workflow), delete its copies and its unused `sync-brand-icons.mjs` | S each (M for krizaka-com) |
 
-### C — machine automation through krizaka-agents only (13 issues)
+### C — machine automation through krizaka-agents, one hook chain (12 issues)
 
 | # | Repository | Issue | Size |
 | :-- | :-- | :-- | :-- |
-| C1 | krizaka-agents | LaunchAgents in `install.json` (the RunPod guard), installed and removed by `install.py` | S |
-| C2 | krizaka-agents | a pause is a field of `install.json`; the trains cron's hand edit becomes it | S |
-| C3 | krizaka-agents | `install.py --check`: drift of the crontab, LaunchAgents and agent settings, run by the watchdog, shown in the cockpit | M |
-| C4 | krizaka-agents | the one chain runs the repository's `precheck`; the « own pre-push » skip and the `core.hooksPath` repairs go once C5–C11 land; `wt-new` accepts `.github` | M |
-| C5–C8 | folioviv, verikora, krizaka-ts, krizaka-blog | `.githooks/` and the `prepare` hook installer become a `precheck` npm script; the `.pre-commit-config.yaml` goes | S each |
-| C9–C11 | krizaka-com, krizaka-ui, sovkora-web | delete `.pre-commit-config.yaml` (the chain's secret scan and CI's gitleaks cover it) | S each |
-| C12 | .github | delete `.pre-commit-hooks.yaml` and its root-layout entry | S |
-| C13 | sovkora | drop `scripts/runpod-guard.py`; call the krizaka-agents guard | S |
+| C1 (krizaka-internal#2743) | krizaka-agents | LaunchAgents in `install.json` (the RunPod guard), installed and removed by `install.py` | S |
+| C2 (krizaka-internal#2744) | krizaka-agents | a pause is a field of `install.json`; the trains cron's hand edit becomes it | S |
+| C3 (krizaka-internal#2745) | krizaka-agents | `install.py --check`: drift of the crontab, LaunchAgents and agent settings, run by the watchdog | M |
+| C4 (krizaka-internal#2746) | krizaka-ts | the `krizaka-hooks` bin in `@krizaka/config`: the one chain (secret scan, trailers, `precheck`, machine extensions) | M |
+| C5 (krizaka-internal#2747) | krizaka-agents | the agents' hooks become extensions of the chain; no tool sets or repairs `core.hooksPath`; `wt-new` accepts `.github` | M |
+| C6 (krizaka-internal#2748) | .github | the `hook-chain` rule and its fan-out (`prepare` runs `krizaka-hooks install`; the pre-commit files of krizaka-com, krizaka-ui and sovkora-web go) | M |
+| C7 (krizaka-internal#2749) | folioviv | `.githooks/` becomes a `precheck` script; `prepare` installs the chain; the pre-commit file goes | S |
+| C8 (krizaka-internal#2750) | verikora | the same (pre-commit and pre-push) | S |
+| C9 (krizaka-internal#2751) | krizaka-ts | the same | S |
+| C10 (krizaka-internal#2752) | krizaka-blog | the same | S |
+| C11 (krizaka-internal#2753) | .github | delete `.pre-commit-hooks.yaml` and its root-layout entry | S |
+| C12 (krizaka-internal#2754) | sovkora | drop `scripts/runpod-guard.py`; call the krizaka-agents guard | S |
 
 The 7 `uses:` that still name Sovkora's retired code name are caught by the code-name sweep (krizaka-internal#2659): no issue
 of their own.
@@ -316,7 +374,7 @@ of their own.
 
 | # | Repository | Issue | Size |
 | :-- | :-- | :-- | :-- |
-| E1 | .github | `scripts/automation-catalogue.mjs`, its schema, fixtures and the daily publication | L |
+| E1 (krizaka-internal#2755) | .github | `scripts/automation-catalogue.mjs`, its schema, fixtures and the daily publication | L |
 | E2 | krizaka-agents | `tools/cockpit/automation-export.py`: the org catalogue plus the machine's part | M |
 | E3 | the cockpit | the « Automations » view (per repository and kind; filters; last run and status) | M |
 
@@ -329,5 +387,16 @@ of their own.
 | F3 | krizaka-agents | regex length and file size for the Python tools in the complexity guard | S |
 | F4 | krizaka-ts | `scripts/` and `tools/` inside the shared ESLint layer of every consumer (the sonarjs regex rules then cover them) | S |
 
-56 issues: 38 S, 16 M, 2 L. Done when the four `automation-*` rules pass in every active repository and the cockpit view
-shows no unreferenced, copied or untested core unit outside its baseline.
+### G — the docs map (6 issues)
+
+| # | Repository | Issue | Size |
+| :-- | :-- | :-- | :-- |
+| G1 (krizaka-internal#2756) | .github | `docs-map.json`, its schema and `docs/standards/docs-map.md`, the eight categories | S |
+| G2 (krizaka-internal#2757) | krizaka-agents | the `docsMap` key in the config schema and example, read by `kz-config` (points to the map) | S |
+| G3 (krizaka-internal#2758) | .github | the `docs-map` check: reusable workflow, caller template, `scripts/docs-map-check.mjs` with fixtures | M |
+| G4 (krizaka-internal#2759) | .github | the `docs-map` rule (every active repository runs the check; required in the profile) | S |
+| G5 (krizaka-internal#2760) | krizaka-agents | `pr-open` lists the documents for the change and wants a « Docs: » line when none is touched | S |
+| G6 (krizaka-internal#2761) | krizaka-internal | the four newcomer guides explain the docs map, the hook chain and the catalogue | S |
+
+61 issues: 40 S, 19 M, 2 L. Done when the `automation-*`, `hook-chain` and `docs-map` rules pass in every active repository
+and the cockpit view shows no unreferenced, copied or untested core unit outside its baseline.
