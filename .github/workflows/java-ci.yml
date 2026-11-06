@@ -9,7 +9,7 @@
 #         packages: read   # the released krizaka-parent family comes from GitHub Packages
 #       uses: krizaka/.github/.github/workflows/java-ci.yml@<sha> # v1.0.0
 #       with:
-#         workspace-component: orazaka-knowledge-service   # an Orazaka service: verified inside the workspace
+#         workspace-component: sovkora-knowledge-service   # an Orazaka service: verified inside the workspace
 #         rewrite: true
 #
 # What it owns (same shape as node-ci.yml):
@@ -53,9 +53,9 @@ on:
         type: string
         default: ""
       maven-packages-registry:
-        description: "Workspace flow: the GitHub Packages Maven registry that serves a RELEASED com.krizaka parent (`relativePath` empty) the cloned krizaka-build is no longer at, since a parent is resolved before the repositories of the pom that names it. Empty: none."
+        description: "Workspace flow: the GitHub Packages Maven registry that serves a RELEASED com.krizaka parent (`relativePath` empty) the cloned krizaka-java is no longer at, since a parent is resolved before the repositories of the pom that names it. Empty: none."
         type: string
-        default: "https://maven.pkg.github.com/krizaka/krizaka-build"
+        default: "https://maven.pkg.github.com/krizaka/krizaka-java"
       rewrite:
         description: "Fail when an OpenRewrite recipe of krizaka-parent would change code (rewrite:dryRun)."
         type: boolean
@@ -140,7 +140,7 @@ jobs:
         if: ${{ inputs.workspace-component != '' }}
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          repository: krizaka/orazaka
+          repository: krizaka/sovkora
           path: workspace
           persist-credentials: false
 
@@ -194,7 +194,7 @@ jobs:
           server-username: GITHUB_ACTOR
           server-password: GITHUB_TOKEN
 
-      # A repository of the workspace may name a released krizaka-parent (e.g. 0.7.1) while krizaka-build's default branch has moved on
+      # A repository of the workspace may name a released krizaka-parent (e.g. 0.7.1) while krizaka-java's default branch has moved on
       # (0.8.0): Maven reads a parent before any repository declared in the pom, and Central holds only the first releases. The
       # registry goes in settings.xml (server `github`, written by setup-java above), so the released parent resolves from GitHub Packages; the plugins' own dependencies (krizaka-quality for PMD) come from the same registry.
       - name: Maven settings, released parents from GitHub Packages

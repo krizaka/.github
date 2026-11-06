@@ -14,10 +14,10 @@ test("the founder's surfaces per product", () => {
 });
 
 test("a product is its repositories of the krizaka organisation, named in surfaces.json", () => {
-  assert.equal(productOf("krizaka/orazaka-cli", products), "orazaka");
-  assert.equal(productOf("krizaka/orazaka", products), "orazaka");
-  assert.equal(productOf("krizaka/yomizaka", products), "yomizaka");
-  assert.equal(productOf("krizaka/akinaza", products), "akinaza");
+  assert.equal(productOf("krizaka/sovkora-cli", products), "orazaka");
+  assert.equal(productOf("krizaka/sovkora", products), "orazaka");
+  assert.equal(productOf("krizaka/verikora", products), "yomizaka");
+  assert.equal(productOf("krizaka/folioviv", products), "akinaza");
   assert.equal(productOf("krizaka/krizaka-ui", products), null);
   assert.equal(productOf("yomizaka/yomizaka", products), null, "there is no product organisation");
 });
@@ -25,15 +25,15 @@ test("a product is its repositories of the krizaka organisation, named in surfac
 test("the sweep reads krizaka/<repo> for every repo of surfaces.json, never an organisation of a product", () => {
   const repos = productRepos(products);
   assert.ok(repos.length >= 3 && repos.every((r) => r.startsWith("krizaka/")), repos.join());
-  for (const r of ["krizaka/yomizaka", "krizaka/akinaza", "krizaka/orazaka", "krizaka/orazaka-cli"]) assert.ok(repos.includes(r), r);
+  for (const r of ["krizaka/verikora", "krizaka/folioviv", "krizaka/sovkora", "krizaka/sovkora-cli"]) assert.ok(repos.includes(r), r);
   const flow = readFileSync(".github/workflows/feature-surfaces.yml", "utf8");
   assert.doesNotMatch(flow, /matrix:|owner: \[/);
   assert.doesNotMatch(readFileSync("scripts/surfaces.mjs", "utf8"), /orgs\//);
 });
 
-test("Orazaka's Mac surface is apps/desktop of krizaka/orazaka", () => {
+test("Orazaka's Mac surface is apps/desktop of krizaka/sovkora", () => {
   const mac = products.orazaka.surfaces.find((s) => s.id === "mac");
-  assert.deepEqual([mac.repo, mac.path], ["orazaka", "apps/desktop"]);
+  assert.deepEqual([mac.repo, mac.path], ["sovkora", "apps/desktop"]);
 });
 
 const done = (lines) => `### The problem\n\nx\n\n### Surfaces\n\n${lines.join("\n")}\n\n### Privacy by design\n\nnone`;
@@ -63,15 +63,15 @@ test("the CLI is a surface of Orazaka only", () => {
 const closed = (extra) => ({ number: 7, state: "closed", labels: [{ name: "type:feature" }], body: done([]), ...extra });
 
 test("the closing check: a feature of a product with a gap fails, anything else is skipped", () => {
-  assert.equal(evaluate(closed(), "krizaka/yomizaka", products).ok, false);
-  assert.equal(evaluate(closed({ body: done(yomizakaDone) }), "krizaka/yomizaka", products).ok, true);
-  assert.equal(evaluate(closed({ type: { name: "Feature" }, labels: [] }), "krizaka/orazaka-cli", products).ok, false, "the org issue type counts");
+  assert.equal(evaluate(closed(), "krizaka/verikora", products).ok, false);
+  assert.equal(evaluate(closed({ body: done(yomizakaDone) }), "krizaka/verikora", products).ok, true);
+  assert.equal(evaluate(closed({ type: { name: "Feature" }, labels: [] }), "krizaka/sovkora-cli", products).ok, false, "the org issue type counts");
   for (const [issue, repo] of [
-    [closed({ labels: [{ name: "type:bug" }] }), "krizaka/yomizaka"],
+    [closed({ labels: [{ name: "type:bug" }] }), "krizaka/verikora"],
     [closed(), "krizaka/krizaka-ui"],
-    [closed({ state: "open" }), "krizaka/yomizaka"],
-    [closed({ state_reason: "not_planned" }), "krizaka/yomizaka"],
-    [closed({ pull_request: {} }), "krizaka/yomizaka"],
+    [closed({ state: "open" }), "krizaka/verikora"],
+    [closed({ state_reason: "not_planned" }), "krizaka/verikora"],
+    [closed({ pull_request: {} }), "krizaka/verikora"],
   ]) assert.equal(evaluate(issue, repo, products).skipped, true);
 });
 

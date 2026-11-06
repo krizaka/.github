@@ -503,7 +503,7 @@ test("org CI throughput: the shared visual regression is gated by changes.yml an
 
 test("java-ci: the workspace flow resolves a released krizaka-parent from GitHub Packages (a parent is read before the pom's own repositories)", () => {
   const src = read("java-ci");
-  assert.match(src, /maven-packages-registry:\n(?: {8}.*\n)*? {8}default: "https:\/\/maven\.pkg\.github\.com\/krizaka\/krizaka-build"/);
+  assert.match(src, /maven-packages-registry:\n(?: {8}.*\n)*? {8}default: "https:\/\/maven\.pkg\.github\.com\/krizaka\/krizaka-java"/);
   const step = src.slice(src.indexOf("- name: Maven settings, released parents from GitHub Packages"));
   assert.match(step, /if: \$\{\{ inputs\.workspace-component != '' && inputs\.maven-packages-registry != '' \}\}/);
   assert.match(step, /<id>github<\/id>/, "the repository id is the server id setup-java writes credentials for");
@@ -537,7 +537,7 @@ test("java-ci's verify reads GitHub Packages, and every job that calls java-ci, 
 
 // settings.xml names the server `github` with ${env.GITHUB_TOKEN} (setup-java `server-password`): a step that runs Maven
 // without that variable reads GitHub Packages anonymously and gets 401 on the released krizaka-parent family
-// (orazaka-knowledge-service#59: rewrite:dryRun could not read krizaka-rewrite-style 0.9.0).
+// (sovkora-knowledge-service#59: rewrite:dryRun could not read krizaka-rewrite-style 0.9.0).
 test("java-ci: every step that runs Maven passes GITHUB_TOKEN, the password settings.xml reads", () => {
   const steps = read("java-ci").split(/\n {6}- /).slice(1);
   const maven = steps.filter((s) => /\$mvn_cmd"|scripts\/workspace\.mjs ci /.test(s));

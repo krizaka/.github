@@ -49,7 +49,7 @@ The register is **data, not a document**: an append-only store, one row per inci
 
 ## Product consoles
 
-Each product's admin console can open an incident and writes to the shared register: Yomizaka first (krizaka/yomizaka#418), then Akinaza (krizaka/akinaza#392). Until then an incident is recorded by a row validated with the script.
+Each product's admin console can open an incident and writes to the shared register: Yomizaka first (krizaka/verikora#418), then Akinaza (krizaka/folioviv#392). Until then an incident is recorded by a row validated with the script.
 
 ## Drill
 

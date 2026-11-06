@@ -6,7 +6,7 @@
 #     maven:
 #       uses: krizaka/.github/.github/workflows/maven.yml@main
 #       with:
-#         upstreams: "krizaka-build"                       # repositories built first, in order
+#         upstreams: "krizaka-java"                       # repositories built first, in order
 #         rewrite: true                                     # OpenRewrite dry run must find nothing to change
 #         registry: github                                  # github | central (default) | "github,central"
 #       secrets: inherit
@@ -23,7 +23,7 @@
 #   `central`: every artifact is signed (OpenPGP, Bouncy Castle — no gpg binary) and uploaded to the Central Portal.
 #   The parent POM keeps autoPublish=false, so the deployment is validated and then WAITS in central.sonatype.com for a
 #   human to press Publish: a release on Central can never be deleted. Central validates a POM against its parent ON
-#   CENTRAL: tag krizaka-build first and publish it before tagging the repositories that inherit krizaka-parent.
+#   CENTRAL: tag krizaka-java first and publish it before tagging the repositories that inherit krizaka-parent.
 #   Switching the registry = this input + a release; both at once is allowed. `verify` dry-runs the GitHub deployment
 #   (to a local folder) on every pull request, so the release path is exercised before release day.
 #
@@ -186,7 +186,7 @@ jobs:
         uses: krizaka/.github/actions/maven-github-packages@d701b569b15617609b890102bc0be9978759909c # main
         with:
           token: ${{ github.token }}
-          repositories: krizaka-build krizaka-notifications krizaka-billing
+          repositories: krizaka-java
 
       - name: Build the upstream Krizaka repositories
         if: inputs.upstreams != ''
@@ -198,7 +198,7 @@ jobs:
             # -DskipTests alone still runs the Failsafe integration tests (Testcontainers): an upstream is built to be installed.
             # NullAway (krizaka-parent profile krizaka-nullaway) checks the repository's own code in its own CI; an upstream
             # is only installed here, and its modules that declare their own annotationProcessorPaths cannot host Error Prone
-            # ("plug-in not found: ErrorProne", seen on krizaka-security once krizaka-build#121 was on main).
+            # ("plug-in not found: ErrorProne", seen on krizaka-security once krizaka-java#121 was on main).
             (cd "../${repository}" && ./mvnw -B -ntp install -DskipTests -DskipITs -Dkrizaka.nullaway.skip=true)
           done
 
@@ -485,7 +485,7 @@ jobs:
       - uses: krizaka/.github/actions/maven-github-packages@d701b569b15617609b890102bc0be9978759909c # main
         with:
           token: ${{ github.token }}
-          repositories: krizaka-build krizaka-notifications krizaka-billing
+          repositories: krizaka-java
 
       - name: Version from the tag
         run: |
@@ -493,7 +493,7 @@ jobs:
           snapshot="$(./mvnw -B -q -ntp help:evaluate -Dexpression=project.version -DforceStdout)"
           # Every Krizaka JVM artifact is released at one version (krizaka-bom): the repository's own
           # modules and the krizaka-parent it inherits all carry the same SNAPSHOT, so one literal
-          # substitution sets both. versions:set cannot: krizaka-build's root inherits its version
+          # substitution sets both. versions:set cannot: krizaka-java's root inherits its version
           # from one of its own modules and the plugin refuses it.
           find . -name pom.xml -not -path '*/target/*' -exec \
             sed -i "s|<version>${snapshot}</version>|<version>${version}</version>|g" {} +
@@ -570,7 +570,7 @@ jobs:
           snapshot="$(./mvnw -B -q -ntp help:evaluate -Dexpression=project.version -DforceStdout)"
           # Every Krizaka JVM artifact is released at one version (krizaka-bom): the repository's own
           # modules and the krizaka-parent it inherits all carry the same SNAPSHOT, so one literal
-          # substitution sets both. versions:set cannot: krizaka-build's root inherits its version
+          # substitution sets both. versions:set cannot: krizaka-java's root inherits its version
           # from one of its own modules and the plugin refuses it.
           find . -name pom.xml -not -path '*/target/*' -exec \
             sed -i "s|<version>${snapshot}</version>|<version>${version}</version>|g" {} +

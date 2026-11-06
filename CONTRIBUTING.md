@@ -56,7 +56,7 @@ Thank you for helping. Every Krizaka repository follows the same rules.
 
 Each repository says its licence in its `LICENSE` file ([ADR-012](docs/adr/ADR-012-licensing-libraries-open-products-fair-source.md)):
 
-- **Libraries (Apache-2.0)** — `krizaka-ui`, `krizaka-ts`, `krizaka-build`, the building blocks and the
+- **Libraries (Apache-2.0)** — `krizaka-ui`, `krizaka-ts`, `krizaka-java`, the building blocks and the
   Orazaka SDK pieces. Your contribution is licensed under Apache-2.0 (its s. 5). Sign off every commit
   (`git commit -s`): the `Signed-off-by:` line certifies the [Developer Certificate of Origin](https://developercertificate.org) —
   that you wrote the change or have the right to submit it under the repository's licence.

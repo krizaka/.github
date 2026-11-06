@@ -20,7 +20,7 @@ Decision of Oussama, 2026-10-26: when a bug is found, we do not only fix it. We 
 | Layer | Catches | Where |
 |---|---|---|
 | **Types** | a missing or wrong value (a required `kind`, a union that must be exhaustive) | TypeScript, `satisfies`, `never` checks |
-| **ArchUnit** (Java) | a forbidden dependency, a layer break, a naming rule; container ITs extend `AbstractContainerIntegrationTest` | krizaka-build, orazaka-build, Java repositories |
+| **ArchUnit** (Java) | a forbidden dependency, a layer break, a naming rule; container ITs extend `AbstractContainerIntegrationTest` | krizaka-java, sovkora-build, Java repositories |
 | **ast-grep + `sg-ratchet`** | a code pattern (ambient clock, enum string compare, hand-made nav) | `rules/*.yml`, `rule-tests/`, `sg-ratchet.json` |
 | **ESLint `krizakaStack()`** | the stack rules (fetch in an effect, TanStack, hand tables and forms) | `@krizaka/config` |
 | **dependency-cruiser** | a forbidden import, a cycle, a layer break | `.dependency-cruiser.cjs`, the shared preset |
@@ -37,7 +37,7 @@ Choose the **earliest** layer that can express the rule: a type before a lint ru
 
 - It **fails on the bug** and **passes on the fix**; the PR shows both.
 - It guards the **class** of the bug, not the one instance (« every picker passes a kind », not « this picker »).
-- It lives where the rule is **owned**. A guard copied between repositories moves into a shared package: `@krizaka/config` (ESLint, ast-grep, dependency-cruiser, ratchets), krizaka-ui test tools (page audit, seeds), krizaka-build (Java, ArchUnit). See [rules.md](rules.md).
+- It lives where the rule is **owned**. A guard copied between repositories moves into a shared package: `@krizaka/config` (ESLint, ast-grep, dependency-cruiser, ratchets), krizaka-ui test tools (page audit, seeds), krizaka-java (Java, ArchUnit). See [rules.md](rules.md).
 - A rule is never silenced or loosened to get a PR green.
 
 ## 4. Seeds must cover the states

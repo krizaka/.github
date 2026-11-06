@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { entriesFrom, nextTag, noDash, parseTitle, releaseNote, renderBody } from "./release-notes.mjs";
 
-const pr = (title, body = "", n = 1) => ({ title, body, html_url: `https://github.com/krizaka/yomizaka/pull/${n}` });
+const pr = (title, body = "", n = 1) => ({ title, body, html_url: `https://github.com/krizaka/verikora/pull/${n}` });
 
 test("parseTitle reads type, breaking mark and subject; a non-conventional title has no type", () => {
   assert.deepEqual(parseTitle("feat(verify): read the lease (#12)"), { type: "feat", breaking: false, subject: "read the lease" });
@@ -48,7 +48,7 @@ test("nextTag counts the day's releases, with or without a v", () => {
 
 test("renderBody gives both languages, counts and one bullet per change with its PR link", () => {
   const body = renderBody(entriesFrom([pr("feat: a", "", 1), pr("fix: b", "", 2), pr("feat: c", "", 3)]));
-  assert.match(body, /## English\n\nNew: 2\. Fixed: 1\.\n\n- feat: A\. https:\/\/github\.com\/krizaka\/yomizaka\/pull\/1/);
+  assert.match(body, /## English\n\nNew: 2\. Fixed: 1\.\n\n- feat: A\. https:\/\/github\.com\/krizaka\/verikora\/pull\/1/);
   assert.match(body, /## Français\n\nNouveautés : 2\. Corrections : 1\./);
   assert.doesNotMatch(body, /—/);
 });

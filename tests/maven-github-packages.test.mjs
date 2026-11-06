@@ -11,12 +11,12 @@ const SETUP_JAVA = `<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0">
   </servers>
 </settings>`;
 
-const options = { repositories: ["krizaka-build"], username: "octo" };
+const options = { repositories: ["krizaka-java"], username: "octo" };
 
 test("adds a server, a profile with repository and plugin repository, and activates it", () => {
   const xml = mergeSettings(SETUP_JAVA, options);
-  assert.match(xml, new RegExp(`<id>${SERVER_ID}-krizaka-build</id>`));
-  assert.equal(xml.match(/<url>https:\/\/maven\.pkg\.github\.com\/krizaka\/krizaka-build<\/url>/g).length, 2);
+  assert.match(xml, new RegExp(`<id>${SERVER_ID}-krizaka-java</id>`));
+  assert.equal(xml.match(/<url>https:\/\/maven\.pkg\.github\.com\/krizaka\/krizaka-java<\/url>/g).length, 2);
   assert.match(xml, /<repositories>/);
   assert.match(xml, /<pluginRepositories>/);
   assert.match(xml, new RegExp(`<activeProfile>${SERVER_ID}</activeProfile>`));
@@ -51,7 +51,7 @@ test("is idempotent", () => {
 });
 
 test("one server and one repository per Krizaka repository", () => {
-  const xml = mergeSettings("", { repositories: ["krizaka-build", "krizaka-billing"], username: "octo" });
+  const xml = mergeSettings("", { repositories: ["krizaka-java", "krizaka-billing"], username: "octo" });
   assert.match(xml, /krizaka-billing<\/id>/);
   assert.equal(xml.match(/<server>/g).length, 2);
 });

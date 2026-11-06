@@ -22,7 +22,7 @@ Measure the whole org: `node scripts/scorecard-report.mjs > scorecard.md` (reads
 | Vulnerabilities | No known OSV advisory on a dependency in a lockfile. | Dependabot security updates; for a transitive dependency without a bump, a pinned override (`pnpm.overrides` / `overrides` / constraint) with the advisory in the commit. |
 | Branch-Protection | `main`: PR required, required status checks, administrators included, **linear history, conversation resolution, no force push, no deletion**. | Same on all repositories (checked by `gh api repos/krizaka/<repo>/branches/main/protection`). |
 
-Pinning our own reusable workflows (`krizaka/orazaka/.github/workflows/component.yml`, `krizaka/.github/.github/workflows/maven.yml`) by SHA is
+Pinning our own reusable workflows (`krizaka/sovkora/.github/workflows/component.yml`, `krizaka/.github/.github/workflows/maven.yml`) by SHA is
 what Scorecard asks for, and it has a price: a change of the shared pipeline reaches a repository when its pin moves. Dependabot follows tags only,
 so those pins are refreshed with `node scripts/pin-supply-chain.mjs --refresh` (one PR per repository, or a loop) after a pipeline change.
 

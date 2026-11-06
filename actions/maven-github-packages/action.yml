@@ -18,7 +18,7 @@ inputs:
     required: true
   repositories:
     description: "Krizaka repositories whose GitHub Packages are searched (space-separated)."
-    default: "krizaka-build"
+    default: "krizaka-java"
   username:
     description: "The user the credential belongs to."
     default: ${{ github.actor }}

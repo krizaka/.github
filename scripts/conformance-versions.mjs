@@ -1,6 +1,6 @@
 // Are the family versions current? (krizaka-internal#879) The conformance matrix reads, per repository, the @krizaka/*
 // ranges of its package.json files and the krizaka-parent / krizaka-bom versions of its root pom.xml, and compares them
-// with what is published: npm for @krizaka/*, the latest release of krizaka-build for the Java family. A repository is
+// with what is published: npm for @krizaka/*, the latest release of krizaka-java for the Java family. A repository is
 // behind when the first version after its pin has been out longer than the grace (default 7 days): the bump never happened.
 const SIMPLE = /^(?:\^|~|>=)?(\d+\.\d+\.\d+)$/;
 const DAY = 86_400_000;
@@ -106,8 +106,8 @@ export async function latestOf({ ecosystem, name }, api) {
 
 async function fetchLatest(ecosystem, name, api) {
   if (ecosystem === "maven") {
-    // krizaka-parent and krizaka-bom are released together by krizaka-build (one version, ADR-021).
-    const releases = ((await api("/repos/krizaka/krizaka-build/releases?per_page=50")) ?? []).filter((r) => !r.draft && !r.prerelease);
+    // krizaka-parent and krizaka-bom are released together by krizaka-java (one version, ADR-021).
+    const releases = ((await api("/repos/krizaka/krizaka-java/releases?per_page=50")) ?? []).filter((r) => !r.draft && !r.prerelease);
     const times = Object.fromEntries(releases.map((r) => [String(r.tag_name).replace(/^\D+/, ""), r.published_at]).filter(([v]) => SIMPLE.test(v)));
     const version = Object.keys(times).sort(compareVersions).at(-1);
     return version ? { version, publishedAt: times[version], times } : null;

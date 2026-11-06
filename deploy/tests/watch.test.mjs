@@ -30,8 +30,8 @@ function world({ apps, deployments = {}, calls = [] }) {
 const run = (w, fetch, options = {}) => watch({ graceMinutes: 10, ...options }, { doctl: w.doctl, fetch, now: () => NOW, log: () => {}, env: {} });
 
 test("watch: a head older than the grace period with no deployment is missing; one with a deployment is fine", async () => {
-  const w = world({ apps: [app("blog", "krizaka/blog"), app("akinaza", "krizaka/akinaza")], deployments: { "id-blog": [deployment(OLD)], "id-akinaza": [deployment(HEAD, "BUILDING")] } });
-  const fetch = fakeFetch({ ...github("krizaka/blog", HEAD, 25), ...github("krizaka/akinaza", HEAD, 25) });
+  const w = world({ apps: [app("blog", "krizaka/blog"), app("akinaza", "krizaka/folioviv")], deployments: { "id-blog": [deployment(OLD)], "id-akinaza": [deployment(HEAD, "BUILDING")] } });
+  const fetch = fakeFetch({ ...github("krizaka/blog", HEAD, 25), ...github("krizaka/folioviv", HEAD, 25) });
   const report = await run(w, fetch);
   assert.deepEqual(report.missing.map((m) => m.app), ["blog"]);
   assert.deepEqual(report.ok.map((m) => m.app), ["akinaza"]);
@@ -52,8 +52,8 @@ test("watch: a deployment of the head that failed is not 'missing' (it started) 
 });
 
 test("watch: a component without deploy_on_push is a manual deploy and never expected to start by itself", async () => {
-  const w = world({ apps: [app("orazaka-dev", "krizaka/orazaka", { deploy_on_push: undefined })], deployments: { "id-orazaka-dev": [deployment(OLD)] } });
-  const report = await run(w, fakeFetch(github("krizaka/orazaka", HEAD, 90)));
+  const w = world({ apps: [app("orazaka-dev", "krizaka/sovkora", { deploy_on_push: undefined })], deployments: { "id-orazaka-dev": [deployment(OLD)] } });
+  const report = await run(w, fakeFetch(github("krizaka/sovkora", HEAD, 90)));
   assert.equal(report.missing.length, 0);
   assert.equal(report.manual[0].app, "orazaka-dev");
 });
