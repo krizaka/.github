@@ -5,15 +5,15 @@
 //   node scripts/docs-map.mjs --exist    the shape, then every document in the default branch of its repository (needs `gh`)
 // The `docs-map` check of a pull request (krizaka-internal#2758) imports `loadMap` from here.
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 export const MAP_FILE = join(here, "..", "docs-map.json");
 const ORG = "krizaka";
-// `gh` is looked up in these system directories only, never in a search path inherited from the caller (Sonar S4036).
-const TOOL_DIRS = "/usr/bin:/bin:/usr/local/bin:/opt/homebrew/bin";
+// `gh` is run from one of these absolute paths, never found through the caller's PATH (Sonar S4036).
+const GH_PATHS = ["/usr/bin/gh", "/opt/homebrew/bin/gh", "/usr/local/bin/gh"];
 const CATEGORY_KEYS = ["id", "title", "when", "docs"];
 const WHEN_KEYS = ["repo", "globs"];
 const DOC_KEYS = ["repo", "path", "bump", "local"];
@@ -93,7 +93,7 @@ export function missingDocuments(map, treeOf) {
 
 /** The file paths of a repository's default branch, read through the API. */
 export function liveTree(repo) {
-  const out = execFileSync("gh", ["api", `repos/${ORG}/${repo}/git/trees/HEAD?recursive=1`, "--jq", ".tree[].path"], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, env: { ...process.env, PATH: TOOL_DIRS } });
+  const out = execFileSync(GH_PATHS.find((p) => existsSync(p)) ?? GH_PATHS[0], ["api", `repos/${ORG}/${repo}/git/trees/HEAD?recursive=1`, "--jq", ".tree[].path"], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
   return new Set(out.split("\n").filter(Boolean));
 }
 
