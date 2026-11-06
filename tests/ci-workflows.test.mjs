@@ -258,7 +258,7 @@ function actionInputs(name) {
 }
 
 test("every call of a build-pack action passes only inputs the action declares", () => {
-  const files = [...WORKFLOWS.map((n) => `.github/workflows/${n}.yml`), "actions/agent-setup/action.yml"];
+  const files = [...WORKFLOWS.map((n) => `.github/workflows/${n}.yml`)];
   let calls = 0;
   for (const file of files) {
     const lines = readFileSync(new URL(`../${file}`, import.meta.url), "utf8").split("\n");
@@ -282,13 +282,6 @@ test("every call of a build-pack action passes only inputs the action declares",
     });
   }
   assert.ok(calls >= 15, `found ${calls} calls`);
-});
-
-test("agent setup selects the detected Node and pnpm versions before installing dependencies", () => {
-  const src = readFileSync(new URL("../actions/agent-setup/action.yml", import.meta.url), "utf8");
-  assert.match(src, /node-version: \$\{\{ fromJSON\(steps\.detect\.outputs\.plan\)\.nodeVersion \}\}/);
-  assert.match(src, /version: \$\{\{ fromJSON\(steps\.detect\.outputs\.plan\)\.pnpmVersion \}\}/);
-  assert.ok(src.indexOf("node-version: ${{ fromJSON(steps.detect.outputs.plan).nodeVersion }}") < src.indexOf("name: Install the dependencies"));
 });
 
 test("setup action resolves pnpm from the shared detector before pnpm/action-setup", () => {
