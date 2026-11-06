@@ -8,10 +8,10 @@ import { headerOf } from "./header.mjs";
 import { jsPatterns, measureOf, patternsOf } from "./regexes.mjs";
 import { shellPatterns } from "./shell-patterns.mjs";
 
-const TESTED_KINDS = ["CI check", "generator", "deploy", "cron", "git hook"];
+const TESTED_KINDS = new Set(["CI check", "generator", "deploy", "cron", "git hook"]);
 const SCRIPT_EXTENSIONS = [".sh", ".py", ".mjs", ".js", ".cjs", ".ts"];
 const HOOK_TOOLS = ["pre-commit install", "pre-commit run", "lefthook", "lint-staged", "husky"];
-const linesOf = (text) => (text === "" ? 0 : text.split("\n").length - (text.endsWith("\n") ? 1 : 0));
+const linesOf = (text) => (text === "" ? 0 : text.split("\n").length - Number(text.endsWith("\n")));
 export const hashOf = (text) => createHash("sha256").update(text).digest("hex").slice(0, 16);
 
 function base(repo, path, type, text, owner) {
@@ -47,18 +47,23 @@ function scriptUnit(model, script, ctx) {
     what: header.what,
     header: header.present,
     manual: header.manual,
-    tests: { required: TESTED_KINDS.includes(kind), has: hasTest(script.path, model.tests) },
+    tests: { required: TESTED_KINDS.has(kind), has: hasTest(script.path, model.tests) },
     regex: measureOf(patterns),
     calledBy,
     documented: model.docs.some((d) => mentions(d.text, script.path)),
   };
 }
 
+function workflowCallers(model, file, type, models) {
+  if (type === "template") return [{ type: "template", by: "conformance fan-out" }];
+  return type === "action" ? callersOfAction(model, file.dir, models) : callersOfWorkflow(model, file.path, models);
+}
+
 function workflowUnit(model, file, type, ctx) {
   const { repo, owner, models, runs } = ctx;
   const header = headerOf(file.text, "yaml");
   const triggers = file.info.events;
-  const calledBy = type === "template" ? [{ type: "template", by: "conformance fan-out" }] : type === "action" ? callersOfAction(model, file.dir, models) : callersOfWorkflow(model, file.path, models);
+  const calledBy = workflowCallers(model, file, type, models);
   const patterns = [...file.info.runs.flatMap(shellPatterns), ...file.info.scripts.flatMap((s) => jsPatterns(s, "inline.js"))];
   const kind = type === "action" ? kindOfName(file.dir.split("/").at(-1)) : kindOfWorkflow(baseOf(file.path), triggers);
   return {

@@ -41,13 +41,17 @@ function machineRows(text, owner) {
   }));
 }
 
+function changedOn(old, unit, previous, today) {
+  if (old && old.hash === unit.hash) return old.changedAt ?? null;
+  return previous ? today : null;
+}
+
 /** Date of the last change of each unit, observed from one daily run to the next (the tarball carries no history). */
 export function withChanges(units, previous, today) {
   const before = new Map((previous?.units ?? []).map((u) => [u.id, u]));
   return units.map((u) => {
     const old = before.get(u.id);
-    const changedAt = old && old.hash === u.hash ? (old.changedAt ?? null) : previous ? today : null;
-    return { ...u, changedAt };
+    return { ...u, changedAt: changedOn(old, u, previous, today) };
   });
 }
 

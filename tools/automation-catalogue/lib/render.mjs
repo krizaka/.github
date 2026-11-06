@@ -6,7 +6,6 @@ const TITLES = { nothingCalls: "Nothing calls it", noTest: "No test", regexOver8
 const LISTED = 40;
 const row = (cells) => `| ${cells.join(" | ")} |`;
 const table = (head, rows) => [row(head), row(head.map(() => ":--")), ...rows.map(row)].join("\n");
-const short = (text, max = 90) => (text.length > max ? `${text.slice(0, max - 1)}…` : text).split("|").join("\\|");
 
 function repoTable(summary) {
   const rows = Object.entries(summary.repos)
@@ -18,7 +17,8 @@ function repoTable(summary) {
 function flagList(units, flag) {
   const hits = units.filter((u) => u.flags.includes(flag));
   const sorted = flag === "regexOver80" ? hits.sort((a, b) => b.regex.longest - a.regex.longest) : hits;
-  const lines = sorted.slice(0, LISTED).map((u) => `- \`${u.repo}\` \`${u.path}\` (${u.kind}, ${u.lines} lines${flag === "regexOver80" ? `, longest regex ${u.regex.longest}` : ""})`);
+  const extra = (u) => (flag === "regexOver80" ? `, longest regex ${u.regex.longest}` : "");
+  const lines = sorted.slice(0, LISTED).map((u) => `- \`${u.repo}\` \`${u.path}\` (${u.kind}, ${u.lines} lines${extra(u)})`);
   const more = hits.length > LISTED ? [`- … and ${hits.length - LISTED} more in catalogue.json`] : [];
   return `### ${TITLES[flag]} (${hits.length})\n\n${[...lines, ...more].join("\n") || "None."}`;
 }

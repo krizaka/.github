@@ -13,7 +13,7 @@ export function paxPath(body) {
   while (at < text.length) {
     const space = text.indexOf(" ", at);
     const length = Number.parseInt(text.slice(at, space), 10);
-    if (!(length > 0)) return null;
+    if (Number.isNaN(length) || length <= 0) return null;
     const record = text.slice(space + 1, at + length - 1);
     if (record.startsWith("path=")) return record.slice(5);
     at += length;
@@ -31,7 +31,7 @@ export function readTar(gz) {
     const head = tar.subarray(offset, offset + BLOCK);
     if (head[0] === 0) break;
     const size = Number.parseInt(field(head, 124, 136).trim() || "0", 8);
-    const type = String.fromCharCode(head[156] || 48);
+    const type = String.fromCodePoint(head[156] || 48);
     const body = tar.subarray(offset + BLOCK, offset + BLOCK + size);
     offset += BLOCK + Math.ceil(size / BLOCK) * BLOCK;
     if (type === "x") {

@@ -41,12 +41,17 @@ export function mentions(text, path) {
 
 const corpusEntry = (type, by, path, text) => ({ type, by, path, text });
 
-function packageCallers(pkg) {
-  const entries = Object.entries(pkg.json.scripts ?? {}).map(([name, cmd]) => corpusEntry("npm", `npm:${pkg.dir || "."}#${name}`, pkg.path, String(cmd)));
+/** The bins a package publishes: [name, path from the repository root]. */
+function binsOf(pkg) {
   const bin = pkg.json.bin;
   const bins = typeof bin === "string" ? { [stemOf(pkg.json.name ?? "bin")]: bin } : (bin ?? {});
-  const targets = Object.entries(bins).map(([name, target]) => corpusEntry("npm", `bin:${name}`, pkg.path, `${pkg.dir ? `${pkg.dir}/` : ""}${String(target).replace("./", "")}`));
-  return [...entries, ...targets];
+  const prefix = pkg.dir ? `${pkg.dir}/` : "";
+  return Object.entries(bins).map(([name, target]) => [name, prefix + String(target).replace("./", "")]);
+}
+
+function packageCallers(pkg) {
+  const entries = Object.entries(pkg.json.scripts ?? {}).map(([name, cmd]) => corpusEntry("npm", `npm:${pkg.dir || "."}#${name}`, pkg.path, String(cmd)));
+  return [...entries, ...binsOf(pkg).map(([name, path]) => corpusEntry("npm", `bin:${name}`, pkg.path, path))];
 }
 
 const ROLE_TYPES = { "hook-config": "hook", make: "make", docker: "docker", "agent-settings": "agent-hook", config: "config", "git-config": "hook" };
@@ -134,11 +139,7 @@ export function callersOfAction(model, dir, models) {
 export function binTargets(models) {
   const map = new Map();
   for (const m of models) {
-    for (const pkg of m.packages) {
-      const bin = pkg.json.bin;
-      const bins = typeof bin === "string" ? { [stemOf(pkg.json.name ?? "bin")]: bin } : (bin ?? {});
-      for (const [name, target] of Object.entries(bins)) map.set(`${m.name}\t${pkg.dir ? `${pkg.dir}/` : ""}${String(target).replace("./", "")}`, name);
-    }
+    for (const pkg of m.packages) for (const [name, path] of binsOf(pkg)) map.set(`${m.name}\t${path}`, name);
   }
   return map;
 }

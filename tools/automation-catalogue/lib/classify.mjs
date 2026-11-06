@@ -3,17 +3,17 @@
 // no pattern matching on text, so the rules read as the lists they are.
 
 export const CODE_EXTENSIONS = [".mjs", ".js", ".cjs", ".ts", ".mts", ".cts", ".sh", ".bash", ".zsh", ".py"];
-const SCRIPT_FOLDERS = ["scripts", "tools", "bin", ".githooks", "githooks", ".husky"];
+const SCRIPT_FOLDERS = new Set(["scripts", "tools", "bin", ".githooks", "githooks", ".husky"]);
 export const HOOK_FOLDERS = [".githooks", "githooks", ".husky", "hooks"];
-const NOT_AUTOMATION = ["node_modules", "fixtures", "__fixtures__", "testdata", "__snapshots__", "vendor", "src"];
-const TEST_FOLDERS = ["test", "tests", "__tests__"];
-const ORG_FOLDERS = ["actions", "deploy", "orchestration"];
+const NOT_AUTOMATION = new Set(["node_modules", "fixtures", "__fixtures__", "testdata", "__snapshots__", "vendor", "src"]);
+const TEST_FOLDERS = new Set(["test", "tests", "__tests__"]);
+const ORG_FOLDERS = new Set(["actions", "deploy", "orchestration"]);
 export const STANDARD_NPM = [
   "build", "dev", "start", "test", "lint", "typecheck", "type-check", "format", "check", "clean", "prepare", "postinstall", "preinstall",
   "prepublishOnly", "prepack", "postpack", "preview", "storybook", "build-storybook", "fmt", "serve", "watch", "e2e", "coverage", "release",
   "version", "pretest", "posttest", "prebuild", "postbuild", "predev", "tsc", "android", "ios", "web", "export",
 ];
-const STANDARD_FAMILIES = ["test", "lint", "build", "dev", "check", "format", "typecheck", "e2e", "start"];
+const STANDARD_FAMILIES = new Set(["test", "lint", "build", "dev", "check", "format", "typecheck", "e2e", "start"]);
 
 const DEPLOY = ["deploy", "promote", "production", "release", "publish", "rollout", "purge", "pages"];
 const GENERATE_PREFIX = ["gen", "generate", "build", "emit", "sync", "render", "export", "make", "compile", "subset", "registry", "bundle", "propagate", "update"];
@@ -53,7 +53,7 @@ export function isTestFile(path) {
   const base = baseOf(path);
   const infix = [".test.", ".spec.", ".selftest."].some((m) => base.includes(m));
   const python = base.endsWith("_test.py") || (base.startsWith("test_") && base.endsWith(".py"));
-  return infix || python || folderOf(path).split("/").some((part) => TEST_FOLDERS.includes(part));
+  return infix || python || folderOf(path).split("/").some((part) => TEST_FOLDERS.has(part));
 }
 
 /** Whether a file is an automation script: code in a scripts/tools/bin/hooks folder (or the org repository's own folders). */
@@ -61,9 +61,9 @@ export function isScript(repo, path, head = "") {
   const parts = path.split("/");
   const folders = parts.slice(0, -1);
   const base = parts.at(-1);
-  if (parts.some((p) => NOT_AUTOMATION.includes(p)) || base.endsWith(".d.ts") || base.includes(".config.")) return false;
-  const inAutomationFolder = folders.some((f) => SCRIPT_FOLDERS.includes(f))
-    || (repo === ".github" && ORG_FOLDERS.includes(parts[0]))
+  if (parts.some((p) => NOT_AUTOMATION.has(p)) || base.endsWith(".d.ts") || base.includes(".config.")) return false;
+  const inAutomationFolder = folders.some((f) => SCRIPT_FOLDERS.has(f))
+    || (repo === ".github" && ORG_FOLDERS.has(parts[0]))
     || (folders.includes(".github") && folders.includes("actions"))
     || (base.startsWith("entrypoint") && base.endsWith(".sh"))
     || (folders.length === 0 && (base.endsWith(".sh") || base.endsWith(".command")));
@@ -75,7 +75,7 @@ export function isScript(repo, path, head = "") {
 export const isHookScript = (path) => folderOf(path).split("/").some((part) => HOOK_FOLDERS.includes(part)) || folderOf(path).endsWith("tools/githooks");
 
 /** A custom npm script is one whose name is not in the standard list (nor `test:unit`, `lint:fix`… of a standard family). */
-export const isStandardNpm = (name) => STANDARD_NPM.includes(name) || STANDARD_FAMILIES.includes(name.split(":")[0]);
+export const isStandardNpm = (name) => STANDARD_NPM.includes(name) || STANDARD_FAMILIES.has(name.split(":")[0]);
 
 const hasAny = (name, words) => words.some((w) => name.includes(w));
 const startsWithAny = (name, words) => words.some((w) => name.startsWith(w));

@@ -3,13 +3,37 @@
 // comments, operators) and each command is read word by word. A heuristic, as the ADR says: it can miss a pattern, it never
 // counts a plain word as one.
 
-const OPERATORS = ["|", "&", ";", "(", ")", "\n"];
-const META = ["\\", "^", "$", "*", "+", "?", "(", ")", "[", "]", "{", "}", "|"];
-const GREP_COMMANDS = ["grep", "egrep", "rg", "zgrep"];
-const GREP_VALUE_FLAGS = ["-m", "-A", "-B", "-C", "-f", "-g", "-t", "--include", "--exclude", "--exclude-dir", "--glob", "--max-count"];
+const OPERATORS = new Set(["|", "&", ";", "(", ")", "\n"]);
+const META = new Set(["\\", "^", "$", "*", "+", "?", "(", ")", "[", "]", "{", "}", "|"]);
+const GREP_COMMANDS = new Set(["grep", "egrep", "rg", "zgrep"]);
+const GREP_VALUE_FLAGS = new Set(["-m", "-A", "-B", "-C", "-f", "-g", "-t", "--include", "--exclude", "--exclude-dir", "--glob", "--max-count"]);
 const JQ_FUNCTIONS = ["test", "match", "capture", "sub", "gsub", "scan", "splits"];
 
-export const hasMeta = (text) => [...text].some((c) => META.includes(c));
+export const hasMeta = (text) => [...text].some((c) => META.has(c));
+
+/** The end of a quoted run starting after its opening quote at `from`: the index of the closing quote (or the end of the text). */
+function findClose(text, from, quote) {
+  let i = from;
+  while (i < text.length && text[i] !== quote) i += text[i] === "\\" && quote === '"' ? 2 : 1;
+  return Math.min(i, text.length);
+}
+
+/** One step of the tokenizer: the text a character adds to the current word, where to go next, and whether it ends a word or a command. */
+function stepOf(script, i, atWordStart) {
+  const c = script[i];
+  if (c === "'" || c === '"') {
+    const close = findClose(script, i + 1, c);
+    return { add: script.slice(i + 1, close), next: close + 1 };
+  }
+  if (c === "\\" && i + 1 < script.length) return { add: script[i + 1] === "\n" ? "" : c + script[i + 1], next: i + 2 };
+  if (c === "#" && atWordStart) {
+    const eol = script.indexOf("\n", i);
+    return { command: true, next: eol === -1 ? script.length : eol };
+  }
+  if (OPERATORS.has(c)) return { command: true, next: i + 1 };
+  if (c === " " || c === "\t") return { word: true, next: i + 1 };
+  return { add: c, next: i + 1 };
+}
 
 /** The commands of a script: lists of words, quotes removed, operators and comments dropped. */
 export function commandsOf(script) {
@@ -20,50 +44,28 @@ export function commandsOf(script) {
     if (word !== null) words.push(word);
     word = null;
   };
-  const endCommand = () => {
-    endWord();
-    if (words.length) commands.push(words);
-    words = [];
-  };
-  for (let i = 0; i < script.length; i += 1) {
-    const c = script[i];
-    if (c === "'" || c === '"') {
-      const close = findClose(script, i + 1, c);
-      word = (word ?? "") + script.slice(i + 1, close);
-      i = close;
-    } else if (c === "\\" && i + 1 < script.length) {
-      word = (word ?? "") + (script[i + 1] === "\n" ? "" : c + script[i + 1]);
-      i += 1;
-    } else if (c === "#" && word === null) {
-      while (i < script.length && script[i] !== "\n") i += 1;
-      endCommand();
-    } else if (OPERATORS.includes(c)) {
-      endCommand();
-    } else if (c === " " || c === "\t") {
-      endWord();
-    } else {
-      word = (word ?? "") + c;
+  let i = 0;
+  while (i < script.length) {
+    const step = stepOf(script, i, word === null);
+    if (step.add !== undefined) word = (word ?? "") + step.add;
+    if (step.word || step.command) endWord();
+    if (step.command && words.length) {
+      commands.push(words);
+      words = [];
     }
+    i = step.next;
   }
-  endCommand();
+  endWord();
+  if (words.length) commands.push(words);
   return commands;
-}
-
-function findClose(text, from, quote) {
-  for (let i = from; i < text.length; i += 1) {
-    if (text[i] === "\\" && quote === '"') i += 1;
-    else if (text[i] === quote) return i;
-  }
-  return text.length;
 }
 
 /** The text up to the next unescaped `delimiter` from `from`, and the index of that delimiter. */
 function untilDelimiter(text, from, delimiter) {
-  for (let i = from; i < text.length; i += 1) {
-    if (text[i] === "\\") i += 1;
-    else if (text[i] === delimiter) return { body: text.slice(from, i), end: i };
-  }
-  return { body: text.slice(from), end: text.length };
+  let i = from;
+  while (i < text.length && text[i] !== delimiter) i += text[i] === "\\" ? 2 : 1;
+  const end = Math.min(i, text.length);
+  return { body: text.slice(from, end), end };
 }
 
 const isDelimiter = (c) => c > " " && c.toLowerCase() === c.toUpperCase() && !"0123456789".includes(c);
@@ -82,15 +84,19 @@ export function sedPatterns(script) {
   return found.filter(Boolean);
 }
 
+const AWK_BEFORE = new Set([" ", "(", "~", "!", "{", "}", ";"]);
+
 /** The `/pattern/` literals of an awk program that hold a metacharacter. */
 export function awkPatterns(program) {
   const found = [];
-  for (let i = 0; i < program.length; i += 1) {
-    const before = program[i - 1] ?? " ";
-    if (program[i] === "/" && [" ", "(", "~", "!", "{", "}", ";"].includes(before)) {
+  let i = 0;
+  while (i < program.length) {
+    if (program[i] === "/" && AWK_BEFORE.has(program[i - 1] ?? " ")) {
       const { body, end } = untilDelimiter(program, i + 1, "/");
       if (body && hasMeta(body)) found.push(body);
-      i = end;
+      i = end + 1;
+    } else {
+      i += 1;
     }
   }
   return found;
@@ -110,18 +116,20 @@ export function jqPatterns(program) {
   return found;
 }
 
+const EXTENDED_FLAGS = new Set(["--extended-regexp", "--perl-regexp"]);
+const isValueFlag = (arg) => GREP_VALUE_FLAGS.has(arg);
+const isOptionWithValue = (arg) => arg.startsWith("--include=") || arg.startsWith("--exclude");
+
+/** The pattern a grep-like command is given (`-e pattern` or the first operand) and whether it is an extended / Perl one. */
 function grepPattern(args) {
   let extended = false;
-  for (let i = 0; i < args.length; i += 1) {
+  let i = 0;
+  while (i < args.length) {
     const arg = args[i];
     if (arg === "-e" && args[i + 1] !== undefined) return { pattern: args[i + 1], extended: true };
-    if (GREP_VALUE_FLAGS.includes(arg) || arg.startsWith("--include=") || arg.startsWith("--exclude")) {
-      i += GREP_VALUE_FLAGS.includes(arg) ? 1 : 0;
-    } else if (arg.startsWith("-") && arg.length > 1) {
-      extended = extended || arg.includes("E") || arg.includes("P") || arg === "--extended-regexp" || arg === "--perl-regexp";
-    } else {
-      return { pattern: arg, extended };
-    }
+    if (!arg.startsWith("-") || arg === "-") return { pattern: arg, extended };
+    extended = extended || EXTENDED_FLAGS.has(arg) || (!arg.startsWith("--") && (arg.includes("E") || arg.includes("P")));
+    i += isValueFlag(arg) && !isOptionWithValue(arg) ? 2 : 1;
   }
   return null;
 }
@@ -132,30 +140,30 @@ const scriptAfter = (args, flags) => {
   return at !== -1 && args[at + 1] !== undefined ? args[at + 1] : null;
 };
 
+const SCRIPT_FLAGS = { sed: ["-e"], perl: ["-e", "-pe", "-ne", "-pi"] };
+
+function grepFound(base, args) {
+  const hit = grepPattern(args);
+  return hit && (hit.extended || base === "egrep" || hasMeta(hit.pattern)) ? [hit.pattern] : [];
+}
+
+function scriptFound(base, args) {
+  const script = scriptAfter(args, SCRIPT_FLAGS[base]) ?? (base === "sed" ? firstOperand(args) : null);
+  return script ? sedPatterns(script) : [];
+}
+
+/** The patterns one command carries, by the command it runs. */
 function patternsOfCommand(words) {
   let start = 0;
   while (start < words.length && (words[start].includes("=") || words[start] === "sudo" || words[start] === "xargs")) start += 1;
-  const [command, ...args] = words.slice(start);
-  const base = (command ?? "").slice((command ?? "").lastIndexOf("/") + 1);
-  const found = [];
+  const [command = "", ...args] = words.slice(start);
+  const base = command.slice(command.lastIndexOf("/") + 1);
   const tilde = words.indexOf("=~");
-  if (tilde !== -1 && words[tilde + 1]) found.push(words[tilde + 1]);
-  if (GREP_COMMANDS.includes(base)) {
-    const hit = grepPattern(args);
-    if (hit && (hit.extended || base === "egrep" || hasMeta(hit.pattern))) found.push(hit.pattern);
-  } else if (base === "sed") {
-    const script = scriptAfter(args, ["-e"]) ?? firstOperand(args);
-    if (script) found.push(...sedPatterns(script));
-  } else if (base === "perl") {
-    const script = scriptAfter(args, ["-e", "-pe", "-ne", "-pi"]);
-    if (script) found.push(...sedPatterns(script));
-  } else if (base === "awk") {
-    const program = firstOperand(args);
-    if (program) found.push(...awkPatterns(program));
-  } else if (base === "jq") {
-    found.push(...args.flatMap(jqPatterns));
-  }
-  return found;
+  const found = tilde !== -1 && words[tilde + 1] ? [words[tilde + 1]] : [];
+  if (GREP_COMMANDS.has(base)) return [...found, ...grepFound(base, args)];
+  if (base === "sed" || base === "perl") return [...found, ...scriptFound(base, args)];
+  if (base === "awk") return [...found, ...awkPatterns(firstOperand(args) ?? "")];
+  return base === "jq" ? [...found, ...args.flatMap(jqPatterns)] : found;
 }
 
 /** Every regular expression of a shell script (or of the `run:` blocks of a workflow). */
