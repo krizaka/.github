@@ -91,7 +91,7 @@ export function planOf(rules, cells, only = {}) {
   for (const [repo, row] of Object.entries(cells)) {
     if (only.repos && !only.repos.includes(repo)) continue;
     if (only.skip?.includes(repo)) continue;
-    const red = asked.filter((r) => row[r.id]?.status === "red");
+    const red = asked.filter((r) => row[r.id]?.status === "fail");
     const auto = red.filter((r) => r.fix.type !== "manual").map((r) => r.id);
     if (red.length > 0) plan.push({ repo, rules: auto, manual: red.filter((r) => r.fix.type === "manual").map((r) => r.id) });
   }
