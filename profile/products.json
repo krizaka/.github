@@ -1,5 +1,5 @@
 {
-  "$comment": "The one data file of the org profile's generated block (scripts/profile-readme.mjs): names, status, hosts and where each fact is read. No host is typed in the script. Products are shown under their commercial names (ADR-022); the code name is the repository and the dev host. `status` is `development` until the founder opens a product: the script refuses « Available » for it. `prod.host` is linked only once its /api/healthz answers.",
+  "$comment": "The one data file of the org profile's generated block (scripts/profile-readme.mjs): names, status, hosts and where each fact is read. No host is typed in the script. Products, repositories and hosts carry the commercial names (2026-11-06): www.<product>.com is the public face, dev.<product>.com the dev instance. `status` is `development` until the founder opens a product: the script refuses « Available » for it. `prod.host` is linked only once its /api/healthz answers.",
   "organization": "krizaka",
   "healthPath": "/api/healthz",
   "order": [
@@ -22,9 +22,9 @@
       },
       "bom": {
         "repo": "sovkora-build",
-        "file": "orazaka-parent/pom.xml",
+        "file": "sovkora-parent/pom.xml",
         "property": "krizaka.version",
-        "package": "com.krizaka.krizaka-bom"
+        "package": "com.krizaka:krizaka-bom"
       },
       "components": [
         {
@@ -225,11 +225,11 @@
     {
       "name": "Krizaka Java",
       "url": "https://java.krizaka.com",
-      "about": "Spring Boot building blocks, published to GitHub Packages",
+      "about": "Spring Boot building blocks, published to Maven Central",
       "packages": [
         {
-          "registry": "github-maven",
-          "name": "com.krizaka.krizaka-bom",
+          "registry": "maven-central",
+          "name": "com.krizaka:krizaka-bom",
           "label": "com.krizaka:krizaka-bom"
         }
       ]

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import {
-  END, badgeUrl, collectKrizakaDeps, compareVersions, depBadge, envBadge, languageBadge, latestStable, mainLanguages, manifestPaths, parseCargoDeps, parseMavenDeps, parsePythonDeps, pomProperty, readHealth, readModel, renderBlock, renderComponents, renderProduct, replaceBlock, statusLabel, treeLanguageBytes, versionOf,
+  END, badgeUrl, renamedPackage, collectKrizakaDeps, compareVersions, depBadge, envBadge, languageBadge, latestStable, mainLanguages, manifestPaths, parseCargoDeps, parseMavenDeps, parsePythonDeps, pomProperty, readHealth, readModel, renderBlock, renderComponents, renderProduct, replaceBlock, statusLabel, treeLanguageBytes, versionOf,
 } from "../scripts/profile-readme.mjs";
 
 const data = JSON.parse(readFileSync(new URL("../profile/products.json", import.meta.url), "utf8"));
@@ -13,7 +13,7 @@ const POM = `<project><properties><krizaka.version>0.7.1</krizaka.version></prop
 <dependency><groupId>com.krizaka</groupId><artifactId>krizaka-security</artifactId></dependency>
 <dependency><groupId>com.krizaka</groupId><artifactId>krizaka-users-api</artifactId><version>0.6.0</version></dependency>
 <dependency><groupId>org.other</groupId><artifactId>x</artifactId></dependency></dependencies></project>`;
-const CARGO = `[package]\nname = "app"\nauthors = ["Krizaka"]\n[dependencies]\nkrizaka-tauri-kit = { version = "0.3", git = "https://github.com/krizaka/krizaka-desktop", tag = "v0.3.0" }\nkrizaka-local = { path = "../local" }\nserde = "1"\n`;
+const CARGO = `[package]\nname = "app"\nauthors = ["Krizaka"]\n[dependencies]\nkrizaka-desktop = { version = "0.3", git = "https://github.com/krizaka/krizaka-desktop", tag = "v0.3.0" }\nkrizaka-local = { path = "../local" }\nserde = "1"\n`;
 const TREE = [
   { path: "apps/web/package.json", type: "blob", size: 1 }, { path: "apps/web/app/page.tsx", type: "blob", size: 900 }, { path: "apps/web/app/api/x/route.ts", type: "blob", size: 100 },
   { path: "apps/desktop/src-tauri/Cargo.toml", type: "blob", size: 1 }, { path: "apps/desktop/src-tauri/main.rs", type: "blob", size: 500 }, { path: "apps/desktop/src/app.ts", type: "blob", size: 1000 },
@@ -29,7 +29,7 @@ const reader = ({ health = {}, npm = {}, java = null } = {}) => ({
   repoLanguages: async () => ({ Java: 5000, CSS: 90000, Shell: 100 }),
   repoFile: async (_o, _r, path) => FILES[path] ?? "<krizaka.version>0.7.1</krizaka.version>",
   npmLatest: async (n) => npm[n] ?? (n === "@krizaka/own" ? { missing: true } : { version: "3.81.0" }),
-  githubMavenLatest: async () => java ?? "0.8.0",
+  mavenCentralLatest: async () => java ?? "0.8.0",
   gitTagLatest: async () => "0.4.0",
   pypiLatest: async (n) => (n === "krizaka-worker-kit" ? { version: "0.3.0" } : { missing: true }),
   health: async (host) => health[host] ?? { up: false },
@@ -39,7 +39,7 @@ const fixtureData = {
   ...data,
   tiers: [{ id: "client-web", label: "Clients: web" }, { id: "client-mac", label: "Clients: Mac" }, { id: "bff", label: "BFF" }, { id: "service", label: "Services" }, { id: "worker", label: "Workers" }],
   order: ["sovkora"],
-  products: { sovkora: { ...data.products.sovkora, bom: { repo: "b", file: "pom.xml", property: "krizaka.version", package: "com.krizaka.krizaka-bom" }, components: [
+  products: { sovkora: { ...data.products.sovkora, bom: { repo: "b", file: "pom.xml", property: "krizaka.version", package: "com.krizaka:krizaka-bom" }, components: [
     { label: "Web", tier: "client-web", repo: "r", path: "apps/web" }, { label: "API", tier: "bff", repo: "r", path: "apps/web/app/api" }, { label: "Mac", tier: "client-mac", repo: "r", path: "apps/desktop" },
     { label: "Core", tier: "service", repo: "r", path: "svc" }, { label: "Media", tier: "worker", repo: "r", path: "worker" },
   ] } },
@@ -152,7 +152,7 @@ test("Maven: only com.krizaka modules; a managed one uses the BOM version, an ex
 });
 
 test("Rust: krizaka crates with the git tag as version, path crates are the workspace's own; Python: pinned krizaka packages", () => {
-  assert.deepEqual(parseCargoDeps(CARGO), [{ name: "krizaka-tauri-kit", used: "0.3.0", repo: "krizaka/krizaka-desktop" }]);
+  assert.deepEqual(parseCargoDeps(CARGO), [{ name: "krizaka-desktop", used: "0.3.0", repo: "krizaka/krizaka-desktop" }]);
   assert.deepEqual(parsePythonDeps("krizaka-worker-kit==0.2.0\nnumpy==2.0.0\n"), [{ name: "krizaka-worker-kit", used: "0.2.0" }]);
 });
 
@@ -167,12 +167,14 @@ test("the block groups the components by tier with language, repository and modu
   assert.match(block, /\| Core \| !\[Java\][^|]*\|[^|]*\| <sub>Maven \(2\)<\/sub>/);
   assert.match(block, /krizaka-security 0\.7\.1 \(latest 0\.8\.0\)/);
   assert.match(block, /@krizaka\/ui 3\.80\.0 \(latest 3\.81\.0\)/);
-  assert.match(block, /krizaka-tauri-kit 0\.3\.0 \(latest 0\.4\.0\)/);
+  assert.match(block, /krizaka-desktop 0\.3\.0 \(latest 0\.4\.0\)/);
+  assert.match(block, /https:\/\/central\.sonatype\.com\/artifact\/com\.krizaka\/krizaka-security/);
+  assert.ok(!block.includes("github.com/orgs/krizaka/packages"), "Java versions come from Maven Central, not GitHub Packages");
   assert.match(block, /krizaka-worker-kit 0\.2\.0 \(latest 0\.3\.0\)/);
   assert.ok(!block.includes("@krizaka/own"), "a workspace package is not a dependency");
   assert.match(block, /Dev: up 1\.0\.0\+aaa/);
   assert.equal((block.match(/Prod: not open yet/g) ?? []).length, 1);
-  assert.ok(!/Available/.test(block) && !/licen[cs]e|Apache|\bMIT\b/i.test(block) && !/maven central/i.test(block));
+  assert.ok(!/Available/.test(block) && !/licen[cs]e|Apache|\bMIT\b/i.test(block));
 });
 
 test("the real block lists every component of data with its tier heading", async () => {
@@ -197,4 +199,16 @@ test("replaceBlock rewrites only the marked block and the committed README has i
   const outside = (r) => r.slice(0, r.indexOf("<!-- generated:start")) + r.slice(r.indexOf(END) + END.length);
   assert.equal(outside(next), outside(readme));
   assert.throws(() => replaceBlock("no markers", "x"), /markers/);
+});
+
+test("a package deprecated as renamed is shown under its new name, behind (orange), never under its old name", async () => {
+  assert.equal(renamedPackage("Renamed: use @krizaka/sovkora-client (krizaka-internal#2659)"), "@krizaka/sovkora-client");
+  assert.equal(renamedPackage("no longer maintained"), null);
+  assert.equal(renamedPackage(undefined), null);
+  const npm = { "@krizaka/ui": { version: "0.2.1", renamedTo: "@krizaka/new-ui" }, "@krizaka/new-ui": { version: "1.0.0" } };
+  const model = await readModel(fixtureData, reader({ npm }));
+  const web = model.products[0].components[0].modules.npm;
+  assert.deepEqual(web, [{ name: "@krizaka/new-ui", used: "3.80.0", latest: "1.0.0" }]);
+  const block = renderBlock(fixtureData, model);
+  assert.ok(!block.includes("@krizaka/ui 3.80.0") && block.includes("@krizaka/new-ui 3.80.0 (latest 1.0.0)"));
 });

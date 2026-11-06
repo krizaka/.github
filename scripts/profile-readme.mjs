@@ -6,7 +6,7 @@
 // Dependency-free, like check-seo-family.mjs.
 //
 // Everything is read when it runs, nothing is typed: the components' repositories (package.json, pom.xml, Cargo.toml, requirements,
-// the Java BOM property) and their languages through the GitHub API, the latest versions from npm, GitHub Packages, the git tags of
+// the Java BOM property) and their languages through the GitHub API, the latest versions from npm, Maven Central, the git tags of
 // the Rust kit and PyPI, the component list and hosts from profile/products.json, the health of each
 // host from its /api/healthz. A prod host that does not answer is « not open yet » (no link) until it does; then the link
 // appears by itself. Nothing else of the README is touched.
@@ -15,7 +15,7 @@
 //   node scripts/profile-readme.mjs --check    # exit 1 when the block is out of date (reads the same sources)
 //   node scripts/profile-readme.mjs --print    # print the block, write nothing
 //
-// GH_TOKEN (the GitHub App token in CI; it needs Packages: read for the Java versions) is read from the environment.
+// GH_TOKEN (the GitHub App token in CI) is read from the environment; Maven Central and npm are public.
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -202,6 +202,13 @@ export function statusLabel(data, product) {
 }
 
 const npmUrl = (name) => `https://www.npmjs.com/package/${name}`;
+/** Maven Central's page of `group:artifact`. */
+export const mavenCentralUrl = (coordinate) => `https://central.sonatype.com/artifact/${coordinate.replace(":", "/")}`;
+
+/** The package a deprecation notice names as its replacement (`Renamed: use @krizaka/sovkora-client …`), or null. */
+export function renamedPackage(deprecated) {
+  return /\b(?:renamed|moved)\b[^@]{0,40}(@krizaka\/[a-z0-9-]+)/i.exec(String(deprecated ?? ""))?.[1] ?? null;
+}
 
 /** One module: the version used, green when it is the latest, orange when behind, grey when the latest is unknown. */
 export function depBadge({ name, used, latest }, { label, url } = {}) {
@@ -240,7 +247,7 @@ const markUrl = (id, theme, v) => {
 
 const ECOSYSTEMS = [
   { id: "npm", label: "npm", url: (org, m) => npmUrl(m.name), shown: (m) => m.name.replace("@krizaka/", "") },
-  { id: "maven", label: "Maven", url: (org, m) => `https://github.com/orgs/${org}/packages/maven/package/com.krizaka.${m.name}`, shown: (m) => m.name },
+  { id: "maven", label: "Maven", url: (org, m) => mavenCentralUrl(`com.krizaka:${m.name}`), shown: (m) => m.name },
   { id: "rust", label: "Rust", url: (org, m) => (m.repo ? `https://github.com/${m.repo}` : undefined), shown: (m) => m.name },
   { id: "python", label: "Python", url: (org, m) => `https://pypi.org/project/${m.name}/`, shown: (m) => m.name },
 ];
@@ -290,7 +297,7 @@ export function renderStack(data, stack) {
   for (const row of stack) {
     const badges = row.packages.map((pkg) => {
       const label = pkg.label ?? pkg.name;
-      const url = pkg.registry === "npm" ? npmUrl(pkg.name) : `https://github.com/orgs/${data.organization}/packages/maven/package/${pkg.name}`;
+      const url = pkg.registry === "npm" ? npmUrl(pkg.name) : mavenCentralUrl(pkg.name);
       return link(img(`${label} ${pkg.latest ?? "unknown"}`, label, pkg.latest ? `v${pkg.latest}` : "unknown", pkg.latest ? BLUE : "lightgrey"), url);
     });
     rows.push(`| **[${row.name}](${row.url})**: ${row.about} | ${badges.join(" ")} |`);
@@ -361,12 +368,15 @@ export function makeReader(fetchImpl = fetch, token = "") {
       }
       return out;
     },
-    /** `{ version }`, `{ missing: true }` (404: not published) or `{}` (could not be read). */
+    /** `{ version, renamedTo? }`, `{ missing: true }` (404: not published) or `{}` (could not be read). */
     async npmLatest(name) {
       const r = await get(`https://registry.npmjs.org/${name.replaceAll("/", "%2f")}/latest`);
       if (r.status === 404) return { missing: true };
       try {
-        return r.status === 200 ? { version: JSON.parse(r.text).version } : {};
+        if (r.status !== 200) return {};
+        const j = JSON.parse(r.text);
+        const renamedTo = renamedPackage(j.deprecated);
+        return renamedTo ? { version: j.version, renamedTo } : { version: j.version };
       } catch {
         return {};
       }
@@ -395,9 +405,13 @@ export function makeReader(fetchImpl = fetch, token = "") {
         return {};
       }
     },
-    async githubMavenLatest(org, pkg) {
-      const versions = await ghJson(`https://api.github.com/orgs/${org}/packages/maven/${pkg}/versions?per_page=100`);
-      return Array.isArray(versions) ? latestStable(versions.map((v) => v.name)) : null;
+    /** The release of `group:artifact` on Maven Central (the Java reference), or null. */
+    async mavenCentralLatest(coordinate) {
+      const [group, artifact] = coordinate.split(":");
+      const r = await get(`https://repo1.maven.org/maven2/${group.replaceAll(".", "/")}/${artifact}/maven-metadata.xml`);
+      if (r.status !== 200) return null;
+      const release = /<release>([^<]+)<\/release>/.exec(r.text)?.[1];
+      return release ?? latestStable([...r.text.matchAll(/<version>([^<]+)<\/version>/g)].map((m) => m[1]));
     },
     async health(host, path) {
       const r = await get(`https://${host}${path}`);
@@ -433,9 +447,14 @@ async function readModules(files, ctx) {
   const out = { npm: [], maven: [], rust: [], python: [] };
   for (const d of npm) {
     const latest = await ctx.latestOf(d.name);
-    if (!latest.missing) out.npm.push({ ...d, latest: latest.version ?? null });
+    if (latest.missing) continue;
+    if (latest.renamedTo) {
+      // A renamed package is shown under its new name, orange: the component is behind until it moves to it.
+      const next = await ctx.latestOf(latest.renamedTo);
+      out.npm.push({ name: latest.renamedTo, used: d.used, latest: next.version ?? null });
+    } else out.npm.push({ ...d, latest: latest.version ?? null });
   }
-  for (const d of maven) out.maven.push({ ...d, latest: await ctx.mavenLatestOf(`com.krizaka.${d.name}`) });
+  for (const d of maven) out.maven.push({ ...d, latest: await ctx.mavenLatestOf(`com.krizaka:${d.name}`) });
   for (const d of rust) out.rust.push({ ...d, latest: d.repo ? await ctx.tagLatestOf(d.repo) : null });
   for (const d of python) {
     const latest = await ctx.pypiLatestOf(d.name);
@@ -473,7 +492,7 @@ async function readBom(def, org, reader) {
 async function readStackRow(row, org, reader, latestOf) {
   const packages = [];
   for (const pkg of row.packages) {
-    const latest = pkg.registry === "npm" ? (await latestOf(pkg.name)).version ?? null : await reader.githubMavenLatest(org, pkg.name);
+    const latest = pkg.registry === "npm" ? (await latestOf(pkg.name)).version ?? null : await reader.mavenCentralLatest(pkg.name);
     packages.push({ ...pkg, latest });
   }
   return { ...row, packages };
@@ -491,7 +510,7 @@ export async function readModel(data, reader) {
     const m = new Map();
     return async (k) => (m.has(k) ? m.get(k) : m.set(k, await fn(k)).get(k));
   };
-  const mavenLatestOf = cached((pkg) => reader.githubMavenLatest(org, pkg));
+  const mavenLatestOf = cached((pkg) => reader.mavenCentralLatest(pkg));
   const tagLatestOf = cached((slug) => reader.gitTagLatest(slug));
   const pypiLatestOf = cached((name) => reader.pypiLatest(name));
   const health = async (e) => ({ host: e.host, ...(await reader.health(e.host, data.healthPath)) });
