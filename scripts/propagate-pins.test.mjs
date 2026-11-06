@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { failure, fetchPinState, movePins, openPrsToWait, pinBranch, pinFiles, pinPattern, pinPrDecision, publishPinPr, pushArgs } from "./propagate-pins.mjs";
+import { failure, fetchPinState, movePins, pinBranch, pinFiles, pinPattern, pinPrDecision, publishPinPr, pushArgs } from "./propagate-pins.mjs";
 
 const OLD = "a".repeat(40);
 const NEW = "b".repeat(40);
@@ -84,15 +84,10 @@ test("without an open PR one is created, and the older sha-named PRs are closed 
   assert.ok(!calls.some((c) => c.some((x) => String(x).includes("/3"))), "unrelated PRs are left alone");
 });
 
-test("the org pins wait while .github has open pull requests, and only then", () => {
-  const run = (n) => (cmd, args) => {
-    assert.ok(args.includes("repos/krizaka/.github/pulls?state=open&per_page=100"));
-    return `${n}\n`;
-  };
-  assert.equal(openPrsToWait(".github", run(3)), 3);
-  assert.equal(openPrsToWait(".github", run(0)), 0);
-  // another source (orazaka) has its own rule: it never waits on .github
-  assert.equal(openPrsToWait("orazaka", () => assert.fail("no API call")), 0);
+test("the org pins never wait for .github to be at 0 open pull requests (CTO rules review 2026-11-05)", () => {
+  const src = readFileSync(new URL("./propagate-pins.mjs", import.meta.url), "utf8");
+  assert.ok(!src.includes("repos/krizaka/.github/pulls"), "no count of .github's open pull requests");
+  assert.ok(!/openPrsToWait/.test(src));
 });
 
 test("any other open pin PR of the repository is closed as superseded, whatever its head", () => {
