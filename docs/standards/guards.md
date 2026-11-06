@@ -95,6 +95,13 @@ A `package.json` that lowers a cap matching `--max-warnings[ =](\d+)` counts too
 
 **Renaming a `fix` PR to dodge the check is not allowed.** A fix that truly has no guard to add uses the `guard-exempt` label and a `Guard exemption: <reason>` line.
 
+## 2.3 The automation catalogue (ADR-026, krizaka-internal#2755)
+
+The daily Conformance run also publishes the **automation catalogue** (`conformance-matrix` branch, `automation/catalogue.json`):
+every script, workflow, action, custom npm script, hook and the Mac's crons, with the flags « nothing calls it », « no test »,
+« regex over 80 », « over 400 lines », « no header » and « copied ». It is measurement only, the guards that read it come with
+phase F of the ADR. The fields are in [automation-catalogue.md](automation-catalogue.md).
+
 ## 3. One source per rule set
 
 Every rule set has **one** home. A repo only consumes it.
