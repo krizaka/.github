@@ -113,6 +113,20 @@ reasons are in [docs/standards/coding-agents.md](docs/standards/coding-agents.md
 10. **The root stays clean.** The repository follows [docs/standards/repo-layout.md](docs/standards/repo-layout.md): no stray
    file at the root, nothing generated or local tracked, an extra declared in `.repo-layout.json` with its « why ».
 
+## 8a. Java (Spring Boot 4) — Java repositories only
+
+How Krizaka writes Java: the `krizaka-java` skill (krizaka-agents `skills/krizaka-java`) and, with the tests that enforce each rule,
+[krizaka-java `AGENTS.md`](https://github.com/krizaka/krizaka-java/blob/main/AGENTS.md#http-clients-spring-boot-4-and-archunit). In short:
+
+- **ArchUnit is the law.** Every module's `ArchitectureTest` calls `KrizakaArchitecture.assertStandard(classes, basePackage)`; a rule is
+  never weakened, and existing debt is frozen only through `FrozenRules`, with its issue.
+- **Test first, pragmatically.** A failing test of the port's contract, then the smallest code, then the refactor; a fix starts with the test
+  that reproduces the bug; a refactor starts with characterization tests.
+- **HTTP clients are declared**: a package-private `@HttpExchange` interface per feature, registered with `@ImportHttpServices`; no
+  `RestClient`, `RestTemplate` or `WebClient` outside `config`.
+- **Package by feature**, at most 7 top-level classes per package, the feature's `*Configuration` as its only public type, every package
+  `@NullMarked`. `./mvnw -pl <module> -am verify` green is « done ».
+
 ## 9. Anti-slop (ADR-015)
 
 What a model tends to write and the code does not need. Each line points at the rule that refuses it
