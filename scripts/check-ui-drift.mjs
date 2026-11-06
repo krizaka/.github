@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// MANUAL TOOL (ADR-026): run by a person before a krizaka-ui release (named in krizaka-ui docs/RELEASING.md). Owner: platform lane.
 // Reports every Krizaka app whose @krizaka/ui (and sibling packages) lags the latest published minor.
 // Usage: node scripts/check-ui-drift.mjs [--strict] [--org krizaka] [--packages ui,tokens,tailwind]
 // Needs the GitHub CLI (`gh`) logged in and `npm`. Read-only. Exit 1 with --strict when an app drifts.
