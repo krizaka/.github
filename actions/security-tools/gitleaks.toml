@@ -35,3 +35,7 @@ description = "krizaka-composer: the Puck fork keeps the upstream history; one u
 condition = "AND"
 commits = ["d94428819a958b4f566e5d0e8cd29b3bf1107881"]
 paths = ['''packages/field-contentful/README\.md''']
+
+[[allowlists]]
+description = "krizaka-java: the published test vector of the Standard Webhooks specification (secret and message id from the spec, not a credential); the file moved with krizaka-platform-kit → krizaka-service-kit (krizaka-internal#2665)"
+paths = ['''krizaka-service-kit/krizaka-webhooks/src/test/java/com/krizaka/webhooks/WebhookSignatureTest\.java''']
