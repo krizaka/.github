@@ -37,3 +37,11 @@ The hook needs a token for the online audits: `export GH_TOKEN=$(gh auth token)`
 Dependabot proposes it (the group keeps the comment). By hand: take the SHA of the release tag
 (`git ls-remote https://github.com/<owner>/<repo> 'refs/tags/<tag>*'`, the `^{}` line is the commit for an annotated tag), write
 `@<sha> # <tag>`, then `node scripts/pin-supply-chain.mjs . --exact --check`.
+
+## Enforced by the org
+
+Since 2026-11-06 the org's Actions policy requires every action and reusable workflow to be pinned to a full-length commit SHA
+(`sha_pinning_required`, krizaka-internal#2801). The policy was turned on after the online zizmor measure on 34 repositories
+found every live `uses:` already pinned. A `uses: …@v4` or `…@main` no longer runs anywhere in the org, and that includes a
+workflow copied from `workflow-templates/`, which `scripts/pin-supply-chain.mjs` now pins and refreshes too
+(`tests/workflow-templates-pin.test.mjs` keeps it so).

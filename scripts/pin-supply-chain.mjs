@@ -183,7 +183,7 @@ function main(argv) {
   const root = argv.find((a) => !a.startsWith("--")) ?? ".";
   let pending = 0;
   const files = [
-    ...walk(root, (n, p) => /\.ya?ml$/.test(n) && /(^|[\\/])(\.github[\\/](workflows|actions)|actions[\\/][^\\/]+)[\\/]/.test(p)).map((p) => [p, "wf"]),
+    ...walk(root, (n, p) => /\.ya?ml$/.test(n) && /(^|[\\/])(\.github[\\/](workflows|actions)|actions[\\/][^\\/]+|workflow-templates)[\\/]/.test(p)).map((p) => [p, "wf"]),
     ...(docker ? walk(root, (n) => /^Dockerfile(\..+)?$|\.Dockerfile$/.test(n)).map((p) => [p, "docker"]) : []),
   ];
   for (const [file, kind] of files) {
