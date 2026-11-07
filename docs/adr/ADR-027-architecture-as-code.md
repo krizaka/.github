@@ -1,4 +1,4 @@
-# ADR-027 — Architecture as code: C1 and C2, current and target, written in LikeC4; facts generated from `main`; drift counted by the matrix; one interactive view
+# ADR-027 — Architecture as code: the current state generated from `main` by `@krizaka/architecture`, the intent and the target written in LikeC4, the drift counted by the matrix, one interactive view
 
 - **Status:** Accepted (CTO, 2026-11-07, on the founder's request of the same day; a delegated decision: reversible, no cost).
 - **Date:** 2026-11-07
@@ -8,8 +8,8 @@
   [conformance.md](../standards/conformance.md)), [ADR-013](ADR-013-guards-and-local-sonar.md) §5 (less in-house) and the
   trusted-open-source rule (a trusted project behind a small facade).
 - **Scope:** the architecture views of the org: the three assets (Sovkora, Verikora, Folioviv), the libraries, the static sites
-  and the org's own platform; levels C1 (system context) and C2 (containers), current and target. C3 and C4 (components, code)
-  stay generated from the code (`@krizaka/architecture`, the code graph) and are out of scope.
+  and the org's own platform; levels C1 (system context) and C2 (containers), current and target, and C3 (components) as
+  generated. C4 (code) stays in the code graph.
 
 ## Context
 
@@ -25,14 +25,17 @@ Use open-source libraries for an ultra-advanced graphic. »
 
 | Where | What it shows | Source | Checked against `main` |
 | :-- | :-- | :-- | :-- |
-| The cockpit, Architecture tab | a folder tree and an edges table per repository, then C4 tables per repository | the local code graph; `@krizaka/architecture` 0.1.0 | code level only: no picture, no target |
+| The cockpit, Architecture tab | a folder tree and an edges table per repository; then « C4 from the code »: one chip per repository and three **tables** (context, containers, components; 9, 14 and 23 rows for the first repository) — the founder: « is that the C4? » | the local code graph; `@krizaka/architecture` 0.1.0 (krizaka-ts) run on the reference copies | yes, it is generated from `main`: the right source, shown as text; no versions, no tags, no target |
 | The cockpit, Organisation tab | a static grid of boxes (C1, C2) | a hand-typed file in the founder's company folder | no: not versioned, no check |
 | sovkora `orazaka.workspace.json` and `docs/_generated/architecture.json` | the asset's repositories, modules and flows | a hand-kept manifest, and a generator that reads it | no: **0 of the 16** names they list exist since the renames of 2026-11-06 |
 | krizaka.com « how it fits », java.krizaka.com building blocks | ordered lists | manifests, at build | partly |
 | A repository's `docs/architecture/` | — | — | 0 of 36 have one |
 
-Nothing shows where we are going (there is no target anywhere), nothing is a picture one can explore, and the one hand-kept
-list drifted within a day. The prior plan (krizaka-internal#1917, 2026-10-31: a home-made `krizaka.arch/1` JSON drawn by a
+The generated current state already exists: `@krizaka/architecture` reads a checkout and gives its containers (workspaces,
+Maven modules), its components (the first folder under `src/`, with the imports between them) and the external services it
+reads (the env declarations, by context). What it lacks: the versions, the org dependencies with the version that builds them,
+the Rust and Python units, a parser for the POM (it reads XML with regexes), the tags and the links. Nothing shows where we are
+going (there is no target anywhere), nothing is a picture one can explore, and the one hand-kept list drifted within a day. The prior plan (krizaka-internal#1917, 2026-10-31: a home-made `krizaka.arch/1` JSON drawn by a
 home-made SVG `ArchitectureMap`) had no target either, wrote its own renderer, and never started.
 
 ## Options
@@ -45,11 +48,11 @@ Checked on 2026-11-07 against the npm registry and GitHub.
 | Structurizr DSL | Apache-2.0 | `structurizr/java`, `cli` and `lite` archived on 2026-02-01, folded into `structurizr/structurizr` (522 stars) | the C4 reference; smaller momentum now | Refused: a Java toolchain for a Node cockpit and CI, and a project in transition; LikeC4 keeps the same C4 vocabulary |
 | Mermaid C4 | MIT | very active (12.3.0 on 2026-11-03) | 91k stars; 84M downloads a month | Refused as the model and as the view: its C4 diagrams are documented as experimental, the layout is fixed, there are no filters or focus. Kept as an **export** (GitHub renders it, step 4.2) |
 | A generated graph drawn with React Flow (`@xyflow/react`) and laid out by ELK (`elkjs`) or dagre | MIT; ELK EPL-2.0 or GPL-3.0 (EPL-2.0 passes the licence gate); dagre MIT | React Flow 12.12.1 (2026-11-02); ELK 0.12.1 (2026-10-28); `@dagrejs/dagre` 3.1.3 (2026-10-24) | 39k stars and 66M downloads a month; 58M; 26M | **Chosen for the canvas and the facts graph.** Zoom, pan, mini-map, our own nodes and edges; ELK lays out nested C4 boundaries and re-lays out a filtered graph in the browser; dagre is weaker on nested boundaries |
-| `@krizaka/architecture` (ours) | Apache-2.0 | 0.1.0 | the cockpit only | Kept for C3 (components from the code). It is not a model of intent and has no target |
+| `@krizaka/architecture` (ours, krizaka-ts) | Apache-2.0 | 0.1.0 | the cockpit only | **Kept and extended as the one generator of the current state of a repository** (libraries first: no second generator). It is not a model of intent and has no target: that is LikeC4's part |
 | `@likec4/diagram` (LikeC4's own React renderer) | MIT | as LikeC4 | — | Refused for the cockpit: it brings Mantine and its own styles, outside `@krizaka/ui` and our tokens, and our drift and facts overlays need our own nodes |
 
-The proposed direction holds: LikeC4 for what is written by hand, a generated graph for the facts, and one
-view that combines both.
+The proposed direction holds: LikeC4 for what is written by hand, a generated graph for the facts (from `@krizaka/architecture`),
+and one view that combines both.
 
 ## Decision
 
@@ -57,7 +60,7 @@ view that combines both.
 
 | | Written by hand (intent) | Generated from `main` (facts) |
 | :-- | :-- | :-- |
-| What | the people and the external systems; the containers of a system, what each is for and how they talk; the **target**: what is planned and what is retiring, with the ADR or the issue that carries it | the repositories; their units (deployable apps, published packages, reactor modules); the versions on `main`; the latest tags; the family dependencies with the pinned version; how far each is behind the library's latest tag |
+| What | the people and the external systems; the containers of a system, what each is for and how they talk; the **target**: what is planned and what is retiring, with the ADR or the issue that carries it | per repository (`@krizaka/architecture`): its containers (deployable apps, published packages, reactor modules, crates, Python projects) with their version, the org dependencies with the version that builds them, the components and their imports, the external services; across the org (the assembler): the latest tags, how far each dependency is behind its library's latest tag, the links |
 | Where | `docs/architecture/*.c4` in the system's home repository | never committed: computed at the commit read, and recorded with it |
 | Can it lie? | yes, and that is the drift (§ 6) | no: it is what `main` holds at the recorded SHA |
 
@@ -112,11 +115,12 @@ model {
 | :-- | :-- |
 | A system's C1 and C2 (intent, current and target) | its home repository's `docs/architecture/`: the family entry's repository (`sovkora` for the 16 Sovkora repositories, `krizaka-ui` for Krizaka UI…) |
 | The org specification, the people, the externals, the platform system | this repository, `docs/architecture/` |
-| The tool (facts, parser, drift, views, verdicts) | this repository, `tools/architecture/` |
+| The generator of a repository's current state (containers, versions, org dependencies, components, external services) | krizaka-ts, `@krizaka/architecture` (one generator, used by the assembler, the CLI and any docs site) |
+| The org assembler (the joins across repositories, the tags, the LikeC4 reader, the drift, the views, the verdicts) | this repository, `tools/architecture/`: it reads no manifest itself |
 | The published result | the data branch `conformance-matrix`: `architecture/architecture.json` and `architecture/summary.md` |
 | The local result | the Mac's temporary folder (`kz-config tmp`): `architecture/architecture.json` |
 | The canvas | the cockpit first (`src/components/diagram/`, the only importer of React Flow and ELK), then `@krizaka/ui/diagram` (§ 9) |
-| Components and code (C3, C4) | the code: `@krizaka/architecture` and the code graph, linked from a container |
+| Components (C3), code (C4) | generated: `@krizaka/architecture` (C3, drawn in the cockpit under each container) and the code graph (C4) |
 
 ### 4. The lists are read, never typed
 
@@ -125,18 +129,21 @@ model {
 | The systems: assets, libraries, the company's sites | `@krizaka/org` `family`, the single source of the family and the brands, pinned in the tool's lockfile | — |
 | The repositories, active or not, and the asset each belongs to | `repos.json` (`owner`, `status`, `archived`), generated from the GitHub API | `policy.json` `apps[].repos` once step 2 of krizaka-internal#2781 lands; one reader changes (`tools/architecture/lib/sources.mjs`) |
 | The static sites | `deploy/apps.json` and each app's specification on `main` | — |
-| The units, packages, versions and dependencies | the manifests on `main`: `package.json` and the workspace file, `pom.xml` and its modules, `Cargo.toml`, `pyproject.toml` | — |
+| The units, packages, versions and dependencies | `@krizaka/architecture` on the manifests of `main`: `package.json` and the workspace file with the lockfile's version, `pom.xml` and its modules, `Cargo.toml`, `pyproject.toml`, each read with its parser | — |
 | The latest tags | the repository's tags (`@krizaka/<package>@x.y.z`, `vX.Y.Z`, calendar tags): the reference copy, or `git/matching-refs/tags` on GitHub | — |
 
-The version readers are the matrix's (`scripts/conformance-versions.mjs`: `npmPins`, `mavenPins`, `compareVersions`), imported,
-never copied, so « behind » means the same thing in the matrix and in the picture.
+A version is the one that builds the unit: the lockfile's for npm (`pnpm-lock.yaml`, `package-lock.json`), the pin otherwise,
+and for a Maven unit whose org dependency is managed, the `krizaka-bom` its parents import. « Behind » is that version against the
+library's latest tag.
 
 ### 5. The facts
 
-`architecture.json` (schema `docs/standards/architecture.schema.json`) holds, for each active repository at its `main` SHA: the
-commit and its date, the system, the kind, the visibility, the latest tag (name, address, date), the units (path, name,
-ecosystem, language, version, published or private) and each unit's family dependencies (the package, the pinned version, the
-repository that publishes it, that package's latest tag, behind or not). Then the systems, the models (each file with its
+`@krizaka/architecture` 0.2.0 (step 1.0) gives, per repository: its containers with ecosystem, language, version and published
+or private, each container's org dependencies (the package, the range, the version that builds it, development or not), its
+components and imports, its external services, as today, deterministic. `architecture.json` (schema
+`docs/standards/architecture.schema.json`) then holds, for each active repository at its `main` SHA: that output, the commit and
+its date, the system, the kind, the visibility, the latest tag (name, address), and per dependency the repository that publishes
+it, that package's latest tag and whether it is behind. Then the systems, the models (each file with its
 SHA-256, the parse errors), the drift items, the laid-out views (nodes with their position, size, kind, lifecycle, links and the
 facts they bind; edges with their route), the dependency graph and a summary. Everything is sorted and only `generatedAt` holds a
 clock: the same commits give the same bytes (tested).
@@ -181,8 +188,10 @@ same code on GitHub's copies.
 
 ### 9. The cockpit's Architecture tab
 
-- **Views**: one per asset (Sovkora, Verikora, Folioviv), the libraries, the static sites and the dependencies; C1 and C2;
-  current, target, the gap, or current and target side by side. The code-graph explorer stays, under « Code ».
+- **It replaces the « C4 from the code » tables.** Views: one per asset (Sovkora, Verikora, Folioviv), the libraries, the static
+  sites and the dependencies; C1, C2 and the generated C3 of a container; current, target, the gap, or current and target side by
+  side. A system whose home has no model yet still shows its generated current state (containers, dependencies, external services
+  from `@krizaka/architecture`); the model adds the intent and the target. The code-graph explorer stays, under « Code ».
 - **The canvas**: React Flow with our nodes and edges drawn in `@krizaka/tokens` (both themes); LikeC4's layout for the
   hand-written views, ELK for the dependency graph (re-laid out on each filter); smooth zoom and pan, focus on a node (its paths
   lit, the rest dimmed), a mini-map, a search; loaded only on this tab.
@@ -222,7 +231,7 @@ same code on GitHub's copies.
 | :-- | :-- |
 | #1917, the epic | superseded by krizaka-internal#2808 |
 | #1919, its ADR | superseded by this ADR, closed by its pull request |
-| #1920, an org model in `@krizaka/architecture` | superseded: the facts come from this repository's tool and the matrix's readers; `@krizaka/architecture` keeps C3 |
+| #1920, an org model in `@krizaka/architecture` | re-scoped to step 1.0: `@krizaka/architecture` 0.2.0 generates every repository's current state (versions, org dependencies, all ecosystems, parsers); the joins across repositories stay in the assembler |
 | #1921, repository topics and a nightly release | superseded: the daily publication on `conformance-matrix`; the lists come from `@krizaka/org` and the registry |
 | #1922, `ArchitectureMap` in `@krizaka/ui` | re-scoped to `@krizaka/ui/diagram` (step 4.1) |
 | #1923, the cockpit opens on the map | re-scoped to the cockpit's Architecture tab (step 1.4) |
@@ -236,7 +245,8 @@ Each line is one issue (one repository, one theme). S is under half a day, M up 
 
 | # | Repository | Issue | Size |
 | :-- | :-- | :-- | :-- |
-| 1.1 (krizaka-internal#2809) | .github | the tool: the org specification, facts from `main`, the LikeC4 reader, the drift, the daily publication | L |
+| 1.0 (krizaka-internal#1920) | krizaka-ts | `@krizaka/architecture` 0.2.0: every container's version and org dependencies (lockfile, BOM), Maven, Rust and Python units read with their parsers, a file-map entry point | M |
+| 1.1 (krizaka-internal#2809) | .github | the assembler: the org specification, `@krizaka/architecture` per repository, the tags and the joins, the LikeC4 reader, the drift, the daily publication | L |
 | 1.2 (krizaka-internal#2810) | .github | the `architecture-model` rule, reported | M |
 | 1.3 (krizaka-internal#2811) | krizaka-agents | the local build after each workspace sync | S |
 | 1.4 (krizaka-internal#1923) | the cockpit | the Architecture tab | L |
