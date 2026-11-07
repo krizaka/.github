@@ -14,7 +14,8 @@ export function renderSummary(arch) {
     "| :-- | :-- | :-- | :-- |",
   ];
   for (const v of arch.verdicts) {
-    const why = v.status === "unknown" ? v.why : v.items.slice(0, 3).map((i) => `${i.kind}: ${i.why}`).join("; ") + (v.items.length > 3 ? ` (+${v.items.length - 3})` : "");
+    const more = v.items.length > 3 ? ` (+${v.items.length - 3})` : "";
+    const why = v.status === "unknown" ? v.why : v.items.slice(0, 3).map((i) => `${i.kind}: ${i.why}`).join("; ") + more;
     lines.push(`| ${v.repo} | ${v.commit ? `\`${v.commit.slice(0, 7)}\`` : "—"} | ${v.status} | ${cell(why)} |`);
   }
   lines.push("", "| system | home | model | repositories bound |", "| :-- | :-- | :-- | --: |");

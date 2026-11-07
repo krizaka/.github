@@ -1,5 +1,6 @@
 // The laid-out views as the cockpit draws them (ADR-027 § 9): each node with its position, lifecycle, links and the facts
 // it binds; each edge with its route. Pure: LikeC4's laid-out views and the facts in, plain sorted objects out.
+import { globMatches } from "@krizaka/architecture";
 import { bindingOf } from "./drift.mjs";
 
 const byString = (a, b) => Number(a > b) - Number(a < b);
@@ -27,7 +28,7 @@ export function issueUrl(ref) {
 function factsOfBinding(binding, facts) {
   const repo = facts.byName.get(binding.repo);
   if (!repo) return null;
-  const units = repo.units.filter((u) => u.path === binding.path || (binding.path.includes("*") ? u.path.startsWith(binding.path.replace(/\/?\*.*$/, "")) : false) || (binding.path === "." && u.path === "."));
+  const units = repo.units.filter((u) => u.path === binding.path || (binding.path.includes("*") && globMatches(binding.path, u.path)));
   return {
     repo: repo.name,
     commit: repo.commit,
@@ -41,7 +42,9 @@ function linksOf(node, binding, facts) {
   const links = node.links.map((l) => ({ kind: "link", title: l.title ?? l.url, url: l.url }));
   if (binding) {
     const repo = facts.byName.get(binding.repo);
-    links.push({ kind: "repo", title: binding.path === "." ? binding.repo : `${binding.repo}/${binding.path}`, url: `${GH}/${binding.repo}${binding.path === "." || binding.path.includes("*") ? "" : `/tree/main/${binding.path}`}` });
+    const whole = binding.path === "." || binding.path.includes("*");
+    const where = binding.path === "." ? binding.repo : `${binding.repo}/${binding.path}`;
+    links.push({ kind: "repo", title: where, url: whole ? `${GH}/${binding.repo}` : `${GH}/${binding.repo}/tree/main/${binding.path}` });
     if (repo?.latestTag) links.push({ kind: "tag", title: repo.latestTag.name, url: repo.latestTag.url });
   }
   const adr = adrUrl(node.metadata?.adr, facts.paths);
@@ -51,7 +54,8 @@ function linksOf(node, binding, facts) {
   return links;
 }
 
-const lifecycleOf = (tags) => (tags.includes("planned") ? "planned" : tags.includes("retiring") ? "retiring" : "current");
+const LIFECYCLES = ["planned", "retiring"];
+const lifecycleOf = (tags) => LIFECYCLES.find((t) => tags.includes(t)) ?? "current";
 
 function nodeOf(n, facts, items) {
   const tags = [...(n.tags ?? [])].sort(byString);

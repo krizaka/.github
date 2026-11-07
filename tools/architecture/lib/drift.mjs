@@ -66,7 +66,10 @@ export function driftOf({ facts, elements, homes, assets }) {
     for (const unit of requiredUnits(repo)) {
       // The root is covered by any current element of the repository (the repository is in the model); a unit by its own.
       const covered = bound.some((b) => b.element.lifecycle !== "planned" && b.binding.repo === repo.name && (unit.path === "." || binds(b.binding, unit.path)) && mayBind(systemOf(b.element.id), repo, assets));
-      if (!covered) items.push(item("undocumented", repo.name, assets.has(repo.owner) ? (homes.get(repo.owner)?.repo ?? null) : null, { path: unit.path, unit: unit.name, why: `${repo.name}${unit.path === "." ? "" : `/${unit.path}`} is on main and no current element binds it` }));
+      if (covered) continue;
+      const home = assets.has(repo.owner) ? (homes.get(repo.owner)?.repo ?? null) : null;
+      const where = unit.path === "." ? repo.name : `${repo.name}/${unit.path}`;
+      items.push(item("undocumented", repo.name, home, { path: unit.path, unit: unit.name, why: `${where} is on main and no current element binds it` }));
     }
   }
   for (const { element, binding } of bound) {
