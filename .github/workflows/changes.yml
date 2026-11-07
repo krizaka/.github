@@ -20,7 +20,7 @@
 # `code` is `true` for anything that is not a pull request or a branch push (schedule, dispatch, tag, merge queue),
 # for an empty or truncated file list, and when any changed file matches `relevant` and not `ignore`. Renames count
 # on both sides. Schedules and releases therefore always run in full.
-name: changes
+name: Changed paths
 
 on:
   workflow_call:

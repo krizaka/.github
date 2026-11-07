@@ -30,7 +30,7 @@
 # PostgreSQL runs as a service of the container, reachable at host `postgres` (user, database `ci`; password `ci-only-password`).
 # Not a required check until it has been green for a week on main (krizaka/.github#375); the strengthening is the CTO's.
 # The release workflow of an app calls it with `blocking: true`; at step 6 (a real piece can enter) it blocks every PR again.
-name: visual-regression
+name: Visual regression
 
 on:
   workflow_call:

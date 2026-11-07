@@ -13,7 +13,7 @@
 # `gate` ALWAYS reports (a skipped required check ejects the merge queue) and is red when the run failed, was cancelled, or checked
 # nothing. Never skipped to get green. Known bugs are `test.fail()` with the issue linked in the test: listed in the summary, not hidden.
 # Films: Playwright's `video: "on"` for the critical project; the artifact `journeys-films` is what app-videos.yml reads.
-name: journeys
+name: Critical journeys
 
 on:
   workflow_call:

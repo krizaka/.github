@@ -36,7 +36,7 @@
 #
 # Flows tagged `manual` (a paid engine run, a system picker) do not run here; tag a flow `manual` instead of deleting it.
 # iOS (macos-latest, on main and on PRs labelled `ios`) is a second, optional job, not part of this file yet.
-name: mobile-e2e
+name: Mobile E2E
 
 on:
   workflow_call:

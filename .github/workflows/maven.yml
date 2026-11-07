@@ -34,7 +34,7 @@
 #   MAVEN_CENTRAL_USERNAME / MAVEN_CENTRAL_PASSWORD   Central Portal user token (server id `central`)
 #   MAVEN_GPG_KEY                                     ASCII-armoured private signing key
 #   MAVEN_GPG_PASSPHRASE                              its passphrase
-name: maven
+name: Maven build and publish
 
 on:
   workflow_call:

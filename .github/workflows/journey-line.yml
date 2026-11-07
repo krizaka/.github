@@ -4,7 +4,7 @@
 #   journey-line:
 #     uses: krizaka/.github/.github/workflows/journey-line.yml@<sha> # main
 #     permissions: { contents: read }
-name: journey-line
+name: Journey line
 
 on:
   workflow_call:

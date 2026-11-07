@@ -47,7 +47,7 @@
 # Once the protection requires « ci / CI gate », the shim is deleted.
 #
 # Permissions: the caller job grants `contents: read` (more is never used). The called jobs ask for nothing else.
-name: node-ci
+name: Node CI
 
 on:
   workflow_call:

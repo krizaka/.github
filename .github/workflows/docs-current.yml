@@ -9,7 +9,7 @@
 #   refresh  weekly and on demand: the blocks read from outside (rulesets and branch protection of the org's repositories, npm)
 #            are regenerated with `--remote`; when one changed, ONE pull request `chore/docs-current` is opened or updated,
 #            with the token of the Krizaka Agents app (as app-videos.yml) so that its checks run.
-name: docs-current
+name: Docs are current
 
 on:
   schedule:

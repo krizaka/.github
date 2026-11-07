@@ -21,7 +21,7 @@
 #   gate     ALWAYS reports; the required check is « ci / CI gate ».
 #
 # It verifies; it never publishes, deploys, applies or plans against real state. Permissions: contents: read.
-name: krizaka-ci
+name: Krizaka CI
 
 on:
   workflow_call:

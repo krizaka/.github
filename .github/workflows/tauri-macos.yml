@@ -20,7 +20,7 @@
 #                holds the secrets (APPLE_CERTIFICATE, APPLE_CERTIFICATE_PASSWORD, APPLE_SIGNING_IDENTITY, APPLE_API_ISSUER,
 #                APPLE_API_KEY, APPLE_API_KEY_P8, APPLE_TEAM_ID). Any other event or ref fails (gate). The .dmg is attached to
 #                the GitHub release only on a tag. Secrets are passed by name, never inherited.
-name: tauri-macos
+name: Mac app (Tauri)
 
 on:
   workflow_call:

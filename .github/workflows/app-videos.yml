@@ -21,7 +21,7 @@
 # The pull request is opened with a token minted here (actions/create-github-app-token, the org variable RELEASE_APP_ID and the
 # org secret RELEASE_APP_PRIVATE_KEY: the Krizaka Agents app, as release-please and the CLA workflow do), so its checks run;
 # with the default token GitHub does not start workflows on it. No secret to create in the caller.
-name: app-videos
+name: App videos
 
 on:
   workflow_call:

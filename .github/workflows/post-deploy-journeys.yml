@@ -17,7 +17,7 @@
 #     secrets:
 #       persona-password: ${{ secrets.JOURNEY_PERSONA_PASSWORD }}
 #       payments-test-key: ${{ secrets.JOURNEY_PAYMENTS_TEST_KEY }}    # only when needs-payments
-name: post-deploy-journeys
+name: Post-deploy journeys
 
 on:
   workflow_call:

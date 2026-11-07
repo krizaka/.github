@@ -15,7 +15,7 @@
 # `extra-packages` installs what the tests need on top (default: pytest-xdist, so `-n auto` works).
 #
 # Permissions: contents: read; nothing else is asked.
-name: python-ci
+name: Python CI
 
 on:
   workflow_call:

@@ -11,7 +11,7 @@
 # (advisories, licences, bans, sources: docs/standards/lang/deny.toml unless the crate has its own deny.toml) · tests under a timeout.
 # Inputs: runs-on (default ubuntu-latest; macos-latest for macOS-only tests), test (default true), prepare (a command run before the checks).
 # Permissions: contents: read; nothing else is asked.
-name: rust-quality
+name: Rust quality
 
 on:
   workflow_call:

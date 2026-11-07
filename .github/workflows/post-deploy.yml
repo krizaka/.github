@@ -10,7 +10,7 @@
 #     uses: krizaka/.github/.github/workflows/post-deploy.yml@<sha>
 #     permissions: { contents: read, issues: write }
 #     with: { site-url: https://www.krizaka.com, version-url: https://www.krizaka.com/, expect: "v1.4.0", indexnow-key: <32 hex>, seo-args: "--organization" }
-name: post-deploy
+name: Post-deploy check
 
 on:
   workflow_call:

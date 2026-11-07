@@ -8,7 +8,7 @@
 # assignments (docs/legal/ai-authorship.md), not by the CLA.
 #
 # krizaka/krizaka-cla-signatures exists (private, created 2026-10-26). The caller passes `secrets: inherit` (RELEASE_APP_PRIVATE_KEY).
-name: cla
+name: CLA check
 
 on:
   workflow_call:

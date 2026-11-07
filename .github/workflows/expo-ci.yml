@@ -21,7 +21,7 @@
 #   gate        ALWAYS reports (same contract as node-ci.yml): required check `ci / CI gate`.
 #
 # Permissions: contents: read everywhere; the tag build uses the EXPO_TOKEN secret, nothing else.
-name: expo-ci
+name: Expo app CI
 
 on:
   workflow_call:

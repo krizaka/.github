@@ -23,7 +23,7 @@
 #
 # It verifies; it never publishes. A repository that publishes on a v* tag keeps a `publish` job of its own, with the
 # write permissions only that job holds.
-name: java-ci
+name: Java CI
 
 on:
   workflow_call:
