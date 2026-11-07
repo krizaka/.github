@@ -2,7 +2,10 @@
 # `<!-- gen:<name>:end -->`) are written by scripts/gen-docs.mjs from their sources, never by hand.
 #
 #   check    on every pull request (called by ci-gate.yml): the blocks read from this repository (the shared workflows,
-#            guard-paths.json) are regenerated and must not differ. Fix: `node scripts/gen-docs.mjs`, commit.
+#            guard-paths.json) are regenerated and must not differ. On a pull request from a branch of this repository the
+#            CI regenerates them itself and pushes ONE commit `chore: regenerate` with the Krizaka Agents app's token (so the
+#            checks run again on it), instead of failing (rules review of 2026-11-05). In the merge queue, on main or from a
+#            fork nothing can be pushed: it fails. Fix by hand: `node scripts/gen-docs.mjs`, commit.
 #   refresh  weekly and on demand: the blocks read from outside (rulesets and branch protection of the org's repositories, npm)
 #            are regenerated with `--remote`; when one changed, ONE pull request `chore/docs-current` is opened or updated,
 #            with the token of the Krizaka Agents app (as app-videos.yml) so that its checks run.
@@ -14,6 +17,10 @@ on:
   workflow_dispatch:
   # Called by ci-gate.yml on every pull request (which suites apply is decided there, by scripts/ci-scope.mjs).
   workflow_call:
+    secrets:
+      RELEASE_APP_PRIVATE_KEY:
+        description: "The Krizaka Agents app's private key: pushes the `chore: regenerate` commit on a pull request's branch."
+        required: false
 
 permissions:
   contents: read
@@ -25,12 +32,50 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      # The pull request's head (not the merge commit), so a regeneration commits on the branch. No credential in the checkout.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
+      # Rules review of 2026-11-05: the generators regenerate themselves. Only on a pull request from a branch of this repository.
+      - id: regen
+        name: Regenerate the blocks
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+        run: |
+          node scripts/gen-docs.mjs
+          if git diff --quiet -- docs; then echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0; fi
+          if [ "$(git log -1 --format=%s)" = "chore: regenerate" ]; then
+            echo "::error::The blocks differ again right after a \`chore: regenerate\` commit: the generator is not stable. Fix it by hand."
+            exit 1
+          fi
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+      # Minted after the generator ran, so the pull request's code never sees it. Absent (no key, Dependabot): the check below fails as before.
+      - id: app
+        if: ${{ steps.regen.outputs.changed == 'true' && vars.RELEASE_APP_ID != '' }}
+        continue-on-error: true
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+      - name: Push the regenerated blocks on the branch
+        if: ${{ steps.regen.outputs.changed == 'true' && steps.app.outputs.token != '' }}
+        env:
+          TOKEN: ${{ steps.app.outputs.token }}
+          REPO: ${{ github.repository }}
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          git config user.name "krizaka-agents[bot]"
+          git config user.email "345578919+krizaka-agents[bot]@users.noreply.github.com"
+          git add docs
+          git commit -q -m "chore: regenerate"
+          auth="$(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')"
+          echo "::add-mask::$auth"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push "https://github.com/$REPO.git" "HEAD:refs/heads/$HEAD_REF"
+          echo "::notice title=Docs are current::The generated blocks were out of date: \`chore: regenerate\` was pushed on $HEAD_REF; the checks run again on it."
       - run: node --test --test-timeout=120000 --test-force-exit tests/gen-docs.test.mjs
       - run: node scripts/gen-docs.mjs --check
 

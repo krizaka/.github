@@ -112,6 +112,8 @@ jobs:
     permissions:
       contents: read
     uses: ./.github/workflows/docs-current.yml
+    secrets:
+      RELEASE_APP_PRIVATE_KEY: ${{ secrets.RELEASE_APP_PRIVATE_KEY }} # pushes `chore: regenerate` on the pull request's branch
 
   publicissues:
     name: Public issues conformance
