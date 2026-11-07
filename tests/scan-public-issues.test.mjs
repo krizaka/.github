@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { classify, inScope, renderReport, SAFE_PATH } from "../scripts/scan-public-issues.mjs";
+import { classify, inScope, isSafePath, renderReport, SAFE_PATH } from "../scripts/scan-public-issues.mjs";
 
 const NOW = Date.parse("2026-10-30T12:00:00Z");
 const DAY = 24 * 3600 * 1000;
@@ -67,4 +67,24 @@ test("SAFE_PATH lets through only this org's repos and issues endpoints", () => 
   assert.equal(SAFE_PATH.test("repos/other/x/issues"), false);
   assert.equal(SAFE_PATH.test("repos/krizaka/.x/../user/issues"), false);
   assert.equal(SAFE_PATH.test("https://evil.test/x"), false);
+});
+
+test("classify answers as it did with the regexes (characterization, ADR-026 phase D)", () => {
+  // tests/fixtures/public-issue-signals.json was recorded from the regex version: [word, as a title, three times in a body].
+  const rows = JSON.parse(readFileSync(new URL("./fixtures/public-issue-signals.json", import.meta.url), "utf8"));
+  assert.ok(rows.length > 150);
+  for (const [word, asTitle, inBody] of rows) {
+    assert.deepEqual(classify({ title: `x ${word} y` }), asTitle, `title: ${word}`);
+    assert.deepEqual(classify({ title: "t", body: `${word}. ${word}. ${word}.` }), inBody, `body: ${word}`);
+  }
+});
+
+test("isSafePath: one route, at most one query string of safe characters", () => {
+  assert.equal(isSafePath("orgs/krizaka/repos"), true);
+  assert.equal(isSafePath("orgs/krizaka/repos?"), true);
+  assert.equal(isSafePath("orgs/krizaka/repos??"), false);
+  assert.equal(isSafePath("repos/krizaka/a/issues/12?x=1&y=%20"), true);
+  assert.equal(isSafePath("repos/krizaka/a/issues/x"), false);
+  assert.equal(isSafePath("repos/krizaka/a/issues?x y"), false);
+  assert.equal(isSafePath("orgs/krizaka/repos/x"), false);
 });
