@@ -123,6 +123,19 @@
       "docs": [
         { "repo": ".github", "path": "docs/standards/policy.md" }
       ]
+    },
+    {
+      "id": "architecture",
+      "title": "Architecture as code: the org specification, a model, the assembler or the generator of the current state",
+      "when": [
+        { "repo": ".github", "globs": ["docs/architecture/**", "tools/architecture/**", "docs/standards/architecture.schema.json"] },
+        { "repo": "krizaka-ts", "globs": ["packages/architecture/**"] }
+      ],
+      "docs": [
+        { "repo": ".github", "path": "docs/standards/architecture.md" },
+        { "repo": "krizaka-ts", "path": "packages/architecture/README.md" },
+        { "local": true, "path": "cockpit: the « Architecture » view (krizaka-internal#1923)" }
+      ]
     }
   ]
 }

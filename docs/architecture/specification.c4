@@ -1,0 +1,72 @@
+// The org's one C4 vocabulary (ADR-027). The architecture tool reads every model home's files with this file and org.c4;
+// a repository never writes a specification of its own.
+//
+// An element without a lifecycle tag is current AND target. #planned: target only (it carries an `adr` or an `issue`).
+// #retiring: current only (the same). Metadata: `repo` (a repository of the registry) and `path` (a unit inside it, such as
+// `apps/web` or `packages/*`; the root when absent) bind an element to the facts read from main; `adr` and `issue` link it.
+specification {
+  element person {
+    notation 'Person'
+    style {
+      shape person
+    }
+  }
+  element system {
+    notation 'Software system'
+  }
+  element external {
+    notation 'External system'
+    style {
+      color muted
+    }
+  }
+  element container {
+    notation 'Container'
+  }
+  element app {
+    notation 'Web app'
+    style {
+      shape browser
+    }
+  }
+  element mobile {
+    notation 'Mobile or desktop app'
+    style {
+      shape mobile
+    }
+  }
+  element library {
+    notation 'Building block (package or artifacts)'
+    style {
+      shape component
+    }
+  }
+  element datastore {
+    notation 'Data store'
+    style {
+      shape storage
+    }
+  }
+  element queue {
+    notation 'Message queue'
+    style {
+      shape queue
+    }
+  }
+  element site {
+    notation 'Static site'
+    style {
+      shape browser
+    }
+  }
+
+  // The lifecycle: what changes between the current state and the target.
+  tag planned
+  tag retiring
+
+  // The groups of the family (@krizaka/org), written on the generated systems; never by hand.
+  tag asset
+  tag libraries
+  tag sites
+  tag platform
+}
