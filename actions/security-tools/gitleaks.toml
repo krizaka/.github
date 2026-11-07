@@ -41,7 +41,7 @@ description = "krizaka-java: the published test vector of the Standard Webhooks 
 paths = ['''krizaka-service-kit/krizaka-webhooks/src/test/java/com/krizaka/webhooks/WebhookSignatureTest\.java''']
 
 [[allowlists]]
-description = "sovkora (ADR-029): the history of the Sovkora repositories, imported into krizaka/sovkora, carries four test fixtures each repository had already reviewed as not credentials (2026-10-29): a header placeholder of the engine's Spring AI test, the PEM fixture of its law-review test, a pack's example key, a model key name of the web gallery. Scoped to those commits and those paths of the time"
+description = "sovkora (ADR-029): the Sovkora repositories are imported into krizaka/sovkora as one snapshot commit of their current state (founder, 2026-11-07; the histories live in the private bundles). It carries two of the four test fixtures each repository had reviewed as not credentials (2026-10-29): the PEM fixture of the engine's law-review test and a pack's example key. The other two are gone from the current state. Scoped to the snapshot commit and those two paths"
 condition = "AND"
-commits = ["804daceb694306c3798031db196f50b97e06c93c", "ebf85dde880cd794eb8e7d9e14302377805479ba", "98efc2e8a3c5e4566fee928729c05c2f070b5926", "26e7e5d2b2ed9ee9887aeea554a2fd22eab3b4d9"]
-paths = ['''orazaka-adapter-spring-ai/src/test/java/com/krizaka/orazaka/adapter/springai/CoreServicesAutoConfigurationTest\.java''', '''orazaka-tools/src/test/java/com/krizaka/orazaka/tools/infrastructure/config/LawReviewConfigurationTest\.java''', '''privacy-law25/pack\.yaml''', '''src/features/landing/utils/gallery-clips\.ts''']
+commits = ["ffc78892c048feb20bde660aaa806fc68ccc39a6"]
+paths = ['''engine/sovkora-tools/src/test/java/com/krizaka/sovkora/tools/infrastructure/config/LawReviewConfigurationTest\.java''', '''packs/privacy-law25/pack\.yaml''']
