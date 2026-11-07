@@ -7,7 +7,7 @@
 #       with:
 #         working-directory: message-authenticity/worker
 #         requirements: message-authenticity/worker/requirements.txt     # pip; or package-manager: uv (pyproject + uv.lock)
-#         lint-command: ruff check .
+#         lint-command: ruff check .                                      # a ruff configuration also runs `ruff format --check .`
 #         test-command: pytest -n auto                                    # pytest-xdist: all the runner's cores
 #
 # Jobs: changes (the changes.yml gate, fail-open) · lint and test SIDE BY SIDE (each installs from the cache: pip's wheel
@@ -191,6 +191,18 @@ jobs:
         run: |
           case "$TASK" in lint) c="$LINT" ;; test) c="$TEST" ;; *) c="" ;; esac
           if [ "$PM" = uv ]; then uv run --frozen --no-build bash -eo pipefail -c "$c"; else bash -eo pipefail -c "$c"; fi
+
+      # The formatter the pre-push hook runs (krizaka-agents tools/fmt.py), with its config discovery: a ruff configuration in the project
+      # (ruff.toml, .ruff.toml or [tool.ruff] in pyproject.toml) means `ruff format --check`. CI and the hook refuse the same files (krizaka-internal#2813).
+      - name: Format (ruff)
+        if: ${{ steps.which.outputs.run == 'true' && matrix.task == 'lint' }}
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          if [ -f ruff.toml ] || [ -f .ruff.toml ] || grep -qs '^\[tool\.ruff' pyproject.toml; then
+            if [ "$PM" = uv ]; then uv run --frozen --no-build ruff format --check .; else ruff format --check .; fi
+          else
+            echo "::notice::no ruff configuration: no format check"
+          fi
 
       - name: Collect the coverage for SonarCloud
         if: ${{ inputs.sonar && matrix.task == 'test' && steps.which.outputs.run == 'true' }}
