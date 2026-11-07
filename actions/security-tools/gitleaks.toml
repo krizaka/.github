@@ -45,3 +45,10 @@ description = "sovkora (ADR-029): the Sovkora repositories are imported into kri
 condition = "AND"
 commits = ["ffc78892c048feb20bde660aaa806fc68ccc39a6"]
 paths = ['''engine/sovkora-tools/src/test/java/com/krizaka/sovkora/tools/infrastructure/config/LawReviewConfigurationTest\.java''', '''packs/privacy-law25/pack\.yaml''']
+
+[[allowlists]]
+description = "sovkora: a pack manifest's own `key:` field is not a credential (generic-api-key reads `key: privacy-law25` as one). Scoped to that exact match in that one file, in any commit, so a squash of krizaka/sovkora#621 and any later edit of the manifest pass"
+condition = "AND"
+regexTarget = "match"
+regexes = ['''^key: privacy-law25$''']
+paths = ['''packs/privacy-law25/pack\.yaml''']
