@@ -1,6 +1,6 @@
 # Who owns what Krizaka creates — authorship, AI assistance, the human trail
 
-> Status: good-faith version, **à valider par l'avocat** (questions in [.github#250](https://github.com/krizaka/.github/issues/250)). Builds on [ADR-012](../adr/ADR-012-licensing-libraries-open-products-fair-source.md) and [ip-split.md](ip-split.md).
+> Status: good-faith version, **à valider par l'avocat** (questions in [.github#250](https://github.com/krizaka/.github/issues/250)). Builds on ADR-012 and [ip-split.md](ip-split.md).
 
 ## The chain of title
 
@@ -12,7 +12,7 @@ Krizaka can license or sell only what it owns. Each link of the chain is written
 | An employee | The employer is the first owner of works made in the course of employment (s. 13(3)); the contract adds the moral-rights waiver | Employment contract (when there is one) |
 | A subcontractor | A written assignment and a moral-rights waiver signed **before** any work (B64, [ip-split.md](ip-split.md) decision 4 and clause 6) | Private subcontracting template |
 | An external contributor to a library | Their contribution is licensed under Apache-2.0 (s. 5), with the DCO sign-off | [CONTRIBUTING.md](../../CONTRIBUTING.md) |
-| An external contributor to a product | The Krizaka CLA: a broad licence with the right to relicense | CLA PR (`needs-oussama`), [ADR-012](../adr/ADR-012-licensing-libraries-open-products-fair-source.md) §4 |
+| An external contributor to a product | The Krizaka CLA: a broad licence with the right to relicense | CLA PR (`needs-oussama`), ADR-012 §4 |
 | An AI agent directed by Oussama | See below: the human author is Oussama, and his rights are assigned to Krizaka | This page |
 
 ## AI-assisted work — Krizaka's position

@@ -132,7 +132,7 @@ How Krizaka writes Java: the `krizaka-java` skill (krizaka-agents `skills/krizak
 ## 9. Anti-slop (ADR-015)
 
 What a model tends to write and the code does not need. Each line points at the rule that refuses it
-([ADR-015](docs/adr/ADR-015-ai-code-audit-measured-and-enforced.md), [docs/standards/guards.md](docs/standards/guards.md)).
+([ADR-015](https://github.com/krizaka/krizaka-internal/blob/main/docs/adr/.github/ADR-015-ai-code-audit-measured-and-enforced.md), [docs/standards/guards.md](docs/standards/guards.md)).
 
 1. **No defensive null on `@NullMarked` code.** No `Objects.requireNonNull` or `if (x == null)` on a value the type already
    guarantees. Enforced by NullAway at compile time; a new package is `@NullMarked` (ArchUnit).
