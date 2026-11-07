@@ -8,6 +8,17 @@ test("a main without required checks is refused", () => {
   assert.deepEqual(missingRequiredChecks(["CI gate"]), ["Sonar is not a required check of main"]);
 });
 
+test("a reusable-workflow gate is reported as `ci / CI gate` and counts", () => {
+  assert.deepEqual(missingRequiredChecks(["ci / CI gate", "SonarCloud Code Analysis"], "krizaka-com"), []);
+  assert.deepEqual(missingRequiredChecks(["not a CI gate", "SonarCloud Code Analysis"], "krizaka-com"), ["CI gate is not a required check of main"]);
+});
+
+test("a repository with another legitimate gate is accepted only on that exact check", () => {
+  assert.deepEqual(missingRequiredChecks(["workspace", "SonarCloud Code Analysis"], "sovkora"), []);
+  assert.deepEqual(missingRequiredChecks(["workspace", "SonarCloud Code Analysis"], "krizaka-com"), ["CI gate is not a required check of main"]);
+  assert.deepEqual(missingRequiredChecks(["SonarCloud Code Analysis"], "sovkora"), ["CI gate is not a required check of main"]);
+});
+
 const app = `      - id: app
         uses: actions/create-github-app-token@v3
       - uses: googleapis/release-please-action@v5
