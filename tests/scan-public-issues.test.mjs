@@ -33,7 +33,7 @@ test("classify leaves plain product work alone", () => {
 test("inScope: only our apps, no PR, not marked public, opened in the window", () => {
   const since = NOW - 7 * DAY;
   assert.equal(inScope(app(), since), true);
-  assert.equal(inScope(app({ user: { login: "orazaka[bot]" } }), since), true);
+  assert.equal(inScope(app({ user: { login: "sovkora[bot]" } }), since), true);
   assert.equal(inScope(app({ user: { login: "someone" } }), since), false);
   assert.equal(inScope(app({ user: { login: "dependabot[bot]" } }), since), false);
   assert.equal(inScope(app({ pull_request: {} }), since), false);
