@@ -42,7 +42,7 @@ jobs:
           node-version: 22
 
       - id: notes
-        uses: krizaka/.github/actions/release-notes@d701b569b15617609b890102bc0be9978759909c # main
+        uses: krizaka/.github/actions/release-notes@c8426ee46246cbdd3fbfc7c9f1c6ca4b447aa368 # main
         with:
           token: ${{ github.token }}
 
