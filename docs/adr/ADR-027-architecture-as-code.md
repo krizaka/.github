@@ -220,9 +220,11 @@ same code on GitHub's copies.
 - One picture per system, current and target, readable as text in its repository and explorable in the cockpit: the founder
   sees where we are going, and the matrix proves the picture against `main`.
 - A new system or repository appears in the views without anyone typing it; a repository nobody models is a red cell.
-- Cost: one tool in this repository (two pinned dependencies, about 55 MB installed), one job beside the daily catalogue, one
-  folder per home, one canvas.
-- Risk: LikeC4 has one lead maintainer. The model files are plain C4 text, the parser sits behind one module of the tool, and
+- Cost: one assembler in this repository (`@likec4/language-services`, `@krizaka/org` and `@krizaka/architecture`, pinned; about
+  60 MB installed), one job beside the daily catalogue, one folder per home, one canvas. `@krizaka/architecture` stops being
+  dependency-free: it gains three trusted parsers (`yaml`, `smol-toml`, `fast-xml-parser`), because ADR-026 refuses a regex over a
+  structured format.
+- Risk: LikeC4 has one lead maintainer. The model files are plain C4 text, the parser sits behind one module of the assembler, and
   the exports to Mermaid, PlantUML, D2 and draw.io keep a way out.
 
 ## The prior plan (krizaka-internal#1917, 2026-10-31)
