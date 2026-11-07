@@ -135,7 +135,7 @@ jobs:
   changes:
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/changes.yml@d701b569b15617609b890102bc0be9978759909c # main
+    uses: krizaka/.github/.github/workflows/changes.yml@c8426ee46246cbdd3fbfc7c9f1c6ca4b447aa368 # main
     with:
       ignore: ${{ inputs.ignore }}
 
@@ -173,7 +173,7 @@ jobs:
           # registry-parse:end
 
       # The repository's folders stay clean (docs/standards/repo-layout.md).
-      - uses: krizaka/.github/actions/repo-layout@d701b569b15617609b890102bc0be9978759909c # main
+      - uses: krizaka/.github/actions/repo-layout@c8426ee46246cbdd3fbfc7c9f1c6ca4b447aa368 # main
 
       - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
@@ -183,7 +183,7 @@ jobs:
 
       - name: Read the Krizaka building blocks from GitHub Packages
         if: steps.registry.outputs.github == 'true'
-        uses: krizaka/.github/actions/maven-github-packages@d701b569b15617609b890102bc0be9978759909c # main
+        uses: krizaka/.github/actions/maven-github-packages@c8426ee46246cbdd3fbfc7c9f1c6ca4b447aa368 # main
         with:
           token: ${{ github.token }}
           repositories: krizaka-java
@@ -265,7 +265,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "22"
-      - uses: krizaka/.github/actions/dup-check@d701b569b15617609b890102bc0be9978759909c # main
+      - uses: krizaka/.github/actions/dup-check@c8426ee46246cbdd3fbfc7c9f1c6ca4b447aa368 # main
 
   # A docs-only change skips the heavy jobs, yet the required « SonarCloud Code Analysis » must still be posted by the SonarCloud app:
   # a light scan (checkout, no build, no tests, no coverage) does it, and its quality gate is real on the changed files (.github#330).
@@ -293,7 +293,7 @@ jobs:
       # Rules review of 2026-11-05: on a pull request only the Security rating blocks (sonar-gate.mjs reads the gate); elsewhere the full gate fails.
       - id: scan
         continue-on-error: ${{ github.event_name == 'pull_request' }}
-        uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
+        uses: SonarSource/sonarqube-scan-action@4d1dc0c91ee400dcf8a6dddf2f705ac36542e304 # v8.4.0
         env:
           SONAR_HOST_URL: https://sonarcloud.io
         with:
@@ -352,7 +352,7 @@ jobs:
       # Rules review of 2026-11-05: on a pull request only the Security rating blocks (sonar-gate.mjs reads the gate); elsewhere the full gate fails.
       - id: scan
         continue-on-error: ${{ github.event_name == 'pull_request' }}
-        uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
+        uses: SonarSource/sonarqube-scan-action@4d1dc0c91ee400dcf8a6dddf2f705ac36542e304 # v8.4.0
         env:
           SONAR_HOST_URL: https://sonarcloud.io
         with:
@@ -482,7 +482,7 @@ jobs:
           server-username: GITHUB_ACTOR
           server-password: GITHUB_TOKEN
 
-      - uses: krizaka/.github/actions/maven-github-packages@d701b569b15617609b890102bc0be9978759909c # main
+      - uses: krizaka/.github/actions/maven-github-packages@c8426ee46246cbdd3fbfc7c9f1c6ca4b447aa368 # main
         with:
           token: ${{ github.token }}
           repositories: krizaka-java

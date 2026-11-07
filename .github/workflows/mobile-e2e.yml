@@ -157,7 +157,7 @@ jobs:
     name: Changed files
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/changes.yml@d701b569b15617609b890102bc0be9978759909c # main
+    uses: krizaka/.github/.github/workflows/changes.yml@c8426ee46246cbdd3fbfc7c9f1c6ca4b447aa368 # main
     with:
       relevant: ${{ inputs.relevant }}
       ignore: ${{ inputs.ignore }}
