@@ -17,7 +17,7 @@ test("globs: ** crosses folders, * stays in one", () => {
 });
 
 test("a docs-only change needs no suite", () => {
-  assert.deepEqual(on(["README.md", "docs/adr/ADR-013-guards-and-local-sonar.md"]), []);
+  assert.deepEqual(on(["README.md", "docs/adr/README.md"]), []);
   assert.deepEqual(on(["docs/standards/ci-and-deploy.md"]), ["docs"], "a standard is checked by « docs are current »");
 });
 

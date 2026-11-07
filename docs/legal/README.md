@@ -38,7 +38,7 @@ We cite a law by its name and article; we never copy its text here. Read it at t
 
 - [`lawyer-questions.md`](lawyer-questions.md) — every open question, by topic, with the law cited.
 - [`ip-split.md`](ip-split.md) — Background IP / Foreground IP for services mandates (.github#252).
-- [`../adr/ADR-012-licensing-libraries-open-products-fair-source.md`](../adr/ADR-012-licensing-libraries-open-products-fair-source.md) — which licence for which repository (Apache-2.0 libraries, FSL products).
+- ADR-012 (internal) — which licence for which repository (Apache-2.0 libraries, FSL products).
 - [`ai-authorship.md`](ai-authorship.md) — the chain of title, AI-assisted work under *CCH* (2004 SCC 13), the human trail.
 - [`licence-audit-2026-10.md`](licence-audit-2026-10.md) — the third-party licences of the products (SBOM), the findings.
 - [`../../TRADEMARKS.md`](../../TRADEMARKS.md) — the trademark policy linked from every README.
