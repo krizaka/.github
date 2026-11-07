@@ -12,13 +12,28 @@ export const FOCUS_REPOS = [
   "sovkora", "sovkora-web", ".github",
 ];
 export const REQUIRED_CHECKS = [
-  { label: "CI gate", re: /^CI gate$/ },
+  { label: "CI gate", re: /^(?:[\w-]+ \/ )?CI gate$/ },
   { label: "Sonar", re: /sonar/i },
 ];
 
-/** @param {string[]} contexts required check names of the branch. @returns {string[]} problems. */
-export function missingRequiredChecks(contexts) {
-  return REQUIRED_CHECKS.filter(({ re }) => !contexts.some((c) => re.test(c))).map(
+/**
+ * Repositories whose always-reporting aggregate check has another name than `CI gate` (read from their branch
+ * protection and CI on 2026-11-06, krizaka-internal#2104). Exact names: anything else still fails.
+ */
+export const OWN_GATES = {
+  "krizaka-ui": "Type-check, test, build",
+  "krizaka-java": "maven / Verify (tests, javadoc, sources)",
+  sovkora: "workspace",
+  "sovkora-web": "component / verify",
+};
+
+/**
+ * `CI gate` is reported by the shared workflows as `<caller job> / CI gate` (docs/standards/ci-and-deploy.md).
+ * @param {string[]} contexts required check names of the branch. @param {string} [repo]. @returns {string[]} problems.
+ */
+export function missingRequiredChecks(contexts, repo) {
+  const own = repo && OWN_GATES[repo];
+  return REQUIRED_CHECKS.filter(({ label, re }) => !(label === "CI gate" && own ? contexts.includes(own) : contexts.some((c) => re.test(c)))).map(
     ({ label }) => `${label} is not a required check of main`,
   );
 }
@@ -58,7 +73,7 @@ async function repositoryGaps(repo, token) {
     failures.push(`${repo}: required checks unreadable or absent (HTTP ${prot.status}): main is unprotected or the token cannot read it`);
   } else {
     const contexts = [...(prot.body.contexts ?? []), ...(prot.body.checks ?? []).map((c) => c.context)];
-    failures.push(...missingRequiredChecks(contexts).map((p) => `${repo}: ${p}`));
+    failures.push(...missingRequiredChecks(contexts, repo).map((p) => `${repo}: ${p}`));
   }
   const list = await api(`repos/krizaka/${repo}/contents/.github/workflows`, token);
   for (const f of (list.body ?? []).filter((x) => /\.ya?ml$/.test(x.name))) {
