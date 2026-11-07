@@ -103,3 +103,42 @@ test("no value is free text: a string is a constant or one of a set, a number ha
     if (n.type === "integer") assert.ok(n.minimum !== undefined && n.maximum !== undefined, `${at}: bounds are required`);
   });
 });
+
+// Observability (ADR-028 §2, krizaka-internal#2819): the one place of the dev and prod Grafana consoles.
+const withEnv = (env, value) => ({ ...good, observability: { ...good.observability, environments: { ...good.observability.environments, [env]: value } } });
+
+test("observability: dev is live with its pinned console, prod is to-create without one", () => {
+  const policy = loadPolicy();
+  assert.equal(getValue(policy, "observability.provider"), "grafana-cloud");
+  assert.equal(getValue(policy, "observability.environments.dev.state"), "live");
+  assert.match(getValue(policy, "observability.environments.dev.console"), /^https:\/\/[a-z0-9-]+\.grafana\.net$/);
+  assert.equal(getValue(policy, "observability.environments.prod.state"), "to-create");
+  assert.throws(() => getValue(policy, "observability.environments.prod.console"), /no value/);
+  assert.ok(["warn", "block"].includes(getValue(policy, "observability.dashboards.enforcement")));
+});
+
+test("observability: an unknown console, a console with a path, a prod console and a free-text state are refused", () => {
+  const dev = good.observability.environments.dev;
+  assert.match(problems(schema, withEnv("dev", { ...dev, console: "https://other.grafana.net" })).join(), /must be one of/);
+  assert.match(problems(schema, withEnv("dev", { ...dev, console: `${dev.console}/d/x` })).join(), /must be one of/);
+  assert.match(problems(schema, withEnv("prod", { state: "to-create", console: dev.console })).join(), /unknown key « console »/);
+  assert.match(problems(schema, withEnv("dev", { ...dev, state: "soon" })).join(), /must be one of live, to-create/);
+});
+
+test("observability: every console of the schema is an https origin, with no path, query or credential", () => {
+  const envs = schema.properties.observability.properties.environments.properties;
+  for (const [name, env] of Object.entries(envs)) {
+    for (const origin of env.properties.console?.enum ?? []) {
+      const u = new URL(origin);
+      assert.equal(u.protocol, "https:", `${name}: https only`);
+      assert.equal(`${u.protocol}//${u.host}`, origin, `${name}: an origin, nothing after the host`);
+      assert.equal(u.username + u.password, "", `${name}: no credential`);
+    }
+  }
+});
+
+test("observability: a live environment has its console, a to-create one has none (the committed file)", () => {
+  for (const [name, env] of Object.entries(good.observability.environments)) {
+    assert.equal(env.state === "live", "console" in env, `${name}: live ⇔ console`);
+  }
+});
