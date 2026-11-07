@@ -17,5 +17,5 @@ jobs:
       contents: read
       pull-requests: write
       statuses: write
-    uses: krizaka/.github/.github/workflows/cla.yml@main
+    uses: krizaka/.github/.github/workflows/cla.yml@3768f46e08aa598952d9eb76c96c7af9d79a627a # main
     secrets: inherit

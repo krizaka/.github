@@ -103,7 +103,8 @@ describe("the workflow and its caller", () => {
   });
   it("is called by the template on the events where the description can change", () => {
     assert.ok(template.includes("  docs-map:\n"));
-    assert.ok(template.includes("uses: krizaka/.github/.github/workflows/docs-map.yml@main"));
+    // The org policy refuses a ref that is not a full commit SHA, so the template pins one and names the branch it follows.
+    assert.match(template, /uses: krizaka\/\.github\/\.github\/workflows\/docs-map\.yml@[0-9a-f]{40} # main\n/);
     assert.ok(template.includes("edited"));
   });
 });
