@@ -77,7 +77,7 @@
         "krizaka-infra": "OpenTofu stack pinned by .tool-versions that also runs tflint and checkov; krizaka-ci's iac flow (fmt, validate, test) runs neither, so moving would drop two checks.",
         "krizaka-desktop": "A Rust-only library workspace on macOS (fmt, clippy, test, generated-permissions diff); no shared Rust workflow exists (tauri-macos.yml builds apps), and its own rust.yml already ends in the standard `CI gate`.",
         "krizaka-ui": "The component library's 20 KB CI (registries, size budgets, realtime adapters, docs-site crawl and layout shards) is specialised beyond node-ci's inputs; it already uses the shared changes.yml, sonar-scan and dup-check pieces and ends in `CI gate`.",
-        "sovkora": "The Sovkora workspace root: its ci.yml IS the workspace flow (clone every repository, workspace.mjs ci) that component.yml and krizaka-ci's workspace mode derive from, so it cannot call itself."
+        "sovkora": "One repository since ADR-029: a Java reactor, four pnpm apps, a Python worker and the packs. Its one ci.yml plans the changed modules and calls the shared changes.yml, python-ci.yml, repo-layout and sonar-scan pieces; no shared workflow builds such a tree, and it ends in its `workspace` gate."
       },
       "fix": {
         "type": "manual",
@@ -175,8 +175,7 @@
         ]
       },
       "exempt": {
-        "krizaka-template-web": "A template has no journeys of its own (they are written per app, docs/standards/visual-regression.md); an app made from it adds the workflow with its first journey.",
-        "sovkora-mobile": "A React Native app: the shared workflow compares Playwright screenshots of web pages in a Linux container, which cannot render it; its journeys are Maestro flows (mobile-e2e.yml)."
+        "krizaka-template-web": "A template has no journeys of its own (they are written per app, docs/standards/visual-regression.md); an app made from it adds the workflow with its first journey."
       },
       "fix": {
         "type": "manual",
@@ -271,7 +270,7 @@
       },
       "fix": {
         "type": "manual",
-        "note": "Move krizaka-parent and krizaka-bom (sovkora-build: the krizaka.version property) to the latest krizaka-java release; the bump lands through the train."
+        "note": "Move krizaka-parent and krizaka-bom (sovkora: the krizaka.version property of build/sovkora-parent/pom.xml) to the latest krizaka-java release; the bump lands through the train."
       }
     },
     {
@@ -312,9 +311,6 @@
       "check": {
         "type": "workflow-matches",
         "pattern": "actions/expo-sdk|check-expo-sdk"
-      },
-      "exempt": {
-        "sovkora-mobile": "Expo SDK 53 and no pinned Xcode image: the guard would fail until the move to the family's SDK, which krizaka/sovkora-mobile#96 (App Store rejects build 5) carries; the guard is added in that same change."
       },
       "fix": {
         "type": "manual",
@@ -412,17 +408,13 @@
       "title": "No code name on a public surface or in a public URL: the screens, the catalogues, the built HTML, the sitemap, llms.txt and every public link say the commercial name (Verikora, Folioviv, Sovkora, Kridoc) and the commercial www domain; the code names stay in repositories, packages, coordinates and the CLI (réunion 6, 2026-11-05)",
       "issue": "krizaka/krizaka-internal#2036",
       "applies": {
-        "kinds": [
-          "site",
-          "app"
-        ],
         "onlyRepos": [
           "krizaka-com",
           "krizaka-coming-soon",
           "kridoc",
           "verikora",
           "folioviv",
-          "sovkora-web",
+          "sovkora",
           "krizaka-blog"
         ]
       },
@@ -513,10 +505,6 @@
       "applies": {
         "onlyRepos": [
           "sovkora",
-          "sovkora-web",
-          "sovkora-mobile",
-          "sovkora-cli",
-          "sovkora-contracts",
           "verikora",
           "folioviv"
         ]
@@ -620,7 +608,7 @@
         "onlyRepos": [
           "folioviv",
           "verikora",
-          "sovkora-web"
+          "sovkora"
         ]
       },
       "check": {
@@ -991,21 +979,6 @@
           "krizaka-ts",
           "krizaka-ui",
           "sovkora",
-          "sovkora-engine",
-          "sovkora-automation-service",
-          "sovkora-build",
-          "sovkora-cli",
-          "sovkora-contracts",
-          "sovkora-conversation-service",
-          "sovkora-edge-service",
-          "sovkora-job-service",
-          "sovkora-knowledge-service",
-          "sovkora-mobile",
-          "sovkora-packs",
-          "sovkora-studio-service",
-          "sovkora-ui-kit",
-          "sovkora-web",
-          "sovkora-worker-media",
           "krizaka-template-web",
           "krizaka-template-desktop",
           "verikora"
@@ -1041,17 +1014,13 @@
       "title": "No founder name on a public page: « fondée à Montréal »; his signature stays on the blog only (réunion 6, 2026-11-05)",
       "issue": "krizaka/krizaka-internal#2635",
       "applies": {
-        "kinds": [
-          "site",
-          "app"
-        ],
         "onlyRepos": [
           "krizaka-com",
           "krizaka-coming-soon",
           "kridoc",
           "verikora",
           "folioviv",
-          "sovkora-web"
+          "sovkora"
         ]
       },
       "check": {
@@ -1068,17 +1037,13 @@
       "title": "No money amount in public words: no price, no « à partir de », no « sur devis » on the public pages and the code-name sites (founder 2026-11-03, réunion 6)",
       "issue": "krizaka/krizaka-internal#2635",
       "applies": {
-        "kinds": [
-          "site",
-          "app"
-        ],
         "onlyRepos": [
           "krizaka-com",
           "krizaka-coming-soon",
           "kridoc",
           "verikora",
           "folioviv",
-          "sovkora-web"
+          "sovkora"
         ]
       },
       "check": {
@@ -1095,14 +1060,10 @@
       "title": "The code-name hosts (www.yomizaka.com, www.akinaza.com, www.orazaka.com, dev.<code>.com) are noindex: robots Disallow and X-Robots-Tag noindex, proven by the app's indexing test (réunion 6, 2026-11-05)",
       "issue": "krizaka/krizaka-internal#2635",
       "applies": {
-        "kinds": [
-          "site",
-          "app"
-        ],
         "onlyRepos": [
           "verikora",
           "folioviv",
-          "sovkora-web"
+          "sovkora"
         ]
       },
       "check": {
@@ -1145,17 +1106,13 @@
       "title": "One public status per product, the same word everywhere and equal to krizaka.com's: « En développement » Verikora and Sovkora, « En pause » Folioviv, « En conception » Kridoc (réunion 6, 2026-11-05)",
       "issue": "krizaka/krizaka-internal#2635",
       "applies": {
-        "kinds": [
-          "site",
-          "app"
-        ],
         "onlyRepos": [
           "krizaka-com",
           "krizaka-coming-soon",
           "kridoc",
           "verikora",
           "folioviv",
-          "sovkora-web"
+          "sovkora"
         ]
       },
       "check": {
@@ -1172,17 +1129,13 @@
       "title": "One contact path: « Nous écrire » / « Write to us » leads to krizaka.com/{fr|en}/contact with the topic and the source site (réunion 6, 2026-11-05)",
       "issue": "krizaka/krizaka-internal#2635",
       "applies": {
-        "kinds": [
-          "site",
-          "app"
-        ],
         "onlyRepos": [
           "krizaka-com",
           "krizaka-coming-soon",
           "kridoc",
           "verikora",
           "folioviv",
-          "sovkora-web"
+          "sovkora"
         ]
       },
       "check": {
@@ -1235,10 +1188,6 @@
       "title": "No Krizaka e-mail address on a public page of a site or an app: Support and Contact lead to the contact form of krizaka.com (kind and product in the link). Written exceptions: the privacy officer on privacy text (Quebec Act respecting the protection of personal information in the private sector, s. 3.1, as amended by Law 25: the person in charge's title and contact are published) and the data a customer publishes about itself (a Folioviv shop's own publicEmail) (founder 2026-11-06)",
       "issue": "krizaka/krizaka-internal#2764",
       "applies": {
-        "kinds": [
-          "site",
-          "app"
-        ],
         "onlyRepos": [
           "krizaka-com",
           "krizaka-coming-soon",
@@ -1246,7 +1195,7 @@
           "kridoc",
           "verikora",
           "folioviv",
-          "sovkora-web"
+          "sovkora"
         ]
       },
       "check": {

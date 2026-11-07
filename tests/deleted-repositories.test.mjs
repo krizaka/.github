@@ -19,6 +19,45 @@ test("the registry, the CI profiles and the rules target none of them", () => {
   }
 });
 
+// ADR-029 (krizaka-internal#2864): Sovkora's other 15 repositories became folders of krizaka/sovkora, the UI kit packages of
+// krizaka-ui; each is deleted after the consolidation. repos.json is generated (scripts/gen-repos.mjs) and drops them once
+// GitHub no longer lists them; the hand-maintained registries name none of them from the consolidation on.
+const SOVKORA_GONE = [
+  "sovkora-build", "sovkora-contracts", "sovkora-engine", "sovkora-edge-service", "sovkora-conversation-service",
+  "sovkora-job-service", "sovkora-knowledge-service", "sovkora-automation-service", "sovkora-studio-service",
+  "sovkora-worker-media", "sovkora-packs", "sovkora-web", "sovkora-mobile", "sovkora-cli", "sovkora-ui-kit",
+];
+
+test("no hand-maintained registry names a Sovkora repository folded into krizaka/sovkora", () => {
+  const registries = {
+    "docs/standards/ci-profiles.json": Object.keys(json("docs/standards/ci-profiles.json").repos),
+    "docs/standards/surfaces.json": Object.values(json("docs/standards/surfaces.json").products).flatMap((p) => [...p.repos, ...p.surfaces.map((s) => s.repo)]),
+    "profile/products.json": Object.values(json("profile/products.json").products).flatMap((p) => [p.repo, p.bom?.repo, ...(p.components ?? []).map((c) => c.repo)]),
+    "profile/quality.json": json("profile/quality.json").groups.flatMap((g) => g.repos),
+    "release-repos.json": json("release-repos.json").products.flatMap((p) => p.repos),
+  };
+  const rules = JSON.stringify(json("docs/standards/rules.json"));
+  const standard = read("docs/standards/repositories.md");
+  const inventory = standard.slice(standard.indexOf("## Current repository names"), standard.indexOf("## Deleted on the Sovkora consolidation"));
+  for (const gone of SOVKORA_GONE) {
+    for (const [file, names] of Object.entries(registries)) assert.ok(!names.includes(gone), `${file} names ${gone}`);
+    assert.ok(!rules.includes(`"${gone}"`), `rules.json targets ${gone}`);
+    assert.doesNotMatch(inventory, new RegExp(`\\| \`${gone}\` \\|`), `repositories.md still lists ${gone} as current`);
+    assert.match(standard, new RegExp(`\\| \`${gone}\` \\| \`(sovkora|krizaka-ui)\`, `), `repositories.md says where ${gone} went`);
+  }
+  for (const file of [
+    "profile/MEMBER_README.md",
+    "scripts/audit-guards.mjs",
+    "scripts/dev-preview-probe.mjs",
+    "scripts/gen-release-consumers.mjs",
+    "orchestration/release-consumers.json",
+    ".github/workflows/feature-surfaces.yml",
+  ]) {
+    const text = read(file);
+    for (const gone of SOVKORA_GONE) assert.doesNotMatch(text, new RegExp(`(^|[^\\w-])${gone}(?![\\w-])`), `${file} names ${gone}`);
+  }
+});
+
 test("the profile quality table lists none of them", () => {
   const repos = json("profile/quality.json").groups.flatMap((g) => g.repos);
   for (const gone of GONE) assert.ok(!repos.includes(gone), `profile/quality.json lists ${gone}`);

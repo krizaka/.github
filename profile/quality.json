@@ -2,7 +2,7 @@
   "organization": "krizaka",
   "sonarOrganization": "krizaka",
   "groups": [
-    { "label": "Products", "repos": ["verikora", "folioviv", "sovkora", "sovkora-engine", "sovkora-web", "sovkora-packs"] },
+    { "label": "Products", "repos": ["verikora", "folioviv", "sovkora"] },
     { "label": "Building blocks", "repos": ["krizaka-ui", "krizaka-ts", "krizaka-java"] },
     { "label": "Sites", "repos": ["krizaka-com", "krizaka-blog"] }
   ],

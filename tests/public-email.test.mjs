@@ -27,7 +27,9 @@ const fixture = (name) => filesOf(new URL(`./fixtures/public-email/${name}`, imp
 
 test("the rule is in the registry for the sites and apps", () => {
   assert.ok(rule);
-  assert.deepEqual(rule.applies.kinds, ["site", "app"]);
+  // onlyRepos names the sites and apps; no kind filter, since Sovkora's one repository has a Maven root (ADR-029).
+  assert.equal(rule.applies.kinds, undefined);
+  for (const repo of ["krizaka-com", "verikora", "folioviv", "sovkora"]) assert.ok(rule.applies.onlyRepos.includes(repo), repo);
   assert.match(rule.title, /Law 25/);
 });
 

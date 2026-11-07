@@ -22,7 +22,7 @@ and where the work is tracked. The public face of the organisation is the [profi
 
 | Product | Workspace | What it is | Contract |
 | :--- | :--- | :--- | :--- |
-| **Sovkora** | [`krizaka/sovkora`](https://github.com/krizaka/sovkora) — clones every component; the [`sovkora` CLI](https://github.com/krizaka/sovkora-cli) installs, starts and seeds the demo (`sovkora demo seed`) | Multimodal AI orchestration — chat, RAG, agents, image, audio, video — on **local** models, behind a deterministic interceptor pipeline | [`AGENTS.md`](https://github.com/krizaka/sovkora/blob/main/AGENTS.md) |
+| **Sovkora** | [`krizaka/sovkora`](https://github.com/krizaka/sovkora) — one repository (services, engine, clients, workers, packs); its [CLI](https://github.com/krizaka/sovkora/tree/main/apps/cli) installs, starts and seeds the demo (`npx orazaka demo seed`) | Multimodal AI orchestration — chat, RAG, agents, image, audio, video — on **local** models, behind a deterministic interceptor pipeline | [`AGENTS.md`](https://github.com/krizaka/sovkora/blob/main/AGENTS.md) |
 | **krizaka.com** | [`krizaka/krizaka-com`](https://github.com/krizaka/krizaka-com) | The site: products, demos, the single docs site, interactive architecture views — dark and light, English and French | [`AGENTS.md`](https://github.com/krizaka/krizaka-com/blob/main/AGENTS.md) |
 
 Running environments: [dev.sovkora.com](https://dev.sovkora.com), [dev.verikora.com](https://dev.verikora.com),
@@ -103,7 +103,7 @@ product) are closed; their issues live here.
 - [Contributing](https://github.com/krizaka/.github/blob/main/CONTRIBUTING.md) · [Code of conduct](https://github.com/krizaka/.github/blob/main/CODE_OF_CONDUCT.md) · [Support](https://github.com/krizaka/.github/blob/main/SUPPORT.md)
 - [Security policy](https://github.com/krizaka/.github/blob/main/SECURITY.md) — vulnerabilities are reported privately, never in an issue
 - Contracts: [krizaka-com](https://github.com/krizaka/krizaka-com/blob/main/AGENTS.md) · [sovkora](https://github.com/krizaka/sovkora/blob/main/AGENTS.md) · [krizaka-ui](https://github.com/krizaka/krizaka-ui/blob/main/AGENTS.md)
-- Run locally: Sovkora through the [`sovkora` CLI](https://github.com/krizaka/sovkora-cli)
+- Run locally: Sovkora through [its CLI](https://github.com/krizaka/sovkora/tree/main/apps/cli) (`npx orazaka start`, then `npx orazaka dev`)
 - Support policy for the packages: [`krizaka-ui/SUPPORT.md`](https://github.com/krizaka/krizaka-ui/blob/main/SUPPORT.md) — N and N-1 supported, deprecated for a full minor before removal
 
 <sub>Made in Montréal · Open by default · Sovereign by design · Apache-2.0</sub>

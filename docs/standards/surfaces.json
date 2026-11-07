@@ -7,18 +7,20 @@
         {
           "id": "web-client",
           "label": "Web client",
-          "repo": "sovkora-web"
+          "repo": "sovkora",
+          "path": "apps/web"
         },
         {
           "id": "web-admin",
           "label": "Web admin",
-          "repo": "sovkora-web",
-          "path": "src/console"
+          "repo": "sovkora",
+          "path": "apps/web/src/console"
         },
         {
           "id": "mobile",
           "label": "Mobile",
-          "repo": "sovkora-mobile"
+          "repo": "sovkora",
+          "path": "apps/mobile"
         },
         {
           "id": "mac",
@@ -29,31 +31,18 @@
         {
           "id": "cli",
           "label": "CLI",
-          "repo": "sovkora-cli"
+          "repo": "sovkora",
+          "path": "apps/cli"
         },
         {
           "id": "api-sdk",
           "label": "API/SDK",
-          "repo": "sovkora-contracts"
+          "repo": "sovkora",
+          "path": "contracts"
         }
       ],
       "repos": [
-        "sovkora",
-        "sovkora-build",
-        "sovkora-contracts",
-        "sovkora-studio-service",
-        "sovkora-engine",
-        "sovkora-conversation-service",
-        "sovkora-job-service",
-        "sovkora-knowledge-service",
-        "sovkora-automation-service",
-        "sovkora-edge-service",
-        "sovkora-worker-media",
-        "sovkora-ui-kit",
-        "sovkora-web",
-        "sovkora-mobile",
-        "sovkora-cli",
-        "sovkora-packs"
+        "sovkora"
       ]
     },
     "verikora": {

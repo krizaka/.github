@@ -65,18 +65,24 @@
       "@krizaka/ui",
       "@krizaka/webhooks"
     ],
-    "sovkora-web": [
+    "sovkora": [
       "@krizaka/a11y-audit",
+      "@krizaka/app-config",
       "@krizaka/auth",
       "@krizaka/charts",
       "@krizaka/config",
+      "@krizaka/discovery",
       "@krizaka/fonts",
+      "@krizaka/i18n",
       "@krizaka/icons",
       "@krizaka/intl",
       "@krizaka/orazaka-design-system",
       "@krizaka/orazaka-shared",
+      "@krizaka/org",
       "@krizaka/page-audit",
       "@krizaka/query",
+      "@krizaka/settings",
+      "@krizaka/storage",
       "@krizaka/tailwind",
       "@krizaka/tokens",
       "@krizaka/ui"

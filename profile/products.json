@@ -21,8 +21,8 @@
         "host": "www.sovkora.com"
       },
       "bom": {
-        "repo": "sovkora-build",
-        "file": "orazaka-parent/pom.xml",
+        "repo": "sovkora",
+        "file": "build/sovkora-parent/pom.xml",
         "property": "krizaka.version",
         "package": "com.krizaka.krizaka-bom"
       },
@@ -30,12 +30,14 @@
         {
           "label": "Web client",
           "tier": "client-web",
-          "repo": "sovkora-web"
+          "repo": "sovkora",
+          "path": "apps/web"
         },
         {
           "label": "Mobile client",
           "tier": "client-mobile",
-          "repo": "sovkora-mobile"
+          "repo": "sovkora",
+          "path": "apps/mobile"
         },
         {
           "label": "Mac app",
@@ -46,73 +48,86 @@
         {
           "label": "CLI",
           "tier": "cli",
-          "repo": "sovkora-cli"
+          "repo": "sovkora",
+          "path": "apps/cli"
         },
         {
           "label": "Web BFF",
           "tier": "bff",
-          "repo": "sovkora-web",
-          "path": "src/app/api"
+          "repo": "sovkora",
+          "path": "apps/web/src/app/api"
         },
         {
           "label": "Edge",
           "tier": "service",
-          "repo": "sovkora-edge-service"
+          "repo": "sovkora",
+          "path": "services/edge"
         },
         {
           "label": "Conversation",
           "tier": "service",
-          "repo": "sovkora-conversation-service"
+          "repo": "sovkora",
+          "path": "services/conversation"
         },
         {
           "label": "Jobs",
           "tier": "service",
-          "repo": "sovkora-job-service"
+          "repo": "sovkora",
+          "path": "services/job"
         },
         {
           "label": "Knowledge",
           "tier": "service",
-          "repo": "sovkora-knowledge-service"
+          "repo": "sovkora",
+          "path": "services/knowledge"
         },
         {
           "label": "Automation",
           "tier": "service",
-          "repo": "sovkora-automation-service"
+          "repo": "sovkora",
+          "path": "services/automation"
         },
         {
           "label": "Studio",
           "tier": "service",
-          "repo": "sovkora-studio-service"
+          "repo": "sovkora",
+          "path": "services/studio"
         },
         {
           "label": "AI engine",
           "tier": "service",
-          "repo": "sovkora-engine"
+          "repo": "sovkora",
+          "path": "engine"
         },
         {
           "label": "Media and GPU worker",
           "tier": "worker",
-          "repo": "sovkora-worker-media"
+          "repo": "sovkora",
+          "path": "workers/media"
         },
         {
           "label": "Packs",
           "tier": "worker",
-          "repo": "sovkora-packs"
+          "repo": "sovkora",
+          "path": "packs"
         },
         {
           "label": "Contracts",
           "tier": "library",
-          "repo": "sovkora-contracts"
+          "repo": "sovkora",
+          "path": "contracts"
         },
         {
           "label": "Build and BOM",
           "tier": "library",
-          "repo": "sovkora-build"
+          "repo": "sovkora",
+          "path": "build"
         },
         {
           "label": "UI kit",
           "tier": "library",
-          "repo": "sovkora-ui-kit"
+          "repo": "krizaka-ui",
+          "path": "packages/sovkora-design-system"
         }
       ]
     },

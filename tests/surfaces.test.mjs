@@ -14,8 +14,8 @@ test("the founder's surfaces per product", () => {
 });
 
 test("a product is its repositories of the krizaka organisation, named in surfaces.json", () => {
-  assert.equal(productOf("krizaka/sovkora-cli", products), "sovkora");
   assert.equal(productOf("krizaka/sovkora", products), "sovkora");
+  assert.equal(productOf("krizaka/sovkora-cli", products), null, "the old Sovkora repositories were folded into sovkora (ADR-029)");
   assert.equal(productOf("krizaka/verikora", products), "verikora");
   assert.equal(productOf("krizaka/folioviv", products), "folioviv");
   assert.equal(productOf("krizaka/krizaka-ui", products), null);
@@ -25,7 +25,7 @@ test("a product is its repositories of the krizaka organisation, named in surfac
 test("the sweep reads krizaka/<repo> for every repo of surfaces.json, never an organisation of a product", () => {
   const repos = productRepos(products);
   assert.ok(repos.length >= 3 && repos.every((r) => r.startsWith("krizaka/")), repos.join());
-  for (const r of ["krizaka/verikora", "krizaka/folioviv", "krizaka/sovkora", "krizaka/sovkora-cli"]) assert.ok(repos.includes(r), r);
+  for (const r of ["krizaka/verikora", "krizaka/folioviv", "krizaka/sovkora"]) assert.ok(repos.includes(r), r);
   const flow = readFileSync(".github/workflows/feature-surfaces.yml", "utf8");
   assert.doesNotMatch(flow, /matrix:|owner: \[/);
   assert.doesNotMatch(readFileSync("scripts/surfaces.mjs", "utf8"), /orgs\//);
@@ -34,6 +34,11 @@ test("the sweep reads krizaka/<repo> for every repo of surfaces.json, never an o
 test("Sovkora's Mac surface is apps/desktop of krizaka/sovkora", () => {
   const mac = products.sovkora.surfaces.find((s) => s.id === "mac");
   assert.deepEqual([mac.repo, mac.path], ["sovkora", "apps/desktop"]);
+});
+
+test("Sovkora is one repository: every surface is a folder of krizaka/sovkora (ADR-029)", () => {
+  assert.deepEqual(products.sovkora.repos, ["sovkora"]);
+  for (const s of products.sovkora.surfaces) assert.ok(s.repo === "sovkora" && s.path, `${s.label}: ${s.repo} ${s.path ?? ""}`);
 });
 
 const done = (lines) => `### The problem\n\nx\n\n### Surfaces\n\n${lines.join("\n")}\n\n### Privacy by design\n\nnone`;
@@ -65,7 +70,7 @@ const closed = (extra) => ({ number: 7, state: "closed", labels: [{ name: "type:
 test("the closing check: a feature of a product with a gap fails, anything else is skipped", () => {
   assert.equal(evaluate(closed(), "krizaka/verikora", products).ok, false);
   assert.equal(evaluate(closed({ body: done(verikoraDone) }), "krizaka/verikora", products).ok, true);
-  assert.equal(evaluate(closed({ type: { name: "Feature" }, labels: [] }), "krizaka/sovkora-cli", products).ok, false, "the org issue type counts");
+  assert.equal(evaluate(closed({ type: { name: "Feature" }, labels: [] }), "krizaka/sovkora", products).ok, false, "the org issue type counts");
   for (const [issue, repo] of [
     [closed({ labels: [{ name: "type:bug" }] }), "krizaka/verikora"],
     [closed(), "krizaka/krizaka-ui"],
@@ -114,4 +119,6 @@ test("the workflow reopens on close (reusable) and sweeps on a schedule, with li
   assert.match(text, /name: Feature surfaces\n/);
   assert.match(text, /surfaces\.mjs check/);
   assert.match(text, /surfaces\.mjs sweep/);
+  const tokenRepos = /repositories: (.+)\n/.exec(text)[1].split(",");
+  assert.deepEqual(tokenRepos.sort(), Object.values(products).flatMap((p) => p.repos).sort(), "the sweep's app token reaches exactly the product repositories");
 });

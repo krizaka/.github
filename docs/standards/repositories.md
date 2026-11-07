@@ -11,9 +11,13 @@ exception: it is named after the product alone, with no role suffix.
 - **Owner:** `krizaka` for shared repositories, or a product's **commercial name**: `verikora`, `folioviv`, `sovkora`
   (the engine) and `kridoc` (in design). No code name in a repository name (founder, 2026-11-06: `verikora`, `folioviv`,
   `sovkora` and `kridoc` were renamed that day). The other products left the org on 2026-10-29 (krizaka/.github#413).
-- **Product roles:** no suffix for the main repository; `web` for the web app when the main repository is an umbrella (Sovkora); `engine` for an engine product's core library; `mobile`, `desktop` or `admin` for another app; `<name>-service`
-  for a deployable backend service; `services` for the umbrella repository; `worker-<name>` for a worker; and `packs`,
-  `cli`, `contracts` or `build`.
+- **One repository per product:** a product's apps, services, workers, packs and build are folders of its main
+  repository (Verikora and Folioviv from the start; Sovkora since ADR-029, its 16 repositories became `sovkora`). A C4
+  container is a `repo` plus a `path` (ADR-027), so a folder needs no repository of its own.
+- **Product roles:** no suffix for the main repository. The roles below stay in the vocabulary for a separate repository
+  that a later ADR would justify; none is in use today: `web`; `engine` for an engine product's core library; `mobile`,
+  `desktop` or `admin` for another app; `<name>-service` for a deployable backend service; `services`; `worker-<name>` for
+  a worker; and `packs`, `cli`, `contracts` or `build`.
 - **Shared repositories:** `krizaka-<thing>`, the thing being what it is for a person (never a tool word such as `kit` or
   `build`): `krizaka-ui` (all design kits are packages there), `krizaka-ts`, `krizaka-java` (Java),
   `krizaka-com` (company site), `krizaka-blog`, `krizaka-infra` (IaC), `krizaka-lab` (the family lab) (no end-to-end repository: journeys live in each product, `e2e/journeys`); or
@@ -31,10 +35,12 @@ Never use `client`, `web-client`, `design-system` or `kit` in a repository name.
 
 ## Current repository names
 
-Inventory as of 2026-11-06, after the renames of that day (code names → commercial names, `krizaka-build` → `krizaka-java`,
-`krizaka-tauri-kit` → `krizaka-desktop`, the templates → `krizaka-template-*`, `cla-signatures` → `krizaka-cla-signatures`).
-It covers the 35 repositories; `.github` is the reserved organization profile repository and is outside this naming
-rule. GitHub redirects every old name; the old → new table is `docs/standards/renames-2026-11-06.md`.
+Inventory after the renames of 2026-11-06 (code names → commercial names, `krizaka-build` → `krizaka-java`,
+`krizaka-tauri-kit` → `krizaka-desktop`, the templates → `krizaka-template-*`, `cla-signatures` → `krizaka-cla-signatures`)
+and the Sovkora consolidation of ADR-029 (krizaka-internal#2864). It covers the 20 repositories; `.github` is the reserved
+organization profile repository and is outside this naming rule. GitHub redirects every renamed repository; the old → new
+table is `docs/standards/renames-2026-11-06.md`. A deleted repository has no redirect: see « Deleted on the Sovkora
+consolidation » below.
 
 | Repository | Current role | Status |
 | :--- | :--- | :--- |
@@ -56,23 +62,33 @@ rule. GitHub redirects every old name; the old → new table is `docs/standards/
 | `krizaka-template-web` | Template | Complies |
 | `krizaka-ts` | Shared TypeScript building blocks | Complies |
 | `krizaka-ui` | Shared design system | Complies |
-| `sovkora` | Main product repository | Complies |
-| `sovkora-automation-service` | Deployable backend service | Complies |
-| `sovkora-build` | Product build repository | Complies |
-| `sovkora-cli` | CLI | Complies |
-| `sovkora-contracts` | Contracts | Complies |
-| `sovkora-conversation-service` | Deployable backend service | Complies |
-| `sovkora-edge-service` | The HTTP edge service | Complies |
-| `sovkora-engine` | The engine's core library | Complies |
-| `sovkora-job-service` | Deployable backend service | Complies |
-| `sovkora-knowledge-service` | Deployable backend service | Complies |
-| `sovkora-mobile` | Mobile app | Complies |
-| `sovkora-packs` | Packs | Complies |
-| `sovkora-studio-service` | The Studio service (with its API and client modules) | Complies |
-| `sovkora-ui-kit` | Sovkora's UI packages | **Fold into `krizaka-ui`**, then archive |
-| `sovkora-web` | Web app | Complies |
-| `sovkora-worker-media` | Worker | Complies |
+| `sovkora` | Main product repository (Sovkora: the Java reactor, the clients, the workers, the packs and the infrastructure, one tree since ADR-029) | Complies |
 | `verikora` | Main product repository (Verikora) | Complies |
+
+## Deleted on the Sovkora consolidation
+
+ADR-029 (krizaka-internal#2864) folded Sovkora's other 15 repositories into `sovkora`, each into a folder that kept its
+history (`git log -- <folder>`), and the UI kit into `krizaka-ui` (krizaka/krizaka-ui#980). After the consolidation
+merged, each is deleted, not archived, once a verified bundle of it is kept. A deleted repository has no GitHub
+redirect: anything that still names one (a registry, a workflow, a link, a clone) points at the folder below.
+
+| Deleted repository | Now |
+| :--- | :--- |
+| `sovkora-build` | `sovkora`, `build/` (the parent POM is `build/sovkora-parent/pom.xml`) |
+| `sovkora-contracts` | `sovkora`, `contracts/` |
+| `sovkora-engine` | `sovkora`, `engine/` |
+| `sovkora-edge-service` | `sovkora`, `services/edge/` |
+| `sovkora-conversation-service` | `sovkora`, `services/conversation/` |
+| `sovkora-job-service` | `sovkora`, `services/job/` |
+| `sovkora-knowledge-service` | `sovkora`, `services/knowledge/` |
+| `sovkora-automation-service` | `sovkora`, `services/automation/` |
+| `sovkora-studio-service` | `sovkora`, `services/studio/` |
+| `sovkora-worker-media` | `sovkora`, `workers/media/` |
+| `sovkora-packs` | `sovkora`, `packs/` |
+| `sovkora-web` | `sovkora`, `apps/web/` |
+| `sovkora-mobile` | `sovkora`, `apps/mobile/` |
+| `sovkora-cli` | `sovkora`, `apps/cli/` |
+| `sovkora-ui-kit` | `krizaka-ui`, `packages/orazaka-shared/` and `packages/sovkora-design-system/` |
 
 ## Check
 

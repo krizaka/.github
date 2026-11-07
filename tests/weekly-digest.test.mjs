@@ -26,5 +26,5 @@ test("release-repos.json lists each repository once", () => {
   const { products } = JSON.parse(readFileSync(new URL("../release-repos.json", import.meta.url), "utf8"));
   const repos = products.flatMap((p) => p.repos);
   assert.equal(new Set(repos).size, repos.length);
-  assert.ok(products.some((p) => p.id === "orazaka" && p.repos.includes("sovkora-web")));
+  assert.ok(products.some((p) => p.id === "orazaka" && p.repos.join() === "sovkora"));
 });

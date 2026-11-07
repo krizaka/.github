@@ -7,7 +7,7 @@ import { checkLive } from "./check-app-links.mjs";
 
 // The products in focus.
 export const PRODUCTS = {
-  sovkora: { host: "dev.sovkora.com", admin: "admin.sovkora.com", health: ["/api/healthz", "/api/health"], signup: ["/api/auth/register"], mobile: true, repos: ["sovkora", "sovkora-web", "sovkora-ui-kit", "sovkora-mobile", "sovkora-packs", "sovkora-studio-service", "sovkora-edge-service", "sovkora-engine", "sovkora-worker-media", "sovkora-job-service", "sovkora-conversation-service", "sovkora-knowledge-service", "sovkora-automation-service", "krizaka-users", "krizaka-billing", "krizaka-notifications"], ci: "sovkora" },
+  sovkora: { host: "dev.sovkora.com", admin: "admin.sovkora.com", health: ["/api/healthz", "/api/health"], signup: ["/api/auth/register"], mobile: true, repos: ["sovkora", "krizaka-users", "krizaka-billing", "krizaka-notifications"], ci: "sovkora" },
   verikora: { host: "dev.verikora.com", admin: "admin.verikora.com", health: ["/api/healthz"], signup: ["/api/auth/sign-up"], repos: ["verikora"], ci: "verikora" },
   folioviv: { host: "dev.folioviv.com", admin: "admin.folioviv.com", health: ["/api/healthz"], signup: ["/api/auth/sign-up"], repos: ["folioviv"], ci: "folioviv" },
 };

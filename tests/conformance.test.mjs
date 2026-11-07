@@ -237,7 +237,16 @@ test("journeys: both callers and `journeys / gate` required on main; a missing o
   assert.equal((await runCheck(rule.check, snap("folioviv", "app", files))).ok, null); // offline: unknown, never pass
   const noPost = { ".github/workflows/ci.yml": call("journeys.yml") };
   assert.equal((await runCheck(rule.check, snap("folioviv", "app", noPost))).ok, false);
-  assert.deepEqual(rule.applies.onlyRepos, ["folioviv", "verikora", "sovkora-web"]);
+  assert.deepEqual(rule.applies.onlyRepos, ["folioviv", "verikora", "sovkora"]);
+});
+
+test("Sovkora is one repository (ADR-029): its public-face rules reach it although its root is a Maven reactor", async () => {
+  const rules = loadRules();
+  const sovkora = snap("sovkora", "maven", { "pom.xml": "<project/>", "apps/web/package.json": "{}" });
+  for (const id of ["commercial-names", "journeys", "feature-surfaces", "public-no-founder-name", "public-no-amount", "code-name-hosts-noindex", "product-status-word", "one-contact-path", "no-public-email", "sonar-ratchet"]) {
+    assert.equal(await appliesTo(rules.find((r) => r.id === id), sovkora), true, id);
+  }
+  assert.ok(!JSON.stringify(rules).match(/"sovkora-[a-z-]+"/), "no rule targets or exempts an old Sovkora repository");
 });
 
 test("merged-result-tested: a merge queue or strict passes, neither fails, offline proves nothing", async () => {

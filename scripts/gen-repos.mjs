@@ -28,6 +28,15 @@ export function parseStandard(markdown) {
   return rows;
 }
 
+/** The repositories the standard records as deleted (its « ## Deleted … » sections): never a row, even while GitHub still lists them. */
+export function parseDeleted(markdown) {
+  const names = new Set();
+  for (const section of markdown.split(/^(?=## )/m).filter((part) => part.startsWith("## Deleted"))) {
+    for (const m of section.matchAll(/^\| `([^`]+)` \|/gm)) names.add(m[1]);
+  }
+  return names;
+}
+
 /** The product a repository belongs to, or `krizaka` for the shared ones (templates and `.github` included). */
 export function ownerOf(name) {
   return PRODUCTS.find((product) => name === product || name.startsWith(`${product}-`)) ?? ORG;
@@ -70,12 +79,12 @@ const visibilityOf = (api) => {
 
 /**
  * The registry, sorted by name. `repositories`: what the API lists ({ name, archived, private|visibility, topics });
- * `files`: name → root entries; `standard`: parseStandard(); `apps`: deploy/apps.json. A repository of the standard the
- * API does not show is kept, as private, with what the standard knows.
+ * `files`: name → root entries; `standard`: parseStandard(); `apps`: deploy/apps.json; `deleted`: parseDeleted(). A repository
+ * of the standard the API does not show is kept, as private, with what the standard knows; a deleted one is left out.
  */
-export function buildRegistry({ repositories, files = {}, standard, apps }) {
+export function buildRegistry({ repositories, files = {}, standard, apps, deleted = new Set() }) {
   const listed = new Map(repositories.map((repository) => [repository.name, repository]));
-  const names = [...new Set([...listed.keys(), ...standard.keys()])].sort(byCodePoint);
+  const names = [...new Set([...listed.keys(), ...standard.keys()])].filter((name) => !deleted.has(name)).sort(byCodePoint);
   return names.map((name) => {
     const api = listed.get(name);
     const std = standard.get(name);
@@ -142,9 +151,9 @@ async function main(argv) {
     const root = await api(`/repos/${ORG}/${repository.name}/contents/`);
     files[repository.name] = Array.isArray(root) ? root.map((entry) => entry.name) : [];
   }
-  const standard = parseStandard(readFileSync(new URL("docs/standards/repositories.md", ROOT), "utf8"));
+  const markdown = readFileSync(new URL("docs/standards/repositories.md", ROOT), "utf8");
   const apps = JSON.parse(readFileSync(new URL("deploy/apps.json", ROOT), "utf8"));
-  const next = buildRegistry({ repositories, files, standard, apps });
+  const next = buildRegistry({ repositories, files, standard: parseStandard(markdown), apps, deleted: parseDeleted(markdown) });
   const target = new URL("repos.json", ROOT);
   if (!argv.includes("--check")) {
     writeFileSync(target, serialize(next));

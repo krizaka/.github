@@ -9,7 +9,7 @@ import { pathToFileURL } from "node:url";
 
 export const FOCUS_REPOS = [
   "krizaka-com", "krizaka-ui", "krizaka-ts", "krizaka-java", "verikora", "folioviv",
-  "sovkora", "sovkora-web", ".github",
+  "sovkora", ".github",
 ];
 export const REQUIRED_CHECKS = [
   { label: "CI gate", re: /^(?:[\w-]+ \/ )?CI gate$/ },
@@ -24,7 +24,6 @@ export const OWN_GATES = {
   "krizaka-ui": "Type-check, test, build",
   "krizaka-java": "maven / Verify (tests, javadoc, sources)",
   sovkora: "workspace",
-  "sovkora-web": "component / verify",
 };
 
 /**
