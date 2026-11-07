@@ -23,11 +23,12 @@ import { createHash } from "node:crypto";
 import { problemsOf } from "./agents-md.mjs";
 import { candidateOf, isPublicSource, publicEmailHits } from "./public-email.mjs";
 import { behind, latestOf, pinsOf, renderVersions, versionsVerdict } from "./conformance-versions.mjs";
+import { architectureCheck } from "./architecture-check.mjs";
 
 const HERE = new URL("../", import.meta.url);
 import { jobsWithoutTimeout, configWithoutTestTimeout, nodeTestWithoutTimeout } from "./check-timeouts.mjs";
 const TEST_CONFIG = /(^|\/)((playwright|vitest|jest)\.config\.[cm]?[jt]s|junit-platform\.properties)$/;
-export const CHECK_TYPES = ["path-matches", "lists-rule-ids", "manual", "workflow-calls", "workflow-matches", "workflow-forbids", "file-exists", "file-matches", "manifests-forbid", "no-mention", "no-public-email", "published-no-mention", "all-of", "any-of", "agents-template", "required-check", "merged-result", "queue-reports", "required-profile", "time-limits", "versions-current"];
+export const CHECK_TYPES = ["path-matches", "lists-rule-ids", "manual", "workflow-calls", "workflow-matches", "workflow-forbids", "file-exists", "file-matches", "manifests-forbid", "no-mention", "no-public-email", "published-no-mention", "all-of", "any-of", "agents-template", "required-check", "merged-result", "queue-reports", "required-profile", "time-limits", "versions-current", "architecture-model"];
 /** The states of a cell. `unknown` and `manual` are never counted as pass nor as fail. */
 export const STATUSES = ["pass", "fail", "unknown", "manual", "n/a"];
 /** A sort order that does not depend on the machine's locale (determinism). */
@@ -105,6 +106,7 @@ function checkShape({ id, check = {} }) {
     "merged-result": () => true,
     "queue-reports": () => true,
     "time-limits": () => true,
+    "architecture-model": () => true,
     "versions-current": () => !check.ecosystems || check.ecosystems.every((e) => ["npm", "maven"].includes(e)),
     "required-profile": () => Boolean(check.byKind && Object.values(check.byKind).every((gs) => Array.isArray(gs) && gs.every((g) => g.name && g.pattern))),
   };
@@ -359,6 +361,8 @@ const CHECKS = {
   // What the repository PUBLISHES: the latest npm tarball of each of its public packages (built CSS/JS included), not its sources.
   // A rule change reached the repository (krizaka-internal#879): no family pin older than a version out for `graceDays`.
   // `latest` is absent offline: nothing to prove.
+  // ADR-027: the repository's verdict from tools/architecture (run first in the same job), at the same commit, else unknown.
+  "architecture-model": architectureCheck,
   "versions-current": async (check, snap) => {
     if (!snap.latest) return unread("the published versions");
     return versionsVerdict(await lateOf(snap, check));

@@ -29,6 +29,10 @@ matrix lists as out of scope. There are no exceptions.
 - **The rules really reach the repositories** (krizaka-internal#879): `versions-current {ecosystems, graceDays}` is red when a repository
   still pins a family version (`@krizaka/*` on npm; `krizaka-parent` / `krizaka-bom` from the krizaka-java releases) older than one
   out for `graceDays`. `release-propagation` asks for the receiver **and** the landed bump; `maven-family-current` does it for Java.
+- **The architecture is proved too** (ADR-027, krizaka-internal#2810): `architecture-model` reads the verdict that
+  `tools/architecture` wrote for the repository in the same job (step « The architecture », before the matrix), at the same commit:
+  pass when its system's hand-written model binds it and no drift item names it; another commit, or no verdict, is `unknown`.
+  Reported, not a security rule; how to write a model: [architecture.md](architecture.md).
 - **Scheduled guards are never red in silence**: a red scheduled run of `audit-guards` opens (or comments) one issue in
   krizaka-internal, and the next green run closes it (`scripts/red-run-issue.mjs`). Any alert passes `alert-key` to `actions/alert-issue`:
   one issue per key whatever its title does (comment, reopen, or close with the green run as proof; krizaka-internal#2282).

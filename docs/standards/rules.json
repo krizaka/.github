@@ -1325,6 +1325,19 @@
         "type": "manual",
         "note": "replace the address by the contact form link (krizaka.com/<locale>/contact with kind and product, see one-contact-path); an address of ours stays only in the privacy officer's text on a privacy page, or as data a customer published about itself (a variable such as shop.publicEmail, never a literal of ours). Server-side senders, tests, seeds, scripts and SECURITY.md are not public sources"
       }
+    },
+    {
+      "id": "architecture-model",
+      "issue": "krizaka/krizaka-internal#2810",
+      "title": "Architecture as code (ADR-027): the repository is bound by its system's hand-written model (docs/architecture/*.c4 in the system's home, LikeC4, against the org specification), the model parses, and at this commit no drift item names it (undocumented, phantom, reached, gone, missing, invalid); the verdict is tools/architecture's, read at the matrix's commit. Reported, not a security rule (the « warn » step)",
+      "applies": {},
+      "check": {
+        "type": "architecture-model"
+      },
+      "fix": {
+        "type": "manual",
+        "note": "write or correct the model in the system's home repository (docs/standards/architecture.md): bind every unit main holds, drop #planned once it is on main, drop a retiring element once it is gone; check it with tools/architecture/architecture.mjs --local <reference copies> --use <home>=<worktree> --repo <repo>"
+      }
     }
   ]
 }
