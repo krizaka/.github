@@ -73,6 +73,7 @@ function checkShape({ id, check = {} }) {
     "merged-result": () => true,
     "queue-reports": () => true,
     "time-limits": () => true,
+    "format-declared": () => true,
     "versions-current": () => !check.ecosystems || check.ecosystems.every((e) => ["npm", "maven"].includes(e)),
     "required-profile": () => Boolean(check.byKind && Object.values(check.byKind).every((gs) => Array.isArray(gs) && gs.every((g) => g.name && g.pattern))),
   };

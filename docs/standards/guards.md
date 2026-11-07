@@ -102,6 +102,25 @@ every script, workflow, action, custom npm script, hook and the Mac's crons, wit
 « regex over 80 », « over 400 lines », « no header » and « copied ». It is measurement only, the guards that read it come with
 phase F of the ADR. The fields are in [automation-catalogue.md](automation-catalogue.md).
 
+## 2.4 Pre-push formats and scans (krizaka-internal#2813, 2026-11-07)
+
+A push is refused on the machine when the code is not formatted or a security check fails, the way CI would refuse it minutes
+later. The machine's one hook chain (krizaka-agents `tools/githooks/run`, set for every repository under the workspace by
+`tools/gitconfig-agents`, so a worktree made by `wt-new` has it at once) runs, in this order, before every push:
+
+1. **secrets**: gitleaks with the org's `gitleaks.toml` on the commits that leave (`secret-scan.py pre-push`);
+2. **workflows and identities**: zizmor and actionlint on the changed workflows, co-author trailers and e-mails (`git-guard.py pre-push`);
+3. **format**: the repository's own formatter on the files that leave (`fmt.py pre-push`): prettier, `ruff format`, `cargo fmt --check`,
+   `tofu fmt -check` and Spotless (Java). Nothing is declared twice: the repository's config files say which formatter applies. A
+   formatter the repository needs but the machine lacks is a refusal, with the line that installs it;
+4. the repository's fast loop (`krizaka-precheck --hook`).
+
+The rule `prepush-format-security` (warn: it fails no daily run until every repository passes, then `"security": true`) is the matrix
+side: every language of a repository has its formatter declared and run in CI (`scripts/format-declared.mjs`, so main is formatted)
+and the security scan is wired. The machine side cannot be read from GitHub; it is proved by the tests of the chain
+(`tools/git-guard.test.py`, `tools/fmt.test.py` in krizaka-agents). The repository-side chain of ADR-026 (`krizaka-hooks`, rule `hook-chain`,
+krizaka-internal#2748) replaces the machine path for a clone made by hand.
+
 ## 3. One source per rule set
 
 Every rule set has **one** home. A repo only consumes it.
