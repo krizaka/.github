@@ -39,3 +39,9 @@ paths = ['''packages/field-contentful/README\.md''']
 [[allowlists]]
 description = "krizaka-java: the published test vector of the Standard Webhooks specification (secret and message id from the spec, not a credential); the file moved with krizaka-platform-kit → krizaka-service-kit (krizaka-internal#2665)"
 paths = ['''krizaka-service-kit/krizaka-webhooks/src/test/java/com/krizaka/webhooks/WebhookSignatureTest\.java''']
+
+[[allowlists]]
+description = "sovkora (ADR-029): the history of the Sovkora repositories, imported into krizaka/sovkora, carries four test fixtures each repository had already reviewed as not credentials (2026-10-29): a header placeholder of the engine's Spring AI test, the PEM fixture of its law-review test, a pack's example key, a model key name of the web gallery. Scoped to those commits and those paths of the time"
+condition = "AND"
+commits = ["804daceb694306c3798031db196f50b97e06c93c", "ebf85dde880cd794eb8e7d9e14302377805479ba", "98efc2e8a3c5e4566fee928729c05c2f070b5926", "26e7e5d2b2ed9ee9887aeea554a2fd22eab3b4d9"]
+paths = ['''orazaka-adapter-spring-ai/src/test/java/com/krizaka/orazaka/adapter/springai/CoreServicesAutoConfigurationTest\.java''', '''orazaka-tools/src/test/java/com/krizaka/orazaka/tools/infrastructure/config/LawReviewConfigurationTest\.java''', '''privacy-law25/pack\.yaml''', '''src/features/landing/utils/gallery-clips\.ts''']
