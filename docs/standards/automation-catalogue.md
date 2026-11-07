@@ -2,7 +2,7 @@
 
 <!-- summary: What the daily automation catalogue lists, where it is published, what each field and flag means, and how to read one repository's rows. -->
 
-Founder, 2026-11-06 ([ADR-026](../adr/ADR-026-automation-strategy.md), [krizaka-internal#2755](https://github.com/krizaka/krizaka-internal/issues/2755)):
+Founder, 2026-11-06 (ADR-026, [krizaka-internal#2755](https://github.com/krizaka/krizaka-internal/issues/2755)):
 **one** catalogue of every automation of the org, **generated** from the code, **no file committed per repository**. It answers
 « what runs, where, when, who owns it, who calls it, is it tested, can a person read it » without anyone typing a fact.
 

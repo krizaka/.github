@@ -20,7 +20,7 @@ test("an invented co-author e-mail is refused, whatever the name or case, and is
 test("our bots and the founder are accepted as co-authors", () => {
   const ok = [
     commit(`feat: a\n\nCo-authored-by: krizaka-agents[bot] <${BOT}>\n`),
-    commit("feat: b\n\nCo-authored-by: orazaka <345578125+orazaka[bot]@users.noreply.github.com>\n"),
+    commit("feat: b\n\nCo-authored-by: orazaka <345578125+sovkora[bot]@users.noreply.github.com>\n"),
     commit(`feat: c\n\nCo-authored-by: Oussama <${FOUNDER}>\n`),
     commit("feat: d\n\nCo-authored-by: Oussama <7701298+oussamaABID@users.noreply.github.com>\n"),
     commit("docs: e (co-authored work is credited in the PR body)\n"),
@@ -113,4 +113,11 @@ test("the exact id+login e-mail, an unknown bot and a non-identity line pass the
     { path: ".github/workflows/x.yml", text: "          # git config user.email krizaka-agents[bot]@users.noreply.github.com" },
   ];
   assert.deepEqual(committerSourceProblems(ok), []);
+});
+
+test("a renamed app: its new login passes, its old login (kept in `retired` for history) fails a new commit", () => {
+  const ok = { sha: "a", author: "345578125+sovkora[bot]@users.noreply.github.com", committer: "noreply@github.com", message: "x\n\nCo-authored-by: sovkora-for-mac[bot] <350524889+sovkora-for-mac[bot]@users.noreply.github.com>" };
+  const old = { sha: "b", author: "345578125+orazaka[bot]@users.noreply.github.com", committer: "noreply@github.com", message: "x" };
+  assert.deepEqual(trailerProblems([ok]), []);
+  assert.ok(trailerProblems([old]).length > 0);
 });

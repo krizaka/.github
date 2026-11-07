@@ -5,5 +5,20 @@
     "prCapPerLane": 5,
     "capScope": "lane-per-repository",
     "fixMainExempt": true
+  },
+  "observability": {
+    "provider": "grafana-cloud",
+    "dashboards": {
+      "enforcement": "warn"
+    },
+    "environments": {
+      "dev": {
+        "state": "live",
+        "console": "https://purplesturgeon2768.grafana.net"
+      },
+      "prod": {
+        "state": "to-create"
+      }
+    }
   }
 }

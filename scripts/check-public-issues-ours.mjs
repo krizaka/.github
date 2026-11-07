@@ -10,7 +10,7 @@ export const ORG = "krizaka";
 export const INTERNAL = "krizaka-internal";
 export const TRACKING_LABEL = "conformance-public-issues";
 /** Our identities: the founder's login, the two apps, the workflows' bot. Anyone else is the public and stays public. */
-export const OURS = new Set(["oussamaabid", "wu-sama", "krizaka-agents[bot]", "orazaka[bot]", "github-actions[bot]"]);
+export const OURS = new Set(["oussamaabid", "wu-sama", "krizaka-agents[bot]", "sovkora[bot]", "github-actions[bot]"]);
 
 /** Whether an open issue (REST shape) is ours: not a pull request, opened by one of OURS. */
 export function isOurs(issue) {

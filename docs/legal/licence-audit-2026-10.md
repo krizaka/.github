@@ -1,6 +1,6 @@
 # Third-party licence audit — 2026-10-26
 
-> Status: good-faith reading of the SBOMs, **à valider par l'avocat** (.github#250). Policy: [ADR-012](../adr/ADR-012-licensing-libraries-open-products-fair-source.md) §6, enforced by [`actions/licence-check`](../../actions/licence-check/) (`policy.json`).
+> Status: good-faith reading of the SBOMs, **à valider par l'avocat** (.github#250). Policy: ADR-012 §6, enforced by [`actions/licence-check`](../../actions/licence-check/) (`policy.json`).
 
 ## Method
 

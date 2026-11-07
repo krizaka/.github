@@ -2,7 +2,7 @@
 
 <!-- summary: Secrets and workflow flaws caught at the earliest stage: gitleaks and zizmor in a pre-commit hook and in CI. -->
 
-One source (krizaka/.github), every repository consumes it ([ADR-013](../adr/README.md), issues #324 and #325).
+One source (krizaka/.github), every repository consumes it (ADR-013, issues #324 and #325).
 
 | Stage | Secrets | Workflows |
 |---|---|---|

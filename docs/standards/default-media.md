@@ -4,11 +4,11 @@
 
 > Rule (Oussama, 2026-10-26): **Default media URLs (avatars, banners, logos) come from the Krizaka org JSON — never hard-coded or bundled in an app.**
 > Issues: [krizaka-ts#134](https://github.com/krizaka/krizaka-ts/issues/134), [verikora#433](https://github.com/krizaka/verikora/issues/433).
-> Storage is the admin's choice ([ADR-010](../adr/ADR-010-krizaka-storage.md)); the deployed environments use Bunny.
+> Storage is the admin's choice (ADR-010); the deployed environments use Bunny.
 
 ## What it means
 
-- The default pictures of the family live in **one place**: Bunny `org/v1/defaults/<kind>/<id>-<size>.<ext>` ([ADR-014](../adr/ADR-014-bunny-org-cdn-and-apps.md); `defaults/v1/` until the move lands) (kinds `person`, `folder`,
+- The default pictures of the family live in **one place**: Bunny `org/v1/defaults/<kind>/<id>-<size>.<ext>` (ADR-014; `defaults/v1/` until the move lands) (kinds `person`, `folder`,
   `organisation`, `shop`, `banner`), written by one script, krizaka-ui `tools/export-defaults.mjs` (layout: krizaka-com `scripts/bunny-layout.mjs`).
 - Their **catalogue is the `defaults` section of `https://krizaka-assets.b-cdn.net/org/v1/org.json`** (`@krizaka/org`): per kind, the items with
   an id, an alt text in English and French, and the URLs per size and format, plus the deterministic rule.
