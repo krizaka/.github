@@ -1,0 +1,25 @@
+[
+ {
+  "date": "2026-11-07",
+  "units": 1164,
+  "byKind": {
+   "CI check": 467,
+   "agent hook": 43,
+   "cron": 51,
+   "deploy": 72,
+   "dev tool": 196,
+   "generator": 67,
+   "git hook": 21,
+   "library": 239,
+   "one-off": 8
+  },
+  "flags": {
+   "nothingCalls": 194,
+   "noTest": 51,
+   "regexOver80": 37,
+   "overSize": 22,
+   "noHeader": 33,
+   "copied": 35
+  }
+ }
+]
