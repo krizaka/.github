@@ -39,3 +39,16 @@ paths = ['''packages/field-contentful/README\.md''']
 [[allowlists]]
 description = "krizaka-java: the published test vector of the Standard Webhooks specification (secret and message id from the spec, not a credential); the file moved with krizaka-platform-kit → krizaka-service-kit (krizaka-internal#2665)"
 paths = ['''krizaka-service-kit/krizaka-webhooks/src/test/java/com/krizaka/webhooks/WebhookSignatureTest\.java''']
+
+[[allowlists]]
+description = "sovkora (ADR-029): the Sovkora repositories are imported into krizaka/sovkora as one snapshot commit of their current state (founder, 2026-11-07; the histories live in the private bundles). It carries two of the four test fixtures each repository had reviewed as not credentials (2026-10-29): the PEM fixture of the engine's law-review test and a pack's example key. The other two are gone from the current state. Scoped to the snapshot commit and those two paths"
+condition = "AND"
+commits = ["ffc78892c048feb20bde660aaa806fc68ccc39a6"]
+paths = ['''engine/sovkora-tools/src/test/java/com/krizaka/sovkora/tools/infrastructure/config/LawReviewConfigurationTest\.java''', '''packs/privacy-law25/pack\.yaml''']
+
+[[allowlists]]
+description = "sovkora: a pack manifest's own `key:` field is not a credential (generic-api-key reads `key: privacy-law25` as one). Scoped to that exact match in that one file, in any commit, so a squash of krizaka/sovkora#621 and any later edit of the manifest pass"
+condition = "AND"
+regexTarget = "match"
+regexes = ['''^key: privacy-law25$''']
+paths = ['''packs/privacy-law25/pack\.yaml''']
