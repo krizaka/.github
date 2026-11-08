@@ -29,7 +29,7 @@ This is the standard behind [ADR-007](../adr/ADR-007-shared-rules.md) (krizaka/.
 | ArchUnit governance tests | 33 | 33 | local wiring of two libraries | krizaka-*: `CodeRules`/`ArchitectureRules` (krizaka-java `krizaka-test-support`); sovkora-*: `GovernanceRules` (sovkora-build `sovkora-test-support`, 1,181 lines, 17 rule names duplicated from `CodeRules`) |
 | `archunit_store/` (`FrozenRules`) | 6 | — | **truly local** (frozen debt) | sovkora-automation-service, sovkora-conversation-service, sovkora-job-service, krizaka-java (users core and persistence, platform-kit notifications) |
 | Spotless, OpenRewrite | 1 | 1 | **shared already** | `krizaka-parent/pom.xml:83-91,185-187` |
-| Rust (`cargo fmt`, `clippy -D warnings`) | — | — | shared within the Tauri kit's workflow | krizaka-desktop `.github/workflows/rust.yml:24-25` |
+| Rust (`cargo fmt`, `clippy -D warnings`) | — | — | shared within the Tauri kit's workflow | krizaka-rust `.github/workflows/rust.yml:24-25` |
 | Python (`ruff check .`) | 1 config | — | **shared already** (workflow input) | `python-ci.yml:10,48`, 5 callers; config `sovkora-worker-media/pyproject.toml:14-30` |
 | `copilot-setup-steps.yml` | 15 | 2 | copy | 14 Java/Sovkora repositories |
 | AGENTS.md « Static rules » section | 21 | 7 | **restated**, 511 lines | every repository above |
@@ -70,7 +70,7 @@ A repository declares one or more profiles. A monorepo declares one per folder: 
 | `next-app` (product or site) | verikora, folioviv, the former products, sovkora-web `apps/web` or root, krizaka-com, krizaka-template-web | `ts-library`, plus ESLint `krizakaNext` + `krizakaUi()` + `noLocaleTernary()`, plus ast-grep `no-hand-made-nav`, `no-hand-made-language-switch`, `no-raw-inner-html` (from krizaka-com) |
 | `site` (public docs or blog) | krizaka-ui `apps/site`, krizaka-ts `site/`, krizaka-java `site/`, krizaka-blog, a former product `site/` | `next-app`, plus the SEO family check (`krizaka-rules seo-family`) |
 | `expo-app` | sovkora-mobile, former repositories, the products' `apps/mobile` | `ts-library`, plus ESLint for React Native, plus `no-hand-made-tab-bar` (from a former product), plus the charter §6 rules as they become rules |
-| `tauri-app` | krizaka-desktop, krizaka-template-desktop | its front end: `next-app` or `ts-library`; its Rust: `cargo fmt --check` and `clippy -D warnings` (`rust.yml:24-25`), unchanged |
+| `tauri-app` | krizaka-rust, krizaka-template-desktop | its front end: `next-app` or `ts-library`; its Rust: `cargo fmt --check` and `clippy -D warnings` (`rust.yml:24-25`), unchanged |
 | `java-block` | krizaka-java (with its users and platform-kit folders), krizaka-billing, krizaka-notifications (libraries), sovkora-contracts, sovkora-build | `krizaka-parent` (Spotless, OpenRewrite dry run, javadoc, enforcer); `KrizakaRules.buildingBlock(classes)` (`CodeRules` + `ArchitectureRules` + `ConfigBindingRules` + `SourceRules`) |
 | `java-service` | sovkora-engine, sovkora-automation-service, sovkora-conversation-service, sovkora-edge-service, sovkora-job-service, sovkora-knowledge-service, sovkora-studio-service, and the `*-service` modules of users, billing, notifications | `java-block`, plus `KrizakaRules.service(classes)` (layers, `@Transactional` only on services, configuration only in config). Sovkora's own rules stay in `sovkora-test-support`. |
 | `python-worker` | sovkora-worker-media, sovkora-packs | `ruff check .` (through `python-ci.yml`) with the repository's `[tool.ruff]` |

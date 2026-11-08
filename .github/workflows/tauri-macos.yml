@@ -1,4 +1,4 @@
-# The CI and the release of a Krizaka macOS app (Tauri 2, krizaka-desktop; ADR-005). Reusable: a product's
+# The CI and the release of a Krizaka macOS app (Tauri 2, krizaka-rust; ADR-005). Reusable: a product's
 # .github/workflows/desktop.yml calls it and keeps its own triggers and permissions:
 #
 #   on: { pull_request: { paths: ["apps/desktop/**"] }, push: { tags: ["v*"] } }

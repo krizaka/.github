@@ -113,9 +113,9 @@
       "status": "Complies"
     },
     {
-      "name": "krizaka-desktop",
+      "name": "krizaka-rust",
       "owner": "krizaka",
-      "role": "Shared Tauri crate",
+      "role": "Shared Rust crates (Tauri desktop)",
       "team": "krizaka",
       "kind": "rust",
       "deploy": [],

@@ -72,7 +72,7 @@
     "krizaka-lab": ["library"],
     "krizaka-notifications": ["java-service"],
     "krizaka-qa": ["org"],
-    "krizaka-desktop": ["library"],
+    "krizaka-rust": ["library"],
     "krizaka-ts": ["library"],
     "krizaka-ui": ["library", "docs"],
     "sovkora": ["java-service"],

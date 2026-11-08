@@ -44,7 +44,7 @@ test("kind: root files first, then topics, then the role", () => {
   assert.equal(kindOf({ name: "krizaka-infra", files: ["main.tf"] }), "iac");
   assert.equal(kindOf({ name: "krizaka-infra", files: [], role: "Shared infrastructure as code" }), "iac");
   assert.equal(kindOf({ name: "sovkora-worker-media", files: ["pyproject.toml"] }), "python");
-  assert.equal(kindOf({ name: "krizaka-desktop", files: ["Cargo.toml"] }), "rust");
+  assert.equal(kindOf({ name: "krizaka-rust", files: ["Cargo.toml"] }), "rust");
   assert.equal(kindOf({ name: "krizaka-ui", files: ["package.json"], topics: ["npm-package", "react"], deploy: ["krizaka-ui-site"] }), "npm");
   assert.equal(kindOf({ name: "krizaka-com", files: ["package.json", "next.config.ts"] }), "site");
   assert.equal(kindOf({ name: "folioviv", files: ["package.json"], topics: ["nextjs"] }), "app");

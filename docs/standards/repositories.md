@@ -32,7 +32,7 @@ Never use `client`, `web-client`, `design-system` or `kit` in a repository name.
 ## Current repository names
 
 Inventory as of 2026-11-06, after the renames of that day (code names → commercial names, `krizaka-build` → `krizaka-java`,
-`krizaka-tauri-kit` → `krizaka-desktop`, the templates → `krizaka-template-*`, `cla-signatures` → `krizaka-cla-signatures`).
+`krizaka-tauri-kit` → `krizaka-rust`, the templates → `krizaka-template-*`, `cla-signatures` → `krizaka-cla-signatures`).
 It covers the 35 repositories; `.github` is the reserved organization profile repository and is outside this naming
 rule. GitHub redirects every old name; the old → new table is `docs/standards/renames-2026-11-06.md`.
 
@@ -46,7 +46,7 @@ rule. GitHub redirects every old name; the old → new table is `docs/standards/
 | `krizaka-com` | Shared company site | Complies |
 | `krizaka-coming-soon` | The coming-soon pages of the products' commercial domains (www.verikora.com, www.folioviv.com, www.sovkora.com), static sites in the DigitalOcean team krizaka-prod, until each product opens there | Complies |
 | `krizaka-composer` | Shared visual page editor: the Krizaka fork of Puck (`@krizaka/composer`) | Complies |
-| `krizaka-desktop` | Shared Tauri crate | Complies |
+| `krizaka-rust` | Shared Tauri crate | Complies |
 | `krizaka-infra` | Shared infrastructure as code | Complies |
 | `krizaka-internal` | Internal issues and notes (private) | **Paused** (issues only, no code: out of the matrix) |
 | `krizaka-java` | Shared Java build | Complies |

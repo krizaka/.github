@@ -13,7 +13,7 @@ const POM = `<project><properties><krizaka.version>0.7.1</krizaka.version></prop
 <dependency><groupId>com.krizaka</groupId><artifactId>krizaka-security</artifactId></dependency>
 <dependency><groupId>com.krizaka</groupId><artifactId>krizaka-users-api</artifactId><version>0.6.0</version></dependency>
 <dependency><groupId>org.other</groupId><artifactId>x</artifactId></dependency></dependencies></project>`;
-const CARGO = `[package]\nname = "app"\nauthors = ["Krizaka"]\n[dependencies]\nkrizaka-tauri-kit = { version = "0.3", git = "https://github.com/krizaka/krizaka-desktop", tag = "v0.3.0" }\nkrizaka-local = { path = "../local" }\nserde = "1"\n`;
+const CARGO = `[package]\nname = "app"\nauthors = ["Krizaka"]\n[dependencies]\nkrizaka-tauri-kit = { version = "0.3", git = "https://github.com/krizaka/krizaka-rust", tag = "v0.3.0" }\nkrizaka-local = { path = "../local" }\nserde = "1"\n`;
 const TREE = [
   { path: "apps/web/package.json", type: "blob", size: 1 }, { path: "apps/web/app/page.tsx", type: "blob", size: 900 }, { path: "apps/web/app/api/x/route.ts", type: "blob", size: 100 },
   { path: "apps/desktop/src-tauri/Cargo.toml", type: "blob", size: 1 }, { path: "apps/desktop/src-tauri/main.rs", type: "blob", size: 500 }, { path: "apps/desktop/src/app.ts", type: "blob", size: 1000 },
@@ -152,7 +152,7 @@ test("Maven: only com.krizaka modules; a managed one uses the BOM version, an ex
 });
 
 test("Rust: krizaka crates with the git tag as version, path crates are the workspace's own; Python: pinned krizaka packages", () => {
-  assert.deepEqual(parseCargoDeps(CARGO), [{ name: "krizaka-tauri-kit", used: "0.3.0", repo: "krizaka/krizaka-desktop" }]);
+  assert.deepEqual(parseCargoDeps(CARGO), [{ name: "krizaka-tauri-kit", used: "0.3.0", repo: "krizaka/krizaka-rust" }]);
   assert.deepEqual(parsePythonDeps("krizaka-worker-kit==0.2.0\nnumpy==2.0.0\n"), [{ name: "krizaka-worker-kit", used: "0.2.0" }]);
 });
 
