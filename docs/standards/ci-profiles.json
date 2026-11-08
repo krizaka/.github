@@ -67,7 +67,7 @@
     "krizaka-java": ["library", "docs"],
     "krizaka-com": ["site"],
     "krizaka-coming-soon": ["site"],
-    "krizaka-composer": ["library"],
+    "krizaka-ui-builder": ["library"],
     "krizaka-infra": ["infra"],
     "krizaka-lab": ["library"],
     "krizaka-notifications": ["java-service"],

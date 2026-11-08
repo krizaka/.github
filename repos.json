@@ -102,9 +102,9 @@
       "status": "Complies"
     },
     {
-      "name": "krizaka-composer",
+      "name": "krizaka-ui-builder",
       "owner": "krizaka",
-      "role": "Shared visual page editor: the Krizaka fork of Puck (`@krizaka/composer`)",
+      "role": "Shared visual page editor: the Krizaka fork of Puck (`@krizaka/ui-builder`)",
       "team": "krizaka",
       "kind": "npm",
       "deploy": [],
