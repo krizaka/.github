@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { missingRequiredChecks, releaseTokenProblems } from "../scripts/audit-guards.mjs";
+import { missingRequiredChecks, releaseTokenProblems, noassertionProblems } from "../scripts/audit-guards.mjs";
 
 test("a main without required checks is refused", () => {
   assert.equal(missingRequiredChecks([]).length, 2);
@@ -35,3 +35,17 @@ test("release-please with the workflow token alone is refused", () => {
 test("changesets without an app step is refused", () =>
   assert.equal(releaseTokenProblems("      - uses: changesets/action@v2\n        with:\n          github-token: x\n").length, 1));
 test("a workflow that is not a release one is ignored", () => assert.deepEqual(releaseTokenProblems("run: echo"), []));
+
+test("a public repo with NOASSERTION fails", () => {
+  assert.equal(noassertionProblems("some-lib", "NOASSERTION").length, 1);
+});
+test("a public repo with a recognised licence passes", () => {
+  assert.deepEqual(noassertionProblems("some-lib", "Apache-2.0"), []);
+  assert.deepEqual(noassertionProblems("some-lib", "MIT"), []);
+});
+test("FSL repos are exempt from NOASSERTION (GitHub cannot classify FSL-1.1-ALv2)", () => {
+  assert.deepEqual(noassertionProblems("sovkora", "NOASSERTION"), []);
+});
+test("a null spdx_id is not NOASSERTION and does not fail", () => {
+  assert.deepEqual(noassertionProblems("some-lib", null), []);
+});
