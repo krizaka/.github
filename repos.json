@@ -106,10 +106,10 @@
       "owner": "krizaka",
       "role": "Shared visual page editor: the Krizaka fork of Puck (`@krizaka/composer`)",
       "team": "krizaka",
-      "kind": "npm",
+      "kind": "none",
       "deploy": [],
-      "archived": false,
-      "visibility": "public",
+      "archived": null,
+      "visibility": "private",
       "status": "Complies"
     },
     {
@@ -181,22 +181,11 @@
       "status": "Paused (issues only, no code: out of the matrix)"
     },
     {
-      "name": "krizaka-template-desktop",
+      "name": "krizaka-template",
       "owner": "krizaka",
-      "role": "Template",
+      "role": "Cross-platform template: web, desktop and mobile targets",
       "team": "krizaka",
-      "kind": "app",
-      "deploy": [],
-      "archived": false,
-      "visibility": "public",
-      "status": "Complies"
-    },
-    {
-      "name": "krizaka-template-web",
-      "owner": "krizaka",
-      "role": "Template",
-      "team": "krizaka",
-      "kind": "app",
+      "kind": "npm",
       "deploy": [],
       "archived": false,
       "visibility": "public",
@@ -229,6 +218,17 @@
       "status": "Complies"
     },
     {
+      "name": "krizaka-ui-builder",
+      "owner": "krizaka",
+      "role": null,
+      "team": "krizaka",
+      "kind": "npm",
+      "deploy": [],
+      "archived": false,
+      "visibility": "public",
+      "status": "Not in the standard"
+    },
+    {
       "name": "sovkora",
       "owner": "sovkora",
       "role": "Main product repository",
@@ -246,10 +246,10 @@
       "owner": "sovkora",
       "role": "Deployable backend service",
       "team": "sovkora",
-      "kind": "maven",
+      "kind": "none",
       "deploy": [],
-      "archived": false,
-      "visibility": "public",
+      "archived": null,
+      "visibility": "private",
       "status": "Complies"
     },
     {
@@ -257,10 +257,10 @@
       "owner": "sovkora",
       "role": "Product build repository",
       "team": "sovkora",
-      "kind": "maven",
+      "kind": "none",
       "deploy": [],
-      "archived": false,
-      "visibility": "public",
+      "archived": null,
+      "visibility": "private",
       "status": "Complies"
     },
     {
@@ -268,10 +268,10 @@
       "owner": "sovkora",
       "role": "CLI",
       "team": "sovkora",
-      "kind": "npm",
+      "kind": "none",
       "deploy": [],
-      "archived": false,
-      "visibility": "public",
+      "archived": null,
+      "visibility": "private",
       "status": "Complies"
     },
     {
@@ -279,10 +279,10 @@
       "owner": "sovkora",
       "role": "Contracts",
       "team": "sovkora",
-      "kind": "maven",
+      "kind": "none",
       "deploy": [],
-      "archived": false,
-      "visibility": "public",
+      "archived": null,
+      "visibility": "private",
       "status": "Complies"
     },
     {
@@ -290,10 +290,10 @@
       "owner": "sovkora",
       "role": "Deployable backend service",
       "team": "sovkora",
-      "kind": "maven",
+      "kind": "none",
       "deploy": [],
-      "archived": false,
-      "visibility": "public",
+      "archived": null,
+      "visibility": "private",
       "status": "Complies"
     },
     {
@@ -301,10 +301,10 @@
       "owner": "sovkora",
       "role": "The HTTP edge service",
       "team": "sovkora",
-      "kind": "maven",
+      "kind": "none",
       "deploy": [],
-      "archived": false,
-      "visibility": "public",
+      "archived": null,
+      "visibility": "private",
       "status": "Complies"
     },
     {
@@ -312,10 +312,10 @@
       "owner": "sovkora",
       "role": "The engine's core library",
       "team": "sovkora",
-      "kind": "maven",
+      "kind": "none",
       "deploy": [],
-      "archived": false,
-      "visibility": "public",
+      "archived": null,
+      "visibility": "private",
       "status": "Complies"
     },
     {
@@ -323,10 +323,10 @@
       "owner": "sovkora",
       "role": "Deployable backend service",
       "team": "sovkora",
-      "kind": "maven",
+      "kind": "none",
       "deploy": [],
-      "archived": false,
-      "visibility": "public",
+      "archived": null,
+      "visibility": "private",
       "status": "Complies"
     },
     {
@@ -334,10 +334,10 @@
       "owner": "sovkora",
       "role": "Deployable backend service",
       "team": "sovkora",
-      "kind": "maven",
+      "kind": "none",
       "deploy": [],
-      "archived": false,
-      "visibility": "public",
+      "archived": null,
+      "visibility": "private",
       "status": "Complies"
     },
     {
@@ -347,8 +347,8 @@
       "team": "sovkora",
       "kind": "app",
       "deploy": [],
-      "archived": false,
-      "visibility": "public",
+      "archived": null,
+      "visibility": "private",
       "status": "Complies"
     },
     {
@@ -356,10 +356,10 @@
       "owner": "sovkora",
       "role": "Packs",
       "team": "sovkora",
-      "kind": "npm",
+      "kind": "none",
       "deploy": [],
-      "archived": false,
-      "visibility": "public",
+      "archived": null,
+      "visibility": "private",
       "status": "Complies"
     },
     {
@@ -367,10 +367,10 @@
       "owner": "sovkora",
       "role": "The Studio service (with its API and client modules)",
       "team": "sovkora",
-      "kind": "maven",
+      "kind": "none",
       "deploy": [],
-      "archived": false,
-      "visibility": "public",
+      "archived": null,
+      "visibility": "private",
       "status": "Complies"
     },
     {
@@ -378,10 +378,10 @@
       "owner": "sovkora",
       "role": "Sovkora's UI packages",
       "team": "sovkora",
-      "kind": "npm",
+      "kind": "none",
       "deploy": [],
-      "archived": false,
-      "visibility": "public",
+      "archived": null,
+      "visibility": "private",
       "status": "Fold into krizaka-ui, then archive",
       "foldInto": "krizaka-ui"
     },
@@ -392,8 +392,8 @@
       "team": "sovkora",
       "kind": "app",
       "deploy": [],
-      "archived": false,
-      "visibility": "public",
+      "archived": null,
+      "visibility": "private",
       "status": "Complies"
     },
     {
@@ -401,10 +401,10 @@
       "owner": "sovkora",
       "role": "Worker",
       "team": "sovkora",
-      "kind": "python",
+      "kind": "none",
       "deploy": [],
-      "archived": false,
-      "visibility": "public",
+      "archived": null,
+      "visibility": "private",
       "status": "Complies"
     },
     {

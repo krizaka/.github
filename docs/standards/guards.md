@@ -71,7 +71,7 @@ Two PRs green on an old base can turn `main` red once both merge (verikora: lint
 
 <!-- gen:queue-state:start -->
 - **On the merge queue (6):** `folioviv`, `krizaka-com`, `krizaka-composer`, `krizaka-ts`, `krizaka-ui`, `verikora`.
-- **Not on the merge queue yet (26; the Strict column of the table above says which keep strict up-to-date branches):** `.github`, `krizaka-billing`, `krizaka-blog`, `krizaka-java`, `krizaka-infra`, `krizaka-lab`, `krizaka-notifications`, `krizaka-desktop`, `sovkora`, `sovkora-engine`, `sovkora-automation-service`, `sovkora-build`, `sovkora-cli`, `sovkora-contracts`, `sovkora-conversation-service`, `sovkora-edge-service`, `sovkora-job-service`, `sovkora-knowledge-service`, `sovkora-mobile`, `sovkora-packs`, `sovkora-studio-service`, `sovkora-ui-kit`, `sovkora-web`, `sovkora-worker-media`, `krizaka-template-web`, `krizaka-template-desktop`.
+- **Not on the merge queue yet (24; the Strict column of the table above says which keep strict up-to-date branches):** `.github`, `krizaka-billing`, `krizaka-blog`, `krizaka-java`, `krizaka-infra`, `krizaka-lab`, `krizaka-notifications`, `krizaka-desktop`, `sovkora`, `sovkora-engine`, `sovkora-automation-service`, `sovkora-build`, `sovkora-cli`, `sovkora-contracts`, `sovkora-conversation-service`, `sovkora-edge-service`, `sovkora-job-service`, `sovkora-knowledge-service`, `sovkora-mobile`, `sovkora-packs`, `sovkora-studio-service`, `sovkora-ui-kit`, `sovkora-web`, `sovkora-worker-media`.
 <!-- gen:queue-state:end -->
 
 ## 2.2 « A fix needs a guard » recognises a lowered ratchet

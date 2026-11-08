@@ -175,7 +175,7 @@
         ]
       },
       "exempt": {
-        "krizaka-template-web": "A template has no journeys of its own (they are written per app, docs/standards/visual-regression.md); an app made from it adds the workflow with its first journey.",
+        "krizaka-template": "A template has no journeys of its own (they are written per app, docs/standards/visual-regression.md); an app made from it adds the workflow with its first journey.",
         "sovkora-mobile": "A React Native app: the shared workflow compares Playwright screenshots of web pages in a Linux container, which cannot render it; its journeys are Maestro flows (mobile-e2e.yml)."
       },
       "fix": {
@@ -1006,8 +1006,7 @@
           "sovkora-ui-kit",
           "sovkora-web",
           "sovkora-worker-media",
-          "krizaka-template-web",
-          "krizaka-template-desktop",
+          "krizaka-template",
           "verikora"
         ]
       },

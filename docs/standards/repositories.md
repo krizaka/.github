@@ -21,7 +21,7 @@ exception: it is named after the product alone, with no role suffix.
   `composer` (Krizaka Composer, the Krizaka fork of Puck published as `@krizaka/composer`: the visual page editor,
   folioviv ADR-010). Company repositories: `krizaka-agents`, `krizaka-internal`, `krizaka-restricted`,
   `krizaka-cla-signatures`, `krizaka-coming-soon`.
-- **Templates:** `krizaka-template-<target>` (`web`, `desktop`).
+- **Templates:** `krizaka-template` (one repository; choose the target with `--target web|desktop|mobile`).
 
 This is a closed role vocabulary. A new product or shared capability must be added to this standard and the name checker
 before its repository name is considered compliant.
@@ -33,7 +33,8 @@ Never use `client`, `web-client`, `design-system` or `kit` in a repository name.
 
 Inventory as of 2026-11-06, after the renames of that day (code names → commercial names, `krizaka-build` → `krizaka-java`,
 `krizaka-tauri-kit` → `krizaka-desktop`, the templates → `krizaka-template-*`, `cla-signatures` → `krizaka-cla-signatures`).
-It covers the 35 repositories; `.github` is the reserved organization profile repository and is outside this naming
+Updated 2026-11-08: `krizaka-template-web` and `krizaka-template-desktop` merged into `krizaka-template` (krizaka-internal#2936); the old repos transferred to `oussamaABID`, private and archived.
+It covers the 34 repositories; `.github` is the reserved organization profile repository and is outside this naming
 rule. GitHub redirects every old name; the old → new table is `docs/standards/renames-2026-11-06.md`.
 
 | Repository | Current role | Status |
@@ -52,8 +53,7 @@ rule. GitHub redirects every old name; the old → new table is `docs/standards/
 | `krizaka-java` | Shared Java build | Complies |
 | `krizaka-lab` | The family lab: UI, motion, Java, AI and data experiments; publishes nothing (formerly krizaka-motion) | Complies |
 | `krizaka-restricted` | Restricted issues (founder and company bots only) | **Paused** (issues only, no code: out of the matrix) |
-| `krizaka-template-desktop` | Template | Complies |
-| `krizaka-template-web` | Template | Complies |
+| `krizaka-template` | Cross-platform template: web, desktop and mobile targets | Complies |
 | `krizaka-ts` | Shared TypeScript building blocks | Complies |
 | `krizaka-ui` | Shared design system | Complies |
 | `sovkora` | Main product repository | Complies |

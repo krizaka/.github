@@ -92,8 +92,7 @@
     "sovkora-web": ["app-web"],
     "sovkora-worker-media": ["worker"],
     "template-expo-app": ["app-mobile"],
-    "krizaka-template-web": ["app-web"],
-    "krizaka-template-desktop": ["app-desktop"],
+    "krizaka-template": ["library"],
     "verikora": ["app-web", "app-mobile", "app-desktop"]
   }
 }
