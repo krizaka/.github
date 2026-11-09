@@ -7,6 +7,8 @@ const SHARED_REPOSITORIES = new Set([
   "krizaka-ui",
   "krizaka-ts",
   "krizaka-java",
+  "krizaka-rust",
+  "krizaka-ui-builder",
   "krizaka-com",
   "krizaka-blog",
   "krizaka-infra",
