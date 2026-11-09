@@ -175,8 +175,7 @@
         ]
       },
       "exempt": {
-        "krizaka-template-web": "A template has no journeys of its own (they are written per app, docs/standards/visual-regression.md); an app made from it adds the workflow with its first journey.",
-        "sovkora-mobile": "A React Native app: the shared workflow compares Playwright screenshots of web pages in a Linux container, which cannot render it; its journeys are Maestro flows (mobile-e2e.yml)."
+        "krizaka-template-web": "A template has no journeys of its own (they are written per app, docs/standards/visual-regression.md); an app made from it adds the workflow with its first journey."
       },
       "fix": {
         "type": "manual",
@@ -271,7 +270,7 @@
       },
       "fix": {
         "type": "manual",
-        "note": "Move krizaka-parent and krizaka-bom (sovkora-build: the krizaka.version property) to the latest krizaka-java release; the bump lands through the train."
+        "note": "Move krizaka-parent and krizaka-bom (build/: the krizaka.version property in krizaka/sovkora) to the latest krizaka-java release; the bump lands through the train."
       }
     },
     {
@@ -314,7 +313,7 @@
         "pattern": "actions/expo-sdk|check-expo-sdk"
       },
       "exempt": {
-        "sovkora-mobile": "Expo SDK 53 and no pinned Xcode image: the guard would fail until the move to the family's SDK, which krizaka/sovkora-mobile#96 (App Store rejects build 5) carries; the guard is added in that same change."
+        "sovkora": "Expo SDK 53 and no pinned Xcode image: the guard would fail until the move to the family's SDK, which krizaka/sovkora (apps/mobile, ex krizaka/sovkora#96) carries; the guard is added in that same change."
       },
       "fix": {
         "type": "manual",
@@ -422,7 +421,7 @@
           "kridoc",
           "verikora",
           "folioviv",
-          "sovkora-web",
+          "sovkora",
           "krizaka-blog"
         ]
       },
@@ -513,10 +512,6 @@
       "applies": {
         "onlyRepos": [
           "sovkora",
-          "sovkora-web",
-          "sovkora-mobile",
-          "sovkora-cli",
-          "sovkora-contracts",
           "verikora",
           "folioviv"
         ]
@@ -620,7 +615,7 @@
         "onlyRepos": [
           "folioviv",
           "verikora",
-          "sovkora-web"
+          "sovkora"
         ]
       },
       "check": {
@@ -991,21 +986,6 @@
           "krizaka-ts",
           "krizaka-ui",
           "sovkora",
-          "sovkora-engine",
-          "sovkora-automation-service",
-          "sovkora-build",
-          "sovkora-cli",
-          "sovkora-contracts",
-          "sovkora-conversation-service",
-          "sovkora-edge-service",
-          "sovkora-job-service",
-          "sovkora-knowledge-service",
-          "sovkora-mobile",
-          "sovkora-packs",
-          "sovkora-studio-service",
-          "sovkora-ui-kit",
-          "sovkora-web",
-          "sovkora-worker-media",
           "krizaka-template-web",
           "krizaka-template-desktop",
           "verikora"
@@ -1051,7 +1031,7 @@
           "kridoc",
           "verikora",
           "folioviv",
-          "sovkora-web"
+          "sovkora"
         ]
       },
       "check": {
@@ -1078,7 +1058,7 @@
           "kridoc",
           "verikora",
           "folioviv",
-          "sovkora-web"
+          "sovkora"
         ]
       },
       "check": {
@@ -1102,7 +1082,7 @@
         "onlyRepos": [
           "verikora",
           "folioviv",
-          "sovkora-web"
+          "sovkora"
         ]
       },
       "check": {
@@ -1155,7 +1135,7 @@
           "kridoc",
           "verikora",
           "folioviv",
-          "sovkora-web"
+          "sovkora"
         ]
       },
       "check": {
@@ -1182,7 +1162,7 @@
           "kridoc",
           "verikora",
           "folioviv",
-          "sovkora-web"
+          "sovkora"
         ]
       },
       "check": {
@@ -1200,11 +1180,21 @@
       "title": "Every repository runs the docs-map check: a pull request that changes what docs-map.json lists updates the documents of its category, or says « Docs: <link> » or « Docs: not needed, <why> » (ADR-026, founder 2026-11-06). Rolled out in warn mode, then required",
       "issue": "krizaka/krizaka-internal#2759",
       "applies": {
-        "kinds": ["npm", "site", "app", "maven", "python", "rust", "iac"]
+        "kinds": [
+          "npm",
+          "site",
+          "app",
+          "maven",
+          "python",
+          "rust",
+          "iac"
+        ]
       },
       "check": {
         "type": "workflow-calls",
-        "workflows": ["docs-map.yml"]
+        "workflows": [
+          "docs-map.yml"
+        ]
       },
       "fix": {
         "type": "copy",
@@ -1246,7 +1236,7 @@
           "kridoc",
           "verikora",
           "folioviv",
-          "sovkora-web"
+          "sovkora"
         ]
       },
       "check": {
