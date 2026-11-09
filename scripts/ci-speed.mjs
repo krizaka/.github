@@ -136,8 +136,7 @@ export function render(rows, { days }) {
   if (sorted.some((r) => r.jobs?.length)) {
     lines.push("", "#### Slowest jobs (p90, minutes; last 20 runs sampled)", "");
     for (const r of sorted.filter((r) => r.jobs?.length)) {
-      lines.push(`**${r.repo} — ${r.event}**`);
-      lines.push("| Job | p50 | p90 | Runs |", "| :--- | --: | --: | --: |");
+      lines.push(`**${r.repo} — ${r.event}**`, "| Job | p50 | p90 | Runs |", "| :--- | --: | --: | --: |");
       for (const j of r.jobs.slice(0, 10)) lines.push(`| ${j.name} | ${j.p50} | ${j.p90} | ${j.n} |`);
       lines.push("");
     }
@@ -175,6 +174,21 @@ async function jobsOf(org, repo, run_id) {
     .filter((j) => j.seconds >= 0);
 }
 
+/** Bounded collection of job timings: sample the last MAX_JOB_RUNS eligible runs per event and fetch their jobs. */
+async function collectJobs(org, repoName, runs) {
+  const jobMap = new Map();
+  for (const event of EVENTS) {
+    const sampled = runs
+      .filter((r) => r.event === event && r.status === "completed" && r.conclusion !== "cancelled" && r.conclusion !== "skipped" && (r.run_attempt ?? 1) === 1)
+      .sort((a, b) => Date.parse(b.run_started_at) - Date.parse(a.run_started_at))
+      .slice(0, MAX_JOB_RUNS);
+    for (const run of sampled) {
+      if (!jobMap.has(run.id)) jobMap.set(run.id, await jobsOf(org, repoName, run.id));
+    }
+  }
+  return jobMap;
+}
+
 async function main() {
   const argv = process.argv.slice(2);
   const arg = (name, fallback) => (argv.includes(name) ? argv[argv.indexOf(name) + 1] : fallback);
@@ -197,20 +211,7 @@ async function main() {
   for (const repoName of repos.map((r) => r.name).sort((a, b) => a.localeCompare(b))) {
     const runs = [];
     for (const event of EVENTS) runs.push(...(await runsOf(org, repoName, event, since)));
-    let jobMap = null;
-    if (withJobs) {
-      // Bounded collection: sample the last MAX_JOB_RUNS eligible runs per event and fetch their jobs.
-      jobMap = new Map();
-      for (const event of EVENTS) {
-        const sampled = runs
-          .filter((r) => r.event === event && r.status === "completed" && r.conclusion !== "cancelled" && r.conclusion !== "skipped" && (r.run_attempt ?? 1) === 1)
-          .sort((a, b) => Date.parse(b.run_started_at) - Date.parse(a.run_started_at))
-          .slice(0, MAX_JOB_RUNS);
-        for (const run of sampled) {
-          if (!jobMap.has(run.id)) jobMap.set(run.id, await jobsOf(org, repoName, run.id));
-        }
-      }
-    }
+    const jobMap = withJobs ? await collectJobs(org, repoName, runs) : null;
     rows.push(...measure(repoName, runs, cfg, jobMap));
   }
   console.log(argv.includes("--json") ? JSON.stringify(rows, null, 2) : render(rows, { days }));
