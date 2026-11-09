@@ -2,7 +2,8 @@
 // How long does a pull request, and a merge queue entry, wait for its checks? (ADR-018, the speed budgets)
 //
 //   node scripts/ci-speed.mjs [--org krizaka] [--days 7] [--json] [--fail-over-budget]
-//   node scripts/ci-speed.mjs --from rows.json     render rows measured earlier (no network)
+//   node scripts/ci-speed.mjs --jobs            also collect per-job timing (bounded: last MAX_JOB_RUNS runs sampled)
+//   node scripts/ci-speed.mjs --from rows.json  render rows measured earlier (no network)
 //
 // For each public repository of the organisation, the workflow runs of the last `--days` days are read from the REST API
 // (never GraphQL: its quota is shared by every session). The feedback time of one head commit for one event
@@ -13,6 +14,9 @@ import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 
 export const EVENTS = ["pull_request", "merge_group"];
+
+/** Cap on run_id calls for per-job timing: the last MAX_JOB_RUNS eligible runs per repo per event. */
+export const MAX_JOB_RUNS = 20;
 
 /** The value at percentile `p` (0..1) of a list of numbers (nearest rank); null for an empty list. */
 export function percentile(values, p) {
@@ -70,8 +74,27 @@ export function usualSlowest(times) {
   return [...count.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
 }
 
-/** One row per repository and event: { repo, event, n, p50, p90, budget, over, slowest } (minutes, one decimal). */
-export function measure(repo, runs, cfg) {
+/**
+ * Per-job P90 statistics from sampled job arrays: [{ name, p50, p90, n }] sorted by p90 descending.
+ * jobSamples: [{ name, seconds }][]  (one array per sampled run; each job appears at most once per run)
+ */
+export function perJobStats(jobSamples) {
+  const byName = new Map();
+  for (const sample of jobSamples) {
+    for (const j of sample) {
+      const list = byName.get(j.name) ?? [];
+      list.push(j.seconds);
+      byName.set(j.name, list);
+    }
+  }
+  const min = (s) => Math.round(s / 6) / 10;
+  return [...byName.entries()]
+    .map(([name, secs]) => ({ name, p50: min(percentile(secs, 0.5)), p90: min(percentile(secs, 0.9)), n: secs.length }))
+    .sort((a, b) => b.p90 - a.p90);
+}
+
+/** One row per repository and event: { repo, event, n, p50, p90, budget, over, slowest, jobs? } (minutes, one decimal). */
+export function measure(repo, runs, cfg, jobMap = null) {
   const budgets = budgetsFor(repo, cfg);
   const rows = [];
   for (const event of EVENTS) {
@@ -81,7 +104,16 @@ export function measure(repo, runs, cfg) {
     const min = (s) => Math.round(s / 6) / 10;
     const p90 = min(percentile(secs, 0.9));
     const budget = budgets[event] ?? null;
-    rows.push({ repo, event, n: times.length, p50: min(percentile(secs, 0.5)), p90, budget, over: budget !== null && p90 > budget, slowest: usualSlowest(times) });
+    const row = { repo, event, n: times.length, p50: min(percentile(secs, 0.5)), p90, budget, over: budget !== null && p90 > budget, slowest: usualSlowest(times) };
+    if (jobMap) {
+      const sampled = runs
+        .filter((r) => r.event === event && r.status === "completed" && r.conclusion !== "cancelled" && r.conclusion !== "skipped" && (r.run_attempt ?? 1) === 1)
+        .sort((a, b) => Date.parse(b.run_started_at) - Date.parse(a.run_started_at))
+        .slice(0, MAX_JOB_RUNS);
+      const samples = sampled.map((r) => jobMap.get(r.id) ?? []).filter((s) => s.length);
+      if (samples.length) row.jobs = perJobStats(samples);
+    }
+    rows.push(row);
   }
   return rows;
 }
@@ -101,6 +133,15 @@ export function render(rows, { days }) {
     "| :--- | :--- | --: | --: | --: | --: | :-: | :--- |",
     ...sorted.map((r) => `| ${r.repo} | ${r.event} | ${r.n} | ${r.p50} | ${r.p90} | ${r.budget ?? "—"} | ${r.over ? "over" : "ok"} | ${r.slowest ?? ""} |`),
   ];
+  if (sorted.some((r) => r.jobs?.length)) {
+    lines.push("", "#### Slowest jobs (p90, minutes; last 20 runs sampled)", "");
+    for (const r of sorted.filter((r) => r.jobs?.length)) {
+      lines.push(`**${r.repo} — ${r.event}**`);
+      lines.push("| Job | p50 | p90 | Runs |", "| :--- | --: | --: | --: |");
+      for (const j of r.jobs.slice(0, 10)) lines.push(`| ${j.name} | ${j.p50} | ${j.p90} | ${j.n} |`);
+      lines.push("");
+    }
+  }
   return lines.join("\n");
 }
 
@@ -125,6 +166,15 @@ async function runsOf(org, repo, event, since) {
   return out;
 }
 
+/** Job timings for one run: [{ name, seconds }]. Completed non-skipped jobs only; at most 100 (one page). */
+async function jobsOf(org, repo, run_id) {
+  const { jobs = [] } = await api(`/repos/${org}/${repo}/actions/runs/${run_id}/jobs?per_page=100`);
+  return jobs
+    .filter((j) => j.status === "completed" && j.conclusion !== "skipped" && j.started_at && j.completed_at)
+    .map((j) => ({ name: j.name, seconds: (Date.parse(j.completed_at) - Date.parse(j.started_at)) / 1000 }))
+    .filter((j) => j.seconds >= 0);
+}
+
 async function main() {
   const argv = process.argv.slice(2);
   const arg = (name, fallback) => (argv.includes(name) ? argv[argv.indexOf(name) + 1] : fallback);
@@ -134,6 +184,7 @@ async function main() {
     console.log(render(JSON.parse(readFileSync(arg("--from"), "utf8")), { days }));
     return;
   }
+  const withJobs = argv.includes("--jobs");
   const cfg = JSON.parse(readFileSync(new URL("../docs/standards/ci-profiles.json", import.meta.url), "utf8"));
   const since = new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
   const repos = [];
@@ -143,10 +194,24 @@ async function main() {
     if (batch.length < 100) break;
   }
   const rows = [];
-  for (const repo of repos.map((r) => r.name).sort((a, b) => a.localeCompare(b))) {
+  for (const repoName of repos.map((r) => r.name).sort((a, b) => a.localeCompare(b))) {
     const runs = [];
-    for (const event of EVENTS) runs.push(...(await runsOf(org, repo, event, since)));
-    rows.push(...measure(repo, runs, cfg));
+    for (const event of EVENTS) runs.push(...(await runsOf(org, repoName, event, since)));
+    let jobMap = null;
+    if (withJobs) {
+      // Bounded collection: sample the last MAX_JOB_RUNS eligible runs per event and fetch their jobs.
+      jobMap = new Map();
+      for (const event of EVENTS) {
+        const sampled = runs
+          .filter((r) => r.event === event && r.status === "completed" && r.conclusion !== "cancelled" && r.conclusion !== "skipped" && (r.run_attempt ?? 1) === 1)
+          .sort((a, b) => Date.parse(b.run_started_at) - Date.parse(a.run_started_at))
+          .slice(0, MAX_JOB_RUNS);
+        for (const run of sampled) {
+          if (!jobMap.has(run.id)) jobMap.set(run.id, await jobsOf(org, repoName, run.id));
+        }
+      }
+    }
+    rows.push(...measure(repoName, runs, cfg, jobMap));
   }
   console.log(argv.includes("--json") ? JSON.stringify(rows, null, 2) : render(rows, { days }));
   if (argv.includes("--fail-over-budget") && rows.some((r) => r.over)) process.exit(1);
