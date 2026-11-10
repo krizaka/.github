@@ -220,6 +220,10 @@ on:
         description: "Timeout of the verify job (the container and e2e jobs get the same)."
         type: number
         default: 25
+      runs-on:
+        description: 'Runner of the verify job, as JSON (a private repository: ["self-hosted","macOS","krizaka"], krizaka-internal#3027). Default: the GitHub-hosted runner. A public repository never sets it: a fork pull request would run on the self-hosted machine. The job must not need Docker or a service container on macOS.'
+        type: string
+        default: '"ubuntu-latest"'
     secrets:
       SONAR_TOKEN:
         description: "SonarCloud token (the org secret). Required when `sonar` is true; never printed."
@@ -327,7 +331,7 @@ jobs:
     name: ${{ matrix.task == 'all' && 'Verify' || format('Verify ({0})', matrix.task) }}
     needs: [changes, plan]
     if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(inputs.runs-on) }}
     timeout-minutes: ${{ inputs.timeout-minutes }}
     strategy:
       fail-fast: false
