@@ -62,17 +62,32 @@ test("fails open: an unreachable API, a bad pattern, a bad hook all run everythi
 const releasePat = "^(package\\.json|CHANGELOG\\.md|package-lock\\.json|\\.release-please-manifest\\.json)$";
 const releaseFiles = JSON.stringify(["package.json", "CHANGELOG.md", "package-lock.json", ".release-please-manifest.json"]);
 
-test("a release-only pull request is skipped when every file matches release-files", () => {
-  assert.equal(gate({ EVENT: "pull_request", RELEASE_FILES: releasePat, GATE_TEST_FILES: releaseFiles }), "false");
+const releaseBranch = "release-please--branches--main--components--krizaka-com";
+
+test("a release pull request is skipped when every file matches release-files", () => {
+  assert.equal(gate({ EVENT: "pull_request", HEAD_REF: releaseBranch, RELEASE_FILES: releasePat, GATE_TEST_FILES: releaseFiles }), "false");
+  assert.equal(gate({ EVENT: "pull_request", HEAD_REF: "changeset-release/main", RELEASE_FILES: releasePat, GATE_TEST_FILES: releaseFiles }), "false");
 });
 
-test("a PR with one non-release file is not skipped even if the rest are release files", () => {
+test("a release pull request with one other file is not skipped", () => {
   const mixed = JSON.stringify(["package.json", "CHANGELOG.md", "src/index.ts"]);
-  assert.equal(gate({ EVENT: "pull_request", RELEASE_FILES: releasePat, GATE_TEST_FILES: mixed }), "true");
+  assert.equal(gate({ EVENT: "pull_request", HEAD_REF: releaseBranch, RELEASE_FILES: releasePat, GATE_TEST_FILES: mixed }), "true");
+});
+
+test("the same files on any other branch run everything (a dependency bump needs its tests)", () => {
+  const bump = JSON.stringify(["package.json", "package-lock.json"]);
+  for (const HEAD_REF of ["dependabot/npm_and_yarn/all-1", "wip/x", "my-release-please--branch", ""]) {
+    assert.equal(gate({ EVENT: "pull_request", HEAD_REF, RELEASE_FILES: releasePat, GATE_TEST_FILES: bump }), "true", HEAD_REF);
+  }
 });
 
 test("merge_group runs in full even when every file matches release-files", () => {
-  assert.equal(gate({ EVENT: "merge_group", RELEASE_FILES: releasePat, GATE_TEST_FILES: releaseFiles }), "true");
+  assert.equal(gate({ EVENT: "merge_group", HEAD_REF: releaseBranch, RELEASE_FILES: releasePat, GATE_TEST_FILES: releaseFiles }), "true");
+});
+
+test("release-files fails open on a bad pattern, and is inert when not set", () => {
+  assert.equal(gate({ EVENT: "pull_request", HEAD_REF: releaseBranch, RELEASE_FILES: "(", GATE_TEST_FILES: releaseFiles }), "true");
+  assert.equal(gate({ EVENT: "pull_request", HEAD_REF: releaseBranch, GATE_TEST_FILES: releaseFiles }), "true");
 });
 
 test("the workflow is callable, pinned, and documents the fail-open `if` callers must use", () => {

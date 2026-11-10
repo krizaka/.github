@@ -172,10 +172,6 @@ on:
         description: "changes.yml: JavaScript RegExp, a changed file matching it never needs the jobs. Keep out of it every file a test reads."
         type: string
         default: '^\.changeset/|^(LICENSE|SECURITY|CODE_OF_CONDUCT|SUPPORT)(\.md)?$|^\.github/(ISSUE_TEMPLATE/|pull_request_template\.md$|FUNDING\.yml$|dependabot\.yml$)'
-      release-files:
-        description: "changes.yml: JavaScript RegExp, when every changed file matches, skip the heavy jobs on a pull request (release-please PRs that change only version and changelog)."
-        type: string
-        default: ""
       duplication:
         description: "Run the duplicate-code check (actions/dup-check: jscpd + the repository's dup-ratchet.json, which may only go down)."
         type: boolean
@@ -259,7 +255,6 @@ jobs:
     with:
       relevant: ${{ inputs.relevant }}
       ignore: ${{ inputs.ignore }}
-      release-files: ${{ inputs.release-files }}
 
   docker-changes:
     name: Changed Docker files
