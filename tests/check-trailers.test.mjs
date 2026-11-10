@@ -129,3 +129,10 @@ test("a renamed app: its new login passes, its old login (kept in `retired` for 
   assert.deepEqual(trailerProblems([ok]), []);
   assert.ok(trailerProblems([old]).length > 0);
 });
+
+// Founder, 2026-11-10 (krizaka-internal#3145): « on autorise Dependabot bien sûr ». GitHub's own Dependabot app, by its exact id.
+test("Dependabot's commits pass, by its exact id; a look-alike does not", () => {
+  const DEPENDABOT = "49699333+dependabot[bot]@users.noreply.github.com";
+  assert.deepEqual(trailerProblems([commit("chore(deps): bump x\n", { author: DEPENDABOT, committer: "noreply@github.com" })]), []);
+  assert.equal(trailerProblems([commit("chore(deps): bump x\n", { author: "49699334+dependabot[bot]@users.noreply.github.com" })]).length, 1);
+});
