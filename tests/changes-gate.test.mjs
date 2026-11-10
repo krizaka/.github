@@ -59,6 +59,22 @@ test("fails open: an unreachable API, a bad pattern, a bad hook all run everythi
   assert.equal(gate({ IGNORE: docs, GATE_TEST_FILES: "not json" }), "true");
 });
 
+const releasePat = "^(package\\.json|CHANGELOG\\.md|package-lock\\.json|\\.release-please-manifest\\.json)$";
+const releaseFiles = JSON.stringify(["package.json", "CHANGELOG.md", "package-lock.json", ".release-please-manifest.json"]);
+
+test("a release-only pull request is skipped when every file matches release-files", () => {
+  assert.equal(gate({ EVENT: "pull_request", RELEASE_FILES: releasePat, GATE_TEST_FILES: releaseFiles }), "false");
+});
+
+test("a PR with one non-release file is not skipped even if the rest are release files", () => {
+  const mixed = JSON.stringify(["package.json", "CHANGELOG.md", "src/index.ts"]);
+  assert.equal(gate({ EVENT: "pull_request", RELEASE_FILES: releasePat, GATE_TEST_FILES: mixed }), "true");
+});
+
+test("merge_group runs in full even when every file matches release-files", () => {
+  assert.equal(gate({ EVENT: "merge_group", RELEASE_FILES: releasePat, GATE_TEST_FILES: releaseFiles }), "true");
+});
+
 test("the workflow is callable, pinned, and documents the fail-open `if` callers must use", () => {
   assert.match(yml, /!cancelled\(\) && needs\.changes\.outputs\.code != 'false'/);
   assert.match(yml, /^on:\n {2}workflow_call:/m);
