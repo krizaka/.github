@@ -69,11 +69,17 @@ jobs:
         with:
           persist-credentials: false
 
+      # krizaka/sovkora is one repository since 2026-11-08: no repository is a workspace member and the manifest file is gone, so the
+      # action's default URL answers 404 and fails every run. The list is empty, and said here; the other stacks are read from the files.
+      - name: No workspace member any more
+        run: echo '{"repositories":[]}' > "$RUNNER_TEMP/workspace-manifest.json"
+
       - id: detect
         uses: krizaka/.github/actions/detect@d701b569b15617609b890102bc0be9978759909c # main
         with:
           working-directory: ${{ inputs.working-directory }}
           timeout-minutes: ${{ inputs.timeout-minutes }}
+          manifest: ${{ runner.temp }}/workspace-manifest.json
 
   changes:
     name: Changed files

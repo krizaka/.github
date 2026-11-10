@@ -17,6 +17,10 @@ on:
         description: Revision of krizaka/.github whose config and tool pins are used (main, except for this repository's own pull requests).
         type: string
         default: main
+      runs-on:
+        description: 'Runner of the scan jobs, as JSON (a private repository: ["self-hosted","macOS","krizaka"], krizaka-internal#3027). Default: the GitHub-hosted runner. A public repository never sets it: a fork pull request would run on the self-hosted machine.'
+        type: string
+        default: '"ubuntu-latest"'
 
 permissions:
   contents: read
@@ -30,7 +34,7 @@ concurrency:
 jobs:
   gitleaks:
     name: gitleaks (secrets)
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(inputs.runs-on) }}
     timeout-minutes: 10
     # Skipped in the merge queue (reports « Skipped », which counts as passing): the pull request's own run scanned the same
     # history and workflows, and a merge cannot introduce a secret that neither side had.
@@ -55,7 +59,7 @@ jobs:
   # On a pull request: its own commits. In the merge queue: the squash commit itself, so a squash message cannot add one.
   trailers:
     name: commit trailers
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(inputs.runs-on) }}
     timeout-minutes: 5
     if: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' }}
     steps:
@@ -85,7 +89,7 @@ jobs:
 
   zizmor:
     name: zizmor (workflows)
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(inputs.runs-on) }}
     timeout-minutes: 10
     # Skipped in the merge queue (reports « Skipped », which counts as passing): the pull request's own run scanned the same
     # history and workflows, and a merge cannot introduce a secret that neither side had.
