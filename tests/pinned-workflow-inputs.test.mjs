@@ -36,7 +36,8 @@ export function declaredInputs(text) {
 
 test("the parser reads the keys of a call and the inputs of a workflow", () => {
   const sha = "a".repeat(40);
-  const call = `    uses: krizaka/.github/.github/workflows/x.yml@${sha} # main\n    with:\n      one: 1\n      two-b: \${{ inputs.b }}\n\n  next:\n`;
+  const value = ["$", "{{ inputs.b }}"].join("");
+  const call = `    uses: krizaka/.github/.github/workflows/x.yml@${sha} # main\n    with:\n      one: 1\n      two-b: ${value}\n\n  next:\n`;
   assert.deepEqual(pinnedCalls("f", call), [{ file: "f", called: "x.yml", sha, keys: ["one", "two-b"] }]);
   assert.deepEqual(declaredInputs('on:\n  workflow_call:\n    inputs:\n      one:\n        type: string\n      two-b:\n        default: ""\n    outputs:\n      three:\n'), ["one", "two-b"]);
 });
