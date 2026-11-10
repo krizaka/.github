@@ -1,5 +1,5 @@
 name: Security tools
-description: Installs gitleaks (sha256 verified) and zizmor (pip --require-hashes) at the versions pinned by the org. One place for the pins (krizaka/.github#324, #325).
+description: Installs gitleaks (sha256 verified) and zizmor (pip --require-hashes) at the versions pinned by the org. One place for the pins (krizaka/.github#324, #325). macOS runners skip the download when brew already provides the pinned versions.
 runs:
   using: composite
   steps:
@@ -7,13 +7,29 @@ runs:
       shell: bash
       env:
         GITLEAKS_VERSION: "8.30.1"
-        GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+        GITLEAKS_SHA256_LINUX_X64: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+        GITLEAKS_SHA256_DARWIN_ARM64: b40ab0ae55c505963e365f271a8d3846efbc170aa17f2607f13df610a9aeb6a5
       run: |
-        curl --proto '=https' --tlsv1.2 -sSfL -o /tmp/gitleaks.tgz "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
-        echo "${GITLEAKS_SHA256}  /tmp/gitleaks.tgz" | sha256sum -c -
-        tar -xzf /tmp/gitleaks.tgz -C /tmp gitleaks
-        sudo install /tmp/gitleaks /usr/local/bin/gitleaks
+        if command -v gitleaks >/dev/null 2>&1 && gitleaks version 2>/dev/null | grep -qF "${GITLEAKS_VERSION}"; then
+          echo "gitleaks ${GITLEAKS_VERSION} already installed"
+        elif [ "${RUNNER_OS}" = "macOS" ]; then
+          curl --proto '=https' --tlsv1.2 -sSfL -o /tmp/gitleaks.tgz "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_darwin_arm64.tar.gz"
+          echo "${GITLEAKS_SHA256_DARWIN_ARM64}  /tmp/gitleaks.tgz" | shasum -a 256 -c -
+          tar -xzf /tmp/gitleaks.tgz -C /tmp gitleaks
+          install -m 755 /tmp/gitleaks /opt/homebrew/bin/gitleaks
+        else
+          curl --proto '=https' --tlsv1.2 -sSfL -o /tmp/gitleaks.tgz "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "${GITLEAKS_SHA256_LINUX_X64}  /tmp/gitleaks.tgz" | sha256sum -c -
+          tar -xzf /tmp/gitleaks.tgz -C /tmp gitleaks
+          sudo install /tmp/gitleaks /usr/local/bin/gitleaks
+        fi
     - name: Install zizmor
       shell: bash
+      env:
+        ZIZMOR_VERSION: "1.31.1"
       run: |
-        python3 -m pip install --quiet --only-binary :all: --require-hashes -r "${GITHUB_ACTION_PATH}/zizmor-requirements.txt"
+        if command -v zizmor >/dev/null 2>&1 && zizmor --version 2>/dev/null | grep -qF "${ZIZMOR_VERSION}"; then
+          echo "zizmor ${ZIZMOR_VERSION} already installed"
+        else
+          python3 -m pip install --quiet --only-binary :all: --require-hashes -r "${GITHUB_ACTION_PATH}/zizmor-requirements.txt"
+        fi
