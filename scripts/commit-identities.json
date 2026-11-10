@@ -4,7 +4,8 @@
   "bots": [
     { "login": "krizaka-agents[bot]", "id": 345578919, "emails": ["345578919+krizaka-agents[bot]@users.noreply.github.com"] },
     { "login": "sovkora[bot]", "id": 345578125, "emails": ["345578125+sovkora[bot]@users.noreply.github.com"] },
-    { "login": "sovkora-for-mac[bot]", "id": 350524889, "emails": ["350524889+sovkora-for-mac[bot]@users.noreply.github.com"] }
+    { "login": "sovkora-for-mac[bot]", "id": 350524889, "emails": ["350524889+sovkora-for-mac[bot]@users.noreply.github.com"] },
+    { "login": "dependabot[bot]", "id": 49699333, "emails": ["49699333+dependabot[bot]@users.noreply.github.com"] }
   ],
   "humans": [
     {
