@@ -172,6 +172,10 @@ on:
         description: "changes.yml: JavaScript RegExp, a changed file matching it never needs the jobs. Keep out of it every file a test reads."
         type: string
         default: '^\.changeset/|^(LICENSE|SECURITY|CODE_OF_CONDUCT|SUPPORT)(\.md)?$|^\.github/(ISSUE_TEMPLATE/|pull_request_template\.md$|FUNDING\.yml$|dependabot\.yml$)'
+      release-files:
+        description: "changes.yml: JavaScript RegExp. On a pull request from a release branch (release-please--*, changeset-release/*), when every changed file matches, the heavy jobs skip and the gate still reports. The merge queue always runs in full."
+        type: string
+        default: ""
       duplication:
         description: "Run the duplicate-code check (actions/dup-check: jscpd + the repository's dup-ratchet.json, which may only go down)."
         type: boolean
@@ -251,17 +255,18 @@ jobs:
     name: Changed files
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/changes.yml@d701b569b15617609b890102bc0be9978759909c # main
+    uses: krizaka/.github/.github/workflows/changes.yml@9e3b991b402c6b097ed0b5c65ad712527fa7c152 # main
     with:
       relevant: ${{ inputs.relevant }}
       ignore: ${{ inputs.ignore }}
+      release-files: ${{ inputs.release-files }}
 
   docker-changes:
     name: Changed Docker files
     if: ${{ inputs.container }}
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/changes.yml@d701b569b15617609b890102bc0be9978759909c # main
+    uses: krizaka/.github/.github/workflows/changes.yml@9e3b991b402c6b097ed0b5c65ad712527fa7c152 # main
     with:
       # What can break an image build whatever the caller's `ignore` says: the Dockerfile and .dockerignore, the manifests and
       # lockfiles the install COPYs, the workspace definition. Any other path a COPY names is covered by `relevant: .` of the main gate
@@ -274,7 +279,7 @@ jobs:
     if: ${{ inputs.e2e-script != '' }}
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/changes.yml@d701b569b15617609b890102bc0be9978759909c # main
+    uses: krizaka/.github/.github/workflows/changes.yml@9e3b991b402c6b097ed0b5c65ad712527fa7c152 # main
     with:
       relevant: ${{ inputs.e2e-relevant }}
       ignore: ${{ inputs.ignore }}
