@@ -75,7 +75,6 @@ Generated from `.github/workflows/*.yml` by `scripts/gen-docs.mjs` (a change to 
 | `maven.yml` | JVM repositories published to Maven Central | `sonar` | SonarCloud | `changes`, `verify` |
 | `maven.yml` | JVM repositories published to Maven Central | `gate` | CI gate | `changes`, `verify`, `sonar`, `sonar-light` |
 | `maven.yml` | JVM repositories published to Maven Central | `registry` | Registry | `verify` |
-| `maven.yml` | JVM repositories published to Maven Central | `release-github` | Deploy to GitHub Packages | `registry` |
 | `maven.yml` | JVM repositories published to Maven Central | `release-central` | Sign and upload to Maven Central | `registry` |
 | `expo-ci.yml` | Expo apps | `changes` | Changed files | — |
 | `expo-ci.yml` | Expo apps | `checks` | one check per matrix leg | `changes` |

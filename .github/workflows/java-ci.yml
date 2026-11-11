@@ -55,7 +55,7 @@ on:
       maven-packages-registry:
         description: "Workspace flow: the GitHub Packages Maven registry that serves a RELEASED com.krizaka parent (`relativePath` empty) the cloned krizaka-java is no longer at, since a parent is resolved before the repositories of the pom that names it. Empty: none."
         type: string
-        default: "https://maven.pkg.github.com/krizaka/krizaka-java"
+        default: ""
       rewrite:
         description: "Fail when an OpenRewrite recipe of krizaka-parent would change code (rewrite:dryRun)."
         type: boolean
