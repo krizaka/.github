@@ -1,7 +1,7 @@
 # Quality controls: inventory, gaps and plan
 
 - **Issue:** krizaka/.github#230 (Phase 1: an audit and a plan, docs only; nothing is built or filed before « validé »).
-- **Builds on:** [ADR-007](adr/ADR-007-shared-rules.md) and [standards/rules.md](standards/rules.md) (accepted 2026-10-23, #217). ADR-007 decided *where* the rules live (one package, profiles, no copies). This page adds what ADR-007 does not cover: *which rules are missing*, *which tool carries each*, and *why the past code-smell runs were not caught*.
+- **Builds on:** ADR-007 and [standards/rules.md](standards/rules.md) (accepted 2026-10-23, #217). ADR-007 decided *where* the rules live (one package, profiles, no copies). This page adds what ADR-007 does not cover: *which rules are missing*, *which tool carries each*, and *why the past code-smell runs were not caught*.
 - **Measured on** `main`, shallow clones of 2026-10-24: .github `d9747d2`, krizaka-ui `35ccec0` (`@krizaka/config` 0.7.0), krizaka-com `278ab9c`, krizaka-ts `c7118bc`, verikora `bca15a1`, sovkora-build `0b7d565`, krizaka-java `ab5daeb`. Counts come from the files; nothing was built or run.
 
 ## 0. The five gaps that matter most

@@ -60,21 +60,6 @@ rule. GitHub redirects every old name; the old → new table is `docs/standards/
 | `krizaka-ui` | Shared design system | Complies |
 | `krizaka-ui-builder` | UI builder package | Complies |
 | `sovkora` | Main product repository | Complies |
-| `sovkora-automation-service` | Deployable backend service | **Archive (ADR-029: folded into `sovkora`)** |
-| `sovkora-build` | Product build repository | **Archive (ADR-029: folded into `sovkora`)** |
-| `sovkora-cli` | CLI | **Archive (ADR-029: folded into `sovkora`)** |
-| `sovkora-contracts` | Contracts | **Archive (ADR-029: folded into `sovkora`)** |
-| `sovkora-conversation-service` | Deployable backend service | **Archive (ADR-029: folded into `sovkora`)** |
-| `sovkora-edge-service` | The HTTP edge service | **Archive (ADR-029: folded into `sovkora`)** |
-| `sovkora-engine` | The engine's core library | **Archive (ADR-029: folded into `sovkora`)** |
-| `sovkora-job-service` | Deployable backend service | **Archive (ADR-029: folded into `sovkora`)** |
-| `sovkora-knowledge-service` | Deployable backend service | **Archive (ADR-029: folded into `sovkora`)** |
-| `sovkora-mobile` | Mobile app | **Archive (ADR-029: folded into `sovkora`)** |
-| `sovkora-packs` | Packs | **Archive (ADR-029: folded into `sovkora`)** |
-| `sovkora-studio-service` | The Studio service (with its API and client modules) | **Archive (ADR-029: folded into `sovkora`)** |
-| `sovkora-ui-kit` | Sovkora's UI packages | **Archive (ADR-029: folded into `sovkora`)** |
-| `sovkora-web` | Web app | **Archive (ADR-029: folded into `sovkora`)** |
-| `sovkora-worker-media` | Worker | **Archive (ADR-029: folded into `sovkora`)** |
 | `verikora` | Main product repository (Verikora) | Complies |
 
 ## Check

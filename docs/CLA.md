@@ -1,6 +1,6 @@
 # Krizaka Contributor Licence Agreement (individual and entity) — version 1.0
 
-> Good-faith version, à valider par l'avocat ([.github#250](https://github.com/krizaka/.github/issues/250)). Applies to the **product** repositories of the `krizaka` organisation ([ADR-012](adr/ADR-012-licensing-libraries-open-products-fair-source.md)): Verikora, Folioviv and the Sovkora engine. The libraries (Apache-2.0) need no CLA: sign off your commits ([DCO](https://developercertificate.org)).
+> Good-faith version, à valider par l'avocat ([.github#250](https://github.com/krizaka/.github/issues/250)). Applies to the **product** repositories of the `krizaka` organisation (ADR-012): Verikora, Folioviv and the Sovkora engine. The libraries (Apache-2.0) need no CLA: sign off your commits ([DCO](https://developercertificate.org)).
 
 You sign this agreement once, by posting the sentence the bot asks for on your first pull request. « You » means the person who signs, or the entity on whose behalf they sign. « Krizaka » means Technologies Krizaka Inc., Montréal, Québec, and its successors. A « Contribution » is any work you submit to a Krizaka product repository (code, documentation, data, design), by pull request, patch, issue or comment, from the day you sign.
 
