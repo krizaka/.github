@@ -117,7 +117,7 @@ reasons are in [docs/standards/coding-agents.md](docs/standards/coding-agents.md
 
 ## 8a. Java (Spring Boot 4) — Java repositories only
 
-How Krizaka writes Java: the `krizaka-java` skill (krizaka-agents `skills/krizaka-java`) and, with the tests that enforce each rule,
+How Krizaka writes Java: the `krizaka-java` skill (krizaka-agents `plugins/krizaka-engineering/skills/krizaka-java`) and, with the tests that enforce each rule,
 [krizaka-java `AGENTS.md`](https://github.com/krizaka/krizaka-java/blob/main/AGENTS.md#http-clients-spring-boot-4-and-archunit). In short:
 
 - **ArchUnit is the law.** Every module's `ArchitectureTest` calls `KrizakaArchitecture.assertStandard(classes, basePackage)`; a rule is
