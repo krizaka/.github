@@ -3,7 +3,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -552,4 +552,28 @@ test("visual regression warns on a pull request and blocks only the release to p
   // The diffs are published whether the run failed (blocking) or warned.
   const upload = job.slice(job.indexOf("actions/upload-artifact@"));
   assert.match(upload, /if: \$\{\{ !inputs\.update && \(failure\(\) \|\| steps\.compare\.outputs\.differs == 'true'\) \}\}/);
+});
+
+// python-ci runs the formatter the pre-push hook runs, with the hook's config discovery (krizaka-internal#2813).
+test("python-ci: `ruff format --check` runs when a ruff configuration exists, and only then", () => {
+  const src = read("python-ci");
+  const step = src.slice(src.indexOf("- name: Format (ruff)"));
+  const script = step.slice(step.indexOf("run: |\n") + 7).split(/\n\n/)[0].replace(/^ {10}/gm, "");
+  const run = (files, ruffExit) => {
+    const dir = mkdtempSync(join(tmpdir(), "py-fmt-"));
+    const bin = join(dir, "bin");
+    mkdirSync(bin);
+    writeFileSync(join(bin, "ruff"), `#!/bin/sh\necho "ruff $*" >> "${dir}/calls"\nexit ${ruffExit}\n`, { mode: 0o755 });
+    for (const [name, text] of Object.entries(files)) writeFileSync(join(dir, name), text);
+    let status = 0;
+    try {
+      execFileSync("bash", ["-c", script], { cwd: dir, env: { PATH: `${bin}:${process.env.PATH}`, PM: "pip" }, stdio: "pipe" });
+    } catch (error) {
+      status = error.status;
+    }
+    return { status, calls: existsSync(join(dir, "calls")) ? readFileSync(join(dir, "calls"), "utf8") : "" };
+  };
+  assert.deepEqual(run({ "ruff.toml": "line-length = 100\n" }, 1), { status: 1, calls: "ruff format --check .\n" });
+  assert.equal(run({ "pyproject.toml": "[tool.ruff]\nline-length = 100\n" }, 0).status, 0);
+  assert.deepEqual(run({ "pyproject.toml": "[project]\nname='x'\n" }, 1), { status: 0, calls: "" });
 });

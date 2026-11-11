@@ -1,6 +1,6 @@
 {
   "_": "The rule registry of the org (krizaka/.github#393): every org rule that must hold in every active repository, with the check that proves it. scripts/conformance.mjs runs it against repos.json (repo x rule). A rule without a check does not pass tests/conformance.test.mjs. Rules review of 2026-11-05: the registry was frozen at its 35 rules during the moratorium; the founder's exception of 2026-11-06 (« la matrice est la référence », krizaka-internal#2635) adds the public-face rules of réunion 6 and the register's mirror, and every cell is deterministic (pass, fail, unknown, manual, n/a, with its commit and evidence), and the same-day rollout to every active repo (AGENT-RULES, « A rule reaches every repo »: `node scripts/conformance-fanout.mjs --apply`, the daily run's failure, the issue per red repo) holds only for the rules marked `\"security\": true`; the others are reported in the matrix, never fanned out.",
-  "checks": "path-matches {pattern, contains}: a tracked path matches (sorted, the first match is the evidence), and with contains one of them holds the text | lists-rule-ids {path}: the file names exactly the ids of this registry in its org-rules table | manual {note}: no deterministic check yet, the cell is manual and never pass | workflow-calls {workflows | byKind} | workflow-matches {pattern} | workflow-forbids {pattern} | file-exists {paths} | file-matches {path, pattern} | manifests-forbid {pattern} | published-no-mention {pattern, allow}: no file of the latest npm tarball of a public package of the repository matches (built CSS/JS included; `allow`: history files such as CHANGELOG.md) | no-mention {pattern, allow, allowIn}: no tracked text file matches the pattern (path prefixes in `allow`, or in `allowIn[repo]`, are history). `applies`: kinds, notRepos, onlyRepos, when [{pathEndsWith}|{fileExists}|{fileMatches}|{inList}]. `fix`: copy {from, to} | append-section {file, from, heading} | manual {note}.",
+  "checks": "path-matches {pattern, contains}: a tracked path matches (sorted, the first match is the evidence), and with contains one of them holds the text | lists-rule-ids {path}: the file names exactly the ids of this registry in its org-rules table | manual {note}: no deterministic check yet, the cell is manual and never pass | workflow-calls {workflows | byKind} | workflow-matches {pattern} | workflow-forbids {pattern} | file-exists {paths} | file-matches {path, pattern} | manifests-forbid {pattern} | published-no-mention {pattern, allow}: no file of the latest npm tarball of a public package of the repository matches (built CSS/JS included; `allow`: history files such as CHANGELOG.md) | format-declared {}: every language of the repository has its formatter declared and run in CI (scripts/format-declared.mjs) | no-mention {pattern, allow, allowIn}: no tracked text file matches the pattern (path prefixes in `allow`, or in `allowIn[repo]`, are history). `applies`: kinds, notRepos, onlyRepos, when [{pathEndsWith}|{fileExists}|{fileMatches}|{inList}]. `fix`: copy {from, to} | append-section {file, from, heading} | manual {note}.",
   "rules": [
     {
       "id": "security-scan",
@@ -583,6 +583,30 @@
       "fix": {
         "type": "manual",
         "note": "add prettier + `prettier.config.js` (`export { default } from \"@krizaka/config/prettier\";`) + `.prettierignore` (generated files, lockfiles, vendored), the `format` / `format:check` scripts, commit one `chore(format): prettier` change that only formats and put its SHA in `.git-blame-ignore-revs`, and run `format:check` in CI: `format-script: format:check` of node-ci, or the lint script (`... && <pm> run format:check`) when the repository's pipeline is not node-ci. Open PRs are rebased with `prettier --write`, never left conflicting on formatting"
+      }
+    },
+    {
+      "id": "prepush-format-security",
+      "title": "Pre-push formats and scans: every language of the repository has its formatter declared and run in CI (so main is formatted) and the security scan is wired; the machine hook chain runs both before a push and refuses it on red",
+      "issue": "krizaka/krizaka-internal#2813",
+      "applies": {},
+      "check": {
+        "type": "all-of",
+        "checks": [
+          {
+            "type": "format-declared"
+          },
+          {
+            "type": "workflow-calls",
+            "workflows": [
+              "security-scan.yml"
+            ]
+          }
+        ]
+      },
+      "fix": {
+        "type": "manual",
+        "note": "declare the formatter of each language (TS/JS: `prettier.config.js` and a `format:check` script = `prettier --check`; Java: krizaka-parent's Spotless; Python: `[tool.ruff]` and `ruff format --check`; Rust: `cargo fmt --check`; OpenTofu: `tofu fmt -check`) and run it in CI. The push side needs nothing in the repository: `tools/githooks/run` of krizaka-agents (the machine's one hook chain) runs the repository's own formatter, gitleaks, zizmor and actionlint before every push and fails it on red"
       }
     },
     {
