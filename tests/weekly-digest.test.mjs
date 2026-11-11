@@ -22,6 +22,14 @@ test("renderDigest groups by product, each language with its own lines; an empty
   assert.match(renderDigest([]), /Aucune livraison cette semaine\.[\s\S]*No release this week\./);
 });
 
+test("weekly-digest opens a draft PR in krizaka-blog, not an issue (krizaka-internal#747)", () => {
+  const src = readFileSync(new URL("../scripts/weekly-digest.mjs", import.meta.url), "utf8");
+  // The script must not POST to the GitHub Issues API
+  assert.ok(!src.includes('/issues", {'), "must not POST to the issues endpoint");
+  // The script must create a pull request
+  assert.match(src, /\/pulls[`"']/, "must open a pull request in krizaka-blog");
+});
+
 test("release-repos.json lists each repository once", () => {
   const { products } = JSON.parse(readFileSync(new URL("../release-repos.json", import.meta.url), "utf8"));
   const repos = products.flatMap((p) => p.repos);
