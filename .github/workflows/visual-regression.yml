@@ -123,7 +123,7 @@ jobs:
   # « Skipped », which branch protection counts as passing. Update mode (workflow_dispatch) always runs.
   changes:
     name: Changed files
-    uses: krizaka/.github/.github/workflows/changes.yml@d701b569b15617609b890102bc0be9978759909c # main
+    uses: krizaka/.github/.github/workflows/changes.yml@d49447586bcd0c14dac8125af424c58e76cdc9a3 # main
     with:
       relevant: ${{ inputs.relevant }}
       ignore: ${{ inputs.ignore }}
@@ -185,7 +185,7 @@ jobs:
           ref: ${{ steps.target.outputs.ref }}
           token: ${{ steps.app.outputs.token || github.token }}
           persist-credentials: ${{ inputs.update }} # zizmor: ignore[artipacked] update mode pushes the baselines with the app token
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
         if: ${{ inputs.package-manager == 'pnpm' }}
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:

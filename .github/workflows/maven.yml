@@ -114,7 +114,7 @@ jobs:
   changes:
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/changes.yml@d701b569b15617609b890102bc0be9978759909c # main
+    uses: krizaka/.github/.github/workflows/changes.yml@d49447586bcd0c14dac8125af424c58e76cdc9a3 # main
     with:
       ignore: ${{ inputs.ignore }}
 
@@ -152,9 +152,9 @@ jobs:
           # registry-parse:end
 
       # The repository's folders stay clean (docs/standards/repo-layout.md).
-      - uses: krizaka/.github/actions/repo-layout@d701b569b15617609b890102bc0be9978759909c # main
+      - uses: krizaka/.github/actions/repo-layout@d49447586bcd0c14dac8125af424c58e76cdc9a3 # main
 
-      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           distribution: temurin
           java-version: ${{ inputs.java-version }}
@@ -232,7 +232,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "22"
-      - uses: krizaka/.github/actions/dup-check@d701b569b15617609b890102bc0be9978759909c # main
+      - uses: krizaka/.github/actions/dup-check@d49447586bcd0c14dac8125af424c58e76cdc9a3 # main
 
   # A docs-only change skips the heavy jobs, yet the required « SonarCloud Code Analysis » must still be posted by the SonarCloud app:
   # a light scan (checkout, no build, no tests, no coverage) does it, and its quality gate is real on the changed files (.github#330).
@@ -260,7 +260,7 @@ jobs:
       # Rules review of 2026-11-05: on a pull request only the Security rating blocks (sonar-gate.mjs reads the gate); elsewhere the full gate fails.
       - id: scan
         continue-on-error: ${{ github.event_name == 'pull_request' }}
-        uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
+        uses: SonarSource/sonarqube-scan-action@e805d875275f728fac1885b413934be6d7c63f65 # v8.4.1
         env:
           SONAR_HOST_URL: https://sonarcloud.io
         with:
@@ -319,7 +319,7 @@ jobs:
       # Rules review of 2026-11-05: on a pull request only the Security rating blocks (sonar-gate.mjs reads the gate); elsewhere the full gate fails.
       - id: scan
         continue-on-error: ${{ github.event_name == 'pull_request' }}
-        uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
+        uses: SonarSource/sonarqube-scan-action@e805d875275f728fac1885b413934be6d7c63f65 # v8.4.1
         env:
           SONAR_HOST_URL: https://sonarcloud.io
         with:
@@ -434,7 +434,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           distribution: temurin
           java-version: ${{ inputs.java-version }}
