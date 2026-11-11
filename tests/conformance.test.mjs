@@ -440,3 +440,25 @@ test("the docs-map rule asks every repository to call docs-map.yml, and the fan-
   assert.equal((await runCheck(rule.check, snap("ui", "npm", { ".github/workflows/docs-map.yml": caller }))).ok, true);
   assert.equal((await runCheck(rule.check, snap("ui", "npm", { ".github/workflows/ci.yml": call("node-ci.yml") }))).ok, false);
 });
+
+// ADR-026 phase D: the file-name regexes became lists and small functions; the expectations were recorded from the regex version
+// (a comparison on 30,000 generated paths and 5,000 generated workflows gave no difference).
+import { isManifest, isPackageManifest, isTestConfig, MANIFEST_FILES, REUSABLE_WORKFLOW_REPOS } from "../scripts/conformance.mjs";
+
+test("file-name tests: a test runner's config, a manifest, a package.json outside node_modules", () => {
+  for (const p of ["playwright.config.ts", "apps/web/vitest.config.mjs", "jest.config.cjs", "junit-platform.properties", "x/junit-platform.properties"]) assert.equal(isTestConfig(p), true, p);
+  for (const p of ["my-jest.config.js", "jest.config.json", "xjunit-platform.properties", "vitest.config.ts.bak"]) assert.equal(isTestConfig(p), false, p);
+  for (const p of ["package.json", "a/pom.xml", "pnpm-workspace.yaml", "x/.gitmodules", "build.gradle", "b/build.gradle.kts"]) assert.equal(isManifest(p), true, p);
+  for (const p of ["xpackage.json", "package.json5", "build.gradle.kt", "a/pom.xml/b"]) assert.equal(isManifest(p), false, p);
+  assert.equal(isPackageManifest("apps/web/package.json"), true);
+  assert.equal(isPackageManifest("node_modules/x/package.json"), false);
+  assert.equal(isPackageManifest("xpackage.json"), false);
+  assert.ok(MANIFEST_FILES.includes("pom.xml") && REUSABLE_WORKFLOW_REPOS.includes(".github"));
+});
+
+test("workflow-calls counts the reusable workflows of the org's own repositories only", async () => {
+  const caller = (repo, file) => `jobs:\n  x:\n    uses: krizaka/${repo}/.github/workflows/${file}@v1\n`;
+  const check = { type: "workflow-calls", workflows: ["a.yml"] };
+  for (const repo of [".github", "sovkora", "orazaka"]) assert.equal((await runCheck(check, snap("r", "npm", { ".github/workflows/c.yml": caller(repo, "a.yml") }))).ok, true, repo);
+  for (const repo of ["sovkora-web", "other"]) assert.equal((await runCheck(check, snap("r", "npm", { ".github/workflows/c.yml": caller(repo, "a.yml") }))).ok, false, repo);
+});
