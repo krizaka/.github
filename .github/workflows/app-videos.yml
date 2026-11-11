@@ -103,7 +103,7 @@ jobs:
           name: ${{ steps.names.outputs.n3 }}
           path: recordings/3
       - name: Transcode, upload, manifest
-        uses: krizaka/.github/actions/app-videos@d701b569b15617609b890102bc0be9978759909c # main (sites/<product>/download, Bunny layout v2)
+        uses: krizaka/.github/actions/app-videos@d49447586bcd0c14dac8125af424c58e76cdc9a3 # main (sites/<product>/download, Bunny layout v2)
         with:
           product: ${{ inputs.product }}
           inputs: recordings
