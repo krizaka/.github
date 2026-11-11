@@ -31,7 +31,6 @@ test("repository names follow the owner-role vocabulary, owners being the commer
     "krizaka-infra",
     "krizaka-lab",
     "krizaka-desktop",
-    "krizaka-composer",
     "krizaka-cla-signatures",
     "krizaka-template-web",
     "krizaka-template-desktop",

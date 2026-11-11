@@ -45,15 +45,14 @@ rule. GitHub redirects every old name; the old → new table is `docs/standards/
 | `krizaka-cla-signatures` | Signatures of the CLA, written by the CLA workflow | **Paused** (data only, no code: out of the matrix) |
 | `krizaka-com` | Shared company site | Complies |
 | `krizaka-coming-soon` | The coming-soon pages of the products' commercial domains (www.verikora.com, www.folioviv.com, www.sovkora.com), static sites in the DigitalOcean team krizaka-prod, until each product opens there | Complies |
-| `krizaka-composer` | Shared visual page editor: the Krizaka fork of Puck (`@krizaka/composer`) | Complies |
 | `krizaka-desktop` | Shared Tauri crate | Complies |
 | `krizaka-infra` | Shared infrastructure as code | Complies |
 | `krizaka-internal` | Internal issues and notes (private) | **Paused** (issues only, no code: out of the matrix) |
 | `krizaka-java` | Shared Java build | Complies |
 | `krizaka-lab` | The family lab: UI, motion, Java, AI and data experiments; publishes nothing (formerly krizaka-motion) | Complies |
 | `krizaka-restricted` | Restricted issues (founder and company bots only) | **Paused** (issues only, no code: out of the matrix) |
-| `krizaka-template-desktop` | Template | Complies |
-| `krizaka-template-web` | Template | Complies |
+| `krizaka-template-desktop` | Template | **Archive** (left the org, replaced by `krizaka-template`: out of the matrix) |
+| `krizaka-template-web` | Template | **Archive** (left the org, replaced by `krizaka-template`: out of the matrix) |
 | `krizaka-rust` | Shared Rust building blocks | Complies |
 | `krizaka-template` | Template repository | **Paused** (name pending decision: a template must have a target suffix, e.g. `krizaka-template-starter`) |
 | `krizaka-ts` | Shared TypeScript building blocks | Complies |

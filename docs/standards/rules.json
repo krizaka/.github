@@ -174,9 +174,6 @@
           "visual-regression.yml"
         ]
       },
-      "exempt": {
-        "krizaka-template-web": "A template has no journeys of its own (they are written per app, docs/standards/visual-regression.md); an app made from it adds the workflow with its first journey."
-      },
       "fix": {
         "type": "manual",
         "note": "journeys are written per app (docs/standards/visual-regression.md); not a template"
@@ -1002,7 +999,6 @@
           "krizaka-blog",
           "krizaka-java",
           "krizaka-com",
-          "krizaka-composer",
           "krizaka-internal",
           "krizaka-lab",
           "krizaka-notifications",
@@ -1010,8 +1006,6 @@
           "krizaka-ts",
           "krizaka-ui",
           "sovkora",
-          "krizaka-template-web",
-          "krizaka-template-desktop",
           "verikora"
         ]
       },
