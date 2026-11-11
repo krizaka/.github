@@ -1,6 +1,6 @@
 # Conformance matrix
 
-Generated 2026-11-11T22:37:46.774Z by https://github.com/krizaka/.github/actions/runs/43113053927 from `docs/standards/rules.json` against main of every active repository of `repos.json`. Machine-readable: [matrix.json](matrix.json).
+Generated 2026-11-11T22:47:17.948Z by https://github.com/krizaka/.github/actions/runs/43114353019 from `docs/standards/rules.json` against main of every active repository of `repos.json`. Machine-readable: [matrix.json](matrix.json).
 
 | rule | pass | fail | unknown | manual |
 |---|---:|---:|---:|---:|
@@ -54,11 +54,11 @@ Generated 2026-11-11T22:37:46.774Z by https://github.com/krizaka/.github/actions
 
 | repo | commit | failing rules | unknown |
 |---|---|---|---|
-| .github | 452cf21 | dependabot-automerge, time-limits, no-github-packages-url | none |
+| .github | d494475 | dependabot-automerge, time-limits, no-github-packages-url | none |
 | folioviv | cb9b2da | release-propagation, feature-surfaces, formatter, prepush-format-security, agents-template, journeys, fail-closed-sg, time-limits, public-no-founder-name, public-no-amount, privacy-officer, product-status-word, no-public-email | none |
 | kridoc | b8a7022 | commercial-names, time-limits, public-no-founder-name, public-no-amount, product-status-word, one-contact-path, docs-map | none |
 | krizaka-agents | 67ac33c | shared-ci, dependabot-automerge, agents-anti-slop, no-departed-product, agents-template, merged-result-tested, required-checks-profile, merge-resolution, time-limits | none |
-| krizaka-blog | 9466f06 | release-propagation, agents-template, time-limits | none |
+| krizaka-blog | 67f22c5 | release-propagation, agents-template, time-limits | none |
 | krizaka-com | 33624e8 | release-propagation, agents-template, fail-closed-sg, time-limits, product-status-word, no-public-email | none |
 | krizaka-coming-soon | e166b2f | agents-anti-slop, commercial-names, agents-template, required-checks-profile, time-limits, public-no-founder-name, public-no-amount, product-status-word, one-contact-path, docs-map | none |
 | krizaka-infra | 11e797b | agents-template, time-limits, docs-map | none |
@@ -66,7 +66,7 @@ Generated 2026-11-11T22:37:46.774Z by https://github.com/krizaka/.github/actions
 | krizaka-lab | 9a3a145 | release-propagation, agents-template, time-limits, required-checks-report-in-queue, docs-map | none |
 | krizaka-rust | fbd569f | agents-template, time-limits, required-checks-report-in-queue, docs-map | none |
 | krizaka-ts | 69a6f74 | release-propagation, agents-template, time-limits | none |
-| krizaka-ui | 6f13e1a | release-propagation, formatter, prepush-format-security, agents-template, fail-closed-sg, time-limits | none |
+| krizaka-ui | 048d62f | release-propagation, formatter, prepush-format-security, agents-template, fail-closed-sg, time-limits | none |
 | krizaka-ui-builder | 965d263 | workspace-guard, formatter, required-checks-profile, time-limits, docs-map | none |
 | sovkora | 6ff5a83 | no-departed-product, feature-surfaces, agents-template, journeys, time-limits, docs-map | none |
 | verikora | 0e3d3b0 | release-propagation, feature-surfaces, agents-template, journeys, fail-closed-sg, time-limits, sonar-ratchet, public-no-amount, product-status-word, no-public-email | none |
