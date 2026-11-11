@@ -5,7 +5,7 @@
       "id": "way-of-working",
       "title": "Way of working: the agents' tools, skills, install and the org standards",
       "when": [
-        { "repo": "krizaka-agents", "globs": ["tools/**", "skills/**", "subagents/**", "AGENTS.md", "install.sh"] },
+        { "repo": "krizaka-agents", "globs": ["tools/**", "plugins/**", "AGENTS.md", "install.sh"] },
         { "repo": ".github", "globs": ["docs/standards/**"] }
       ],
       "docs": [
@@ -15,7 +15,7 @@
         { "repo": "krizaka-internal", "path": "docs/onboarding/without-claude-code.fr.md" },
         { "repo": "krizaka-agents", "path": "README.md" },
         { "repo": "krizaka-agents", "path": "AGENTS.md" },
-        { "repo": "krizaka-agents", "path": "skills/krizaka-lane-session/SKILL.md", "bump": true },
+        { "repo": "krizaka-agents", "path": "plugins/krizaka-ops/skills/krizaka-lane-session/SKILL.md", "bump": true },
         { "repo": ".github", "path": "AGENTS.template.md" }
       ]
     },
@@ -28,7 +28,7 @@
       "docs": [
         { "repo": "krizaka-java", "path": "AGENTS.md" },
         { "repo": "krizaka-java", "path": "README.md" },
-        { "repo": "krizaka-agents", "path": "skills/krizaka-java/SKILL.md", "bump": true },
+        { "repo": "krizaka-agents", "path": "plugins/krizaka-engineering/skills/krizaka-java/SKILL.md", "bump": true },
         { "repo": ".github", "path": "AGENTS.template.md" }
       ]
     },
@@ -38,7 +38,7 @@
       "when": [{ "repo": "krizaka-ts", "globs": ["packages/config/**"] }],
       "docs": [
         { "repo": "krizaka-ts", "path": "packages/config/README.md" },
-        { "repo": "krizaka-agents", "path": "skills/krizaka-typescript/SKILL.md", "bump": true },
+        { "repo": "krizaka-agents", "path": "plugins/krizaka-engineering/skills/krizaka-typescript/SKILL.md", "bump": true },
         { "repo": ".github", "path": "AGENTS.template.md" }
       ]
     },
@@ -85,9 +85,9 @@
       "docs": [
         { "repo": "krizaka-agents", "path": "README.md" },
         { "repo": "krizaka-agents", "path": "AGENTS.md" },
-        { "repo": "krizaka-agents", "path": "skills/krizaka-lane-session/SKILL.md", "bump": true },
-        { "repo": "krizaka-agents", "path": "skills/krizaka-landing/SKILL.md", "bump": true },
-        { "repo": "krizaka-agents", "path": "skills/krizaka-engineering/SKILL.md", "bump": true },
+        { "repo": "krizaka-agents", "path": "plugins/krizaka-ops/skills/krizaka-lane-session/SKILL.md", "bump": true },
+        { "repo": "krizaka-agents", "path": "plugins/krizaka-ops/skills/krizaka-landing/SKILL.md", "bump": true },
+        { "repo": "krizaka-agents", "path": "plugins/krizaka-engineering/skills/krizaka-engineering/SKILL.md", "bump": true },
         { "repo": ".github", "path": "docs/standards/guards.md" },
         { "repo": ".github", "path": "docs/standards/automation-catalogue.md" },
         { "repo": "krizaka-internal", "path": "docs/onboarding/with-claude-code.md" },
@@ -102,7 +102,7 @@
       ],
       "docs": [
         { "repo": ".github", "path": "docs/standards/ci-and-deploy.md" },
-        { "repo": "krizaka-agents", "path": "skills/krizaka-landing/SKILL.md", "bump": true }
+        { "repo": "krizaka-agents", "path": "plugins/krizaka-ops/skills/krizaka-landing/SKILL.md", "bump": true }
       ]
     },
     {
@@ -113,8 +113,8 @@
         { "repo": ".github", "globs": ["LABELS.md"] }
       ],
       "docs": [
-        { "repo": "krizaka-agents", "path": "skills/krizaka-lane-session/SKILL.md", "bump": true },
-        { "repo": "krizaka-agents", "path": "skills/krizaka-issue/SKILL.md", "bump": true },
+        { "repo": "krizaka-agents", "path": "plugins/krizaka-ops/skills/krizaka-lane-session/SKILL.md", "bump": true },
+        { "repo": "krizaka-agents", "path": "plugins/krizaka-ops/skills/krizaka-issue/SKILL.md", "bump": true },
         { "repo": ".github", "path": "LABELS.md" },
         { "repo": "krizaka-internal", "path": "docs/onboarding/with-claude-code.md" },
         { "repo": "krizaka-internal", "path": "docs/onboarding/with-claude-code.fr.md" }
