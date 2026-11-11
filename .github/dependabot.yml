@@ -40,6 +40,11 @@ updates:
   # The automation catalogue's two runtime dependencies (the TypeScript compiler and the YAML parser), locked in its package-lock.json.
   - package-ecosystem: npm
     directory: /tools/automation-catalogue
+    # TypeScript 7 is the native rewrite and ships no JavaScript compiler API (createSourceFile, ScriptKind), which the catalogue
+    # uses (krizaka-internal#3216). Lift this when the catalogue moves to an API TypeScript 7 offers.
+    ignore:
+      - dependency-name: typescript
+        versions: [">= 7"]
     cooldown:
       default-days: 7
     schedule:

@@ -4,10 +4,9 @@
 name: Automation catalogue
 
 on:
-  pull_request:
-    paths:
-      - tools/automation-catalogue/**
-      - .github/workflows/automation-catalogue.yml
+  # Called by ci-gate.yml (suite `catalogue`) on every pull request that touches the catalogue: a bump that breaks it (TypeScript 7
+  # has no JS compiler API, krizaka-internal#3216) is red before merge. The gate is the required check, so it reports in the queue.
+  workflow_call:
   push:
     branches: [main]
     paths:
