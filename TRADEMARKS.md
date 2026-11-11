@@ -9,7 +9,7 @@ The names **Krizaka**, **Sovkora**, **Verikora**, **Folioviv**, every product's 
 ## The code licence gives no right to the marks
 
 - **Apache-2.0** (our libraries) says so in s. 6: it « does not grant permission to use the trade names, trademarks, service marks, or product names of the Licensor », except to describe the origin of the work.
-- **FSL-1.1-ALv2** (our products, [ADR-012](docs/adr/ADR-012-licensing-libraries-open-products-fair-source.md)) says so in its « Trademarks » clause.
+- **FSL-1.1-ALv2** (our products, ADR-012) says so in its « Trademarks » clause.
 
 You may copy, fork and modify the code under its licence. You may not use our names or birds as **your** brand.
 
