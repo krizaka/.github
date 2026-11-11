@@ -18,7 +18,7 @@ Measure the whole org: `node scripts/scorecard-report.mjs > scorecard.md` (reads
 | Dependency-Update-Tool | `.github/dependabot.yml`: one ecosystem per manifest kind (npm, maven, pip, cargo, docker, github-actions), **monthly, one grouped PR per ecosystem, limit 1** (decision of 2026-10-13: fewer mails). Security updates arrive grouped apart. | Copy the file of a sibling repository. |
 | Security-Policy | The org default `SECURITY.md` of this repository is detected on every repo (check = 10); a repository may add its own. | Nothing to do. |
 | SAST | CodeQL default setup, on every repository with code. It reads 10 only once the last 30 commits all went through a CodeQL-checked PR: it climbs by itself. | Nothing to do. |
-| License | A licence file in every repository: `LICENSE` (Apache-2.0) for the libraries, `LICENSE.md` (FSL-1.1-ALv2) for the products ([ADR-012](../adr/ADR-012-licensing-libraries-open-products-fair-source.md)). Third-party licences are checked by `actions/licence-check`. | Nothing to do. |
+| License | A licence file in every repository: `LICENSE` (Apache-2.0) for the libraries, `LICENSE.md` (FSL-1.1-ALv2) for the products (ADR-012). Third-party licences are checked by `actions/licence-check`. | Nothing to do. |
 | Vulnerabilities | No known OSV advisory on a dependency in a lockfile. | Dependabot security updates; for a transitive dependency without a bump, a pinned override (`pnpm.overrides` / `overrides` / constraint) with the advisory in the commit. |
 | Branch-Protection | `main`: PR required, required status checks, administrators included, **linear history, conversation resolution, no force push, no deletion**. | Same on all repositories (checked by `gh api repos/krizaka/<repo>/branches/main/protection`). |
 

@@ -3,7 +3,7 @@
 <!-- summary: What a product must prove, with evidence, before it wears the Dev preview status. -->
 
 > North star (Oussama, 2026-10-16): **every product, Sovkora included, reaches Dev preview.**
-> Decision record: [ADR-002](../adr/ADR-002-dev-preview-status-is-data.md). Schema: [dev-preview.schema.json](dev-preview.schema.json).
+> Decision record: ADR-002. Schema: [dev-preview.schema.json](dev-preview.schema.json).
 
 **Dev preview** means: the product runs for real on its dev site, only the QA accounts can use it, one real journey
 works end to end on the real backend, and everything around it (UX, admin, security, SEO, docs, cost) is in order. It

@@ -54,7 +54,7 @@ Thank you for helping. Every Krizaka repository follows the same rules.
 
 ## Licence of your contribution, and the human trail
 
-Each repository says its licence in its `LICENSE` file ([ADR-012](docs/adr/ADR-012-licensing-libraries-open-products-fair-source.md)):
+Each repository says its licence in its `LICENSE` file (ADR-012):
 
 - **Libraries (Apache-2.0)** — `krizaka-ui`, `krizaka-ts`, `krizaka-java`, the building blocks and the
   Sovkora SDK pieces. Your contribution is licensed under Apache-2.0 (its s. 5). Sign off every commit
