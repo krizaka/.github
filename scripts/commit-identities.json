@@ -1,10 +1,11 @@
 {
-  "$comment": "The ONLY identities allowed in a commit of the org (founder 2026-11-04, krizaka-internal#2433): author, committer and Co-authored-by trailers. No e-mail is ever invented. Read by scripts/check-trailers.mjs (security-scan.yml) and by the local hooks of krizaka-agents (fetched pinned to the same sha as the security workflows). Change it by pull request only; a new Krizaka GitHub App is added with its exact id (gh api users/<slug>%5Bbot%5D --jq .id), never a wildcard.",
+  "$comment": "The ONLY identities allowed in a commit of the org (founder 2026-11-04, krizaka-internal#2433): author, committer and Co-authored-by trailers. No e-mail is ever invented. Read by scripts/check-trailers.mjs (security-scan.yml) and by the local hooks of krizaka-agents (fetched pinned to the same sha as the security workflows). Change it by pull request only; a new Krizaka GitHub App is added with its exact id (gh api users/<slug>%5Bbot%5D --jq .id), never a wildcard. `retired` records the logins of renamed apps (same id): history only, never read by a check, so a new commit under an old login fails.",
   "version": 1,
   "bots": [
     { "login": "krizaka-agents[bot]", "id": 345578919, "emails": ["345578919+krizaka-agents[bot]@users.noreply.github.com"] },
-    { "login": "orazaka[bot]", "id": 345578125, "emails": ["345578125+orazaka[bot]@users.noreply.github.com"] },
-    { "login": "orazaka-for-mac[bot]", "id": 350524889, "emails": ["350524889+orazaka-for-mac[bot]@users.noreply.github.com"] }
+    { "login": "sovkora[bot]", "id": 345578125, "emails": ["345578125+sovkora[bot]@users.noreply.github.com"] },
+    { "login": "sovkora-for-mac[bot]", "id": 350524889, "emails": ["350524889+sovkora-for-mac[bot]@users.noreply.github.com"] },
+    { "login": "dependabot[bot]", "id": 49699333, "emails": ["49699333+dependabot[bot]@users.noreply.github.com"] }
   ],
   "humans": [
     {
@@ -13,5 +14,9 @@
       "emails": ["7701298+oussamaABID@users.noreply.github.com", "abidoussama99@gmail.com"]
     }
   ],
-  "committerOnly": ["noreply@github.com"]
+  "committerOnly": ["noreply@github.com"],
+  "retired": [
+    { "login": "orazaka[bot]", "id": 345578125, "renamed": "sovkora[bot]", "on": "2026-11-06" },
+    { "login": "orazaka-for-mac[bot]", "id": 350524889, "renamed": "sovkora-for-mac[bot]", "on": "2026-11-06" }
+  ]
 }

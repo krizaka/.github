@@ -54,24 +54,27 @@ rule. GitHub redirects every old name; the old → new table is `docs/standards/
 | `krizaka-restricted` | Restricted issues (founder and company bots only) | **Paused** (issues only, no code: out of the matrix) |
 | `krizaka-template-desktop` | Template | Complies |
 | `krizaka-template-web` | Template | Complies |
+| `krizaka-rust` | Shared Rust building blocks | Complies |
+| `krizaka-template` | Template repository | **Paused** (name pending decision: a template must have a target suffix, e.g. `krizaka-template-starter`) |
 | `krizaka-ts` | Shared TypeScript building blocks | Complies |
 | `krizaka-ui` | Shared design system | Complies |
+| `krizaka-ui-builder` | UI builder package | Complies |
 | `sovkora` | Main product repository | Complies |
-| `sovkora-automation-service` | Deployable backend service | Complies |
-| `sovkora-build` | Product build repository | Complies |
-| `sovkora-cli` | CLI | Complies |
-| `sovkora-contracts` | Contracts | Complies |
-| `sovkora-conversation-service` | Deployable backend service | Complies |
-| `sovkora-edge-service` | The HTTP edge service | Complies |
-| `sovkora-engine` | The engine's core library | Complies |
-| `sovkora-job-service` | Deployable backend service | Complies |
-| `sovkora-knowledge-service` | Deployable backend service | Complies |
-| `sovkora-mobile` | Mobile app | Complies |
-| `sovkora-packs` | Packs | Complies |
-| `sovkora-studio-service` | The Studio service (with its API and client modules) | Complies |
-| `sovkora-ui-kit` | Sovkora's UI packages | **Fold into `krizaka-ui`**, then archive |
-| `sovkora-web` | Web app | Complies |
-| `sovkora-worker-media` | Worker | Complies |
+| `sovkora-automation-service` | Deployable backend service | **Archive (ADR-029: folded into `sovkora`)** |
+| `sovkora-build` | Product build repository | **Archive (ADR-029: folded into `sovkora`)** |
+| `sovkora-cli` | CLI | **Archive (ADR-029: folded into `sovkora`)** |
+| `sovkora-contracts` | Contracts | **Archive (ADR-029: folded into `sovkora`)** |
+| `sovkora-conversation-service` | Deployable backend service | **Archive (ADR-029: folded into `sovkora`)** |
+| `sovkora-edge-service` | The HTTP edge service | **Archive (ADR-029: folded into `sovkora`)** |
+| `sovkora-engine` | The engine's core library | **Archive (ADR-029: folded into `sovkora`)** |
+| `sovkora-job-service` | Deployable backend service | **Archive (ADR-029: folded into `sovkora`)** |
+| `sovkora-knowledge-service` | Deployable backend service | **Archive (ADR-029: folded into `sovkora`)** |
+| `sovkora-mobile` | Mobile app | **Archive (ADR-029: folded into `sovkora`)** |
+| `sovkora-packs` | Packs | **Archive (ADR-029: folded into `sovkora`)** |
+| `sovkora-studio-service` | The Studio service (with its API and client modules) | **Archive (ADR-029: folded into `sovkora`)** |
+| `sovkora-ui-kit` | Sovkora's UI packages | **Archive (ADR-029: folded into `sovkora`)** |
+| `sovkora-web` | Web app | **Archive (ADR-029: folded into `sovkora`)** |
+| `sovkora-worker-media` | Worker | **Archive (ADR-029: folded into `sovkora`)** |
 | `verikora` | Main product repository (Verikora) | Complies |
 
 ## Check

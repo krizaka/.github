@@ -24,6 +24,11 @@ one place; every guard, cron and CI job reads it, and the cockpit shows it
 | `train.prCapPerLane` | `5` | the most open pull requests one lane may hold in one repository; a new pull request that would be the next one over fails the `PR cap` check | pull requests, 1 to 10 |
 | `train.capScope` | `lane-per-repository` | what the cap counts: the open pull requests of one lane (its `lane:<name>` label) in one repository. A Dependabot pull request without a lane label counts in the lane `dependabot`, any other unlabelled one in the lane `unlabelled` | the only value known today |
 | `train.fixMainExempt` | `true` | a `fix(main)` pull request (title `fix(main)` or label `fix-main`) is neither blocked by the cap nor counted in it, so a red main can always be repaired | true or false |
+| `observability.provider` | `grafana-cloud` | the vendor behind the consoles: a value, never a name in code or keys | the only value known today |
+| `observability.dashboards.enforcement` | `warn` | how `krizaka-dashboards check` (`@krizaka/config`) treats a finding on a deployed repository's reading surfaces: `warn` prints it and passes, `block` fails the push and CI; `block` once every deployed repository is green (ADR-028 §5) | `warn` or `block` |
+| `observability.environments.dev.state` | `live` | the dev Grafana stack exists | `live` or `to-create` |
+| `observability.environments.dev.console` | the dev stack's origin | **the one place the dev Grafana address is written** (ADR-028 §2). The cockpit, the lane, the provisioning and probe scripts and the onboarding docs read it; a link is this origin plus Grafana's own path (`/d/<uid>`, `/a/…`, `/alerting/list`) | an `https://` origin pinned by `enum` in the schema |
+| `observability.environments.prod.state` | `to-create` | the prod stack does not exist: the free tier allows one stack, so a prod stack is the founder's money and account decision (ADR-028, « What the founder decides »). Readers show « à créer »; when it exists, a `console` key is added to the schema and here | `live` or `to-create` |
 
 Still exempt from the check, and still counted: Dependabot security updates, the repository's one pin PR (`deps/<label>`), the
 release PRs. They land the backlog, so the cap never blocks them.
@@ -32,7 +37,8 @@ release PRs. They land the backlog, so the cap never blocks them.
 
 - CI: `scripts/pr-cap.mjs` (the `PR cap` check of every product repository, and the scheduled report that keeps the tracking issue — in krizaka/krizaka-internal, alert key `pr-cap`, never in a public repository).
 - krizaka-agents tools, through `tools/policy.py`: `kz.PR_CAP` (so `pr-open`, `pr-train.sh`, `train-queue.py`, `infra-retry.py`, `watchdog.py`), `crack-metrics.py`, `lane-dispatch.py`.
-- The cockpit: shows the policy and the live open-PR counts against it.
+- The cockpit: shows the policy and the live open-PR counts against it, and its « Observabilité » block reads `observability` (krizaka-internal#2838).
+- `@krizaka/config` `krizaka-dashboards check` reads `observability.dashboards.enforcement` through the hook chain's `readOrgFile` (krizaka-internal#2820); krizaka-infra's provisioning and probe scripts read the consoles (krizaka-internal#2822).
 
 A reader that finds the file missing, not JSON, with an unknown key, a wrong type or a value out of bounds **stops with a message
 that names the problem**. It never falls back to a default and never guesses.
@@ -51,7 +57,7 @@ A new key needs its schema entry first (description with the unit and who reads 
 ## What never goes in it
 
 - **Secrets**: no key, token, password. A test fails when a key is named like one (`secret`, `token`, `key`, `password`, `url`).
-- **Machine paths and addresses**: those are the local, never committed `krizaka.config.json`, which only points here (its key `policy`).
+- **Machine paths and addresses**: those are the local, never committed `krizaka.config.json`, which only points here (its key `policy`). One narrow exception (ADR-028 §2): `observability.environments.<env>.console`, the `https://` origin of an operator console, with no path, no query and no credential, pinned by an `enum` in the schema so a new stack is a schema change the founder reviews. The key-name test still refuses `url`, `token`, `key`, `secret` and `password`.
 - **Product display data** (names, status, footer): the app admin settings in the database, not the org policy.
 - **Public discovery data** (API URLs, app versions): the org JSON.
 - **Free text**: a string value is a constant or one of a fixed set, so the file cannot carry a payload.

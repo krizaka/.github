@@ -1,9 +1,11 @@
 #!/usr/bin/env node
-// Org guard audit (docs/standards/bug-means-missing-guard.md): two checks on the focus repositories, run by
+// Org guard audit (docs/standards/bug-means-missing-guard.md): three checks run by
 // .github/workflows/audit-guards.yml every day.
 //   1. `main` requires the `CI gate` and the Sonar checks (a repository without them lets a red PR merge).
 //   2. a release workflow (release-please, changesets) opens its PR with a GitHub App token: a PR opened with
 //      the workflow's own token never starts CI, so the release PR sits unchecked.
+//   3. every public repository has a recognised licence (spdx_id !== NOASSERTION) — except FSL repos
+//      (krizaka-internal#2917), which GitHub cannot yet classify but whose verbatim FSL-1.1-ALv2 text is correct.
 // Pure rules are exported and tested (tests/audit-guards.test.mjs); the network part is `main()` only.
 import { pathToFileURL } from "node:url";
 
@@ -12,13 +14,28 @@ export const FOCUS_REPOS = [
   "sovkora", "sovkora-web", ".github",
 ];
 export const REQUIRED_CHECKS = [
-  { label: "CI gate", re: /^CI gate$/ },
+  { label: "CI gate", re: /^(?:[\w-]+ \/ )?CI gate$/ },
   { label: "Sonar", re: /sonar/i },
 ];
 
-/** @param {string[]} contexts required check names of the branch. @returns {string[]} problems. */
-export function missingRequiredChecks(contexts) {
-  return REQUIRED_CHECKS.filter(({ re }) => !contexts.some((c) => re.test(c))).map(
+/**
+ * Repositories whose always-reporting aggregate check has another name than `CI gate` (read from their branch
+ * protection and CI on 2026-11-06, krizaka-internal#2104). Exact names: anything else still fails.
+ */
+export const OWN_GATES = {
+  "krizaka-ui": "Type-check, test, build",
+  "krizaka-java": "maven / Verify (tests, javadoc, sources)",
+  sovkora: "workspace",
+  "sovkora-web": "component / verify",
+};
+
+/**
+ * `CI gate` is reported by the shared workflows as `<caller job> / CI gate` (docs/standards/ci-and-deploy.md).
+ * @param {string[]} contexts required check names of the branch. @param {string} [repo]. @returns {string[]} problems.
+ */
+export function missingRequiredChecks(contexts, repo) {
+  const own = repo && OWN_GATES[repo];
+  return REQUIRED_CHECKS.filter(({ label, re }) => !(label === "CI gate" && own ? contexts.includes(own) : contexts.some((c) => re.test(c)))).map(
     ({ label }) => `${label} is not a required check of main`,
   );
 }
@@ -43,6 +60,22 @@ export function releaseTokenProblems(yaml) {
   return problems;
 }
 
+/**
+ * Public repositories whose spdx_id is NOASSERTION by design: GitHub cannot yet classify FSL-1.1-ALv2
+ * (not in the SPDX list), so the verbatim FSL text produces NOASSERTION. Allow-listed by name (krizaka-internal#2917).
+ */
+export const FSL_REPOS = ["sovkora"];
+
+/**
+ * A public repo must have a recognised licence (spdx_id !== NOASSERTION) unless it is an FSL repo.
+ * @param {string} repo repository name. @param {string|null} spdxId GitHub spdx_id. @returns {string[]} problems.
+ */
+export function noassertionProblems(repo, spdxId) {
+  if (spdxId !== "NOASSERTION") return [];
+  if (FSL_REPOS.includes(repo)) return [];
+  return [`${repo}: public repo has NOASSERTION licence — add a verbatim SPDX LICENSE file (krizaka-internal#2917)`];
+}
+
 async function api(path, token) {
   const res = await fetch(`https://api.github.com/${path}`, {
     headers: { authorization: `Bearer ${token}`, accept: "application/vnd.github+json" },
@@ -58,7 +91,7 @@ async function repositoryGaps(repo, token) {
     failures.push(`${repo}: required checks unreadable or absent (HTTP ${prot.status}): main is unprotected or the token cannot read it`);
   } else {
     const contexts = [...(prot.body.contexts ?? []), ...(prot.body.checks ?? []).map((c) => c.context)];
-    failures.push(...missingRequiredChecks(contexts).map((p) => `${repo}: ${p}`));
+    failures.push(...missingRequiredChecks(contexts, repo).map((p) => `${repo}: ${p}`));
   }
   const list = await api(`repos/krizaka/${repo}/contents/.github/workflows`, token);
   for (const f of (list.body ?? []).filter((x) => /\.ya?ml$/.test(x.name))) {
@@ -75,11 +108,20 @@ export async function main(env = process.env) {
   if (!token) throw new Error("GH_TOKEN (a token that can read branch protection) is required");
   const failures = [];
   for (const repo of FOCUS_REPOS) failures.push(...(await repositoryGaps(repo, token)));
+  // Check every public repo for a recognised licence (krizaka-internal#2917).
+  const reposRes = await api("orgs/krizaka/repos?type=public&per_page=100", token);
+  if (reposRes.status !== 200) {
+    failures.push(`cannot list public repos for licence check (HTTP ${reposRes.status})`);
+  } else {
+    for (const r of reposRes.body) {
+      failures.push(...noassertionProblems(r.name, r.license?.spdx_id ?? null));
+    }
+  }
   if (failures.length) {
     console.error(`${failures.length} guard gap(s):\n- ${failures.join("\n- ")}`);
     return 1;
   }
-  console.log(`guards ok on ${FOCUS_REPOS.length} repositories`);
+  console.log(`guards ok on ${FOCUS_REPOS.length} repositories; licence check ok`);
   return 0;
 }
 

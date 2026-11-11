@@ -120,13 +120,14 @@ function noreplyLogin(local) {
 }
 
 /**
- * files: [{ path, text }] -> each line that sets a git author/committer e-mail to the GitHub-noreply of an
- * allow-listed login but NOT its exact e-mail (the bare, prefix-less or wrong-id form). A direct author or committer
- * needs the `<id>+<login>@users.noreply.github.com` of scripts/commit-identities.json; the bare form only ever passes
- * as a squash-merge co-author trailer, so an automation that commits with it is refused by the commit check above —
- * the whole org at once (krizaka/folioviv#691, the propagate-pins fan-out, 2026-11-05). This catches that at the
- * source. An unknown login (a bot not on the list) is a different matter, left to the commit check; a non-noreply
- * e-mail is none of this guard's business.
+ * files: [{ path, text }] -> each line that sets a git author/committer e-mail to a GitHub-noreply address that is
+ * NOT the exact allow-listed e-mail of scripts/commit-identities.json. Two cases:
+ *   - known login, wrong format (bare or wrong id): e.g. `krizaka-agents@users.noreply.github.com` instead of
+ *     `345578919+krizaka-agents[bot]@users.noreply.github.com` — this is what broke the org on 2026-11-05
+ *     (krizaka/folioviv#691, the propagate-pins fan-out).
+ *   - unknown login (a bot not in the list): e.g. `github-actions[bot]` whose commits are refused by the commit
+ *     check above — caught here at the source so the problem is reported before the branch ever enters the queue.
+ * A non-noreply e-mail is none of this guard's business.
  */
 export function committerSourceProblems(files, identities = loadIdentities()) {
   const known = new Set(identities.accounts.map((a) => a.login.toLowerCase()));
@@ -142,10 +143,13 @@ export function committerSourceProblems(files, identities = loadIdentities()) {
         let start = at;
         while (start > 0 && isLocalChar(line[start - 1])) start--;
         if (start === at) continue; // no local part: not an address
+        const full = lower.slice(start, at) + NOREPLY_SUFFIX;
+        if (identities.emails.has(full)) continue; // exact match: ok
         const login = noreplyLogin(line.slice(start, at));
-        if (!known.has(login.toLowerCase())) continue;
-        if (!identities.emails.has(lower.slice(start, at) + NOREPLY_SUFFIX)) {
+        if (known.has(login.toLowerCase())) {
           problems.push(`${f.path}:${i + 1} commits as ${login} but not with its allow-listed e-mail (a direct author or committer needs the id+login form of ${LIST})`);
+        } else {
+          problems.push(`${f.path}:${i + 1} commits as ${login} which has no identity in ${LIST} — add it or use an allowed account`);
         }
       }
     });

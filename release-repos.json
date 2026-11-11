@@ -4,11 +4,7 @@
     {
       "id": "orazaka",
       "name": "Sovkora",
-      "repos": [
-        "sovkora-web", "sovkora-edge-service", "sovkora-studio-service", "sovkora-packs", "sovkora-contracts", "sovkora-engine",
-        "sovkora-job-service", "sovkora-knowledge-service", "sovkora-conversation-service", "sovkora-automation-service",
-        "sovkora-cli", "sovkora-worker-media"
-      ]
+      "repos": ["sovkora"]
     },
     { "id": "akinaza", "name": "Folioviv", "repos": ["folioviv"] },
     { "id": "yomizaka", "name": "Verikora", "repos": ["verikora"] },

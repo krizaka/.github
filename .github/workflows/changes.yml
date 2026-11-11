@@ -35,6 +35,11 @@ on:
         type: string
         required: false
         default: ""
+      release-files:
+        description: "JavaScript RegExp: on a pull request from a release branch (release-please--*, changeset-release/*), when every changed file matches, skip the heavy jobs. Any other branch is untouched (a dependency bump changes the same files and is tested); merge_group always runs in full."
+        type: string
+        required: false
+        default: ""
     outputs:
       code:
         description: "'false' only when every changed file is irrelevant; otherwise 'true'."
@@ -61,6 +66,8 @@ jobs:
           MQ_BASE: ${{ github.event.merge_group.base_sha }}
           RELEVANT: ${{ inputs.relevant }}
           IGNORE: ${{ inputs.ignore }}
+          RELEASE_FILES: ${{ inputs.release-files }}
+          HEAD_REF: ${{ github.head_ref }}
         run: |
           node --input-type=module - <<'GATE'
           import { appendFileSync } from "node:fs";
@@ -110,6 +117,11 @@ jobs:
               done("true", `${env.EVENT} runs in full`);
             }
             if (!files.length) done("true", "no changed file listed (empty commit?)");
+            // Only a release branch (the same two as fix-needs-guard's skipBranches): a dependency bump changes these files too and needs its tests.
+            if (env.RELEASE_FILES && env.EVENT === "pull_request" && /^(release-please--|changeset-release\/)/.test(env.HEAD_REF || "")) {
+              const releaseRe = new RegExp(env.RELEASE_FILES);
+              if (files.every((f) => releaseRe.test(f))) done("false", `${files.length} file(s) on a release branch, all match release-files: skip the heavy jobs`);
+            }
             const needed = files.filter((f) => relevant.test(f) && !(ignore && ignore.test(f)));
             done(needed.length ? "true" : "false", needed.length ? `needs the jobs: ${needed.slice(0, 5).join(", ")}` : `${files.length} file(s), none relevant`);
           } catch (error) {

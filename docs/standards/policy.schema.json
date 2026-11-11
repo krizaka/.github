@@ -2,10 +2,10 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/krizaka/.github/blob/main/docs/standards/policy.schema.json",
   "title": "policy.json: the org policy, one source of truth (krizaka-internal#2781)",
-  "description": "The org policy read by every guard, cron and CI job. Closed on purpose: an unknown key is refused, no value is free text, and nothing here is a secret, a machine path, a URL, product display data or public discovery data. Each value is explained in docs/standards/policy.md.",
+  "description": "The org policy read by every guard, cron and CI job. Closed on purpose: an unknown key is refused, no value is free text, and nothing here is a secret, a machine path, a URL (except the operator consoles of observability.environments, pinned by enum), product display data or public discovery data. Each value is explained in docs/standards/policy.md.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["version", "train"],
+  "required": ["version", "train", "observability"],
   "properties": {
     "$schema": {
       "description": "Where the schema is, relative to policy.json. Read by editors only; no tool follows it.",
@@ -38,6 +38,71 @@
         "fixMainExempt": {
           "description": "Whether a fix(main) pull request (title fix(main) or label fix-main) is neither blocked by the cap nor counted in it, so a red main can always be repaired. true or false.",
           "type": "boolean"
+        }
+      }
+    },
+    "observability": {
+      "description": "Where the org's observability lives and how strictly dashboards are checked (ADR-028). Read by the cockpit, the agents' tools (the Security, Observability & SRE lane, the provisioning and probe scripts) and the dashboards check of @krizaka/config.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "dashboards", "environments"],
+      "properties": {
+        "provider": {
+          "description": "The observability provider behind the consoles. The vendor is a value, never a name in code or keys (functional names).",
+          "type": "string",
+          "enum": ["grafana-cloud"]
+        },
+        "dashboards": {
+          "description": "How the dashboards check (krizaka-dashboards check, @krizaka/config) enforces the reading surfaces of every deployed repository.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enforcement"],
+          "properties": {
+            "enforcement": {
+              "description": "warn: findings are printed, the push and CI pass; block: a finding fails the push and CI. warn until every deployed repository is green (ADR-028 §5).",
+              "type": "string",
+              "enum": ["warn", "block"]
+            }
+          }
+        },
+        "environments": {
+          "description": "One Grafana per environment (ADR-028 §2). dev is the Canadian stack that exists; prod waits for the founder's decision.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["dev", "prod"],
+          "properties": {
+            "dev": {
+              "description": "One environment's Grafana. state: live (its console exists) or to-create (the founder has not decided the stack yet: no console, the readers show « à créer »).",
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["state"],
+              "properties": {
+                "state": {
+                  "description": "Whether this environment's stack exists. live: the console below is set and read; to-create: no stack yet (a money and account decision of the founder, ADR-028).",
+                  "type": "string",
+                  "enum": ["live", "to-create"]
+                },
+                "console": {
+                  "description": "The https origin of this environment's Grafana console: no path, no query, no credential. The one place the address is written (ADR-028 §2); a link is this origin plus Grafana's own path (/d/<uid>, /a/…, /alerting/list). Pinned here: a new stack is a schema change the founder reviews (CODEOWNERS).",
+                  "type": "string",
+                  "enum": ["https://purplesturgeon2768.grafana.net"]
+                }
+              }
+            },
+            "prod": {
+              "description": "One environment's Grafana. state: live (its console exists) or to-create (the founder has not decided the stack yet: no console, the readers show « à créer »).",
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["state"],
+              "properties": {
+                "state": {
+                  "description": "Whether this environment's stack exists. live: the console below is set and read; to-create: no stack yet (a money and account decision of the founder, ADR-028).",
+                  "type": "string",
+                  "enum": ["live", "to-create"]
+                }
+              }
+            }
+          }
         }
       }
     }

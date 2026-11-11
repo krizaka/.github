@@ -14,7 +14,6 @@ test("the founder's surfaces per product", () => {
 });
 
 test("a product is its repositories of the krizaka organisation, named in surfaces.json", () => {
-  assert.equal(productOf("krizaka/sovkora-cli", products), "sovkora");
   assert.equal(productOf("krizaka/sovkora", products), "sovkora");
   assert.equal(productOf("krizaka/verikora", products), "verikora");
   assert.equal(productOf("krizaka/folioviv", products), "folioviv");
@@ -25,7 +24,7 @@ test("a product is its repositories of the krizaka organisation, named in surfac
 test("the sweep reads krizaka/<repo> for every repo of surfaces.json, never an organisation of a product", () => {
   const repos = productRepos(products);
   assert.ok(repos.length >= 3 && repos.every((r) => r.startsWith("krizaka/")), repos.join());
-  for (const r of ["krizaka/verikora", "krizaka/folioviv", "krizaka/sovkora", "krizaka/sovkora-cli"]) assert.ok(repos.includes(r), r);
+  for (const r of ["krizaka/verikora", "krizaka/folioviv", "krizaka/sovkora"]) assert.ok(repos.includes(r), r);
   const flow = readFileSync(".github/workflows/feature-surfaces.yml", "utf8");
   assert.doesNotMatch(flow, /matrix:|owner: \[/);
   assert.doesNotMatch(readFileSync("scripts/surfaces.mjs", "utf8"), /orgs\//);
@@ -65,7 +64,7 @@ const closed = (extra) => ({ number: 7, state: "closed", labels: [{ name: "type:
 test("the closing check: a feature of a product with a gap fails, anything else is skipped", () => {
   assert.equal(evaluate(closed(), "krizaka/verikora", products).ok, false);
   assert.equal(evaluate(closed({ body: done(verikoraDone) }), "krizaka/verikora", products).ok, true);
-  assert.equal(evaluate(closed({ type: { name: "Feature" }, labels: [] }), "krizaka/sovkora-cli", products).ok, false, "the org issue type counts");
+  assert.equal(evaluate(closed({ type: { name: "Feature" }, labels: [] }), "krizaka/sovkora", products).ok, false, "the org issue type counts");
   for (const [issue, repo] of [
     [closed({ labels: [{ name: "type:bug" }] }), "krizaka/verikora"],
     [closed(), "krizaka/krizaka-ui"],

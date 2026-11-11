@@ -237,7 +237,7 @@ test("journeys: both callers and `journeys / gate` required on main; a missing o
   assert.equal((await runCheck(rule.check, snap("folioviv", "app", files))).ok, null); // offline: unknown, never pass
   const noPost = { ".github/workflows/ci.yml": call("journeys.yml") };
   assert.equal((await runCheck(rule.check, snap("folioviv", "app", noPost))).ok, false);
-  assert.deepEqual(rule.applies.onlyRepos, ["folioviv", "verikora", "sovkora-web"]);
+  assert.deepEqual(rule.applies.onlyRepos, ["folioviv", "verikora", "sovkora"]);
 });
 
 test("merged-result-tested: a merge queue or strict passes, neither fails, offline proves nothing", async () => {

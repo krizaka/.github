@@ -1,11 +1,22 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { missingRequiredChecks, releaseTokenProblems } from "../scripts/audit-guards.mjs";
+import { missingRequiredChecks, releaseTokenProblems, noassertionProblems } from "../scripts/audit-guards.mjs";
 
 test("a main without required checks is refused", () => {
   assert.equal(missingRequiredChecks([]).length, 2);
   assert.deepEqual(missingRequiredChecks(["CI gate", "SonarCloud Code Analysis"]), []);
   assert.deepEqual(missingRequiredChecks(["CI gate"]), ["Sonar is not a required check of main"]);
+});
+
+test("a reusable-workflow gate is reported as `ci / CI gate` and counts", () => {
+  assert.deepEqual(missingRequiredChecks(["ci / CI gate", "SonarCloud Code Analysis"], "krizaka-com"), []);
+  assert.deepEqual(missingRequiredChecks(["not a CI gate", "SonarCloud Code Analysis"], "krizaka-com"), ["CI gate is not a required check of main"]);
+});
+
+test("a repository with another legitimate gate is accepted only on that exact check", () => {
+  assert.deepEqual(missingRequiredChecks(["workspace", "SonarCloud Code Analysis"], "sovkora"), []);
+  assert.deepEqual(missingRequiredChecks(["workspace", "SonarCloud Code Analysis"], "krizaka-com"), ["CI gate is not a required check of main"]);
+  assert.deepEqual(missingRequiredChecks(["SonarCloud Code Analysis"], "sovkora"), ["CI gate is not a required check of main"]);
 });
 
 const app = `      - id: app
@@ -24,3 +35,17 @@ test("release-please with the workflow token alone is refused", () => {
 test("changesets without an app step is refused", () =>
   assert.equal(releaseTokenProblems("      - uses: changesets/action@v2\n        with:\n          github-token: x\n").length, 1));
 test("a workflow that is not a release one is ignored", () => assert.deepEqual(releaseTokenProblems("run: echo"), []));
+
+test("a public repo with NOASSERTION fails", () => {
+  assert.equal(noassertionProblems("some-lib", "NOASSERTION").length, 1);
+});
+test("a public repo with a recognised licence passes", () => {
+  assert.deepEqual(noassertionProblems("some-lib", "Apache-2.0"), []);
+  assert.deepEqual(noassertionProblems("some-lib", "MIT"), []);
+});
+test("FSL repos are exempt from NOASSERTION (GitHub cannot classify FSL-1.1-ALv2)", () => {
+  assert.deepEqual(noassertionProblems("sovkora", "NOASSERTION"), []);
+});
+test("a null spdx_id is not NOASSERTION and does not fail", () => {
+  assert.deepEqual(noassertionProblems("some-lib", null), []);
+});

@@ -6,70 +6,27 @@
    krizaka-internal's README) and keeps ONE tracking issue in krizaka/krizaka-internal listing them. It cannot transfer
    (that needs admin): the CTO transfers with `gh issue transfer`. An issue labelled `public` was reviewed and stays.
    The logs of this repository are public: the script prints counts only, never a title.
+   Why/what: above. How to run: the « Public issues scan » workflow (daily, and on a new issue), or by hand with the env below.
+   Owner: krizaka/.github, security lane. The word lists are data in scripts/public-issue-rules.mjs (ADR-026 phase D).
    Env: GH_TOKEN (read the public repos, write issues in krizaka-internal); SCAN_DAYS (default 7); SCAN_DRY_RUN=1 (no write). */
+
+import { LABEL_HINTS, RULES } from "./public-issue-rules.mjs";
+import { countSignals } from "./signal-match.mjs";
 
 export const ORG = "krizaka";
 export const INTERNAL = "krizaka-internal";
-export const APPS = new Set(["krizaka-agents[bot]", "orazaka[bot]"]);
+export const APPS = new Set(["krizaka-agents[bot]", "sovkora[bot]"]);
 export const REPORT_LABEL = "scan-report";
-
-/** Title patterns per category (strong signals), then body patterns that need `min` hits. */
-export const RULES = {
-  security: {
-    title: new RegExp(
-      [
-        String.raw`bug\(security\)|^security\b|(?<!\d )vulnerab|\bCVE\b|\bleak`,
-        String.raw`exposed|unauthenticated|not verified server|faille|\bsecrets?\b|bypass`,
-        String.raw`static analysis findings \(\d+ bugs?, [1-9]\d* vulnerab`,
-      ].join("|"),
-      "i",
-    ),
-    body: /vulnerab|exploit|bypass|unauthenticated|not verified|\bIDOR\b|\bSSRF\b|\bXSS\b|\bCSRF\b|to rotate|was exposed/gi,
-    min: 3,
-  },
-  fraud: {
-    title: /fraud|tamper|forensic|screening|tampered corpus|\brecall\b|false.positive|faux.positif|risk engine|anti.?abuse|authenticity signal/i,
-    body: /\brecall\b|false.positive|faux.positif|\boverlay|pasted image|jpeg edit|evasion|tampered corpus/gi,
-    min: 2,
-  },
-  pricing: {
-    title: [/\bpric|\bprix\b|tarif|\boffers?\b|\boffre|\$|\bcosts?\b|coût|budget|competit/i, /concurren|comparison|margin|marge|sponsor|commercial|strategy|stratég|finops|revenue|service levels/i],
-    body: /\d ?\$|\$ ?\d|competitor|concurrent|\bmargin|\bmarge\b|\bMRR\b|USD a month|\/month/gi,
-    min: 3,
-  },
-  infra: {
-    title: /\bDNS\b|bucket|digitalocean|droplet|account (?:api )?key|connection budget|trusted sources|object.storage|porkbun|\bVPC\b|firewall|pgbouncer/i,
-    body: /\b(?:\d{1,3}\.){3}\d{1,3}\b|droplet|doctl|\btor1\b|\bnyc\d\b|storage zone|kubeconfig|\bssh\s|secret name|_API_KEY\b/gi,
-    min: 3,
-  },
-  legal: {
-    title: /\blegal\b|lawyer|avocat|law ?25|loi ?25|\bEFVP\b|privacy impact|\bISMS\b|\bPIMS\b|claim \(held\)|counsel|civil code/i,
-    body: /lawyer|avocat|legal risk|risque (?:juridique|légal)|liabilit|privacy impact|\bEFVP\b/gi,
-    min: 2,
-  },
-  founder: {
-    title: /oussama|founder|fondateur|\bNEQ\b|\bbank\b|banque|insurance|assurance|invoice|sign the contract|approve the/i,
-    body: /bank account|compte bancaire|\bNEQ\b|insurance|contract with|signed contract|payout account/gi,
-    min: 2,
-  },
-};
-export const LABEL_HINTS = {
-  "area:security": "security",
-  "area:legal": "legal",
-  "area:compliance": "legal",
-  "oussama-action": "founder",
-  "owner:oussama": "founder",
-};
+export { RULES, LABEL_HINTS };
 
 /** The categories an issue `{ title, body, labels: string[] }` looks like, with the reason for each. */
 export function classify(issue) {
   const found = {};
   const body = issue.body ?? "";
   for (const [cat, r] of Object.entries(RULES)) {
-    const titles = Array.isArray(r.title) ? r.title : [r.title];
-    if (titles.some((t) => t.test(issue.title ?? ""))) found[cat] = "title";
+    if (countSignals(issue.title ?? "", r.title) > 0) found[cat] = "title";
     else {
-      const hits = body.match(r.body)?.length ?? 0;
+      const hits = countSignals(body, r.body);
       if (hits >= r.min) found[cat] = `body ×${hits}`;
     }
   }
@@ -94,8 +51,19 @@ export function renderReport(suspects, now = new Date()) {
   return `${head}\n\n**${suspects.length} suspect issue(s):**\n\n${rows.join("\n")}`;
 }
 
+/** `repos/krizaka/<repo>/issues` or `…/issues/<n>`. */
+export const REPO_ISSUES_PATH = /^repos\/krizaka\/[\w.-]+\/issues(?:\/\d+)?$/;
+/** The query string: letters, digits and `= & % . : -` only. */
+export const QUERY_STRING = /^[\w=&%.:-]*$/;
+
 /** Only paths of the GitHub REST API under this org, made of safe characters (names come from the API, encoded below). */
-export const SAFE_PATH = /^(?:orgs\/krizaka\/repos|repos\/krizaka\/[\w.-]+\/issues(?:\/\d+)?)(?:\?[\w=&%.:-]*)?$/;
+export function isSafePath(path) {
+  const [route, ...query] = path.split("?");
+  const routeOk = route === `orgs/${ORG}/repos` || REPO_ISSUES_PATH.test(route);
+  return routeOk && query.length <= 1 && QUERY_STRING.test(query[0] ?? "");
+}
+/** Kept for the callers that test a path like a pattern. */
+export const SAFE_PATH = { test: isSafePath };
 
 async function gh(path, init = {}) {
   if (!SAFE_PATH.test(path) || path.includes("..")) throw new Error("refused API path");
