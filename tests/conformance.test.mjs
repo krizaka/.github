@@ -1,7 +1,7 @@
 // The rule registry and the conformance matrix (krizaka/.github#393).
 import test from "node:test";
 import assert from "node:assert/strict";
-import { appliesTo, evaluate, loadRules, patternOf, render, runCheck, scopeOf, snapshotOf, summarise, validateRules } from "../scripts/conformance.mjs";
+import { readJson, missingFromOrg, missingMessage, appliesTo, evaluate, loadRules, patternOf, render, runCheck, scopeOf, snapshotOf, summarise, validateRules } from "../scripts/conformance.mjs";
 
 const snap = (name, kind, files) => snapshotOf(name, kind, Object.keys(files), async (p) => files[p]);
 const call = (w) => `jobs:\n  x:\n    uses: krizaka/.github/.github/workflows/${w}@${"a".repeat(40)} # main\n`;
@@ -461,4 +461,18 @@ test("workflow-calls counts the reusable workflows of the org's own repositories
   const check = { type: "workflow-calls", workflows: ["a.yml"] };
   for (const repo of [".github", "sovkora", "orazaka"]) assert.equal((await runCheck(check, snap("r", "npm", { ".github/workflows/c.yml": caller(repo, "a.yml") }))).ok, true, repo);
   for (const repo of ["sovkora-web", "other"]) assert.equal((await runCheck(check, snap("r", "npm", { ".github/workflows/c.yml": caller(repo, "a.yml") }))).ok, false, repo);
+});
+
+test("the guard names each listed repository the org does not have, before any token is minted", () => {
+  const org = ["a", "b", "krizaka-internal"];
+  assert.deepEqual(missingFromOrg(["a", "b", "krizaka-template-web", "krizaka-composer", "a"], org), ["krizaka-composer", "krizaka-template-web"]);
+  assert.match(missingMessage(["x", "y"]), /: x, y\./);
+  assert.equal(missingMessage(missingFromOrg(["a", "krizaka-internal"], org)), null);
+});
+
+test("every active repository of repos.json exists by its current name in the registry lists", () => {
+  const names = readJson("repos.json").repositories.map((r) => r.name);
+  assert.equal(names.includes("krizaka-composer"), false);
+  const { active } = scopeOf(readJson("repos.json").repositories);
+  assert.equal(active.some((r) => /^krizaka-template-(web|desktop)$/.test(r.name)), false);
 });

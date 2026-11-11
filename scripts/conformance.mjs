@@ -6,6 +6,8 @@
 //   node scripts/conformance.mjs --repos a,b --rules x,y   a slice
 //   node scripts/conformance.mjs --validate           only the registry (every rule has its check); no network
 //   node scripts/conformance.mjs --repo-list           the active repositories, comma separated (scopes the workflow's token)
+//   node scripts/conformance.mjs --check-org <file>  the file lists the org's repository names, one per line: exit 1 naming each active
+//                                                     repository (and krizaka-internal) that is not in it, before any scoped token is minted
 //   node scripts/conformance.mjs --fail               exit 1 while a cell of a security rule fails (rules review of 2026-11-05:
 //                                                     the same-day rollout holds only for the rules marked `"security": true`)
 //
@@ -18,14 +20,14 @@
 // Split by job (ADR-026 phase D): conformance-basics (shared constants), -registry (rules, scope, snapshot), -checks (one handler per check
 // type), -live (reading GitHub), -report (markdown and JSON); this file evaluates the matrix and runs it. Owner: krizaka/.github (lane platform).
 // Reads GitHub with GH_TOKEN / GITHUB_TOKEN (the app token for the private ones).
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { byCodePoint } from "./conformance-basics.mjs";
 import { runCheck, patternOf, lateOf, versionsReport } from "./conformance-checks.mjs";
 import { liveSnapshot } from "./conformance-live.mjs";
 import { renderVersions } from "./conformance-versions.mjs";
 import { render, reportOf } from "./conformance-report.mjs";
-import { appliesTo, failing, loadRules, readJson, scopeOf, validateRules } from "./conformance-registry.mjs";
+import { appliesTo, failing, loadRules, missingFromOrg, missingMessage, readJson, scopeOf, validateRules } from "./conformance-registry.mjs";
 
 export * from "./conformance-basics.mjs";
 export * from "./conformance-checks.mjs";
@@ -119,6 +121,12 @@ export async function main(argv) {
     return 0;
   }
   const { active, paused } = scopeOf(readJson("repos.json").repositories);
+  if (argv.includes("--check-org")) {
+    const orgNames = readFileSync(flag(argv, "--check-org"), "utf8").split(/\s+/).filter(Boolean);
+    const message = missingMessage(missingFromOrg([...active.map((r) => r.name), "krizaka-internal"], orgNames));
+    if (message) console.error(message);
+    return message ? 1 : 0;
+  }
   if (argv.includes("--repo-list")) {
     console.log(active.map((r) => r.name).join(","));
     return 0;

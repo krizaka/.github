@@ -29,7 +29,7 @@ This is the standard behind ADR-007 (krizaka/.github#217).
 | ArchUnit governance tests | 33 | 33 | local wiring of two libraries | krizaka-*: `CodeRules`/`ArchitectureRules` (krizaka-java `krizaka-test-support`); sovkora-*: `GovernanceRules` (sovkora-build `sovkora-test-support`, 1,181 lines, 17 rule names duplicated from `CodeRules`) |
 | `archunit_store/` (`FrozenRules`) | 6 | — | **truly local** (frozen debt) | sovkora-automation-service, sovkora-conversation-service, sovkora-job-service, krizaka-java (users core and persistence, platform-kit notifications) |
 | Spotless, OpenRewrite | 1 | 1 | **shared already** | `krizaka-parent/pom.xml:83-91,185-187` |
-| Rust (`cargo fmt`, `clippy -D warnings`) | — | — | shared within the Tauri kit's workflow | krizaka-desktop `.github/workflows/rust.yml:24-25` |
+| Rust (`cargo fmt`, `clippy -D warnings`) | — | — | shared within the Tauri kit's workflow | krizaka-rust `.github/workflows/rust.yml:24-25` |
 | Python (`ruff check .`) | 1 config | — | **shared already** (workflow input) | `python-ci.yml:10,48`, 5 callers; config `sovkora-worker-media/pyproject.toml:14-30` |
 | `copilot-setup-steps.yml` | 15 | 2 | copy | 14 Java/Sovkora repositories |
 | AGENTS.md « Static rules » section | 21 | 7 | **restated**, 511 lines | every repository above |

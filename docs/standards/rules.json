@@ -75,7 +75,7 @@
       },
       "exempt": {
         "krizaka-infra": "OpenTofu stack pinned by .tool-versions that also runs tflint and checkov; krizaka-ci's iac flow (fmt, validate, test) runs neither, so moving would drop two checks.",
-        "krizaka-desktop": "A Rust-only library workspace on macOS (fmt, clippy, test, generated-permissions diff); no shared Rust workflow exists (tauri-macos.yml builds apps), and its own rust.yml already ends in the standard `CI gate`.",
+        "krizaka-rust": "A Rust-only library workspace on macOS (fmt, clippy, test, generated-permissions diff); no shared Rust workflow exists (tauri-macos.yml builds apps), and its own rust.yml already ends in the standard `CI gate`.",
         "krizaka-ui": "The component library's 20 KB CI (registries, size budgets, realtime adapters, docs-site crawl and layout shards) is specialised beyond node-ci's inputs; it already uses the shared changes.yml, sonar-scan and dup-check pieces and ends in `CI gate`.",
         "sovkora": "The Sovkora workspace root: its ci.yml IS the workspace flow (clone every repository, workspace.mjs ci) that component.yml and krizaka-ci's workspace mode derive from, so it cannot call itself."
       },
@@ -173,9 +173,6 @@
         "workflows": [
           "visual-regression.yml"
         ]
-      },
-      "exempt": {
-        "krizaka-template-web": "A template has no journeys of its own (they are written per app, docs/standards/visual-regression.md); an app made from it adds the workflow with its first journey."
       },
       "fix": {
         "type": "manual",
@@ -1002,16 +999,12 @@
           "krizaka-blog",
           "krizaka-java",
           "krizaka-com",
-          "krizaka-composer",
           "krizaka-internal",
           "krizaka-lab",
           "krizaka-notifications",
-          "krizaka-desktop",
           "krizaka-ts",
           "krizaka-ui",
           "sovkora",
-          "krizaka-template-web",
-          "krizaka-template-desktop",
           "verikora"
         ]
       },

@@ -5,7 +5,7 @@
 
 import { readFileSync } from "node:fs";
 import { patternOf } from "./conformance-checks.mjs";
-import { CHECK_TYPES, FIX_TYPES, sha256, WORKFLOW_PATH } from "./conformance-basics.mjs";
+import { byCodePoint, CHECK_TYPES, FIX_TYPES, sha256, WORKFLOW_PATH } from "./conformance-basics.mjs";
 
 export const HERE = new URL("../", import.meta.url);
 export const readJson = (path) => JSON.parse(readFileSync(new URL(path, HERE), "utf8"));
@@ -87,6 +87,19 @@ export function scopeOf(repositories) {
     active: repositories.filter((r) => !outOfScope(r)),
     paused: repositories.filter((r) => outOfScope(r)),
   };
+}
+
+/** The listed repositories (plus the extra names the token needs) that the org does not have: what makes the token request answer 422. */
+export function missingFromOrg(listed, orgNames) {
+  const known = new Set(orgNames);
+  return [...new Set(listed)].filter((name) => name && !known.has(name)).sort(byCodePoint);
+}
+
+/** The line that names each missing repository, or null when all exist. */
+export function missingMessage(missing) {
+  return missing.length
+    ? `Not in the org krizaka (or not visible to the app): ${missing.join(", ")}. Mark them Archive in repos.json (or fix the name) before the token is minted.`
+    : null;
 }
 
 /** A repository as the checks see it: its tracked paths and a reader of one file (null when absent). */

@@ -102,28 +102,6 @@
       "status": "Complies"
     },
     {
-      "name": "krizaka-composer",
-      "owner": "krizaka",
-      "role": "Shared visual page editor: the Krizaka fork of Puck (`@krizaka/composer`)",
-      "team": "krizaka",
-      "kind": "none",
-      "deploy": [],
-      "archived": null,
-      "visibility": "private",
-      "status": "Complies"
-    },
-    {
-      "name": "krizaka-desktop",
-      "owner": "krizaka",
-      "role": "Shared Tauri crate",
-      "team": "krizaka",
-      "kind": "none",
-      "deploy": [],
-      "archived": null,
-      "visibility": "private",
-      "status": "Complies"
-    },
-    {
       "name": "krizaka-infra",
       "owner": "krizaka",
       "role": "Shared infrastructure as code",
@@ -209,9 +187,9 @@
       "team": "krizaka",
       "kind": "none",
       "deploy": [],
-      "archived": null,
+      "archived": true,
       "visibility": "private",
-      "status": "Complies"
+      "status": "Archive (left the org: moved to a personal account, replaced by krizaka-template)"
     },
     {
       "name": "krizaka-template-web",
@@ -220,9 +198,9 @@
       "team": "krizaka",
       "kind": "none",
       "deploy": [],
-      "archived": null,
+      "archived": true,
       "visibility": "private",
-      "status": "Complies"
+      "status": "Archive (left the org: moved to a personal account, replaced by krizaka-template)"
     },
     {
       "name": "krizaka-ts",

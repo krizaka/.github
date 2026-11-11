@@ -41,6 +41,21 @@ jobs:
           node --test tests/conformance.test.mjs tests/format-declared.test.mjs tests/conformance-versions.test.mjs tests/conformance-fanout.test.mjs tests/conformance-issues.test.mjs tests/red-run-issue.test.mjs
       - id: repos
         run: echo "list=$(node scripts/conformance.mjs --repo-list)" >> "$GITHUB_OUTPUT"
+      - id: probe
+        # Before the scoped token: a read-only token on the whole installation lists the repositories it can see, so a stale name in
+        # repos.json fails here with its name instead of the opaque 422 of create-github-app-token.
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: krizaka # zizmor: ignore[github-app] read-only (metadata) and unscoped on purpose: it lists the repositories the app can see, to name a stale one
+          permission-metadata: read
+      - name: Every listed repository is in the org
+        env:
+          GH_TOKEN: ${{ steps.probe.outputs.token }}
+        run: |
+          gh api --paginate /installation/repositories --jq '.repositories[].name' > "$RUNNER_TEMP/org-repos.txt"
+          node scripts/conformance.mjs --check-org "$RUNNER_TEMP/org-repos.txt"
       - id: app
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
@@ -116,6 +131,21 @@ jobs:
         working-directory: tools/automation-catalogue
       - id: repos
         run: echo "list=$(node scripts/conformance.mjs --repo-list)" >> "$GITHUB_OUTPUT"
+      - id: probe
+        # Before the scoped token: a read-only token on the whole installation lists the repositories it can see, so a stale name in
+        # repos.json fails here with its name instead of the opaque 422 of create-github-app-token.
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: krizaka # zizmor: ignore[github-app] read-only (metadata) and unscoped on purpose: it lists the repositories the app can see, to name a stale one
+          permission-metadata: read
+      - name: Every listed repository is in the org
+        env:
+          GH_TOKEN: ${{ steps.probe.outputs.token }}
+        run: |
+          gh api --paginate /installation/repositories --jq '.repositories[].name' > "$RUNNER_TEMP/org-repos.txt"
+          node scripts/conformance.mjs --check-org "$RUNNER_TEMP/org-repos.txt"
       - id: read
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:

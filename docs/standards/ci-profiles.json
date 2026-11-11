@@ -67,20 +67,16 @@
     "krizaka-java": ["library", "docs"],
     "krizaka-com": ["site"],
     "krizaka-coming-soon": ["site"],
-    "krizaka-composer": ["library"],
     "krizaka-infra": ["infra"],
     "krizaka-lab": ["library"],
     "krizaka-notifications": ["java-service"],
     "krizaka-qa": ["org"],
-    "krizaka-desktop": ["library"],
     "krizaka-ts": ["library"],
     "krizaka-ui": ["library", "docs"],
     "krizaka-ui-builder": ["library"],
     "krizaka-rust": ["library"],
     "sovkora": ["java-service"],
     "template-expo-app": ["app-mobile"],
-    "krizaka-template-web": ["app-web"],
-    "krizaka-template-desktop": ["app-desktop"],
     "verikora": ["app-web", "app-mobile", "app-desktop"]
   }
 }
