@@ -1,5 +1,5 @@
-# « Cette semaine chez Krizaka » (krizaka/.github#185): every Monday, one issue lists the week's releases in French and
-# English. No tokens spent; the base of the newsletter and of the blog. Idempotent: one issue per ISO week.
+# « Cette semaine chez Krizaka » (krizaka-internal#747): every Monday, opens a draft PR in krizaka-blog
+# with the week's releases. No model, no tokens: the releases already say it. Idempotent: one draft per ISO week.
 name: Weekly digest
 
 on:
@@ -12,19 +12,29 @@ permissions:
 
 jobs:
   digest:
-    name: Open the week's issue
+    name: Open the week's draft post
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
       contents: read
-      issues: write
     steps:
+      - id: app
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: krizaka
+          repositories: krizaka-blog
+          permission-contents: write
+          permission-pull-requests: write
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
+      - run: node --test tests/weekly-digest.test.mjs
       - run: node scripts/weekly-digest.mjs
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          BLOG_REPO: krizaka/krizaka-blog

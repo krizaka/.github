@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-/* « Cette semaine chez Krizaka » (krizaka/.github#185): once a week, ONE issue in this repository lists the releases of
-   the week, in French and English, product by product. No model, no tokens: the releases already say it.
-   The base of the newsletter and of the blog. Running it twice in a week opens nothing the second time.
-   Env: GH_TOKEN, GITHUB_REPOSITORY (the repository that gets the issue); DIGEST_DATE (tests, dry runs; default today). */
+/* « Cette semaine chez Krizaka » (krizaka-internal#747): once a week, opens a draft PR in krizaka-blog
+   with the week's releases in French and English. No model, no tokens. Idempotent: one draft per ISO week.
+   Env: GH_TOKEN (must have contents:write + pull-requests:write on BLOG_REPO), BLOG_REPO (default krizaka/krizaka-blog),
+        DIGEST_DATE (tests, dry runs; default today). */
 
 import { readFileSync } from "node:fs";
 
@@ -43,18 +43,22 @@ export function renderDigest(releases) {
 }
 
 async function main() {
-  const { GH_TOKEN: auth, GITHUB_REPOSITORY: home } = process.env;
+  const { GH_TOKEN: auth } = process.env;
+  const blogRepo = process.env.BLOG_REPO ?? "krizaka/krizaka-blog";
+  const org = blogRepo.split("/")[0];
   const now = process.env.DIGEST_DATE ? new Date(process.env.DIGEST_DATE) : new Date();
+
+  const headers = { authorization: `Bearer ${auth}`, accept: "application/vnd.github+json", "user-agent": "krizaka-weekly-digest" };
   const call = async (url, init = {}) => {
     const res = await fetch(url, {
       ...init,
-      headers: { authorization: `Bearer ${auth}`, accept: "application/vnd.github+json", "user-agent": "krizaka-weekly-digest", ...(init.body ? { "content-type": "application/json" } : {}) },
+      headers: { ...headers, ...(init.body ? { "content-type": "application/json" } : {}) },
     });
     if (!res.ok) throw new Error(`${url} answered ${res.status}`);
     return res.json();
   };
+
   const { products } = JSON.parse(readFileSync(new URL("../release-repos.json", import.meta.url), "utf8"));
-  const org = home.split("/")[0];
   const since = now.getTime() - WEEK_MS;
 
   const releases = [];
@@ -65,11 +69,44 @@ async function main() {
     }
   }
 
-  const title = `Cette semaine chez Krizaka, ${weekLabel(now)}`;
-  const existing = await call(`https://api.github.com/search/issues?q=${encodeURIComponent(`repo:${home} is:issue in:title "${title}"`)}`);
-  if (existing.total_count > 0) return console.log(`weekly-digest: "${title}" already exists (#${existing.items[0].number})`);
-  const issue = await call(`https://api.github.com/repos/${home}/issues`, { method: "POST", body: JSON.stringify({ title, body: renderDigest(releases), labels: ["type:marketing", "area:growth"] }) });
-  console.log(`weekly-digest: opened #${issue.number} (${releases.length} releases)`);
+  const week = weekLabel(now);
+  const title = `Cette semaine chez Krizaka, ${week}`;
+  const slug = `cette-semaine-${week.toLowerCase()}`;
+  const branch = `draft/digest-${week.toLowerCase()}`;
+
+  // idempotent: one draft per ISO week
+  const branchCheck = await fetch(`https://api.github.com/repos/${blogRepo}/git/refs/heads/${branch}`, { headers });
+  if (branchCheck.ok) return console.log(`weekly-digest: branch already exists for ${week}`);
+
+  // github.com/krizaka/… links in release notes → repo: format for the blog's link resolver
+  const body = renderDigest(releases).replace(
+    /https:\/\/github\.com\/krizaka\/([\w-]+)(\/[^\s)"']*)?/g,
+    (_, repo, rest = "") => `[${repo}${rest}](repo:${repo}${rest})`,
+  );
+
+  const dateStr = now.toISOString().slice(0, 10);
+  const mdx = `---\ntitle: "${title}"\ndescription: "Les livraisons de la semaine."\ndate: ${dateStr}\nauthor: krizaka\ndraft: true\n---\n\n${body}\n`;
+
+  const ref = await call(`https://api.github.com/repos/${blogRepo}/git/refs/heads/main`);
+  await call(`https://api.github.com/repos/${blogRepo}/git/refs`, {
+    method: "POST",
+    body: JSON.stringify({ ref: `refs/heads/${branch}`, sha: ref.object.sha }),
+  });
+  await call(`https://api.github.com/repos/${blogRepo}/contents/content/posts/${slug}.fr.mdx`, {
+    method: "PUT",
+    body: JSON.stringify({ message: `draft: ${title}`, content: Buffer.from(mdx).toString("base64"), branch }),
+  });
+  const pr = await call(`https://api.github.com/repos/${blogRepo}/pulls`, {
+    method: "POST",
+    body: JSON.stringify({
+      title,
+      body: `Weekly digest auto-generated for ${week}. Remove \`draft: true\` and add a cover to publish.`,
+      head: branch,
+      base: "main",
+      draft: true,
+    }),
+  });
+  console.log("weekly-digest: draft PR #%d opened in %s (%d releases)", Number(pr.number), blogRepo, releases.length);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) main().catch((e) => { console.error(e.message); process.exit(1); });
