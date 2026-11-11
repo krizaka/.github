@@ -71,7 +71,6 @@
     "krizaka-lab": ["library"],
     "krizaka-notifications": ["java-service"],
     "krizaka-qa": ["org"],
-    "krizaka-desktop": ["library"],
     "krizaka-ts": ["library"],
     "krizaka-ui": ["library", "docs"],
     "krizaka-ui-builder": ["library"],

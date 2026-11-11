@@ -102,17 +102,6 @@
       "status": "Complies"
     },
     {
-      "name": "krizaka-desktop",
-      "owner": "krizaka",
-      "role": "Shared Tauri crate",
-      "team": "krizaka",
-      "kind": "none",
-      "deploy": [],
-      "archived": null,
-      "visibility": "private",
-      "status": "Complies"
-    },
-    {
       "name": "krizaka-infra",
       "owner": "krizaka",
       "role": "Shared infrastructure as code",

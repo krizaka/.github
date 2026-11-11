@@ -45,7 +45,6 @@ rule. GitHub redirects every old name; the old → new table is `docs/standards/
 | `krizaka-cla-signatures` | Signatures of the CLA, written by the CLA workflow | **Paused** (data only, no code: out of the matrix) |
 | `krizaka-com` | Shared company site | Complies |
 | `krizaka-coming-soon` | The coming-soon pages of the products' commercial domains (www.verikora.com, www.folioviv.com, www.sovkora.com), static sites in the DigitalOcean team krizaka-prod, until each product opens there | Complies |
-| `krizaka-desktop` | Shared Tauri crate | Complies |
 | `krizaka-infra` | Shared infrastructure as code | Complies |
 | `krizaka-internal` | Internal issues and notes (private) | **Paused** (issues only, no code: out of the matrix) |
 | `krizaka-java` | Shared Java build | Complies |
