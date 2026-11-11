@@ -80,7 +80,7 @@ async function main() {
 
   // github.com/krizaka/… links in release notes → repo: format for the blog's link resolver
   const body = renderDigest(releases).replace(
-    /https:\/\/github\.com\/krizaka\/([\w-]+)(\/[^\s)"'\n]*)?/g,
+    /https:\/\/github\.com\/krizaka\/([\w-]+)(\/[^\s)"']*)?/g,
     (_, repo, rest = "") => `[${repo}${rest}](repo:${repo}${rest})`,
   );
 
@@ -106,7 +106,7 @@ async function main() {
       draft: true,
     }),
   });
-  console.log(`weekly-digest: draft PR #${pr.number} opened in ${blogRepo} (${releases.length} releases)`);
+  console.log("weekly-digest: draft PR #%d opened in %s (%d releases)", Number(pr.number), blogRepo, releases.length);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) main().catch((e) => { console.error(e.message); process.exit(1); });
