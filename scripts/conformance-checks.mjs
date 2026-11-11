@@ -4,6 +4,7 @@
 // OWNER krizaka/.github (lane platform), ADR-026 phase D. Entry point: scripts/conformance.mjs.
 
 import { problemsOf } from "./agents-md.mjs";
+import { formatVerdict } from "./format-declared.mjs";
 import { jobsWithoutTimeout, configWithoutTestTimeout, nodeTestWithoutTimeout } from "./check-timeouts.mjs";
 import { behind, pinsOf, versionsVerdict } from "./conformance-versions.mjs";
 import { candidateOf, isPublicSource, publicEmailHits } from "./public-email.mjs";
@@ -164,6 +165,8 @@ const CHECKS = {
     if (!snap.requiredChecks) return unread("the required checks of main");
     return queueReportsVerdict(await snap.requiredChecks(), await Promise.all(snap.paths.filter((p) => WORKFLOW_PATH.test(p)).map(async (p) => ({ path: p, text: (await snap.read(p)) ?? "" }))));
   },
+  // Every language of the repository has its formatter declared and run in CI (krizaka-internal#2813): scripts/format-declared.mjs.
+  "format-declared": async (_check, snap) => formatVerdict(snap),
   // Time limits everywhere (krizaka-internal#2007): every workflow job has `timeout-minutes` (a job that only calls a reusable workflow is exempt),
   // every test config has a per-test timeout, `node --test` scripts carry --test-timeout. A longer value is fine; none is not.
   "time-limits": async (_check, snap) => {

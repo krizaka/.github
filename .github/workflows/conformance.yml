@@ -38,7 +38,7 @@ jobs:
       - name: The registry is valid and its tests pass
         run: |
           node scripts/conformance.mjs --validate
-          node --test tests/conformance.test.mjs tests/conformance-versions.test.mjs tests/conformance-fanout.test.mjs tests/conformance-issues.test.mjs tests/red-run-issue.test.mjs
+          node --test tests/conformance.test.mjs tests/format-declared.test.mjs tests/conformance-versions.test.mjs tests/conformance-fanout.test.mjs tests/conformance-issues.test.mjs tests/red-run-issue.test.mjs
       - id: repos
         run: echo "list=$(node scripts/conformance.mjs --repo-list)" >> "$GITHUB_OUTPUT"
       - id: app

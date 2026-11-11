@@ -76,11 +76,18 @@
       "id": "automation",
       "title": "A new automation: a cron, a hook, a script or a workflow",
       "when": [
-        { "repo": "krizaka-agents", "globs": ["tools/install.json", "tools/githooks/**"] },
+        {
+          "repo": "krizaka-agents",
+          "globs": ["tools/install.json", "tools/githooks/**", "tools/fmt.py", "tools/git-guard.py", "tools/secret-scan.py"]
+        },
         { "repo": ".github", "globs": [".github/workflows/**", "actions/**", "scripts/**", "tools/**"] }
       ],
       "docs": [
         { "repo": "krizaka-agents", "path": "README.md" },
+        { "repo": "krizaka-agents", "path": "AGENTS.md" },
+        { "repo": "krizaka-agents", "path": "skills/krizaka-lane-session/SKILL.md", "bump": true },
+        { "repo": "krizaka-agents", "path": "skills/krizaka-landing/SKILL.md", "bump": true },
+        { "repo": "krizaka-agents", "path": "skills/krizaka-engineering/SKILL.md", "bump": true },
         { "repo": ".github", "path": "docs/standards/guards.md" },
         { "repo": ".github", "path": "docs/standards/automation-catalogue.md" },
         { "repo": "krizaka-internal", "path": "docs/onboarding/with-claude-code.md" },
