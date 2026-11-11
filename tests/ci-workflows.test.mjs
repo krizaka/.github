@@ -433,10 +433,11 @@ for (const name of ["node-ci", "java-ci"]) {
 }
 
 // maven.yml (the Central-published JVM repositories) carries the same Sonar legs and an always-reporting gate as java-ci.yml.
-test("maven.yml: sonar, sonar-light and an always-reporting gate, the release jobs kept (one per registry)", () => {
+test("maven.yml: sonar, sonar-light and an always-reporting gate, the release job is release-central only (ADR-021)", () => {
   const src = read("maven");
   const ids = jobs(src).map((j) => j.id);
-  for (const id of ["changes", "verify", "sonar", "sonar-light", "gate", "registry", "release-github", "release-central"]) assert.ok(ids.includes(id), `job ${id}`);
+  for (const id of ["changes", "verify", "sonar", "sonar-light", "gate", "registry", "release-central"]) assert.ok(ids.includes(id), `job ${id}`);
+  assert.ok(!ids.includes("release-github"), "release-github removed (krizaka-internal#2701)");
   const gate = jobs(src).find((j) => j.id === "gate");
   assert.match(gate.text, /if: \$\{\{ always\(\) \}\}/);
   assert.match(gate.text, /needs: \[changes, verify, sonar, sonar-light\]/);
@@ -491,9 +492,9 @@ test("org CI throughput: the shared visual regression is gated by changes.yml an
   assert.match(jobs(scan).find((j) => j.id === "trailers").text, /github\.event_name == 'merge_group'/, "trailers also checked in the merge queue");
 });
 
-test("java-ci: the workspace flow resolves a released krizaka-parent from GitHub Packages (a parent is read before the pom's own repositories)", () => {
+test("java-ci: the workspace flow resolves a released krizaka-parent from an explicit registry (a parent is read before the pom's own repositories; krizaka-internal#2701: GitHub Packages is no longer the default)", () => {
   const src = read("java-ci");
-  assert.match(src, /maven-packages-registry:\n(?: {8}.*\n)*? {8}default: "https:\/\/maven\.pkg\.github\.com\/krizaka\/krizaka-java"/);
+  assert.match(src, /maven-packages-registry:\n(?: {8}.*\n)*? {8}default: ""/, "default is empty; callers that still resolve from a custom registry pass the URL explicitly");
   const step = src.slice(src.indexOf("- name: Maven settings, released parents from GitHub Packages"));
   assert.match(step, /if: \$\{\{ inputs\.workspace-component != '' && inputs\.maven-packages-registry != '' \}\}/);
   assert.match(step, /<id>github<\/id>/, "the repository id is the server id setup-java writes credentials for");

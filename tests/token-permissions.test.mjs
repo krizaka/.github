@@ -8,7 +8,7 @@ import test from "node:test";
 const DIR = new URL("../.github/workflows/", import.meta.url);
 // File -> why it has no top-level block. A new entry needs a reason a reviewer accepts; the list only shrinks.
 const NO_TOP_LEVEL = {
-  "maven.yml": "release-github takes the caller's packages: write; a top-level block would cap it at read (403 on the 0.3.0 deploy)",
+  "maven.yml": "reusable workflow: callers control the grant; every job declares contents: read itself; release-central uses the maven-central environment",
   "tauri-macos.yml": "release takes the caller's contents: write; a block (or a job-level write) makes pull-request callers fail at startup",
 };
 

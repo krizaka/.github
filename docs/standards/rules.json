@@ -1339,6 +1339,20 @@
         "type": "manual",
         "note": "replace the address by the contact form link (krizaka.com/<locale>/contact with kind and product, see one-contact-path); an address of ours stays only in the privacy officer's text on a privacy page, or as data a customer published about itself (a variable such as shop.publicEmail, never a literal of ours). Server-side senders, tests, seeds, scripts and SECURITY.md are not public sources"
       }
+    },
+    {
+      "id": "no-github-packages-url",
+      "title": "No maven.pkg.github.com or npm.pkg.github.com in workflows, scripts or manifests (Krizaka libraries resolve from Maven Central and npm, ADR-021)",
+      "issue": "krizaka/krizaka-internal#2701",
+      "check": {
+        "type": "no-mention",
+        "pattern": "maven\\.pkg\\.github\\.com|npm\\.pkg\\.github\\.com",
+        "allow": ["docs/", "CHANGELOG"]
+      },
+      "fix": {
+        "type": "manual",
+        "note": "replace maven.pkg.github.com with the Maven Central coordinate; replace npm.pkg.github.com with the npm registry; see ADR-021"
+      }
     }
   ]
 }

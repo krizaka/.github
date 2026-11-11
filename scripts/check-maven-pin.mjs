@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 // Refuses a release when the repository's pin of the org maven.yml predates the permissions fix (be08be83): its
-// top-level `permissions: contents: read` capped release-github, so every first deploy died with a 403 AFTER the tag
+// top-level `permissions: contents: read` capped the release job, so every first deploy died with a 403 AFTER the tag
 // (a protected, dead tag). Run BEFORE release-please can tag (actions/maven-pin-guard, first step of release-please.yml).
 //
 //   GH_TOKEN=... node scripts/check-maven-pin.mjs <repo> [--ref main]     reads .github/workflows/*.yml of <repo> through the REST API
 
-/** The first org commit whose maven.yml has no workflow-level `permissions:` (release-github takes the caller's grant). */
+/** The first org commit whose maven.yml has no workflow-level `permissions:` (reusable workflow; callers set the grant). */
 export const MIN_MAVEN_PIN = "be08be836bcce567d84a679d3f40aefab79ca4cc";
 const PIN = /krizaka\/\.github\/\.github\/workflows\/maven\.yml@([0-9a-f]{40})/g;
 
