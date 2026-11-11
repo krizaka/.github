@@ -68,6 +68,7 @@ export const SUITES = {
     ".github/workflows/docs-current.yml",
   ],
   roadmap: ["scripts/roadmap-sync.mjs", "tests/roadmap-sync.test.mjs", ".github/workflows/roadmap-sync.yml"],
+  catalogue: ["tools/automation-catalogue/**", ".github/workflows/automation-catalogue.yml"],
   publicissues: ["scripts/check-public-issues-ours.mjs", "tests/check-public-issues-ours.test.mjs", ".github/workflows/public-issues-conformance.yml"],
 };
 

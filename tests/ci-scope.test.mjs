@@ -64,3 +64,9 @@ test("verdict: an unwanted suite that failed is red; a broken scope asks for eve
   const ok = Object.fromEntries(ids.map((id) => [id, { result: "success" }]));
   assert.deepEqual(verdict({ scope: { result: "failure", outputs: {} }, ...ok }), []);
 });
+
+test("catalogue: a change to the automation catalogue runs its tests, and only then", () => {
+  assert.equal(scope(["tools/automation-catalogue/package.json"]).catalogue, true);
+  assert.equal(scope(["tools/automation-catalogue/package-lock.json"]).catalogue, true);
+  assert.equal(scope(["docs/standards/ci.md"]).catalogue, false);
+});
