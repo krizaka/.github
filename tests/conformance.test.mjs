@@ -476,3 +476,23 @@ test("every active repository of repos.json exists by its current name in the re
   const { active } = scopeOf(readJson("repos.json").repositories);
   assert.equal(active.some((r) => /^krizaka-template-(web|desktop)$/.test(r.name)), false);
 });
+
+test("path-forbids: a tracked path that matches is red, one that matches only the allowed pattern is not", async () => {
+  const check = { type: "path-forbids", pattern: "^docs/adr/", except: "^docs/adr/README\\.md$" };
+  assert.equal((await runCheck(check, snap("a", "site", { "docs/adr/README.md": "stub", "src/a.ts": "" }))).ok, true);
+  const red = await runCheck(check, snap("a", "site", { "docs/adr/README.md": "stub", "docs/adr/ADR-001-x.md": "" }));
+  assert.equal(red.ok, false);
+  assert.match(red.why, /docs\/adr\/ADR-001-x\.md/);
+});
+
+test("adr-internal (krizaka-internal#3335): an ADR file in any repository other than krizaka-internal is refused", async () => {
+  const rule = loadRules().find((r) => r.id === "adr-internal");
+  assert.ok(rule, "rules.json carries adr-internal");
+  assert.deepEqual(validateRules([rule]), []);
+  assert.equal(await appliesTo(rule, snap("krizaka-internal", "none", {})), false);
+  assert.equal(await appliesTo(rule, snap("krizaka-infra", "none", {})), true);
+  const ok = (files) => runCheck(rule.check, snap("krizaka-infra", "none", files)).then((r) => r.ok);
+  assert.equal(await ok({ "docs/adr/README.md": "stub pointing at krizaka-internal", "README.md": "" }), true);
+  assert.equal(await ok({ "docs/adr/ADR-001-dns-apply.md": "" }), false);
+  assert.equal(await ok({ "docs/decisions/ADR-012-x.md": "" }), false);
+});

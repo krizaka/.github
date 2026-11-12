@@ -7,6 +7,7 @@ matrix lists as out of scope. There are no exceptions.
 - **Registry**: `docs/standards/rules.json`, one entry per rule (`id`, `issue`, `applies`, `check`, `fix`). A rule without its check
   or its fix fails `tests/conformance.test.mjs`. Checks: `workflow-calls`, `workflow-matches`, `workflow-forbids`, `file-exists`,
   `file-matches`, `manifests-forbid {pattern}` (no manifest, workspace file, submodule list, POM or Gradle file names the pattern),
+  `path-forbids {pattern, except}` (no tracked path matches the pattern: `adr-internal` refuses any ADR file outside krizaka-internal, krizaka-internal#3335),
   `versions-current`, `agents-template` (AGENTS.md is rendered from [`agents-template.md`](agents-template.md) by `scripts/agents-md.mjs`: its marker, the five
   headings, at most 80 lines, the krizaka-engineering skill linked, every relative link resolves).
 - **Deterministic** (founder 2026-11-06, « la matrice doit le prouver d'une façon déterministe », krizaka-internal#2635): each

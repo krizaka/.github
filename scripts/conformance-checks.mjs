@@ -91,6 +91,13 @@ const CHECKS = {
     }
     return { ok: false, why: `${hits[0]} (and ${hits.length - 1} more) lack ${check.contains}` };
   },
+  // No tracked path matches `pattern`, except the ones that also match `except` (krizaka-internal#3335: an ADR lives in krizaka-internal only).
+  "path-forbids": async (check, snap) => {
+    const re = new RegExp(check.pattern);
+    const spared = check.except ? new RegExp(check.except) : null;
+    const hits = snap.paths.filter((p) => re.test(p) && !spared?.test(p)).sort(byCodePoint);
+    return verdict(hits.length === 0, `${hits.length} forbidden file(s), e.g. ${hits.slice(0, 3).join(", ")}`);
+  },
   // The rules register (krizaka-agents docs/rules-register.md) names exactly the rules of this registry: none missing, none extra.
   "lists-rule-ids": async (check, snap) => {
     const text = await snap.read(check.path);
