@@ -137,3 +137,16 @@ describe("the consumers list against the real dependencies", () => {
     assert.deepEqual(driftOf({ app: ["@krizaka/new", "@krizaka/ui"] }, root), []);
   });
 });
+
+// main went red on every non-release push of krizaka-ts (2026-11-12): the publisher passes PACKAGES="" when nothing was
+// published, and `JSON.parse("")` threw in `consumers`. Nothing published means nobody to tell, not a failure.
+describe("consumers with nothing published", () => {
+  for (const empty of ["", "  ", "{}"]) {
+    it(`prints [] and exits 0 for ${JSON.stringify(empty)}`, () => {
+      const out = execFileSync(process.execPath, [new URL("../scripts/krizaka-release.mjs", import.meta.url).pathname, "consumers", empty], {
+        encoding: "utf8",
+      });
+      assert.deepEqual(JSON.parse(out), []);
+    });
+  }
+});
