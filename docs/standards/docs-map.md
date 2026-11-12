@@ -38,6 +38,7 @@ repository fails.
 | `release-process` | `release-repos.json`, `bump-krizaka.yml`, `krizaka-release.mjs`, `gen-release-consumers.mjs` | `docs/standards/ci-and-deploy.md`, the `krizaka-landing` skill (bumped) |
 | `board-lanes` | krizaka-agents `tools/lanes/`, `board-*.py`, `kz.py`; `LABELS.md` | the lane-session and issue skills (bumped), `LABELS.md`, the guides « with Claude Code » |
 | `org-policy` | this repository's `policy.json`, `policy.schema.json`, `scripts/policy.mjs`, `scripts/pr-cap.mjs`; krizaka-agents `tools/policy.py` | `docs/standards/policy.md` |
+| `architecture` | this repository's `docs/architecture/`, `tools/architecture/`, `architecture.schema.json`; krizaka-ts `packages/architecture/` | `docs/standards/architecture.md`, the `@krizaka/architecture` README, the cockpit's « Architecture » view (local) |
 
 ## How a pull request is held to it
 

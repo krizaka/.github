@@ -17,6 +17,8 @@ on:
       - workflow-templates/**
       - AGENTS.template.md
       - repos.json
+      - docs/architecture/**
+      - tools/architecture/**
       - .github/workflows/conformance.yml
   workflow_dispatch:
 
@@ -68,6 +70,19 @@ jobs:
           permission-administration: read
           permission-metadata: read
           permission-issues: write
+      # The architecture (ADR-027, krizaka-internal#2809): every active repository at its default branch, its current state
+      # (@krizaka/architecture), the hand-written models read with the org base, the drift and one verdict per repository. Before the
+      # matrix, which reads those verdicts; a failure here never stops the matrix (its cells are then unknown, never green).
+      - name: The architecture's dependencies
+        working-directory: tools/architecture
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: The architecture
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+        run: |
+          node tools/architecture/architecture.mjs --out architecture
+          { echo '### Architecture'; cat architecture/summary.md; } >> "$GITHUB_STEP_SUMMARY"
       - name: The matrix
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
@@ -98,6 +113,11 @@ jobs:
           GH_TOKEN: ${{ steps.publish.outputs.token }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: node scripts/conformance-publish.mjs matrix.md matrix.json
+      - name: Publish the architecture
+        if: ${{ always() && github.event_name != 'pull_request' && steps.publish.outputs.token != '' && hashFiles('architecture/architecture.json') != '' }}
+        env:
+          GH_TOKEN: ${{ steps.publish.outputs.token }}
+        run: node tools/architecture/architecture.mjs --publish-from architecture
       # Daily (and by hand): one issue per red repository, refreshed while red, closed when green. Never on a pull request.
       - name: One issue per red repository
         if: ${{ always() && github.event_name != 'pull_request' }}

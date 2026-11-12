@@ -1,0 +1,81 @@
+// The org's own part of the architecture model (ADR-027): the people, the external systems, the platform system and the
+// relationships between systems. The other systems (assets, libraries, the company's sites) are generated from @krizaka/org;
+// each one's inside is written in its home repository's docs/architecture/.
+model {
+  founder = person 'Founder' {
+    description 'Decides money, legal and direction; approves and merges.'
+  }
+  contributor = person 'Contributor' {
+    description 'Takes an issue, opens a pull request, follows the repository rules.'
+  }
+  agents = person 'AI agents' {
+    description 'One session per lane, one pull request per issue, under the agents rules.'
+  }
+  customer = person 'Customer' {
+    description 'An organisation or a person who uses a Krizaka product.'
+  }
+  visitor = person 'Visitor' {
+    description 'Reads the company site, the blog and the library sites.'
+  }
+
+  github = external 'GitHub' {
+    description 'Code, issues, pull requests, CI, the merge queue and the tags.'
+    link https://github.com/krizaka 'Organisation'
+  }
+  registries = external 'Package registries' {
+    description 'npm (@krizaka/*), Maven Central and GitHub Packages (com.krizaka), where the libraries are published.'
+  }
+  cloud = external 'Cloud hosting' {
+    description 'The app and static site hosting, the managed databases.'
+  }
+  cdn = external 'Media CDN' {
+    description 'The org media library: brand, defaults, discovery, films.'
+  }
+  models = external 'Model providers' {
+    description 'The AI models Sovkora routes to, local or hosted.'
+  }
+
+  platform = system 'Krizaka platform' {
+    #platform
+    description 'How the org works: shared CI and standards, the agents tooling, the infrastructure as code, the templates.'
+    metadata {
+      home '.github'
+    }
+    standards = container 'Org standards and shared CI' {
+      description 'The rules, the conformance matrix, the reusable workflows and actions, this architecture model.'
+      technology 'GitHub Actions, Node'
+      metadata {
+        repo '.github'
+      }
+    }
+    tooling = container 'Agents tooling' {
+      description 'Lanes, trains, guards and skills; runs on the founder machine.'
+      technology 'Python, Node'
+      metadata {
+        repo 'krizaka-agents'
+      }
+    }
+    infra = container 'Infrastructure as code' {
+      description 'One OpenTofu stack for every environment (ADR-023).'
+      technology 'OpenTofu'
+      metadata {
+        repo 'krizaka-infra'
+        adr 'ADR-023'
+      }
+    }
+    template = container 'Project template' {
+      #planned
+      description 'The one template repository that replaced the web and desktop templates (both archived); paused until its name is decided, so outside the registry scope.'
+      metadata {
+        repo 'krizaka-template'
+        adr 'ADR-005'
+      }
+    }
+  }
+
+  founder -> platform 'approves and merges'
+  contributor -> platform 'opens pull requests'
+  agents -> platform 'run lanes and trains'
+  platform -> github 'checks, trains and releases'
+  platform.infra -> cloud 'provisions'
+}

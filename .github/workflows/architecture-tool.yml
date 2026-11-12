@@ -1,0 +1,40 @@
+# The architecture tool's own tests (ADR-027, krizaka-internal#2809): a small org of fixtures whose drift of every kind is known,
+# the schema, determinism. The architecture itself is built daily by the Conformance workflow (job « Conformance matrix », step
+# « The architecture »); this workflow only proves the tool still judges right before a change to it or to the org base merges.
+name: Architecture tool
+
+on:
+  pull_request:
+    paths:
+      - tools/architecture/**
+      - docs/architecture/**
+      - docs/standards/architecture.schema.json
+      - .github/workflows/architecture-tool.yml
+  push:
+    branches: [main]
+    paths:
+      - tools/architecture/**
+      - docs/architecture/**
+      - docs/standards/architecture.schema.json
+      - .github/workflows/architecture-tool.yml
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Architecture tool
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: tools/architecture
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm test

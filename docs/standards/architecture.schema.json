@@ -1,0 +1,217 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/krizaka/.github/blob/main/docs/standards/architecture.schema.json",
+  "title": "The org's architecture, generated from main (ADR-027)",
+  "description": "Written by tools/architecture: the current state of every active repository (@krizaka/architecture), the hand-written models (LikeC4) read with the org specification, the drift between them, one verdict per repository for the rule architecture-model, the laid-out views and the dependency graph. The same commits give the same object; only generatedAt holds a clock.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "generatedAt", "mode", "tool", "base", "summary", "systems", "repos", "packages", "drift", "verdicts", "views", "graph", "unread"],
+  "properties": {
+    "schema": { "const": "krizaka.architecture/1", "description": "The format of this file." },
+    "generatedAt": { "type": "string", "format": "date-time", "description": "When the run read the repositories (the only clock in the file)." },
+    "mode": { "enum": ["local", "github"], "description": "local: the Mac's reference copies; github: each repository's default branch read through the API." },
+    "tool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["likec4", "org"],
+      "properties": {
+        "likec4": { "type": "string", "description": "The version of the LikeC4 parser that read the models." },
+        "org": { "type": "string", "description": "The version of @krizaka/org the systems were generated from." }
+      }
+    },
+    "base": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repo", "commit", "files"],
+      "description": "The org base read with every model: krizaka/.github docs/architecture/specification.c4 and org.c4.",
+      "properties": {
+        "repo": { "const": ".github" },
+        "commit": { "type": ["string", "null"] },
+        "files": { "type": "array", "items": { "$ref": "#/$defs/file" } }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["active", "inSync", "failing", "unknown", "drift", "byKind", "homes"],
+      "description": "The numbers the founder reads: repositories in sync out of the active ones, drift items, homes by state.",
+      "properties": {
+        "active": { "type": "integer", "minimum": 0 },
+        "inSync": { "type": "integer", "minimum": 0 },
+        "failing": { "type": "integer", "minimum": 0 },
+        "unknown": { "type": "integer", "minimum": 0 },
+        "drift": { "type": "integer", "minimum": 0 },
+        "byKind": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
+        "homes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["ok", "missing", "invalid"],
+          "properties": { "ok": { "type": "integer" }, "missing": { "type": "integer" }, "invalid": { "type": "integer" } }
+        }
+      }
+    },
+    "systems": {
+      "type": "array",
+      "description": "One per family entry of @krizaka/org with a home repository, plus the base's own systems (the platform).",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "group", "home", "generated", "status", "errors", "files", "repos", "views"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "group": { "enum": ["asset", "libraries", "sites", "platform"] },
+          "url": { "type": ["string", "null"] },
+          "home": { "type": "string", "description": "The repository whose docs/architecture/ holds the system's model." },
+          "generated": { "type": "boolean", "description": "true when the system comes from @krizaka/org, false when org.c4 declares it." },
+          "status": { "enum": ["ok", "missing", "invalid"] },
+          "errors": { "type": "array", "items": { "$ref": "#/$defs/parseError" } },
+          "files": { "type": "array", "items": { "$ref": "#/$defs/file" } },
+          "repos": { "type": "array", "items": { "type": "string" }, "description": "The repositories the model binds." },
+          "views": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "repos": { "type": "array", "items": { "$ref": "#/$defs/repo" } },
+    "packages": {
+      "type": "object",
+      "description": "Every published org package, keyed `<ecosystem>:<name>`: its repository, path, version on main and latest tag.",
+      "additionalProperties": { "type": "object", "required": ["repo", "path"] }
+    },
+    "drift": { "type": "array", "items": { "$ref": "#/$defs/item" } },
+    "verdicts": {
+      "type": "array",
+      "description": "One per active repository: the cell of the rule architecture-model.",
+      "items": {
+        "type": "object",
+        "required": ["repo", "commit", "status", "items", "evidence"],
+        "properties": {
+          "repo": { "type": "string" },
+          "commit": { "type": ["string", "null"], "description": "The main SHA the verdict read; null when the repository could not be read." },
+          "status": { "enum": ["pass", "fail", "unknown"] },
+          "why": { "type": "string" },
+          "items": { "type": "array", "items": { "$ref": "#/$defs/item" } },
+          "evidence": { "type": "array", "items": { "allOf": [{ "$ref": "#/$defs/file" }, { "required": ["repo"] }] } }
+        }
+      }
+    },
+    "views": { "type": "array", "items": { "$ref": "#/$defs/view" } },
+    "graph": {
+      "type": "object",
+      "required": ["nodes", "edges"],
+      "description": "The dependency graph: units that pin or publish an org package; one edge per dependency with the version that builds it.",
+      "properties": {
+        "nodes": { "type": "array", "items": { "type": "object", "required": ["id", "repo", "path", "ecosystem"] } },
+        "edges": { "type": "array", "items": { "type": "object", "required": ["id", "source", "target", "package", "behind", "internal"] } }
+      }
+    },
+    "unread": { "type": "array", "items": { "type": "object", "required": ["repo", "why"] } }
+  },
+  "$defs": {
+    "file": {
+      "type": "object",
+      "required": ["path", "sha256"],
+      "properties": { "repo": { "type": "string" }, "path": { "type": "string" }, "sha256": { "type": ["string", "null"] } }
+    },
+    "parseError": {
+      "type": "object",
+      "required": ["repo", "path", "line", "message"],
+      "properties": { "repo": { "type": "string" }, "path": { "type": "string" }, "line": { "type": "integer" }, "message": { "type": "string" } }
+    },
+    "item": {
+      "type": "object",
+      "required": ["kind", "repo", "home", "why"],
+      "description": "A drift item: the repository it is about, the home whose model must change, and the reason.",
+      "properties": {
+        "kind": { "enum": ["undocumented", "phantom", "reached", "gone", "missing", "invalid"] },
+        "repo": { "type": ["string", "null"] },
+        "home": { "type": ["string", "null"] },
+        "element": { "type": "string" },
+        "system": { "type": "string" },
+        "path": { "type": "string" },
+        "unit": { "type": ["string", "null"] },
+        "line": { "type": "integer" },
+        "why": { "type": "string" }
+      }
+    },
+    "repo": {
+      "type": "object",
+      "required": ["name", "url", "commit", "committedAt", "owner", "latestTag", "languages", "units", "c4", "system"],
+      "properties": {
+        "name": { "type": "string" },
+        "url": { "type": "string" },
+        "commit": { "type": "string" },
+        "committedAt": { "type": "string" },
+        "owner": { "type": ["string", "null"] },
+        "kind": { "type": ["string", "null"] },
+        "visibility": { "type": ["string", "null"] },
+        "role": { "type": ["string", "null"] },
+        "latestTag": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/tag" }] },
+        "languages": { "type": "array", "items": { "type": "string" } },
+        "units": { "type": "array", "items": { "$ref": "#/$defs/unit" } },
+        "c4": { "type": "object", "description": "@krizaka/architecture's levels for the repository (context, containers, components), without file lists." },
+        "system": { "type": ["string", "null"] }
+      }
+    },
+    "tag": {
+      "type": "object",
+      "required": ["name", "version", "url"],
+      "properties": { "name": { "type": "string" }, "version": { "type": "string" }, "url": { "type": "string" } }
+    },
+    "unit": {
+      "type": "object",
+      "required": ["path", "ecosystem", "language", "name", "version", "published", "dependsOn"],
+      "properties": {
+        "path": { "type": "string" },
+        "ecosystem": { "enum": ["npm", "maven", "cargo", "python"] },
+        "language": { "type": "string" },
+        "name": { "type": ["string", "null"] },
+        "version": { "type": ["string", "null"] },
+        "published": { "type": "boolean" },
+        "dependsOn": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["ecosystem", "name", "have", "repo", "latest", "behind"],
+            "properties": {
+              "name": { "type": "string" },
+              "range": { "type": "string" },
+              "have": { "type": ["string", "null"], "description": "The version that builds the unit: the lockfile's, else the pin, else the BOM its parents import." },
+              "repo": { "type": ["string", "null"], "description": "The repository that publishes the package." },
+              "latest": { "type": ["string", "null"] },
+              "latestTag": { "type": ["string", "null"] },
+              "latestUrl": { "type": ["string", "null"] },
+              "behind": { "type": "boolean" }
+            }
+          }
+        }
+      }
+    },
+    "view": {
+      "type": "object",
+      "required": ["id", "title", "level", "scope", "bounds", "nodes", "edges", "undocumented"],
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "level": { "enum": ["c1", "c2"] },
+        "scope": { "type": "string" },
+        "bounds": { "type": "object", "required": ["x", "y", "width", "height"] },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "kind", "title", "lifecycle", "x", "y", "width", "height", "links", "drift"],
+            "properties": {
+              "lifecycle": { "enum": ["current", "planned", "retiring"] },
+              "links": { "type": "array", "items": { "type": "object", "required": ["kind", "title", "url"], "properties": { "kind": { "enum": ["link", "repo", "tag", "adr", "issue"] } } } }
+            }
+          }
+        },
+        "edges": {
+          "type": "array",
+          "items": { "type": "object", "required": ["id", "source", "target", "points", "lifecycle"] }
+        },
+        "undocumented": { "type": "array", "items": { "$ref": "#/$defs/item" } }
+      }
+    }
+  }
+}
