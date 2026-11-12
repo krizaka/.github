@@ -1,0 +1,19 @@
+{
+  "name": "@krizaka-internal/architecture",
+  "private": true,
+  "type": "module",
+  "description": "The org's architecture as code (ADR-027, krizaka-internal#2809): the hand-written LikeC4 models of every system, checked against the facts generated from main.",
+  "scripts": {
+    "test": "node --test --test-timeout=180000 --test-force-exit test/*.test.mjs"
+  },
+  "dependencies": {
+    "@krizaka/architecture": "0.2.0",
+    "@krizaka/org": "1.1.0",
+    "@likec4/language-services": "1.60.0",
+    "bundle-require": "5.1.0",
+    "esbuild": "0.28.2"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
