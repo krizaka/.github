@@ -6,7 +6,7 @@
 #       secrets: inherit
 #
 # The stack is detected from the caller's checkout (actions/detect), in this order: membership in the Sovkora workspace
-# (orazaka.workspace.json) · pom.xml · package.json / pnpm-workspace.yaml (with an MDX content/ folder: the blog) ·
+# (sovkora.workspace.json) · pom.xml · package.json / pnpm-workspace.yaml (with an MDX content/ folder: the blog) ·
 # pyproject.toml · *.tf. A repository may keep `.krizaka/ci.json` (its Postgres image, test env values, ignored paths,
 # the after-build script); it never lists steps. See docs/standards/ci-and-deploy.md.
 #

@@ -16,7 +16,7 @@ test("a clean Next.js app passes", () => {
 
 test("the kind is read from what the root holds", () => {
   assert.equal(detectKind(["pom.xml", "src/a"]), "maven");
-  assert.equal(detectKind(["orazaka.workspace.json", "pom.xml"]), "workspace");
+  assert.equal(detectKind(["sovkora.workspace.json", "pom.xml"]), "workspace");
   assert.equal(detectKind(["pnpm-workspace.yaml", "package.json", "packages/a/package.json"]), "ts-monorepo");
   assert.equal(detectKind(["pyproject.toml"]), "python");
   assert.equal(detectKind(["stacks/a/main.tf"]), "iac");

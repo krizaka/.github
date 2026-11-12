@@ -70,7 +70,7 @@ inputs:
     description: "iac: OpenTofu version."
     default: latest
   component:
-    description: "workspace: the repository name, as listed in orazaka.workspace.json."
+    description: "workspace: the repository name, as listed in sovkora.workspace.json."
     default: ""
   workspace-path:
     description: "workspace: where krizaka/sovkora is checked out."
@@ -104,7 +104,7 @@ runs:
         COMPONENT: ${{ inputs.component }}
         INCOMING: ${{ github.workspace }}/${{ inputs.incoming-path }}
       run: |
-        target=$(node -e "const m=require('./orazaka.workspace.json');const r=m.repositories.find(x=>x.name===process.env.COMPONENT);if(!r){process.exit(2)}console.log(r.path)")
+        target=$(node -e "const m=require('./sovkora.workspace.json');const r=m.repositories.find(x=>x.name===process.env.COMPONENT);if(!r){process.exit(2)}console.log(r.path)")
         mkdir -p "$(dirname "$target")"
         mv "$INCOMING" "$target"
 

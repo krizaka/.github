@@ -46,8 +46,8 @@ repository (parent first, signed).
 **TypeScript — `@krizaka` on npm.** From [`krizaka-ui`](https://github.com/krizaka/krizaka-ui) (Changesets releases):
 `@krizaka/ui` (marks, primitives, section backdrops), `@krizaka/tokens`, `@krizaka/tailwind`, `@krizaka/icons`,
 `@krizaka/intl`, `@krizaka/i18n` (with the `krizaka-i18n` catalogue checker) and `@krizaka/config` (ESLint, tsconfig,
-Prettier, `krizaka-ratchet`). Product identities: `@krizaka/orazaka-design-system`,
-`@krizaka/orazaka-shared`. All on the public registry: [npmjs.com/org/krizaka](https://www.npmjs.com/org/krizaka).
+Prettier, `krizaka-ratchet`). Product identities: `@krizaka/sovkora-design-system`,
+`@krizaka/sovkora-shared`. All on the public registry: [npmjs.com/org/krizaka](https://www.npmjs.com/org/krizaka).
 
 ## Documentation — one place
 

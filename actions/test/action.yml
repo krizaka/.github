@@ -39,7 +39,7 @@ inputs:
     description: "maven: extra arguments."
     default: ""
   component:
-    description: "workspace: the repository name, as listed in orazaka.workspace.json."
+    description: "workspace: the repository name, as listed in sovkora.workspace.json."
     default: ""
   workspace-path:
     description: "workspace: where krizaka/sovkora is checked out."

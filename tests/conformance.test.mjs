@@ -210,10 +210,10 @@ test("a check may store its pattern encoded, so the registry spells none of the 
   }
 });
 
-test("kachizaka is the managed storage's code name, not a departed product (krizaka-internal#2033)", () => {
+test("kridoc is the managed storage, not a departed product (krizaka-internal#2033)", () => {
   for (const id of ["no-departed-product", "no-departed-published"]) {
     const pattern = new RegExp(patternOf(loadRules().find((r) => r.id === id).check), "i");
-    assert.equal(pattern.test("kachizaka"), false, id);
+    assert.equal(pattern.test("kridoc"), false, id);
     assert.equal(pattern.test(Buffer.from("eW9yb3Jpcw==", "base64").toString()), true, id);
   }
 });
@@ -459,7 +459,7 @@ test("file-name tests: a test runner's config, a manifest, a package.json outsid
 test("workflow-calls counts the reusable workflows of the org's own repositories only", async () => {
   const caller = (repo, file) => `jobs:\n  x:\n    uses: krizaka/${repo}/.github/workflows/${file}@v1\n`;
   const check = { type: "workflow-calls", workflows: ["a.yml"] };
-  for (const repo of [".github", "sovkora", "orazaka"]) assert.equal((await runCheck(check, snap("r", "npm", { ".github/workflows/c.yml": caller(repo, "a.yml") }))).ok, true, repo);
+  for (const repo of [".github", "sovkora"]) assert.equal((await runCheck(check, snap("r", "npm", { ".github/workflows/c.yml": caller(repo, "a.yml") }))).ok, true, repo);
   for (const repo of ["sovkora-web", "other"]) assert.equal((await runCheck(check, snap("r", "npm", { ".github/workflows/c.yml": caller(repo, "a.yml") }))).ok, false, repo);
 });
 

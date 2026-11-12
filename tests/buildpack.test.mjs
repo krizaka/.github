@@ -24,7 +24,7 @@ function checkout(files) {
   return dir;
 }
 
-test("workspace: a repository listed in orazaka.workspace.json is verified inside the workspace, whatever it holds", () => {
+test("workspace: a repository listed in sovkora.workspace.json is verified inside the workspace, whatever it holds", () => {
   const plan = fixture("workspace", "krizaka/sovkora-edge-service");
   assert.equal(plan.stack, "workspace");
   assert.equal(plan.component, "sovkora-edge-service");

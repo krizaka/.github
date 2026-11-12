@@ -8,7 +8,7 @@
   "properties": {
     "$schema": { "type": "string" },
     "version": { "const": 1 },
-    "product": { "enum": ["orazaka", "yomizaka", "akinaza"] },
+    "product": { "enum": ["sovkora", "verikora", "folioviv"] },
     "index": { "enum": ["on", "off"], "description": "The declared SEO policy of the dev site (check-seo-family --index)." },
     "criteria": {
       "type": "object",

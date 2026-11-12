@@ -363,7 +363,7 @@
     },
     {
       "id": "no-departed-product",
-      "title": "No departed product is mentioned (the products that left the org on 2026-10-29: the org holds Yomizaka, Akinaza, Orazaka, Kachizaka — the managed storage's code name, recycled 2026-10-31 — and the platforms)",
+      "title": "No departed product is mentioned (the products that left the org on 2026-10-29: the org holds Verikora, Folioviv, Sovkora, Kridoc, the managed storage, and the platforms)",
       "issue": "krizaka/.github#413",
       "check": {
         "type": "no-mention",
@@ -438,7 +438,7 @@
       },
       "fix": {
         "type": "manual",
-        "note": "run `krizaka-code-names` (bin of @krizaka/org, krizaka-ts#318) in CI over the built public HTML, the EN/FR catalogues, the email and receipt templates, stores/*.json and llms.txt (`--allow` for internal and developer pages); names come from `brandOf` / `displayName` of @krizaka/org. A repository joins onlyRepos when its product slice has landed (yomizaka, akinaza, the orazaka public repos, krizaka-com, krizaka-blog): report first, then required"
+        "note": "run `krizaka-code-names` (bin of @krizaka/org, krizaka-ts#318) in CI over the built public HTML, the EN/FR catalogues, the email and receipt templates, stores/*.json and llms.txt (`--allow` for internal and developer pages); names come from `brandOf` / `displayName` of @krizaka/org. A repository joins onlyRepos when its product slice has landed (verikora, folioviv, the sovkora public repos, krizaka-com, krizaka-blog): report first, then required"
       }
     },
     {
@@ -1089,7 +1089,7 @@
     },
     {
       "id": "code-name-hosts-noindex",
-      "title": "The code-name hosts (www.yomizaka.com, www.akinaza.com, www.orazaka.com, dev.<code>.com) are noindex: robots Disallow and X-Robots-Tag noindex, proven by the app's indexing test (réunion 6, 2026-11-05)",
+      "title": "The pre-launch hosts of a product (dev.<product>.com and any alternate host) are noindex: robots Disallow and X-Robots-Tag noindex, proven by the app's indexing test (réunion 6, 2026-11-05)",
       "issue": "krizaka/krizaka-internal#2635",
       "applies": {
         "kinds": [
@@ -1109,7 +1109,7 @@
       },
       "fix": {
         "type": "manual",
-        "note": "add a test named `indexing.test.*` that asserts a code-name host answers noindex (robots and X-Robots-Tag) and the commercial www host is indexed"
+        "note": "add a test named `indexing.test.*` that asserts a pre-launch host answers noindex (robots and X-Robots-Tag) and the commercial www host is indexed"
       }
     },
     {

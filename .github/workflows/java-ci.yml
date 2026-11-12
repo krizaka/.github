@@ -49,7 +49,7 @@ on:
         type: string
         default: ""
       workspace-component:
-        description: "A Sovkora repository name (orazaka.workspace.json): verify it inside the workspace instead of alone."
+        description: "A Sovkora repository name (sovkora.workspace.json): verify it inside the workspace instead of alone."
         type: string
         default: ""
       maven-packages-registry:
@@ -162,7 +162,7 @@ jobs:
         if: ${{ inputs.workspace-component != '' }}
         working-directory: workspace
         run: |
-          target=$(node -e "const m=require('./orazaka.workspace.json');const r=m.repositories.find(x=>x.name===process.env.COMPONENT);if(!r){process.exit(2)}console.log(r.path)")
+          target=$(node -e "const m=require('./sovkora.workspace.json');const r=m.repositories.find(x=>x.name===process.env.COMPONENT);if(!r){process.exit(2)}console.log(r.path)")
           mkdir -p "$(dirname "$target")"
           mv ../incoming "$target"
 
@@ -257,7 +257,7 @@ jobs:
         run: |
           if [ -n "$COMPONENT" ]; then
             cd workspace
-            target=$(node -e "const m=require('./orazaka.workspace.json');console.log(m.repositories.find(x=>x.name===process.env.COMPONENT).path)")
+            target=$(node -e "const m=require('./sovkora.workspace.json');console.log(m.repositories.find(x=>x.name===process.env.COMPONENT).path)")
             cd "$target"
           else
             cd "$WORKDIR"
@@ -273,7 +273,7 @@ jobs:
           WORKDIR: ${{ inputs.working-directory }}
         run: |
           if [ -n "$COMPONENT" ]; then
-            target=$(cd workspace && node -e "const m=require('./orazaka.workspace.json');console.log(m.repositories.find(x=>x.name===process.env.COMPONENT).path)")
+            target=$(cd workspace && node -e "const m=require('./sovkora.workspace.json');console.log(m.repositories.find(x=>x.name===process.env.COMPONENT).path)")
             echo "dir=workspace/$target" >> "$GITHUB_OUTPUT"
           else
             echo "dir=$WORKDIR" >> "$GITHUB_OUTPUT"

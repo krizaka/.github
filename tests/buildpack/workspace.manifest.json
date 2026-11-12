@@ -1,5 +1,5 @@
 {
-  "$comment": "A trimmed orazaka.workspace.json for the detection tests (tests/buildpack.test.mjs).",
+  "$comment": "A trimmed sovkora.workspace.json for the detection tests (tests/buildpack.test.mjs).",
   "org": "krizaka",
   "repositories": [
     { "name": "krizaka-build", "path": "krizaka/krizaka-build", "kind": "maven" },
