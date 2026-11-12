@@ -204,7 +204,8 @@ async function main([command, argument, ...flags]) {
     drift.forEach((line) => console.error(line));
     return drift.length > 0 ? 1 : 0;
   }
-  const packages = normalisePackages(JSON.parse(argument ?? "{}"));
+  // An empty argument is « nothing published » (the publisher passes PACKAGES="" then): nobody to tell, not an error.
+  const packages = normalisePackages(JSON.parse(argument?.trim() || "{}"));
   if (command === "consumers") {
     console.log(JSON.stringify(consumersOf(consumers, packages)));
     return 0;
