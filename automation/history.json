@@ -47,22 +47,22 @@
  },
  {
   "date": "2026-11-12",
-  "units": 1069,
+  "units": 1082,
   "byKind": {
-   "CI check": 374,
+   "CI check": 376,
    "agent hook": 28,
    "cron": 45,
    "deploy": 59,
-   "dev tool": 186,
+   "dev tool": 187,
    "generator": 68,
    "git hook": 21,
-   "library": 279,
+   "library": 289,
    "one-off": 9
   },
   "flags": {
-   "nothingCalls": 187,
+   "nothingCalls": 188,
    "noTest": 51,
-   "regexOver80": 36,
+   "regexOver80": 35,
    "overSize": 26,
    "noHeader": 29,
    "copied": 31
