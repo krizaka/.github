@@ -41,7 +41,8 @@ export async function main(argv) {
   if (one) {
     const verdict = arch.verdicts.find((v) => v.repo === one);
     if (!verdict) throw new Error(`${one} is not an active repository of repos.json`);
-    console.log(`${one} ${verdict.status}${verdict.commit ? ` at ${verdict.commit.slice(0, 7)}` : ""}`);
+    const at = verdict.commit ? ` at ${verdict.commit.slice(0, 7)}` : "";
+    console.log(`${one} ${verdict.status}${at}`);
     for (const i of verdict.items) console.log(`  ${i.kind.padEnd(12)} ${i.why}`);
     return verdict.status === "pass" ? 0 : 1;
   }
@@ -56,8 +57,10 @@ export async function main(argv) {
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
-  main(process.argv.slice(2)).then((code) => process.exit(code), (error) => {
+  try {
+    process.exit(await main(process.argv.slice(2)));
+  } catch (error) {
     console.error(error?.stack ?? error);
     process.exit(2);
-  });
+  }
 }

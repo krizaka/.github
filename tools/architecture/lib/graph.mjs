@@ -28,17 +28,19 @@ export function dependencyGraph(facts, systemOf) {
     return nodes.get(id);
   };
   const byName = new Map(facts.repos.map((r) => [r.name, r]));
+  const publisherOf = (dep) => (dep.repo ? byName.get(dep.repo)?.units.find((u) => u.path === dep.path && u.ecosystem === dep.ecosystem) : undefined);
+  const link = (repo, unit, dep, publisher) => {
+    const from = add(repo, unit);
+    const to = add(byName.get(dep.repo), publisher);
+    if (dep.behind) from.behind += 1;
+    edges.push({ id: `${from.id}>${to.id}`, source: from.id, target: to.id, package: dep.name, have: dep.have, latest: dep.latest, latestTag: dep.latestTag, latestUrl: dep.latestUrl, behind: dep.behind, dev: dep.dev, internal: from.repo === to.repo });
+  };
   for (const repo of facts.repos) {
     for (const unit of repo.units) {
       if (unit.published) add(repo, unit);
       for (const dep of unit.dependsOn) {
-        if (!dep.repo) continue;
-        const publisher = byName.get(dep.repo)?.units.find((u) => u.path === dep.path && u.ecosystem === dep.ecosystem);
-        if (!publisher) continue;
-        const from = add(repo, unit);
-        const to = add(byName.get(dep.repo), publisher);
-        if (dep.behind) from.behind += 1;
-        edges.push({ id: `${from.id}>${to.id}`, source: from.id, target: to.id, package: dep.name, have: dep.have, latest: dep.latest, latestTag: dep.latestTag, latestUrl: dep.latestUrl, behind: dep.behind, dev: dep.dev, internal: from.repo === to.repo });
+        const publisher = publisherOf(dep);
+        if (publisher) link(repo, unit, dep, publisher);
       }
     }
   }

@@ -52,16 +52,9 @@ function item(kind, repo, home, fields) {
   return { kind, repo, home, ...fields };
 }
 
-/**
- * Every drift item: facts = { repos, paths } (from factsOf), elements = the org-wide model's elements, homes = Map(system →
- * { repo, status, errors }), assets = the set of asset system ids.
- */
-export function driftOf({ facts, elements, homes, assets }) {
-  const byName = new Map(facts.repos.map((r) => [r.name, r]));
-  const ctx = { byName, paths: facts.paths };
+/** A unit of a repository on main that no current element binds. */
+function undocumentedOf({ facts, bound, homes, assets }) {
   const items = [];
-  const homeRepo = (id) => homes.get(systemOf(id))?.repo ?? null;
-  const bound = elements.map((e) => ({ element: e, binding: bindingOf(e) })).filter((b) => b.binding);
   for (const repo of facts.repos) {
     for (const unit of requiredUnits(repo)) {
       // The root is covered by any current element of the repository (the repository is in the model); a unit by its own.
@@ -72,18 +65,45 @@ export function driftOf({ facts, elements, homes, assets }) {
       items.push(item("undocumented", repo.name, home, { path: unit.path, unit: unit.name, why: `${where} is on main and no current element binds it` }));
     }
   }
+  return items;
+}
+
+/** phantom, reached and gone: an element's lifecycle against what main has. */
+function lifecycleOf({ bound, ctx, homeRepo }) {
+  const items = [];
   for (const { element, binding } of bound) {
     const exists = bindingExists(binding, ctx);
-    const where = `${binding.repo}${binding.path === "." ? "" : `/${binding.path}`}`;
-    const target = byName.has(binding.repo) ? binding.repo : homeRepo(element.id);
-    if (element.lifecycle === "current" && !exists) items.push(item("phantom", target, homeRepo(element.id), { element: element.id, path: binding.path, why: `${element.id} binds ${where}, which main does not have` }));
-    if (element.lifecycle === "planned" && exists) items.push(item("reached", target, homeRepo(element.id), { element: element.id, path: binding.path, why: `${element.id} is planned and ${where} is already on main: drop #planned` }));
-    if (element.lifecycle === "retiring" && !exists) items.push(item("gone", target, homeRepo(element.id), { element: element.id, path: binding.path, why: `${element.id} is retiring and ${where} is gone from main: drop the element` }));
+    const suffix = binding.path === "." ? "" : `/${binding.path}`;
+    const where = `${binding.repo}${suffix}`;
+    const target = ctx.byName.has(binding.repo) ? binding.repo : homeRepo(element.id);
+    const at = (kind, why) => items.push(item(kind, target, homeRepo(element.id), { element: element.id, path: binding.path, why }));
+    if (element.lifecycle === "current" && !exists) at("phantom", `${element.id} binds ${where}, which main does not have`);
+    if (element.lifecycle === "planned" && exists) at("reached", `${element.id} is planned and ${where} is already on main: drop #planned`);
+    if (element.lifecycle === "retiring" && !exists) at("gone", `${element.id} is retiring and ${where} is gone from main: drop the element`);
   }
+  return items;
+}
+
+/** missing and invalid: a system's home without a model, or with a model that does not parse. */
+function homesOf(homes) {
+  const items = [];
   for (const [system, home] of homes) {
     if (home.status === "missing") items.push(item("missing", home.repo, home.repo, { system, why: `${home.repo} is the home of ${system} and has no docs/architecture/*.c4` }));
     for (const e of home.errors ?? []) items.push(item("invalid", home.repo, home.repo, { system, path: e.path, line: e.line, why: e.message }));
   }
+  return items;
+}
+
+/**
+ * Every drift item: facts = { repos, paths } (from factsOf), elements = the org-wide model's elements, homes = Map(system →
+ * { repo, status, errors }), assets = the set of asset system ids.
+ */
+export function driftOf({ facts, elements, homes, assets }) {
+  const byName = new Map(facts.repos.map((r) => [r.name, r]));
+  const ctx = { byName, paths: facts.paths };
+  const homeRepo = (id) => homes.get(systemOf(id))?.repo ?? null;
+  const bound = elements.map((e) => ({ element: e, binding: bindingOf(e) })).filter((b) => b.binding);
+  const items = [...undocumentedOf({ facts, bound, homes, assets }), ...lifecycleOf({ bound, ctx, homeRepo }), ...homesOf(homes)];
   const order = (a, b) => byString(a.repo ?? "", b.repo ?? "") || DRIFT_KINDS.indexOf(a.kind) - DRIFT_KINDS.indexOf(b.kind) || byString(a.why, b.why);
   return items.sort(order);
 }
