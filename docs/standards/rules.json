@@ -1220,6 +1220,25 @@
       }
     },
     {
+      "id": "adr-internal",
+      "title": "An ADR lives in krizaka-internal (docs/adr/<area>/) and nowhere else: no ADR file in any other repository, whatever its visibility; only a stub docs/adr/README.md may point there (founder 2026-11-12, krizaka-internal#3331)",
+      "issue": "krizaka/krizaka-internal#3335",
+      "applies": {
+        "notRepos": [
+          "krizaka-internal"
+        ]
+      },
+      "check": {
+        "type": "path-forbids",
+        "pattern": "(^|/)docs/adr/|(^|/)ADR-\\d+[^/]*\\.md$",
+        "except": "(^|/)docs/adr/README\\.md$"
+      },
+      "fix": {
+        "type": "manual",
+        "note": "move the file to krizaka-internal docs/adr/<area>/ with its front matter (id, category, subject, revision, status, supersedes, superseded_by), delete it here and point every link at the krizaka-internal path; a public repository keeps only the stub docs/adr/README.md"
+      }
+    },
+    {
       "id": "rules-register",
       "title": "The rules register of krizaka-agents (docs/rules-register.md, its org-rules table) names exactly the rules of this registry: the register and the matrix are the same list (founder 2026-11-06)",
       "issue": "krizaka/krizaka-internal#2635",

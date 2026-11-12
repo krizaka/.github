@@ -57,6 +57,7 @@ function checkShape({ id, check = {} }) {
   const needs = {
     "workflow-calls": () => Boolean(check.workflows?.length || check.byKind),
     "path-matches": () => Boolean(check.pattern),
+    "path-forbids": () => Boolean(check.pattern),
     "lists-rule-ids": () => Boolean(check.path),
     manual: () => Boolean(check.note),
     "workflow-matches": () => Boolean(check.pattern),
