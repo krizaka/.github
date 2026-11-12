@@ -37,7 +37,7 @@ inputs:
     description: "maven / workspace: fail when an OpenRewrite recipe would change code (rewrite:dryRun)."
     default: "false"
   component:
-    description: "workspace: the repository name, as listed in orazaka.workspace.json."
+    description: "workspace: the repository name, as listed in sovkora.workspace.json."
     default: ""
   workspace-path:
     description: "workspace: where krizaka/sovkora is checked out."
@@ -111,7 +111,7 @@ runs:
       run: |
         if [ "$STACK" = workspace ]; then
           cd "$WORKSPACE_PATH" || exit 1
-          target=$(node -e "const m=require('./orazaka.workspace.json');console.log(m.repositories.find(x=>x.name===process.env.COMPONENT).path)")
+          target=$(node -e "const m=require('./sovkora.workspace.json');console.log(m.repositories.find(x=>x.name===process.env.COMPONENT).path)")
           cd "$target" || exit 1
         else
           cd "$WORKDIR" || exit 1

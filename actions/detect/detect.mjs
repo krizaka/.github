@@ -5,7 +5,7 @@
 //   node detect.mjs --tofu-guard <dir>       # refuse a `tofu test` whose run blocks may apply
 //
 // Order (the first that matches wins):
-//   workspace  the repository is listed in krizaka/sovkora's orazaka.workspace.json (component.yml's flow)
+//   workspace  the repository is listed in krizaka/sovkora's sovkora.workspace.json (component.yml's flow)
 //   maven      pom.xml
 //   blog       package.json (or pnpm-workspace.yaml) and an MDX `content/` folder: the Node pipeline, labelled blog
 //   node       pnpm-workspace.yaml or package.json
@@ -18,7 +18,7 @@ import { appendFileSync, existsSync, readdirSync, readFileSync, statSync } from 
 import { join, posix, relative } from "node:path";
 import { pathToFileURL } from "node:url";
 
-export const MANIFEST_URL = "https://raw.githubusercontent.com/krizaka/sovkora/main/orazaka.workspace.json";
+export const MANIFEST_URL = "https://raw.githubusercontent.com/krizaka/sovkora/main/sovkora.workspace.json";
 
 /** The values `.krizaka/ci.json` may hold, with their type. It never lists steps. */
 export const CONFIG_KEYS = {
@@ -332,7 +332,7 @@ function detectWorkspace(plan, config, name) {
 function detectMaven(plan, dir, config) {
   plan.stack = "maven";
   const pom = readFileSync(join(dir, "pom.xml"), "utf8");
-  const inherits = /<artifactId>\s*(krizaka-parent|sovkora-build|sovkora-parent|orazaka-build|orazaka-parent)\s*<\/artifactId>/.test(pom);
+  const inherits = /<artifactId>\s*(krizaka-parent|sovkora-build|sovkora-parent)\s*<\/artifactId>/.test(pom);
   plan.spotless = inherits || /spotless-maven-plugin/.test(pom);
   plan.rewrite = (inherits || /rewrite-maven-plugin/.test(pom)) && (config.rewrite ?? true);
 }
@@ -405,7 +405,7 @@ export function detect({ root, base = ".", repository = "", manifest = null, tim
   else if (has(dir, "pyproject.toml")) detectPython(plan, dir, files);
   else if (files.some((f) => f.endsWith(".tf"))) detectIac(plan, files);
   else {
-    throw new Error("no stack detected: no orazaka.workspace.json membership, pom.xml, package.json, pnpm-workspace.yaml, pyproject.toml or *.tf");
+    throw new Error("no stack detected: no sovkora.workspace.json membership, pom.xml, package.json, pnpm-workspace.yaml, pyproject.toml or *.tf");
   }
 
   if (plan.stack !== "workspace" && has(dir, "Dockerfile")) {

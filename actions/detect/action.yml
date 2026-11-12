@@ -19,8 +19,8 @@ inputs:
     description: "owner/name of the repository (its name decides the Sovkora workspace membership)."
     default: ${{ github.repository }}
   manifest:
-    description: "orazaka.workspace.json: a URL or a file."
-    default: https://raw.githubusercontent.com/krizaka/sovkora/main/orazaka.workspace.json
+    description: "sovkora.workspace.json: a URL or a file."
+    default: https://raw.githubusercontent.com/krizaka/sovkora/main/sovkora.workspace.json
   timeout-minutes:
     description: "Timeout of the verify job; 0: the stack's default (.krizaka/ci.json `timeoutMinutes` wins)."
     default: "0"

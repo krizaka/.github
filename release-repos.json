@@ -2,12 +2,12 @@
   "_about": "The repositories whose GitHub Releases krizaka.com's changelog and the weekly digest read (krizaka/.github#184). One product can be several repositories (Sovkora). A product appears here before its first release: no release yet is fine.",
   "products": [
     {
-      "id": "orazaka",
+      "id": "sovkora",
       "name": "Sovkora",
       "repos": ["sovkora"]
     },
-    { "id": "akinaza", "name": "Folioviv", "repos": ["folioviv"] },
-    { "id": "yomizaka", "name": "Verikora", "repos": ["verikora"] },
+    { "id": "folioviv", "name": "Folioviv", "repos": ["folioviv"] },
+    { "id": "verikora", "name": "Verikora", "repos": ["verikora"] },
     { "id": "java", "name": "Krizaka Java", "repos": ["krizaka-java"] }
   ]
 }

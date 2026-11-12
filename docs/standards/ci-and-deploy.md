@@ -196,7 +196,7 @@ The first match wins, in the caller's checkout (`working-directory`):
 
 | # | Stack | When | Pipeline | Timeout |
 | --: | :--- | :--- | :--- | --: |
-| 1 | `workspace` | The repository's name is a member of krizaka/sovkora's `orazaka.workspace.json` (read from main; unreadable is an error, never a guess). | Today's `component.yml`: the workspace cloned beside the component, `node scripts/workspace.mjs ci <component>`, then the OpenRewrite dry run only if the pom has the plugin. Nothing is published, no image is built. | 60 |
+| 1 | `workspace` | The repository's name is a member of krizaka/sovkora's `sovkora.workspace.json` (read from main; unreadable is an error, never a guess). | Today's `component.yml`: the workspace cloned beside the component, `node scripts/workspace.mjs ci <component>`, then the OpenRewrite dry run only if the pom has the plugin. Nothing is published, no image is built. | 60 |
 | 2 | `maven` | `pom.xml` | Java 21 (Temurin, `~/.m2` cached), Spotless check and OpenRewrite dry run (when the pom names them or inherits `krizaka-parent`/`sovkora-*`; `"rewrite": false` opts out), `mvnw`/`mvn verify`. | 45 |
 | 3 | `blog` | `package.json` **and** MDX under `content/` | The Node pipeline. | 25 |
 | 4 | `node` | `pnpm-workspace.yaml` or `package.json` | `node-ci.yml`'s: npm or pnpm (from the lockfile), lint, quality scripts that exist (depcruise, ast-grep, ratchets), typecheck, test, build, a container image when there is a `Dockerfile`, the after-build script; jscpd when `dup-ratchet.json` exists. | 25 |

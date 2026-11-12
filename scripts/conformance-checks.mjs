@@ -15,7 +15,7 @@ export const MANIFEST_FILES = ["package.json", "pnpm-workspace.yaml", ".gitmodul
 export const isManifest = (path) => MANIFEST_FILES.some((name) => path === name || path.endsWith(`/${name}`));
 
 /** The org repositories whose reusable workflows count as the org's own CI (`uses: krizaka/<repo>/.github/workflows/x.yml@…`). */
-export const REUSABLE_WORKFLOW_REPOS = [".github", "sovkora", "orazaka"];
+export const REUSABLE_WORKFLOW_REPOS = [".github", "sovkora"];
 /** `uses: krizaka/<repo>/.github/workflows/<file>.yml@`: a call to a reusable workflow of the org. */
 const WORKFLOW_USE = /uses:\s*krizaka\/([\w.-]+)\/\.github\/workflows\/([\w.-]+\.ya?ml)@/g;
 const callsOf = (text) =>

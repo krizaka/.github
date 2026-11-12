@@ -16,7 +16,7 @@ const MAX_PAGES = 10; // the code search API stops at 1,000 results
 
 const escape = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-/** A whole-name match: `orazaka-edge` is not found inside `orazaka-edge-service` nor `my-orazaka-edge`. */
+/** A whole-name match: `sovkora-edge` is not found inside `sovkora-edge-service` nor `my-sovkora-edge`. */
 export function nameMatcher(name) {
   return new RegExp(`(?<![\\w-])${escape(name)}(?![\\w-])`);
 }

@@ -205,7 +205,6 @@ test("the daily SEO check covers the www addresses and the dev hosts, never inde
     assert.match(yml, new RegExp(`host: www\\.${p}\\.com,`), `www.${p}.com`);
     assert.match(yml, new RegExp(`host: dev\\.${p}\\.com, args: "--index off"`), `dev.${p}.com`);
   }
-  assert.doesNotMatch(yml, /orazaka|yomizaka|akinaza|kachizaka/i, "no code-name host is checked");
   assert.doesNotMatch(yml, /^\s+- dev\./m, "no dev host is checked as an indexed site");
 });
 

@@ -12,7 +12,7 @@ const open = (n, extra = {}) => Array.from({ length: n }, (_, i) => pr(i + 1, ex
 test("the rules come from policy.json: five per lane, fix(main) exempt", () => assert.deepEqual(rulesFromPolicy(), RULES));
 
 test("a PR with a lane label counts in that lane; the bot and the unlabelled have their own", () => {
-  assert.equal(laneOf(pr(1, { labels: lane("yomizaka") })), "yomizaka");
+  assert.equal(laneOf(pr(1, { labels: lane("verikora") })), "verikora");
   assert.equal(laneOf(pr(2, { labels: [], user: { login: "dependabot[bot]" } })), "dependabot");
   assert.equal(laneOf(pr(3, { labels: [{ name: "bug" }] })), "unlabelled");
 });
@@ -23,7 +23,7 @@ test("a new PR passes while its lane's others are under the cap and fails as the
 });
 
 test("the cap is per lane: another lane's PRs do not fill it", () => {
-  const others = open(8, { labels: lane("akinaza") });
+  const others = open(8, { labels: lane("folioviv") });
   assert.equal(verdict([...others, pr(50)], pr(50), RULES).ok, true);
   assert.equal(verdict([...others, pr(50)], pr(50), RULES).others, 0);
   assert.equal(verdict([...others, ...open(5, { labels: lane("platform") }).map((p) => ({ ...p, number: p.number + 100 })), pr(50)], pr(50), RULES).ok, false);

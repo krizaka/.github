@@ -8,7 +8,7 @@
     { "app": "krizaka-ts-site", "repo": "krizaka/krizaka-ts", "spec": ".do/app.yaml" },
     { "app": "folioviv-dev", "repo": "krizaka/folioviv", "spec": "deploy/digitalocean/app.yaml" },
     { "app": "verikora-dev", "repo": "krizaka/verikora", "spec": "deploy/digitalocean/dev.app.yaml" },
-    { "app": "sovkora-dev", "repo": "krizaka/sovkora", "spec": "infra/deploy/orazaka-dev.app.yaml" },
+    { "app": "sovkora-dev", "repo": "krizaka/sovkora", "spec": "infra/deploy/sovkora-dev.app.yaml" },
     { "app": "kridoc", "repo": "krizaka/kridoc", "spec": ".do/app.yaml" },
     { "app": "verikora-coming-soon", "repo": "krizaka/krizaka-coming-soon", "spec": ".do/app-verikora.yaml", "team": "krizaka-prod" },
     { "app": "folioviv-coming-soon", "repo": "krizaka/krizaka-coming-soon", "spec": ".do/app-folioviv.yaml", "team": "krizaka-prod" },

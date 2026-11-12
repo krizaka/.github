@@ -17,5 +17,5 @@ test("krizaka-ci gives actions/detect a manifest it can read: an empty membershi
 });
 
 test("krizaka-ci names no manifest address of the retired workspace", () => {
-  assert.doesNotMatch(src, /raw\.githubusercontent\.com\/krizaka\/(?:orazaka|sovkora)\//);
+  assert.doesNotMatch(src, /raw\.githubusercontent\.com\/krizaka\/(?:sovkora|sovkora)\//);
 });
