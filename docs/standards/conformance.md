@@ -36,6 +36,9 @@ matrix lists as out of scope. There are no exceptions.
   packages » never ran in any consumer because the caller declared `permissions: {}` and its `bump` job granted nothing while the called
   job asks `contents: read`. The caller template `workflow-templates/bump-krizaka.yml` carries `permissions: contents: read` on the job; the rule's fix copies that template (it is reported, not a
   security rule, so the consumers are fixed by one pull request each, not by `conformance-fanout.mjs --apply`).
+- **« Bump @krizaka packages » runs in npm repositories and in a sub-folder** (krizaka-internal#3342): the shared `bump-krizaka.yml` reads the
+  lockfile of its `working-directory` input (default `.`) with `scripts/detect-package-manager.mjs`: `pnpm-lock.yaml` runs pnpm,
+  `package-lock.json` runs `npm install --package-lock-only`, neither fails with a clear error (krizaka-java passes `working-directory: site`).
 - **Scheduled guards are never red in silence**: a red scheduled run of `audit-guards` opens (or comments) one issue in
   krizaka-internal, and the next green run closes it (`scripts/red-run-issue.mjs`). Any alert passes `alert-key` to `actions/alert-issue`:
   one issue per key whatever its title does (comment, reopen, or close with the green run as proof; krizaka-internal#2282).

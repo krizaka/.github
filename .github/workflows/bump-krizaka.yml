@@ -3,7 +3,8 @@
 # krizaka-ui) sends the event after `changeset publish`, with the packages and versions in the payload.
 #
 # It waits until npm serves the versions, bumps the plain ranges of the `@krizaka/*` packages that repository depends on
-# (scripts/krizaka-release.mjs: the style of the range is kept, workspace packages are never touched), updates the lockfile,
+# (scripts/krizaka-release.mjs: the style of the range is kept, workspace packages are never touched), updates the lockfile
+# (pnpm or npm, by the lockfile of `working-directory`, the package folder, `.` by default),
 # opens ONE pull request « deps: @krizaka/ui 3.74.0, … » and arms auto-merge: CI decides. A major version opens the same pull
 # request without auto-merge. Dependabot stays as the weekly safety net. `dry-run` prints the plan and writes nothing.
 name: Bump @krizaka packages
@@ -19,6 +20,10 @@ on:
         description: "Print the plan, change nothing, open nothing"
         type: boolean
         default: false
+      working-directory:
+        description: "The folder of the package (its lockfile decides pnpm or npm), relative to the repository root; krizaka-java passes site"
+        type: string
+        default: "."
       app-id:
         description: "The GitHub App (krizaka-agents) id: the pull request must start CI, which GITHUB_TOKEN's does not"
         type: string
@@ -54,21 +59,31 @@ jobs:
           repository: krizaka/.github
           path: .krizaka-org
           persist-credentials: false
-      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
+      - name: Detect the package manager
+        id: pm
+        run: node "$GITHUB_WORKSPACE/.krizaka-org/scripts/detect-package-manager.mjs" .
+        working-directory: ${{ inputs.working-directory }}
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        if: steps.pm.outputs.manager == 'pnpm'
 
       - name: Bump the ranges
         id: bump
-        run: node .krizaka-org/scripts/krizaka-release.mjs bump "$PACKAGES" ${DRY_RUN:+--dry-run}
+        run: node "$GITHUB_WORKSPACE/.krizaka-org/scripts/krizaka-release.mjs" bump "$PACKAGES" ${DRY_RUN:+--dry-run}
+        working-directory: ${{ inputs.working-directory }}
         env:
           PACKAGES: ${{ inputs.packages }}
           DRY_RUN: ${{ inputs.dry-run && 'true' || '' }}
 
       - name: Update the lockfile
         if: steps.bump.outputs.changed == 'true' && !inputs.dry-run
-        run: pnpm install --lockfile-only --no-frozen-lockfile
+        run: |
+          if [ "$MANAGER" = "pnpm" ]; then pnpm install --lockfile-only --no-frozen-lockfile --ignore-scripts; else npm install --package-lock-only --ignore-scripts; fi
+        working-directory: ${{ inputs.working-directory }}
+        env:
+          MANAGER: ${{ steps.pm.outputs.manager }}
 
       - name: Open the pull request
         if: steps.bump.outputs.changed == 'true' && !inputs.dry-run
