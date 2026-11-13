@@ -30,7 +30,6 @@ test("detect-package-manager: the CLI reports the manager to the step output and
 test("bump-krizaka workflow: pnpm only for pnpm, a working-directory input, no unconditional pnpm", () => {
   const wf = readFileSync(new URL("../.github/workflows/bump-krizaka.yml", import.meta.url), "utf8");
   assert.match(wf, /working-directory:\n\s+description/);
-  assert.match(wf, /detect-package-manager\.mjs/);
-  assert.match(wf, /npm install --package-lock-only/);
-  assert.match(wf, /pnpm\/action-setup[^\n]*\n\s+if: steps\.pm\.outputs\.manager == 'pnpm'/);
+  assert.match(wf, /krizaka-release\.mjs" lock/); // every lockfile, each with its own manager (detectPackageManager)
+  assert.match(wf, /pnpm\/action-setup[^\n]*\n\s+if: steps\.pm\.outputs\.pnpm == 'true'/);
 });
