@@ -30,6 +30,11 @@ matrix lists as out of scope. There are no exceptions.
 - **The rules really reach the repositories** (krizaka-internal#879): `versions-current {ecosystems, graceDays}` is red when a repository
   still pins a family version (`@krizaka/*` on npm; `krizaka-parent` / `krizaka-bom` from the krizaka-java releases) older than one
   out for `graceDays`. `release-propagation` asks for the receiver **and** the landed bump; `maven-family-current` does it for Java.
+- **A caller grants what the called job asks for** (krizaka-internal#3342): `caller-permissions` reads each workflow that calls a reusable
+  workflow of the org, fetches the called file at the SHA the caller pins, and is red when the calling job (its own `permissions:`, else the
+  workflow's) grants less than the called jobs ask for. GitHub refuses such a run as `startup_failure` with 0 jobs and no log: « Bump @krizaka
+  packages » never ran in any consumer because the caller declared `permissions: {}` and its `bump` job granted nothing while the called
+  job asks `contents: read`. The caller template `workflow-templates/bump-krizaka.yml` carries `permissions: contents: read` on the job.
 - **Scheduled guards are never red in silence**: a red scheduled run of `audit-guards` opens (or comments) one issue in
   krizaka-internal, and the next green run closes it (`scripts/red-run-issue.mjs`). Any alert passes `alert-key` to `actions/alert-issue`:
   one issue per key whatever its title does (comment, reopen, or close with the green run as proof; krizaka-internal#2282).

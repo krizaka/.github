@@ -5,7 +5,7 @@
 
 import { createHash } from "node:crypto";
 
-export const CHECK_TYPES = ["path-matches", "path-forbids", "lists-rule-ids", "manual", "workflow-calls", "workflow-matches", "workflow-forbids", "file-exists", "file-matches", "manifests-forbid", "no-mention", "no-public-email", "published-no-mention", "all-of", "any-of", "agents-template", "required-check", "merged-result", "queue-reports", "required-profile", "time-limits", "versions-current", "format-declared"];
+export const CHECK_TYPES = ["path-matches", "path-forbids", "lists-rule-ids", "manual", "workflow-calls", "caller-permissions", "workflow-matches", "workflow-forbids", "file-exists", "file-matches", "manifests-forbid", "no-mention", "no-public-email", "published-no-mention", "all-of", "any-of", "agents-template", "required-check", "merged-result", "queue-reports", "required-profile", "time-limits", "versions-current", "format-declared"];
 /** The states of a cell. `unknown` and `manual` are never counted as pass nor as fail. */
 export const STATUSES = ["pass", "fail", "unknown", "manual", "n/a"];
 /** A sort order that does not depend on the machine's locale (determinism). */
