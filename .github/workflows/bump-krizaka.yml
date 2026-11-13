@@ -3,10 +3,14 @@
 # krizaka-ui) sends the event after `changeset publish`, with the packages and versions in the payload.
 #
 # It waits until npm serves the versions, bumps the plain ranges of the `@krizaka/*` packages that repository depends on
-# (scripts/krizaka-release.mjs: the style of the range is kept, workspace packages are never touched), updates the lockfile
-# (pnpm or npm, by the lockfile of `working-directory`, the package folder, `.` by default),
-# opens ONE pull request « deps: @krizaka/ui 3.74.0, … » and arms auto-merge: CI decides. A major version opens the same pull
-# request without auto-merge. Dependabot stays as the weekly safety net. `dry-run` prints the plan and writes nothing.
+# (scripts/krizaka-release.mjs: the style of the range is kept, workspace packages are never touched), then regenerates EVERY
+# lockfile whose manifest changed, root and nested (`site/`, `apps/*`, `tools/*`), each with its own folder's manager (pnpm or npm),
+# so the pull request passes `npm ci` / `pnpm install --frozen-lockfile` (krizaka-internal#3396).
+# Two legs, one pull request each: the `wave` (patches and minors) is titled « chore(deps): @krizaka/ui 3.74.0, … » and arms
+# auto-merge: CI decides; the `breaking` leg (a major, or a 0.x minor) opens its own pull request « chore(deps): breaking … »,
+# labelled `breaking`, never auto-merged, never mixed with the wave. Both start from the current default branch. A leg that finds
+# main already at the target versions opens nothing and closes its stale pull request. Dependabot stays as the weekly safety net.
+# `dry-run` prints the plan and writes nothing.
 name: Bump @krizaka packages
 
 on:
@@ -21,7 +25,7 @@ on:
         type: boolean
         default: false
       working-directory:
-        description: "The folder of the package (its lockfile decides pnpm or npm), relative to the repository root; krizaka-java passes site"
+        description: "The folder to bump, relative to the repository root (`.` by default: every package.json of the repository is read, whatever the folder)"
         type: string
         default: "."
       app-id:
@@ -36,11 +40,15 @@ permissions: {}
 
 jobs:
   bump:
-    name: Bump
+    name: Bump (${{ matrix.scope }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
       contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        scope: [wave, breaking]
     steps:
       - id: app
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
@@ -49,9 +57,11 @@ jobs:
           private-key: ${{ secrets.app-private-key }}
           permission-contents: write
           permission-pull-requests: write
+          permission-issues: write
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.event.repository.default_branch }} # the branch starts from current main, whatever ref the run was started on
           token: ${{ steps.app.outputs.token }}
           persist-credentials: true # the app token pushes the branch below; it expires with the job
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -62,47 +72,74 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
-      - name: Detect the package manager
+      - name: Detect pnpm lockfiles
         id: pm
-        run: node "$GITHUB_WORKSPACE/.krizaka-org/scripts/detect-package-manager.mjs" .
+        run: |
+          if [ -n "$(git ls-files -- 'pnpm-lock.yaml' '**/pnpm-lock.yaml')" ]; then echo "pnpm=true" >> "$GITHUB_OUTPUT"; fi
         working-directory: ${{ inputs.working-directory }}
       - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
-        if: steps.pm.outputs.manager == 'pnpm'
+        if: steps.pm.outputs.pnpm == 'true'
 
       - name: Bump the ranges
         id: bump
-        run: node "$GITHUB_WORKSPACE/.krizaka-org/scripts/krizaka-release.mjs" bump "$PACKAGES" ${DRY_RUN:+--dry-run}
+        run: node "$GITHUB_WORKSPACE/.krizaka-org/scripts/krizaka-release.mjs" bump "$PACKAGES" "--scope=$SCOPE" ${DRY_RUN:+--dry-run}
         working-directory: ${{ inputs.working-directory }}
         env:
           PACKAGES: ${{ inputs.packages }}
+          SCOPE: ${{ matrix.scope }}
           DRY_RUN: ${{ inputs.dry-run && 'true' || '' }}
 
-      - name: Update the lockfile
+      - name: Regenerate every lockfile of a changed manifest
         if: steps.bump.outputs.changed == 'true' && !inputs.dry-run
-        run: |
-          if [ "$MANAGER" = "pnpm" ]; then pnpm install --lockfile-only --no-frozen-lockfile --ignore-scripts; else npm install --package-lock-only --ignore-scripts; fi
+        run: node "$GITHUB_WORKSPACE/.krizaka-org/scripts/krizaka-release.mjs" lock
         working-directory: ${{ inputs.working-directory }}
-        env:
-          MANAGER: ${{ steps.pm.outputs.manager }}
 
       - name: Open the pull request
         if: steps.bump.outputs.changed == 'true' && !inputs.dry-run
         run: |
-          branch="deps/krizaka-$(printf '%s' "$PACKAGES" | sha256sum | cut -c1-8)"
+          hash="$(printf '%s' "$PACKAGES" | sha256sum | cut -c1-8)"
+          branch="deps/krizaka-$hash"
+          if [ "$SCOPE" = "breaking" ]; then branch="deps/krizaka-breaking-$hash"; fi
           git config user.name "krizaka-agents[bot]"
           git config user.email "345578919+krizaka-agents[bot]@users.noreply.github.com"
           git switch -C "$branch"
           git add -A -- ':!.krizaka-org'
           git commit -m "$TITLE"
           git push --force origin "$branch"
-          if [ -z "$(gh pr list --head "$branch" --json number --jq '.[0].number')" ]; then
-            gh pr create --base "$BASE" --head "$branch" --title "$TITLE" \
-              --body "A @krizaka release, sent by its publisher (krizaka/.github#388). CI decides; a major version is not auto-merged."
+          if [ "$SCOPE" = "breaking" ]; then
+            gh label create breaking --description "A major or a 0.x release: migrate before merging" --color B60205 2>/dev/null || true
+            body="A breaking @krizaka release (a major, or a 0.x minor), sent by its publisher (krizaka/.github#388). It moves: $DETAILS. Not auto-merged: migrate what breaks, then merge."
+          else
+            body="A @krizaka release (patches and minors), sent by its publisher (krizaka/.github#388). CI decides; majors and 0.x minors come in their own pull request."
           fi
-          if [ "$MAJOR" != "true" ]; then gh pr merge "$branch" --auto --squash; fi
+          if [ -z "$(gh pr list --head "$branch" --state open --json number --jq '.[0].number')" ]; then
+            gh pr create --base "$BASE" --head "$branch" --title "$TITLE" --body "$body"
+          else
+            gh pr edit "$branch" --title "$TITLE" --body "$body"
+          fi
+          if [ "$SCOPE" = "breaking" ]; then
+            gh pr edit "$branch" --add-label breaking
+          else
+            gh pr merge "$branch" --auto --squash
+          fi
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
           PACKAGES: ${{ inputs.packages }}
+          SCOPE: ${{ matrix.scope }}
           TITLE: ${{ steps.bump.outputs.title }}
-          MAJOR: ${{ steps.bump.outputs.major }}
+          DETAILS: ${{ steps.bump.outputs.details }}
           BASE: ${{ github.event.repository.default_branch }}
+
+      - name: Close a pull request main has already caught up with
+        if: steps.bump.outputs.changed != 'true' && !inputs.dry-run
+        run: |
+          hash="$(printf '%s' "$PACKAGES" | sha256sum | cut -c1-8)"
+          branch="deps/krizaka-$hash"
+          if [ "$SCOPE" = "breaking" ]; then branch="deps/krizaka-breaking-$hash"; fi
+          if [ -n "$(gh pr list --head "$branch" --state open --json number --jq '.[0].number')" ]; then
+            gh pr close "$branch" --delete-branch --comment "main already has these versions: nothing left to bump (krizaka-internal#3396)."
+          fi
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          PACKAGES: ${{ inputs.packages }}
+          SCOPE: ${{ matrix.scope }}
