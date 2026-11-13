@@ -248,7 +248,6 @@
     },
     {
       "id": "caller-permissions",
-      "security": true,
       "title": "A job that calls a reusable workflow of the org grants what the called jobs ask for (else the run is a startup_failure with 0 jobs)",
       "issue": "krizaka/krizaka-internal#3342",
       "applies": {},
