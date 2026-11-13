@@ -248,6 +248,7 @@
     },
     {
       "id": "caller-permissions",
+      "security": true,
       "title": "A job that calls a reusable workflow of the org grants what the called jobs ask for (else the run is a startup_failure with 0 jobs)",
       "issue": "krizaka/krizaka-internal#3342",
       "applies": {},
@@ -255,8 +256,9 @@
         "type": "caller-permissions"
       },
       "fix": {
-        "type": "manual",
-        "note": "Give the calling job the permissions the called job asks for (for bump-krizaka.yml: permissions: contents: read on the job), or re-copy the caller from workflow-templates/."
+        "type": "copy",
+        "from": "workflow-templates/bump-krizaka.yml",
+        "to": ".github/workflows/bump-krizaka.yml"
       }
     },
     {

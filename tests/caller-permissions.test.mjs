@@ -63,3 +63,9 @@ test("the caller template of bump-krizaka.yml grants the called job what it asks
   const callee = readFileSync(new URL("../.github/workflows/bump-krizaka.yml", import.meta.url), "utf8");
   assert.deepEqual(await callerPermissionProblems("workflow-templates/bump-krizaka.yml", text, async () => callee), []);
 });
+
+test("the rule is rolled out by the fan-out: a security rule whose fix copies the bump caller template", () => {
+  const rule = loadRules().find((r) => r.id === "caller-permissions");
+  assert.equal(rule.security, true);
+  assert.deepEqual(rule.fix, { type: "copy", from: "workflow-templates/bump-krizaka.yml", to: ".github/workflows/bump-krizaka.yml" });
+});
