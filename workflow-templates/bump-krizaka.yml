@@ -1,5 +1,8 @@
 # A @krizaka release reaches this repository in minutes (krizaka/.github#388): the publisher sends `krizaka-release`, the
 # shared workflow bumps the ranges and opens one auto-merged pull request. Run it by hand with « dry-run » to see the plan.
+# The shared workflow reads the lockfile of `working-directory` (default `.`): `pnpm-lock.yaml` runs pnpm, `package-lock.json` runs
+# `npm install --package-lock-only`, neither is an error. A repository whose package is in a sub-folder (krizaka-java: `site`) adds
+# `working-directory: <folder>` under `with:`.
 # The `bump` job keeps `permissions: contents: read`: the called job asks for it, and without it the run is a startup_failure.
 name: Bump @krizaka packages
 
@@ -26,6 +29,7 @@ jobs:
     with:
       packages: ${{ github.event.client_payload.packages && toJSON(github.event.client_payload.packages) || inputs.packages }}
       dry-run: ${{ inputs.dry-run == true }}
+      # working-directory: site # only when the package is not at the root; its lockfile decides pnpm or npm
       app-id: ${{ vars.RELEASE_APP_ID }}
     secrets:
       app-private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
