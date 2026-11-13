@@ -255,8 +255,9 @@
         "type": "caller-permissions"
       },
       "fix": {
-        "type": "manual",
-        "note": "Give the calling job the permissions the called job asks for (for bump-krizaka.yml: permissions: contents: read on the job), or re-copy the caller from workflow-templates/."
+        "type": "copy",
+        "from": "workflow-templates/bump-krizaka.yml",
+        "to": ".github/workflows/bump-krizaka.yml"
       }
     },
     {
