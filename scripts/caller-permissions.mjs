@@ -9,49 +9,55 @@ const LEVEL = { none: 0, read: 1, write: 2 };
 /** The reusable workflows judged: those of the org's own repositories (same list as the `workflow-calls` check). */
 const USES = /^ {4}uses:\s*krizaka\/([\w.-]+)\/\.github\/workflows\/([\w.-]+\.ya?ml)@([^\s#]+)/;
 
-/** A `permissions:` value at `indent` starting at line `i`: { perms, next } where perms is { scope: level } (`*` for read-all / write-all) or undefined. */
+const permissionsKey = (indent) => new RegExp(String.raw`^ {${indent}}permissions:\s*([^#\s][^#]*?)?\s*(#.*)?$`);
+const permissionRow = (indent) => new RegExp(String.raw`^ {${indent + 2}}([\w-]+):\s*(none|read|write)\s*(#.*)?$`);
+
+/** A `permissions:` value at `indent` starting at line `i`: { perms, next } where perms is { scope: level } (`*` for read-all / write-all), or null when line `i` is not one. */
 function permissionsAt(lines, i, indent) {
-  const m = new RegExp(`^ {${indent}}permissions:\\s*([^#\\s][^#]*?)?\\s*(#.*)?$`).exec(lines[i]);
+  const m = permissionsKey(indent).exec(lines[i]);
   if (!m) return null;
   const inline = m[1]?.trim();
   if (inline === "{}") return { perms: {}, next: i + 1 };
   if (inline === "read-all" || inline === "write-all") return { perms: { "*": inline.slice(0, -4) }, next: i + 1 };
   const perms = {};
   let j = i + 1;
-  for (; j < lines.length; j++) {
-    const row = new RegExp(`^ {${indent + 2}}([\\w-]+):\\s*(none|read|write)\\s*(#.*)?$`).exec(lines[j]);
-    if (!row) break;
+  for (let row = permissionRow(indent).exec(lines[j] ?? ""); row; row = permissionRow(indent).exec(lines[j] ?? "")) {
     perms[row[1]] = row[2];
+    j++;
   }
   return { perms, next: j };
 }
 
-/** { top, jobs: [{ name, perms, uses }] } of a workflow text: the workflow-level permissions and, per job, its own and what it calls. */
-export function shapeOf(text) {
-  const lines = text.split("\n");
-  let top;
+/** The `jobs:` section of a workflow, job by job: [{ name, perms, uses }] (`perms` undefined when the job has none of its own). */
+function jobsOf(lines) {
   const jobs = [];
-  let inJobs = false;
   let cur = null;
-  for (let i = 0; i < lines.length; i++) {
-    const l = lines[i];
-    if (/^jobs:\s*(#.*)?$/.test(l)) { inJobs = true; continue; }
-    if (/^\S/.test(l) && !l.startsWith("#")) {
-      inJobs = false;
-      const p = permissionsAt(lines, i, 0);
-      if (p) { top = p.perms; i = p.next - 1; }
+  const from = lines.findIndex((l) => /^jobs:\s*(#.*)?$/.test(l)) + 1;
+  if (from === 0) return jobs;
+  for (let i = from; i < lines.length && !(/^\S/.test(lines[i]) && !lines[i].startsWith("#")); i++) {
+    const name = /^ {2}([\w-]+):\s*(#.*)?$/.exec(lines[i])?.[1];
+    if (name) {
+      cur = { name, perms: undefined, uses: null };
+      jobs.push(cur);
       continue;
     }
-    if (!inJobs) continue;
-    const job = /^ {2}([\w-]+):\s*(#.*)?$/.exec(l);
-    if (job) { cur = { name: job[1], perms: undefined, uses: null }; jobs.push(cur); continue; }
-    if (!cur) continue;
-    const p = permissionsAt(lines, i, 4);
-    if (p) { cur.perms = p.perms; i = p.next - 1; continue; }
-    const u = USES.exec(l);
+    const p = cur && permissionsAt(lines, i, 4);
+    if (p) {
+      cur.perms = p.perms;
+      i = p.next - 1;
+      continue;
+    }
+    const u = cur && USES.exec(lines[i]);
     if (u) cur.uses = { repo: u[1], file: u[2], ref: u[3] };
   }
-  return { top, jobs };
+  return jobs;
+}
+
+/** { top, jobs } of a workflow text: the workflow-level permissions (undefined when none) and the jobs with their own and what they call. */
+export function shapeOf(text) {
+  const lines = text.split("\n");
+  const top = lines.map((_, i) => permissionsAt(lines, i, 0)).find(Boolean)?.perms;
+  return { top, jobs: jobsOf(lines) };
 }
 
 const grant = (perms, scope) => LEVEL[perms[scope] ?? perms["*"] ?? "none"];
