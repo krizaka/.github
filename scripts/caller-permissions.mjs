@@ -34,21 +34,20 @@ function jobsOf(lines) {
   let cur = null;
   const from = lines.findIndex((l) => /^jobs:\s*(#.*)?$/.test(l)) + 1;
   if (from === 0) return jobs;
-  for (let i = from; i < lines.length && !(/^\S/.test(lines[i]) && !lines[i].startsWith("#")); i++) {
+  let i = from;
+  while (i < lines.length && !(/^\S/.test(lines[i]) && !lines[i].startsWith("#"))) {
     const name = /^ {2}([\w-]+):\s*(#.*)?$/.exec(lines[i])?.[1];
+    const own = cur && permissionsAt(lines, i, 4);
     if (name) {
       cur = { name, perms: undefined, uses: null };
       jobs.push(cur);
-      continue;
+    } else if (own) {
+      cur.perms = own.perms;
+    } else {
+      const u = cur && USES.exec(lines[i]);
+      if (u) cur.uses = { repo: u[1], file: u[2], ref: u[3] };
     }
-    const p = cur && permissionsAt(lines, i, 4);
-    if (p) {
-      cur.perms = p.perms;
-      i = p.next - 1;
-      continue;
-    }
-    const u = cur && USES.exec(lines[i]);
-    if (u) cur.uses = { repo: u[1], file: u[2], ref: u[3] };
+    i = own ? own.next : i + 1;
   }
   return jobs;
 }
