@@ -107,7 +107,9 @@ export async function liveSnapshot({ name, kind }, org = "krizaka") {
     const classic = await api(`/repos/${org}/${name}/branches/main/protection/required_status_checks`, undefined, record);
     return { mergeQueue: rules.some((r) => r.type === "merge_queue"), strict: classic?.strict === true || rules.some((r) => r.type === "required_status_checks" && r.parameters?.strict_required_status_checks_policy === true) };
   };
-  snap = snapshotOf(name, kind, paths, raw, { commit, scan, published, requiredChecks, mergeGuard, latest: (pin) => latestOf(pin, api) });
+  // A reusable workflow of the org, read at the ref a caller pins (the check `caller-permissions`).
+  const reusable = (repo, file, ref) => api(`/repos/${org}/${repo}/contents/.github/workflows/${encodeURIComponent(file)}?ref=${encodeURIComponent(ref)}`, "application/vnd.github.raw+json", record);
+  snap = snapshotOf(name, kind, paths, raw, { commit, scan, published, requiredChecks, mergeGuard, reusable, latest: (pin) => latestOf(pin, api) });
   return snap;
 }
 

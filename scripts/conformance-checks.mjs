@@ -8,6 +8,7 @@ import { formatVerdict } from "./format-declared.mjs";
 import { jobsWithoutTimeout, configWithoutTestTimeout, nodeTestWithoutTimeout } from "./check-timeouts.mjs";
 import { behind, pinsOf, versionsVerdict } from "./conformance-versions.mjs";
 import { candidateOf, isPublicSource, publicEmailHits } from "./public-email.mjs";
+import { callerPermissionProblems } from "./caller-permissions.mjs";
 import { byCodePoint, isPackageManifest, isTestConfig, WORKFLOW_PATH } from "./conformance-basics.mjs";
 
 /** The files that can name a dependency: npm, pnpm workspaces, git submodules, Maven, Gradle (by file name, in any folder). */
@@ -110,6 +111,14 @@ const CHECKS = {
     const wanted = check.byKind ? (check.byKind[snap.kind] ?? []) : check.workflows;
     const calls = callsOf(await snap.workflows());
     return verdict(wanted.some((w) => calls.has(w)), `calls none of ${wanted.join(", ")}`);
+  },
+  // A caller job grants what the called jobs ask for (krizaka-internal#3342): the called file is read at the SHA the caller pins.
+  // `reusable` is absent offline: nothing to prove.
+  "caller-permissions": async (_check, snap) => {
+    if (!snap.reusable) return unread("the called workflows");
+    const problems = [];
+    for (const p of snap.paths.filter((x) => WORKFLOW_PATH.test(x))) problems.push(...(await callerPermissionProblems(p, (await snap.read(p)) ?? "", snap.reusable)));
+    return verdict(problems.length === 0, problems.slice(0, 3).join("; "));
   },
   "workflow-matches": async (check, snap) =>
     verdict(new RegExp(check.pattern).test(await snap.workflows()), `no workflow matches ${check.pattern}`),

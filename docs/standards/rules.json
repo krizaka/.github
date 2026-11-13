@@ -1,6 +1,6 @@
 {
   "_": "The rule registry of the org (krizaka/.github#393): every org rule that must hold in every active repository, with the check that proves it. scripts/conformance.mjs runs it against repos.json (repo x rule). A rule without a check does not pass tests/conformance.test.mjs. Rules review of 2026-11-05: the registry was frozen at its 35 rules during the moratorium; the founder's exception of 2026-11-06 (« la matrice est la référence », krizaka-internal#2635) adds the public-face rules of réunion 6 and the register's mirror, and every cell is deterministic (pass, fail, unknown, manual, n/a, with its commit and evidence), and the same-day rollout to every active repo (AGENT-RULES, « A rule reaches every repo »: `node scripts/conformance-fanout.mjs --apply`, the daily run's failure, the issue per red repo) holds only for the rules marked `\"security\": true`; the others are reported in the matrix, never fanned out.",
-  "checks": "path-matches {pattern, contains}: a tracked path matches (sorted, the first match is the evidence), and with contains one of them holds the text | lists-rule-ids {path}: the file names exactly the ids of this registry in its org-rules table | manual {note}: no deterministic check yet, the cell is manual and never pass | workflow-calls {workflows | byKind} | workflow-matches {pattern} | workflow-forbids {pattern} | file-exists {paths} | file-matches {path, pattern} | manifests-forbid {pattern} | published-no-mention {pattern, allow}: no file of the latest npm tarball of a public package of the repository matches (built CSS/JS included; `allow`: history files such as CHANGELOG.md) | format-declared {}: every language of the repository has its formatter declared and run in CI (scripts/format-declared.mjs) | no-mention {pattern, allow, allowIn}: no tracked text file matches the pattern (path prefixes in `allow`, or in `allowIn[repo]`, are history). `applies`: kinds, notRepos, onlyRepos, when [{pathEndsWith}|{fileExists}|{fileMatches}|{inList}]. `fix`: copy {from, to} | append-section {file, from, heading} | manual {note}.",
+  "checks": "path-matches {pattern, contains}: a tracked path matches (sorted, the first match is the evidence), and with contains one of them holds the text | lists-rule-ids {path}: the file names exactly the ids of this registry in its org-rules table | manual {note}: no deterministic check yet, the cell is manual and never pass | workflow-calls {workflows | byKind} | caller-permissions {}: a job that calls a reusable workflow of the org grants what the called jobs ask for (read at the SHA the caller pins) | workflow-matches {pattern} | workflow-forbids {pattern} | file-exists {paths} | file-matches {path, pattern} | manifests-forbid {pattern} | published-no-mention {pattern, allow}: no file of the latest npm tarball of a public package of the repository matches (built CSS/JS included; `allow`: history files such as CHANGELOG.md) | format-declared {}: every language of the repository has its formatter declared and run in CI (scripts/format-declared.mjs) | no-mention {pattern, allow, allowIn}: no tracked text file matches the pattern (path prefixes in `allow`, or in `allowIn[repo]`, are history). `applies`: kinds, notRepos, onlyRepos, when [{pathEndsWith}|{fileExists}|{fileMatches}|{inList}]. `fix`: copy {from, to} | append-section {file, from, heading} | manual {note}.",
   "rules": [
     {
       "id": "security-scan",
@@ -244,6 +244,19 @@
         "type": "copy",
         "from": "workflow-templates/bump-krizaka.yml",
         "to": ".github/workflows/bump-krizaka.yml"
+      }
+    },
+    {
+      "id": "caller-permissions",
+      "title": "A job that calls a reusable workflow of the org grants what the called jobs ask for (else the run is a startup_failure with 0 jobs)",
+      "issue": "krizaka/krizaka-internal#3342",
+      "applies": {},
+      "check": {
+        "type": "caller-permissions"
+      },
+      "fix": {
+        "type": "manual",
+        "note": "Give the calling job the permissions the called job asks for (for bump-krizaka.yml: permissions: contents: read on the job), or re-copy the caller from workflow-templates/."
       }
     },
     {

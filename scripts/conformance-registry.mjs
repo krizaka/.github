@@ -56,6 +56,7 @@ const composite = (check) =>
 function checkShape({ id, check = {} }) {
   const needs = {
     "workflow-calls": () => Boolean(check.workflows?.length || check.byKind),
+    "caller-permissions": () => true,
     "path-matches": () => Boolean(check.pattern),
     "path-forbids": () => Boolean(check.pattern),
     "lists-rule-ids": () => Boolean(check.path),
@@ -104,7 +105,7 @@ export function missingMessage(missing) {
 }
 
 /** A repository as the checks see it: its tracked paths and a reader of one file (null when absent). */
-export function snapshotOf(name, kind, paths, readFile, { commit = null, scan = null, published = null, requiredChecks = null, mergeGuard = null, latest = null, now = Date.now() } = {}) {
+export function snapshotOf(name, kind, paths, readFile, { commit = null, scan = null, published = null, requiredChecks = null, mergeGuard = null, latest = null, reusable = null, now = Date.now() } = {}) {
   const cache = new Map();
   const evidence = [];
   const read = async (path) => {
@@ -118,7 +119,7 @@ export function snapshotOf(name, kind, paths, readFile, { commit = null, scan = 
     const texts = await Promise.all(paths.filter((p) => WORKFLOW_PATH.test(p)).map(read));
     return texts.filter(Boolean).join("\n");
   };
-  return { name, kind, commit, paths, read, workflows, scan, published, requiredChecks, mergeGuard, latest, now, evidence };
+  return { name, kind, commit, paths, read, workflows, scan, published, requiredChecks, mergeGuard, latest, reusable, now, evidence };
 }
 
 /** Does the rule concern this repository? */
