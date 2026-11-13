@@ -80,7 +80,7 @@ jobs:
       - name: Update the lockfile
         if: steps.bump.outputs.changed == 'true' && !inputs.dry-run
         run: |
-          if [ "$MANAGER" = "pnpm" ]; then pnpm install --lockfile-only --no-frozen-lockfile; else npm install --package-lock-only; fi
+          if [ "$MANAGER" = "pnpm" ]; then pnpm install --lockfile-only --no-frozen-lockfile --ignore-scripts; else npm install --package-lock-only --ignore-scripts; fi
         working-directory: ${{ inputs.working-directory }}
         env:
           MANAGER: ${{ steps.pm.outputs.manager }}
