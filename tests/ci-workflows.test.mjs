@@ -593,3 +593,66 @@ test("python-ci: `ruff format --check` runs when a ruff configuration exists, an
   assert.equal(run({ "pyproject.toml": "[tool.ruff]\nline-length = 100\n" }, 0).status, 0);
   assert.deepEqual(run({ "pyproject.toml": "[project]\nname='x'\n" }, 1), { status: 0, calls: "" });
 });
+
+// krizaka-internal#3553: with `sonar` on, a missing coverage report is red, unless the caller says in
+// `sonar-no-coverage-reason` that it has nothing to cover. The collect step's script is cut out and run for real.
+function collectScript(name) {
+  const src = read(name);
+  const start = src.indexOf("- name: Collect the coverage for SonarCloud");
+  const run = src.indexOf("        run: |\n", start);
+  const end = src.indexOf("\n      - ", run);
+  return src
+    .slice(run + "        run: |\n".length, end)
+    .split("\n")
+    .map((l) => l.slice(10))
+    .join("\n");
+}
+
+function runCollect(name, { files = {}, reason = "" }) {
+  const dir = mkdtempSync(join(tmpdir(), "collect-"));
+  for (const [path, body] of Object.entries(files)) {
+    mkdirSync(join(dir, path, ".."), { recursive: true });
+    writeFileSync(join(dir, path), body);
+  }
+  const summary = join(dir, "summary.md");
+  const paths = { "node-ci": "coverage/lcov.info", "python-ci": "coverage.xml" }[name] ?? "target/site/jacoco/jacoco.xml";
+  let status = 0;
+  let output = "";
+  try {
+    output = execFileSync("bash", ["-c", collectScript(name)], {
+      cwd: dir,
+      encoding: "utf8",
+      stdio: "pipe",
+      env: { ...process.env, PATHS: paths, OUT: join(dir, "out.tar"), NO_COVERAGE_REASON: reason, GITHUB_STEP_SUMMARY: summary },
+    });
+  } catch (e) {
+    status = e.status;
+    output = `${e.stdout}${e.stderr}`;
+  }
+  return { status, output, summary: existsSync(summary) ? readFileSync(summary, "utf8") : "", tar: existsSync(join(dir, "out.tar")) };
+}
+
+for (const name of ["node-ci", "maven", "python-ci", "java-ci"]) {
+  const report = { "node-ci": "coverage/lcov.info", "python-ci": "coverage.xml" }[name] ?? "target/site/jacoco/jacoco.xml";
+  const body = name === "node-ci" ? "SF:src/a.ts\nDA:1,1\n" : "<report/>\n";
+
+  test(`${name}: coverage report present → the collect step passes`, () => {
+    const r = runCollect(name, { files: { [report]: body } });
+    assert.equal(r.status, 0, r.output);
+    assert.ok(r.tar);
+  });
+
+  test(`${name}: no coverage report → the collect step fails and names the expected paths`, () => {
+    const r = runCollect(name, {});
+    assert.equal(r.status, 1, r.output);
+    assert.match(r.output, /::error::no coverage report found \(expected: .*(lcov\.info|coverage\.xml|jacoco\.xml)/);
+    assert.match(r.output, /sonar-no-coverage-reason/);
+  });
+
+  test(`${name}: no report with the explicit opt-out → passes and prints the reason`, () => {
+    const r = runCollect(name, { reason: "a pure documentation repo" });
+    assert.equal(r.status, 0, r.output);
+    assert.match(r.output, /a pure documentation repo/);
+    assert.match(r.summary, /a pure documentation repo/);
+  });
+}
