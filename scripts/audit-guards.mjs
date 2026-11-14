@@ -147,8 +147,6 @@ export const LOCAL_COPY_EXCEPTIONS = {
   "krizaka-ui/apps/site/scripts/check-seo-family.mjs": "krizaka-internal#3649",
   "krizaka-java/site/scripts/check-seo-family.mjs": "krizaka-internal#3649",
   "krizaka-blog/scripts/check-seo-family.mjs": "krizaka-internal#3649",
-  "krizaka-coming-soon/scripts/check-seo-family.mjs": "krizaka-internal#3649",
-  "krizaka-template/targets/web/scripts/check-seo-family.mjs": "krizaka-internal#3649",
 };
 
 const TOOL_DIRS = new Set(["scripts", "bin", "tools"]);
