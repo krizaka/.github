@@ -15,6 +15,14 @@
     {
       "path": "docs-map.json",
       "why": "which documents a change of each kind must update, read by the docs-map check and by krizaka-agents through the local config key docsMap (ADR-026, krizaka-internal#2756)"
+    },
+    {
+      "path": "package.json",
+      "why": "the node:test suites of scripts/ and tests/ run through the shared node-ci workflow, which installs from this lockfile and writes the lcov SonarCloud reads (krizaka-internal#3553)"
+    },
+    {
+      "path": "package-lock.json",
+      "why": "the node:test suites of scripts/ and tests/ run through the shared node-ci workflow, which installs from this lockfile and writes the lcov SonarCloud reads (krizaka-internal#3553)"
     }
   ]
 }
