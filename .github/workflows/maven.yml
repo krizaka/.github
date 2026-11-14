@@ -63,6 +63,10 @@ on:
         required: false
         default: false
         type: boolean
+      sonar-no-coverage-reason:
+        description: "A repo with nothing to cover says so here, with the reason (printed in the summary): the collect step then accepts a missing report. Empty (default): no report fails the job."
+        type: string
+        default: ""
       sonar-coverage-paths:
         description: "Newline-separated files verify uploads for the analysis (JaCoCo report and compiled classes). Globs allowed."
         required: false
@@ -216,6 +220,7 @@ jobs:
         if: ${{ inputs.sonar }}
         env:
           PATHS: ${{ inputs.sonar-coverage-paths }}
+          NO_COVERAGE_REASON: ${{ inputs.sonar-no-coverage-reason }}
           OUT: ${{ runner.temp }}/sonar-coverage.tar
         run: |
           shopt -s globstar nullglob
@@ -224,10 +229,16 @@ jobs:
             [ -z "$pattern" ] && continue
             # shellcheck disable=SC2206  # the pattern is a glob on purpose
             matches=($pattern)
-            files+=("${matches[@]}")
+            # a pattern without a wildcard survives nullglob as a literal: keep only what exists
+            for m in "${matches[@]}"; do [ -e "$m" ] && files+=("$m"); done
           done <<< "$PATHS"
           if [ "${#files[@]}" -eq 0 ]; then
-            echo "::warning::no coverage report found ($PATHS): the analysis runs without coverage and the new-code coverage condition will fail"
+            if [ -z "$NO_COVERAGE_REASON" ]; then
+              echo "::error::no coverage report found (expected: $(echo "$PATHS" | paste -sd ' ' -)). Make the tests write one, or, for a repo with nothing to cover, set the input sonar-no-coverage-reason to say why."
+              exit 1
+            fi
+            echo "::notice::no coverage report, by choice: $NO_COVERAGE_REASON"
+            echo "Coverage not collected, by choice: $NO_COVERAGE_REASON" >> "$GITHUB_STEP_SUMMARY"
             tar -cf "$OUT" --files-from /dev/null
           else
             tar -cf "$OUT" "${files[@]}"
