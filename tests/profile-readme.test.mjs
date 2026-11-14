@@ -100,11 +100,11 @@ test("a dependency badge is green on the latest, orange behind, grey when the la
 });
 
 test("the data file: every product is in development, under its commercial name, with no host in the script", () => {
-  assert.deepEqual(data.order.map((id) => data.products[id].name), ["Sovkora", "Verikora", "Folioviv"]);
+  assert.deepEqual(data.order.map((id) => data.products[id].name), ["Sovkora", "Verikora", "Folioviv", "Kridoc"]);
   for (const id of data.order) assert.equal(data.products[id].status, "development");
   assert.deepEqual(Object.values(data.statuses), ["In development"]);
   const script = readFileSync(new URL("../scripts/profile-readme.mjs", import.meta.url), "utf8");
-  assert.ok(!/\b(sovkora|verikora|folioviv|sovkora|verikora|folioviv)\.com/.test(script), "hosts live in profile/products.json");
+  assert.ok(!/\b(sovkora|verikora|folioviv|kridoc)\.com/.test(script), "hosts live in profile/products.json");
 });
 
 test("an opened status needs a decision: an unknown status is refused, never shown as Available", () => {
@@ -178,8 +178,8 @@ test("the block groups the components by tier with language, repository and modu
 test("the real block lists every component of data with its tier heading", async () => {
   const model = await readModel(data, reader());
   const block = renderBlock(data, model);
-  for (const name of ["Sovkora", "Verikora", "Folioviv"]) assert.ok(block.includes(`**${name}**`));
-  assert.equal((block.match(/Prod: not open yet/g) ?? []).length, 3);
+  for (const name of ["Sovkora", "Verikora", "Folioviv", "Kridoc"]) assert.ok(block.includes(`**${name}**`));
+  assert.equal((block.match(/Prod: not open yet/g) ?? []).length, 4);
   for (const id of data.order) for (const c of data.products[id].components) assert.ok(block.includes(`| ${c.label} |`), c.label);
 });
 
