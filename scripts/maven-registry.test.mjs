@@ -16,6 +16,21 @@ function parse(registry) {
   return { status: run.status, stdout: run.stdout, outputs: Object.fromEntries(text.split("\n").filter(Boolean).map((l) => l.split("="))) };
 }
 
+test("none is the default of the input and publishes nowhere; central only when the caller passes it (krizaka-internal#3554)", () => {
+  assert.match(workflow, /registry:\n {8}description: [^\n]*\n {8}required: false\n {8}default: "none"/);
+  assert.deepEqual(parse("none").outputs, { central: "false" });
+  assert.deepEqual(parse("central").outputs, { central: "true" });
+  const mixed = parse("none central");
+  assert.equal(mixed.status, 1);
+  assert.match(mixed.stdout, /none cannot be combined/);
+});
+
+test("the tag-run copy of the parser is the verify copy, and a none tag run says so in the step summary", () => {
+  const copy = workflow.split("# registry-parse:copy-begin\n")[1].split("          # registry-parse:copy-end")[0];
+  assert.equal(copy, step);
+  assert.match(workflow, /deploys nothing/);
+});
+
 test("central parses correctly; github is an error (GitHub Packages removed, krizaka-internal#2701)", () => {
   assert.deepEqual(parse("central").outputs, { central: "true" });
   const github = parse("github");

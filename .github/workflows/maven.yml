@@ -8,6 +8,7 @@
 #       with:
 #         upstreams: "krizaka-java"   # repositories built first, in order
 #         rewrite: true               # OpenRewrite dry run must find nothing to change
+#         registry: none              # the default; `central` only when the release must go to Maven Central
 #       secrets: inherit
 #
 # verify — on every push and pull request: the upstream Krizaka repositories are built from their
@@ -15,7 +16,8 @@
 #   integration tests, formatting, AND the sources and javadoc jars Central requires. A javadoc
 #   error is found the day it is written, not on release day.
 #
-# release — on a v* tag only: the version is taken from the tag (v0.1.0 → 0.1.0) for this
+# release — on a v* tag only, and only with `registry: central` (the default `none` builds, verifies and deploys nothing,
+#   and the step summary says so; krizaka-internal#3554). The version is taken from the tag (v0.1.0 → 0.1.0) for this
 #   repository and for its Krizaka parent. Every artifact is signed (OpenPGP, Bouncy Castle — no gpg
 #   binary) and uploaded to the Central Portal. The parent POM keeps autoPublish=false, so the
 #   deployment is validated and then WAITS in central.sonatype.com for a human to press Publish: a
@@ -80,9 +82,9 @@ on:
         type: string
 
       registry:
-        description: "Where a v* tag publishes: central (Maven Central, ADR-021). Passing 'github' is an error (GitHub Packages removed, see krizaka-internal#2701)."
+        description: "Where a v* tag publishes: none (the default: build and verify, deploy nothing) or central (Maven Central, ADR-021, only when the caller asks for it explicitly). Passing 'github' is an error (GitHub Packages removed, see krizaka-internal#2701)."
         required: false
-        default: "central"
+        default: "none"
         type: string
 
     secrets:
@@ -140,16 +142,17 @@ jobs:
           # registry-parse:begin
           registry="$(printf '%s' "$REGISTRY" | tr ',' ' ' | xargs)"
           central=false
-          [ -n "$registry" ] || { echo "::error::registry is empty: use central"; exit 1; }
+          [ -n "$registry" ] || { echo "::error::registry is empty: use none (the default) or central"; exit 1; }
           for name in $registry; do
             case "$name" in
-              github) echo "::error::registry 'github' is no longer supported (GitHub Packages removed, krizaka-internal#2701): use 'central'"; exit 1 ;;
+              github) echo "::error::registry 'github' is no longer supported (GitHub Packages removed, krizaka-internal#2701): use 'none' or 'central'"; exit 1 ;;
+              none) [ "$registry" = none ] || { echo "::error::registry none cannot be combined with another registry: $registry"; exit 1; } ;;
               central) central=true ;;
-              *) echo "::error::unknown registry: $name (known: central)"; exit 1 ;;
+              *) echo "::error::unknown registry: $name (known: none, central)"; exit 1 ;;
             esac
           done
           echo "central=$central" >> "$GITHUB_OUTPUT"
-          # registry-parse:end
+                    # registry-parse:end
 
       # The repository's folders stay clean (docs/standards/repo-layout.md).
       - uses: krizaka/.github/actions/repo-layout@d49447586bcd0c14dac8125af424c58e76cdc9a3 # main
@@ -409,16 +412,27 @@ jobs:
           # registry-parse:copy-begin
           registry="$(printf '%s' "$REGISTRY" | tr ',' ' ' | xargs)"
           central=false
-          [ -n "$registry" ] || { echo "::error::registry is empty: use central"; exit 1; }
+          [ -n "$registry" ] || { echo "::error::registry is empty: use none (the default) or central"; exit 1; }
           for name in $registry; do
             case "$name" in
-              github) echo "::error::registry 'github' is no longer supported (GitHub Packages removed, krizaka-internal#2701): use 'central'"; exit 1 ;;
+              github) echo "::error::registry 'github' is no longer supported (GitHub Packages removed, krizaka-internal#2701): use 'none' or 'central'"; exit 1 ;;
+              none) [ "$registry" = none ] || { echo "::error::registry none cannot be combined with another registry: $registry"; exit 1; } ;;
               central) central=true ;;
-              *) echo "::error::unknown registry: $name (known: central)"; exit 1 ;;
+              *) echo "::error::unknown registry: $name (known: none, central)"; exit 1 ;;
             esac
           done
           echo "central=$central" >> "$GITHUB_OUTPUT"
-          # registry-parse:copy-end
+                    # registry-parse:copy-end
+      - name: Say where the release goes
+        env:
+          CENTRAL: ${{ steps.parse.outputs.central }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if [ "$CENTRAL" = true ]; then
+            echo "### Release $TAG: registry central, the artifacts are signed and uploaded to the Central Portal." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "### Release $TAG: registry none, built and verified, this run deploys nothing (not published: no registry, krizaka-internal#3345)." >> "$GITHUB_STEP_SUMMARY"
+          fi
 
   release-central:
     name: Sign and upload to Maven Central
