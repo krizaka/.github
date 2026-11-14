@@ -3,6 +3,8 @@
 // policy.json (`sonar`) and checked, not remembered. Founder decision 9 was applied in SonarCloud then rolled back by hand, and two
 // private repositories (kridoc, krizaka-infra) had public projects: nothing noticed.
 //
+// It also fails a project of a repository with code whose main branch has no ncloc (krizaka-internal#3567).
+//
 //   node scripts/sonar-drift.mjs      SONAR_TOKEN and GH_TOKEN in the environment; prints « no drift » or each difference, exit 1 on any
 //
 // The rules are pure functions over the API answers; the HTTP port is injected, so the tests need no network. A project is matched
@@ -61,11 +63,29 @@ export function visibilityDrift(rule, projects, repos) {
   return { problems, notes };
 }
 
+/**
+ * The measures drift (krizaka-internal#3567): a project of a repository with code whose main branch was analysed but holds no `ncloc`
+ * (or 0) is a scan that saw no source (every file taken for a test, a wrong `sonar.sources`): its quality gate says « OK » and its
+ * badges say nothing. `ncloc` maps a project key to the main branch's `ncloc` (a number), or is missing / null when SonarCloud has none.
+ * A repository with code is one GitHub gives a language to; a project never analysed is not judged.
+ */
+export function measureDrift(projects, repos, ncloc) {
+  const problems = [];
+  for (const p of projects) {
+    const repo = repoOf(p, repos);
+    if (!repo?.language || !p.lastAnalysisDate) continue;
+    const lines = ncloc[p.key];
+    if (!lines) problems.push(`measures: project ${oneLine(p.key)} (repository ${repo.name}, ${oneLine(repo.language)}) has ${lines === 0 ? "ncloc 0" : "no ncloc"} on its main branch, analysed ${oneLine(p.lastAnalysisDate)}: the scan saw no source`);
+  }
+  return problems;
+}
+
 /** All the drift: the problems (fail) and the notes (printed). */
-export function drift(policy, { gates, projects, repos }) {
+export function drift(policy, { gates, projects, repos, ncloc = null }) {
   const { qualityGate, privateRepositoryProject } = policy.sonar;
   const vis = visibilityDrift(privateRepositoryProject, projects, repos);
-  return { problems: [...gateDrift(qualityGate, defaultGate(gates)), ...vis.problems], notes: vis.notes };
+  const measures = ncloc ? measureDrift(projects, repos, ncloc) : [];
+  return { problems: [...gateDrift(qualityGate, defaultGate(gates)), ...vis.problems, ...measures], notes: vis.notes };
 }
 
 async function pages(http, url, headers, field, size) {
@@ -78,14 +98,25 @@ async function pages(http, url, headers, field, size) {
   }
 }
 
-/** Reads the three answers through the injected port `http(url, { headers }) -> parsed JSON`. */
+/** The main branch's `ncloc` of each project (no `branch` parameter: SonarCloud answers for the main branch); missing when it has none. */
+export async function fetchNcloc(http, projects, sonar) {
+  const out = {};
+  for (const p of projects.filter((x) => x.lastAnalysisDate)) {
+    const body = await http(`${SONAR}/api/measures/component?component=${encodeURIComponent(p.key)}&metricKeys=ncloc`, { headers: sonar });
+    const value = (body.component?.measures ?? []).find((m) => m.metric === "ncloc")?.value;
+    if (value !== undefined) out[p.key] = Number(value);
+  }
+  return out;
+}
+
+/** Reads the answers through the injected port `http(url, { headers }) -> parsed JSON`. */
 export async function fetchState(http, { sonarToken, ghToken }) {
   const sonar = { authorization: `Bearer ${sonarToken}` };
   const gh = { authorization: `Bearer ${ghToken}`, accept: "application/vnd.github+json" };
   const gates = await http(`${SONAR}/api/qualitygates/list?organization=${ORG}`, { headers: sonar });
   const projects = await pages(http, `${SONAR}/api/projects/search?organization=${ORG}&ps=500`, sonar, "components", 500);
   const repos = await pages(http, `${GITHUB}/orgs/${ORG}/repos?type=all&per_page=100`, gh, null, 100);
-  return { gates, projects, repos };
+  return { gates, projects, repos, ncloc: await fetchNcloc(http, projects, sonar) };
 }
 
 const realHttp = async (url, { headers }) => {

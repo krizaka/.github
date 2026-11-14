@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { loadPolicy } from "../scripts/policy.mjs";
-import { defaultGate, drift, fetchState, gateDrift, main, repoOf } from "../scripts/sonar-drift.mjs";
+import { defaultGate, drift, fetchNcloc, fetchState, gateDrift, main, measureDrift, repoOf } from "../scripts/sonar-drift.mjs";
 
 const policy = loadPolicy();
 const cond = (metric, op, error) => ({ id: 1, metric, op, error });
@@ -106,4 +106,51 @@ test("main exits 1 and prints the drift; without tokens it refuses", async () =>
   assert.equal(await main({ SONAR_TOKEN: "s", GH_TOKEN: "g" }, http, { log: (l) => lines.push(l) }), 1);
   assert.match(lines[0], /^DRIFT quality gate: SonarCloud has no default gate/);
   await assert.rejects(main({}, http), /SONAR_TOKEN and GH_TOKEN are required/);
+});
+
+const coded = [
+  { name: "app", visibility: "public", language: "TypeScript" },
+  { name: "docs", visibility: "public", language: null },
+];
+const analysed = [
+  { key: "krizaka_app", name: "app", visibility: "public", lastAnalysisDate: "2026-11-14T06:28:27+0000" },
+  { key: "krizaka_docs", name: "docs", visibility: "public", lastAnalysisDate: "2026-11-14T06:28:27+0000" },
+];
+
+test("a repository with code whose main has real ncloc: no drift", () => {
+  assert.deepEqual(measureDrift(analysed, coded, { krizaka_app: 98417 }), []);
+});
+
+test("a main analysis with no ncloc is named (krizaka-internal#3567: every file taken for a test)", () => {
+  const [problem, ...rest] = measureDrift(analysed, coded, {});
+  assert.deepEqual(rest, []);
+  assert.match(problem, /^measures: project krizaka_app \(repository app, TypeScript\) has no ncloc on its main branch/);
+});
+
+test("an ncloc of 0 is named as 0", () => {
+  assert.match(measureDrift(analysed, coded, { krizaka_app: 0 })[0], /has ncloc 0 on its main branch/);
+});
+
+test("a repository without code, or a project never analysed, is not judged", () => {
+  assert.deepEqual(measureDrift(analysed, coded, { krizaka_app: 5 }), []);
+  assert.deepEqual(measureDrift([{ key: "krizaka_app", name: "app" }], coded, {}), []);
+});
+
+test("drift adds the measures problems to the others, and skips them when ncloc was not read", () => {
+  const withoutNcloc = drift(policy, { gates: sameGate(), projects: analysed, repos: coded });
+  assert.deepEqual(withoutNcloc.problems, []);
+  const empty = drift(policy, { gates: sameGate(), projects: analysed, repos: coded, ncloc: {} });
+  assert.equal(empty.problems.length, 1);
+});
+
+test("fetchNcloc reads the main branch of each analysed project only, with no branch parameter", async () => {
+  const urls = [];
+  const http = async (url) => {
+    urls.push(url);
+    return { component: { measures: url.includes("krizaka_app") ? [{ metric: "ncloc", value: "42" }] : [] } };
+  };
+  const out = await fetchNcloc(http, [...analysed, { key: "krizaka_new", name: "new" }], { authorization: "Bearer s" });
+  assert.deepEqual(out, { krizaka_app: 42 });
+  assert.equal(urls.length, 2);
+  assert.ok(urls.every((u) => u.includes("metricKeys=ncloc") && !u.includes("branch=")));
 });
