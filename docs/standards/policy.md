@@ -29,12 +29,16 @@ one place; every guard, cron and CI job reads it, and the cockpit shows it
 | `observability.environments.dev.state` | `live` | the dev Grafana stack exists | `live` or `to-create` |
 | `observability.environments.dev.console` | the dev stack's origin | **the one place the dev Grafana address is written** (ADR-028 §2). The cockpit, the lane, the provisioning and probe scripts and the onboarding docs read it; a link is this origin plus Grafana's own path (`/d/<uid>`, `/a/…`, `/alerting/list`) | an `https://` origin pinned by `enum` in the schema |
 | `observability.environments.prod.state` | `to-create` | the prod stack does not exist: the free tier allows one stack, so a prod stack is the founder's money and account decision (ADR-028, « What the founder decides »). Readers show « à créer »; when it exists, a `console` key is added to the schema and here | `live` or `to-create` |
+| `sonar.qualityGate.name` | `Krizaka` | the name of the organization's default SonarCloud quality gate | the only value known today |
+| `sonar.qualityGate.conditions.<metric>` | `{ op, error }` | one entry per condition the default gate holds, as `api/qualitygates/list` answers it today (`op` `GT` or `LT`, `error` the threshold as a string). No coverage condition: decision 9 was rolled back (krizaka-internal#3490); re-applying it adds `new_coverage` here and in SonarCloud, and `scripts/sonar-drift.mjs` checks both agree | a metric of the schema, `GT` or `LT` |
+| `sonar.privateRepositoryProject` | `private` | a private GitHub repository's SonarCloud project is private (kridoc and krizaka-infra were public until 2026-11-14) | the only value known today |
 
 Still exempt from the check, and still counted: Dependabot security updates, the repository's one pin PR (`deps/<label>`), the
 release PRs. They land the backlog, so the cap never blocks them.
 
 ## Who reads it
 
+- CI: `scripts/sonar-drift.mjs` (the `Sonar drift` workflow, daily): the default gate and every project's visibility in SonarCloud against `sonar`, and the repositories' visibility from GitHub; any difference is named and raises the alert `sonar-drift`.
 - CI: `scripts/pr-cap.mjs` (the `PR cap` check of every product repository, and the scheduled report that keeps the tracking issue — in krizaka/krizaka-internal, alert key `pr-cap`, never in a public repository).
 - krizaka-agents tools, through `tools/policy.py`: `kz.PR_CAP` (so `pr-open`, `pr-train.sh`, `train-queue.py`, `infra-retry.py`, `watchdog.py`), `crack-metrics.py`, `lane-dispatch.py`.
 - The cockpit: shows the policy and the live open-PR counts against it, and its « Observabilité » block reads `observability` (krizaka-internal#2838).
