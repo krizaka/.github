@@ -123,7 +123,7 @@ jobs:
   # « Skipped », which branch protection counts as passing. Update mode (workflow_dispatch) always runs.
   changes:
     name: Changed files
-    uses: krizaka/.github/.github/workflows/changes.yml@d49447586bcd0c14dac8125af424c58e76cdc9a3 # main
+    uses: krizaka/.github/.github/workflows/changes.yml@6aa53ad30f933c2ad49d3cb8cccb31fb67eb4762 # main
     with:
       relevant: ${{ inputs.relevant }}
       ignore: ${{ inputs.ignore }}
