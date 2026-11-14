@@ -398,6 +398,22 @@ test("node-ci: a monorepo package's lcov is rebased to the project root before t
   assert.match(verify.text, /\[ "\$pkg" = "\." \] && continue/);
 });
 
+// krizaka-internal#3553: a report already written root-relative (SF:packages/core/x.ts) was prefixed a second time and
+// SonarCloud resolved none of its files (krizaka-ui-builder#50: « Could not resolve 263 file paths », coverage 0.0 %).
+test("node-ci: the lcov rebase prefixes package-relative paths once, never twice", () => {
+  const verify = jobs(read("node-ci")).find((j) => j.id === "verify");
+  const program = verify.text.match(/awk -v p="\$pkg" '([^']+)'/)[1];
+  const input = ["SF:src/a.ts", "SF:packages/core/b.ts", "SF:/abs/c.ts", "DA:1,1", "SF:packages/core-extra/d.ts"].join("\n") + "\n";
+  const out = execFileSync("awk", ["-v", "p=packages/core", program], { input, encoding: "utf8" }).split("\n");
+  assert.deepEqual(out.slice(0, 5), [
+    "SF:packages/core/src/a.ts",
+    "SF:packages/core/b.ts",
+    "SF:/abs/c.ts",
+    "DA:1,1",
+    "SF:packages/core/packages/core-extra/d.ts",
+  ]);
+});
+
 // --- Light Sonar scan on docs-only changes (.github#330) and fix-needs-guard (.github#323).
 test("gates: docs-only with Sonar wanted needs the light scan to succeed; a failed light scan or guard is red", () => {
   for (const [name, base] of [["node-ci", NODE], ["java-ci", JAVA]]) {

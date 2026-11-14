@@ -426,12 +426,13 @@ jobs:
             tar -cf "$OUT" --files-from /dev/null
           else
             # A monorepo package writes its lcov with paths relative to the package (SF:src/a.ts); the scanner resolves them from the
-            # project root. Rebase them in place (SF:packages/core/src/a.ts); absolute paths and a root-level report are left alone.
+            # project root. Rebase them in place (SF:packages/core/src/a.ts); absolute paths, paths already under the package (a report
+            # written root-relative, krizaka-internal#3553) and a root-level report are left alone.
             for f in "${files[@]}"; do
               case "$f" in *.info) ;; *) continue ;; esac
               pkg=$(dirname "$f"); [ "$(basename "$pkg")" = coverage ] && pkg=$(dirname "$pkg")
               [ "$pkg" = "." ] && continue
-              awk -v p="$pkg" '/^SF:/ && substr($0,4,1) != "/" { $0 = "SF:" p "/" substr($0,4) } { print }' "$f" > "$f.rebased" && mv "$f.rebased" "$f"
+              awk -v p="$pkg" '/^SF:/ && substr($0,4,1) != "/" && index(substr($0,4), p "/") != 1 { $0 = "SF:" p "/" substr($0,4) } { print }' "$f" > "$f.rebased" && mv "$f.rebased" "$f"
             done
             tar -cf "$OUT" "${files[@]}"
             echo "coverage: ${files[*]}"
