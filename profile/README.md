@@ -165,7 +165,7 @@ Each product stands on its own; each proves one skill. Claims are cheap — ever
 </details>
 
 </td></tr>
-<tr><td valign="top" width="64"><picture><source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/kridoc/mark-dark.svg?v=9b8b104042"><img src="https://krizaka-assets.b-cdn.net/brand/kridoc/mark-light.svg?v=9044406885" alt="Kridoc" width="48"></picture></td><td valign="top">
+<tr><td valign="top" width="64"><picture><source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/kridoc/mark-dark.svg?v=8268ecf1bf"><img src="https://krizaka-assets.b-cdn.net/brand/kridoc/mark-light.svg?v=8268ecf1bf" alt="Kridoc" width="48"></picture></td><td valign="top">
 
 **Kridoc** · Business documents and files storage (Law 25) &nbsp;<sup>In development</sup> · <sup>sign-up closed</sup><br>Business documents and files storage, built around Québec's Law 25.<br>[Repository](https://github.com/krizaka/kridoc) · [![Dev: up 0.1.0](https://img.shields.io/badge/dev-up_%C2%B7_0.1.0-brightgreen)](https://dev.kridoc.com) · [![Prod: up 0.1.0](https://img.shields.io/badge/prod-up_%C2%B7_0.1.0-brightgreen)](https://www.kridoc.com)
 
