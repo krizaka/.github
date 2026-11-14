@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { missingRequiredChecks, releaseTokenProblems, noassertionProblems } from "../scripts/audit-guards.mjs";
+import { missingRequiredChecks, releaseTokenProblems, noassertionProblems, selfHostedLines, selfHostedProblems, SELF_HOSTED_EXCEPTIONS } from "../scripts/audit-guards.mjs";
 
 test("a main without required checks is refused", () => {
   assert.equal(missingRequiredChecks([]).length, 2);
@@ -48,4 +48,34 @@ test("FSL repos are exempt from NOASSERTION (GitHub cannot classify FSL-1.1-ALv2
 });
 test("a null spdx_id is not NOASSERTION and does not fail", () => {
   assert.deepEqual(noassertionProblems("some-lib", null), []);
+});
+
+const wf = (runsOn) => `jobs:\n  build:\n    name: build\n${runsOn}\n    steps:\n      - run: echo\n`;
+const CASES = [
+  ["a hosted runner", wf("    runs-on: ubuntu-latest"), []],
+  ["inline self-hosted", wf("    runs-on: self-hosted"), [4]],
+  ["a flow list with labels", wf("    runs-on: [self-hosted, orazaka-golden]"), [4]],
+  ["a block list", wf("    runs-on:\n      - self-hosted\n      - macOS"), [5]],
+  ["a labels mapping", wf("    runs-on:\n      group: g\n      labels: [self-hosted]"), [6]],
+  ["an expression", wf("    runs-on: ${{ fromJSON('[\"self-hosted\"]') }}"), [4]],
+  ["an input of a shared workflow", "jobs:\n  ci:\n    uses: krizaka/.github/.github/workflows/x.yml@abc\n    with:\n      runs-on: '[\"self-hosted\"]'\n", [5]],
+  ["a comment only", wf("    runs-on: ubuntu-latest # not self-hosted"), []],
+  ["a hosted block list then a later mention", wf("    runs-on:\n      - ubuntu-latest\n    env:\n      X: self-hosted"), []],
+  ["an input declaration whose description mentions it", "on:\n  workflow_call:\n    inputs:\n      runs-on:\n        description: 'a private repository: [\"self-hosted\"]'\n        type: string\n        default: '\"ubuntu-latest\"'\n", []],
+  ["an input declaration whose default is self-hosted", "on:\n  workflow_call:\n    inputs:\n      runs-on:\n        description: x\n        default: '\"self-hosted\"'\n", [6]],
+];
+for (const [name, yaml, lines] of CASES) test(`self-hosted lines: ${name}`, () => assert.deepEqual(selfHostedLines(yaml), lines));
+
+test("a public repository naming a self-hosted runner is a finding with repo, file and line", () => {
+  assert.deepEqual(selfHostedProblems("some-lib", ".github/workflows/ci.yml", wf("    runs-on: [self-hosted, x]"), true), [
+    "some-lib/.github/workflows/ci.yml:4: a public repository names a self-hosted runner (a fork PR would run on our machine; krizaka-internal#3633)",
+  ]);
+});
+test("a private repository may use a self-hosted runner", () => {
+  assert.deepEqual(selfHostedProblems("some-app", ".github/workflows/ci.yml", wf("    runs-on: self-hosted"), false), []);
+});
+test("a tracked exception names its ticket and silences only that file", () => {
+  for (const [key, ticket] of Object.entries(SELF_HOSTED_EXCEPTIONS)) assert.match(ticket, /^krizaka-internal#\d+$/, key);
+  assert.deepEqual(selfHostedProblems("sovkora", ".github/workflows/packs-golden.yml", wf("    runs-on: [self-hosted, orazaka-golden]"), true), []);
+  assert.equal(selfHostedProblems("sovkora", ".github/workflows/other.yml", wf("    runs-on: self-hosted"), true).length, 1);
 });
