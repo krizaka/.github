@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { missingRequiredChecks, releaseTokenProblems, noassertionProblems, selfHostedLines, selfHostedProblems, SELF_HOSTED_EXCEPTIONS } from "../scripts/audit-guards.mjs";
+import { missingRequiredChecks, releaseTokenProblems, noassertionProblems, selfHostedLines, selfHostedProblems, SELF_HOSTED_EXCEPTIONS, configToolStems, localCopyProblems, LOCAL_COPY_EXCEPTIONS, CONFIG_HOME } from "../scripts/audit-guards.mjs";
 
 test("a main without required checks is refused", () => {
   assert.equal(missingRequiredChecks([]).length, 2);
@@ -78,4 +78,36 @@ test("a tracked exception names its ticket and silences only that file", () => {
   for (const [key, ticket] of Object.entries(SELF_HOSTED_EXCEPTIONS)) assert.match(ticket, /^krizaka-internal#\d+$/, key);
   assert.deepEqual(selfHostedProblems("sovkora", ".github/workflows/packs-golden.yml", wf("    runs-on: [self-hosted, golden]"), true), []);
   assert.equal(selfHostedProblems("sovkora", ".github/workflows/other.yml", wf("    runs-on: self-hosted"), true).length, 1);
+});
+
+const BIN = {
+  "krizaka-seo-family": "bin/krizaka-seo-family.mjs",
+  "krizaka-sg-ratchet": "bin/krizaka-sg-ratchet.mjs",
+  "krizaka-edit-check": "bin/krizaka-edit-check.mjs",
+};
+test("the tool stems come from the bin field of the package, one source", () => {
+  assert.deepEqual(configToolStems(BIN), ["seo-family", "sg-ratchet", "edit-check"]);
+  assert.deepEqual(configToolStems(undefined), []);
+});
+test("a local copy of a shipped tool is a finding with repo and path", () => {
+  const paths = ["scripts/check-seo-family.mjs", "scripts/sg-ratchet.mjs", "tools/krizaka-edit-check.js", "scripts/build.mjs", "docs/seo-family.md", "src/seo-family-card.tsx"];
+  assert.deepEqual(localCopyProblems("some-site", paths, configToolStems(BIN)), [
+    "some-site/scripts/check-seo-family.mjs: a local copy of @krizaka/config's `krizaka-seo-family` (run the bin instead; krizaka-internal#3649)",
+    "some-site/scripts/sg-ratchet.mjs: a local copy of @krizaka/config's `krizaka-sg-ratchet` (run the bin instead; krizaka-internal#3649)",
+    "some-site/tools/krizaka-edit-check.js: a local copy of @krizaka/config's `krizaka-edit-check` (run the bin instead; krizaka-internal#3649)",
+  ]);
+});
+test("a file outside scripts, bin or tools, or under node_modules, is not a copy", () => {
+  assert.deepEqual(localCopyProblems("r", ["src/sg-ratchet.mjs", "node_modules/x/scripts/sg-ratchet.mjs"], ["sg-ratchet"]), []);
+});
+test("the package's own source is not a copy of itself", () => {
+  assert.deepEqual(localCopyProblems(CONFIG_HOME.repo, [`${CONFIG_HOME.prefix}scripts/check-seo-family.mjs`], ["seo-family"]), []);
+});
+test("a tracked copy names its ticket and silences only that file", () => {
+  for (const [key, ticket] of Object.entries(LOCAL_COPY_EXCEPTIONS)) assert.match(ticket, /^krizaka-internal#\d+$/, key);
+  const [[key]] = Object.entries(LOCAL_COPY_EXCEPTIONS);
+  const slash = key.indexOf("/");
+  const [repo, path] = [key.slice(0, slash), key.slice(slash + 1)];
+  assert.deepEqual(localCopyProblems(repo, [path], ["seo-family", "sg-ratchet"]), []);
+  assert.equal(localCopyProblems(repo, ["scripts/other/sg-ratchet.mjs"], ["sg-ratchet"]).length, 1);
 });
