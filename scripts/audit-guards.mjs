@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Org guard audit (docs/standards/bug-means-missing-guard.md): four checks run by
+// Org guard audit (docs/standards/bug-means-missing-guard.md): five checks run by
 // .github/workflows/audit-guards.yml every day.
 //   1. `main` requires the `CI gate` and the Sonar checks (a repository without them lets a red PR merge).
 //   2. a release workflow (release-please, changesets) opens its PR with a GitHub App token: a PR opened with
@@ -8,6 +8,8 @@
 //      (krizaka-internal#2917), which GitHub cannot yet classify but whose verbatim FSL-1.1-ALv2 text is correct.
 //   4. no public repository names a self-hosted runner in a workflow (krizaka-internal#3633): a fork PR would run its code on
 //      our private machine, and a runner that does not exist leaves the job queued for ever. Private repositories may.
+//   5. no repository keeps a local copy of a tool @krizaka/config ships as a bin (krizaka-internal#3649): the copy drifts
+//      from the package. The list of tools is the `bin` field of the published package, never a hand list.
 // Pure rules are exported and tested (tests/audit-guards.test.mjs); the network part is `main()` only.
 import { pathToFileURL } from "node:url";
 
@@ -131,6 +133,49 @@ export function selfHostedProblems(repo, path, yaml, isPublic) {
   );
 }
 
+/** Where @krizaka/config is developed: its own tool sources are not copies of themselves. */
+export const CONFIG_HOME = { repo: "krizaka-ts", prefix: "packages/config/" };
+
+/**
+ * Files that still copy a tool of @krizaka/config, each with the ticket that removes the copy (a tracked exception, never
+ * a silent skip). Key: `<repo>/<path>`.
+ */
+export const LOCAL_COPY_EXCEPTIONS = {
+  // copies of `check-seo-family.mjs`, each repository moves to `krizaka-seo-family` (krizaka-com after its release #709, sovkora: the Sovkora team).
+  "krizaka-com/scripts/check-seo-family.mjs": "krizaka-internal#3649",
+  "sovkora/apps/web/scripts/check-seo-family.mjs": "krizaka-internal#3649",
+  "krizaka-ui/apps/site/scripts/check-seo-family.mjs": "krizaka-internal#3649",
+  "krizaka-java/site/scripts/check-seo-family.mjs": "krizaka-internal#3649",
+  "krizaka-blog/scripts/check-seo-family.mjs": "krizaka-internal#3649",
+  "krizaka-coming-soon/scripts/check-seo-family.mjs": "krizaka-internal#3649",
+  "krizaka-template/targets/web/scripts/check-seo-family.mjs": "krizaka-internal#3649",
+};
+
+const TOOL_DIRS = new Set(["scripts", "bin", "tools"]);
+const SCRIPT_FILE = /^(.+)\.(?:mjs|cjs|js|ts|sh)$/;
+
+/** The tool names of @krizaka/config: its `bin` keys without the `krizaka-` prefix (`krizaka-seo-family` -> `seo-family`). */
+export const configToolStems = (bin) => Object.keys(bin ?? {}).map((name) => name.replace(/^krizaka-/, ""));
+
+/**
+ * Files of a repository that copy a shipped tool: a script under `scripts/`, `bin/` or `tools/` named `<stem>`, `check-<stem>` or `krizaka-<stem>`.
+ * @param {string} repo. @param {string[]} paths every file path of the repository. @param {string[]} stems from configToolStems.
+ * @returns {string[]} problems, `repo/path` each.
+ */
+export function localCopyProblems(repo, paths, stems) {
+  const out = [];
+  for (const path of paths) {
+    const parts = path.split("/");
+    const name = SCRIPT_FILE.exec(parts.at(-1))?.[1];
+    if (!name || parts.includes("node_modules") || !parts.slice(0, -1).some((d) => TOOL_DIRS.has(d))) continue;
+    if (repo === CONFIG_HOME.repo && path.startsWith(CONFIG_HOME.prefix)) continue;
+    const stem = stems.find((s) => [s, `check-${s}`, `krizaka-${s}`].includes(name));
+    if (!stem || LOCAL_COPY_EXCEPTIONS[`${repo}/${path}`]) continue;
+    out.push(`${repo}/${path}: a local copy of @krizaka/config's \`krizaka-${stem}\` (run the bin instead; krizaka-internal#3649)`);
+  }
+  return out;
+}
+
 async function api(path, token) {
   const res = await fetch(`https://api.github.com/${path}`, {
     headers: { authorization: `Bearer ${token}`, accept: "application/vnd.github+json" },
@@ -170,6 +215,19 @@ async function publicRunnerGaps(repo, token) {
   return failures;
 }
 
+/** Every file path of a repository's default branch (one tree call). */
+async function repositoryPaths(repo, token) {
+  const tree = await api(`repos/krizaka/${repo}/git/trees/HEAD?recursive=1`, token);
+  return (tree.body?.tree ?? []).filter((n) => n.type === "blob").map((n) => n.path);
+}
+
+/** The bin field of the published @krizaka/config: the one source of the shipped tools. */
+async function publishedConfigBin() {
+  const res = await fetch("https://registry.npmjs.org/@krizaka%2fconfig/latest");
+  if (!res.ok) throw new Error(`cannot read the published @krizaka/config (HTTP ${res.status})`);
+  return (await res.json()).bin;
+}
+
 export async function main(env = process.env) {
   const token = env.GH_TOKEN;
   if (!token) throw new Error("GH_TOKEN (a token that can read branch protection) is required");
@@ -184,6 +242,14 @@ export async function main(env = process.env) {
       failures.push(...noassertionProblems(r.name, r.license?.spdx_id ?? null));
       if (!r.archived) failures.push(...(await publicRunnerGaps(r.name, token)));
     }
+  }
+  // Every repository of the organisation, private ones included (krizaka-internal#3649).
+  const stems = configToolStems(await publishedConfigBin());
+  const all = await api("orgs/krizaka/repos?per_page=100", token);
+  if (all.status !== 200) {
+    failures.push(`cannot list the organisation's repositories for the local-copy check (HTTP ${all.status})`);
+  } else {
+    for (const r of all.body.filter((x) => !x.archived)) failures.push(...localCopyProblems(r.name, await repositoryPaths(r.name, token), stems));
   }
   if (failures.length) {
     console.error(`${failures.length} guard gap(s):\n- ${failures.join("\n- ")}`);
