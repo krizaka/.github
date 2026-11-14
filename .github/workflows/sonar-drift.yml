@@ -1,0 +1,76 @@
+# SonarCloud against the policy (krizaka-internal#3553): the default quality gate and the visibility of every project are declared in
+# policy.json (`sonar`) and compared daily with the live SonarCloud organization and the repositories' visibility on GitHub.
+# A difference is named in the log and a red scheduled run opens (or comments) one issue in krizaka-internal; green closes it.
+name: Sonar drift
+
+on:
+  schedule:
+    - cron: "29 6 * * *"
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - scripts/sonar-drift.mjs
+      - tests/sonar-drift.test.mjs
+      - scripts/policy.mjs
+      - policy.json
+      - docs/standards/policy.schema.json
+      - .github/workflows/sonar-drift.yml
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    name: Drift rules
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - run: node --test --test-timeout=120000 --test-force-exit tests/sonar-drift.test.mjs tests/policy.test.mjs
+
+  drift:
+    name: Org drift
+    if: ${{ github.event_name != 'pull_request' }}
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - id: app
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: krizaka # zizmor: ignore[github-app] the check reads the visibility of every repository of the org, by design
+          permission-metadata: read
+      - id: drift
+        run: node scripts/sonar-drift.mjs 2>&1 | tee drift.log; exit "${PIPESTATUS[0]}" # zizmor: ignore[github-app] the token is read-only (metadata)
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - id: issues
+        if: ${{ always() && github.event_name == 'schedule' }}
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: krizaka
+          repositories: krizaka-internal
+          permission-issues: write
+      - name: The guard's issue
+        if: ${{ always() && github.event_name == 'schedule' && steps.issues.outputs.token != '' }}
+        env:
+          GH_TOKEN: ${{ steps.issues.outputs.token }}
+          STATE: ${{ steps.drift.outcome == 'success' && 'green' || 'red' }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node scripts/red-run-issue.mjs --guard sonar-drift --state "$STATE" --run-url "$RUN_URL" --log drift.log
