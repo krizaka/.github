@@ -70,6 +70,11 @@ on:
           **/target/site/jacoco/jacoco.xml
           **/target/classes
         type: string
+      extra-coverage-command:
+        description: "Shell command the verify job runs after the Maven build for a repository's own tests with coverage (e.g. `node --test --experimental-test-coverage --test-reporter=lcov --test-reporter-destination=target/scripts.lcov scripts/*.test.mjs`); it fails the job when it fails. List its report in `sonar-coverage-paths`. Empty: nothing runs."
+        required: false
+        default: ""
+        type: string
       sonar-args:
         description: "Extra scanner arguments. Project settings belong in sonar-project.properties."
         required: false
@@ -189,6 +194,23 @@ jobs:
       - name: OpenRewrite — no change pending
         if: inputs.rewrite
         run: ./mvnw -B -ntp rewrite:dryRun
+
+      # A repository's own scripts (node:test, say) are code SonarCloud measures too: the caller's command runs here and writes a
+      # report (lcov) that the caller adds to `sonar-coverage-paths`. The command comes from the caller's workflow file, never from
+      # the pull request's text: it goes through `env:`, not into the `run:` line.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: ${{ inputs.extra-coverage-command != '' }}
+        with:
+          node-version: "22"
+
+      - name: Extra tests with coverage
+        if: ${{ inputs.extra-coverage-command != '' }}
+        env:
+          EXTRA_COVERAGE_COMMAND: ${{ inputs.extra-coverage-command }}
+        run: |
+          # extra-coverage:begin
+          bash -euo pipefail -c "$EXTRA_COVERAGE_COMMAND"
+          # extra-coverage:end
 
       - name: Collect the coverage for SonarCloud
         if: ${{ inputs.sonar }}
