@@ -1,11 +1,13 @@
 #!/usr/bin/env node
-// Org guard audit (docs/standards/bug-means-missing-guard.md): three checks run by
+// Org guard audit (docs/standards/bug-means-missing-guard.md): four checks run by
 // .github/workflows/audit-guards.yml every day.
 //   1. `main` requires the `CI gate` and the Sonar checks (a repository without them lets a red PR merge).
 //   2. a release workflow (release-please, changesets) opens its PR with a GitHub App token: a PR opened with
 //      the workflow's own token never starts CI, so the release PR sits unchecked.
 //   3. every public repository has a recognised licence (spdx_id !== NOASSERTION) — except FSL repos
 //      (krizaka-internal#2917), which GitHub cannot yet classify but whose verbatim FSL-1.1-ALv2 text is correct.
+//   4. no public repository names a self-hosted runner in a workflow (krizaka-internal#3633): a fork PR would run its code on
+//      our private machine, and a runner that does not exist leaves the job queued for ever. Private repositories may.
 // Pure rules are exported and tested (tests/audit-guards.test.mjs); the network part is `main()` only.
 import { pathToFileURL } from "node:url";
 
@@ -76,6 +78,59 @@ export function noassertionProblems(repo, spdxId) {
   return [`${repo}: public repo has NOASSERTION licence — add a verbatim SPDX LICENSE file (krizaka-internal#2917)`];
 }
 
+const RUNS_ON_KEY = /^(\s*)(?:-\s+)?(runs-on|runs_on)\s*:(.*)$/;
+const SELF_HOSTED = /self-hosted/i;
+const withoutComment = (line) => line.replace(/(^|\s)#.*$/, "");
+const indentOf = (line) => line.length - line.trimStart().length;
+
+/**
+ * Public repositories whose workflow file may still name a self-hosted runner, each with the ticket that removes it
+ * (a tracked exception, never a silent skip). Key: `<repo>/<path>`.
+ */
+export const SELF_HOSTED_EXCEPTIONS = {
+  // `[self-hosted, golden]`: no such runner exists; the job moves to a hosted runner (krizaka-internal#3635).
+  "sovkora/.github/workflows/packs-golden.yml": "krizaka-internal#3635",
+};
+
+/**
+ * The lines of a workflow that name `self-hosted` in a `runs-on` (a job, or an input passed to a shared workflow):
+ * inline (`runs-on: self-hosted`, `[self-hosted, x]`, an expression) or as a block (list or `labels:` mapping) under the key.
+ * @param {string} yaml text of a workflow. @returns {number[]} 1-based line numbers.
+ */
+export function selfHostedLines(yaml) {
+  const lines = yaml.split("\n");
+  const found = [];
+  lines.forEach((raw, i) => {
+    const key = RUNS_ON_KEY.exec(withoutComment(raw));
+    if (!key) return;
+    if (key[3].trim() !== "") {
+      if (SELF_HOSTED.test(key[3])) found.push(i + 1);
+      return;
+    }
+    const base = indentOf(raw);
+    for (let j = i + 1; j < lines.length; j++) {
+      const next = withoutComment(lines[j]);
+      if (next.trim() === "") continue;
+      if (indentOf(next) <= base && !next.trimStart().startsWith("- ")) break;
+      if (indentOf(next) < base) break;
+      // an input declaration (`workflow_call.inputs.runs-on`) documents itself in a description: prose is not a runner
+      if (!/^\s*description\s*:/.test(next) && SELF_HOSTED.test(next)) found.push(j + 1);
+    }
+  });
+  return [...new Set(found)].sort((a, b) => a - b);
+}
+
+/**
+ * A public repository must not send a job to a self-hosted runner. @param {string} repo. @param {string} path workflow path.
+ * @param {string} yaml text. @param {boolean} isPublic. @returns {string[]} problems, `repo/path:line` each.
+ */
+export function selfHostedProblems(repo, path, yaml, isPublic) {
+  if (!isPublic || SELF_HOSTED_EXCEPTIONS[`${repo}/${path}`]) return [];
+  return selfHostedLines(yaml).map(
+    (line) => `${repo}/${path}:${line}: a public repository names a self-hosted runner (a fork PR would run on our machine; krizaka-internal#3633)`,
+  );
+}
+
 async function api(path, token) {
   const res = await fetch(`https://api.github.com/${path}`, {
     headers: { authorization: `Bearer ${token}`, accept: "application/vnd.github+json" },
@@ -103,6 +158,18 @@ async function repositoryGaps(repo, token) {
   return failures;
 }
 
+/** The workflow files of a public repository that name a self-hosted runner (krizaka-internal#3633). */
+async function publicRunnerGaps(repo, token) {
+  const failures = [];
+  const list = await api(`repos/krizaka/${repo}/contents/.github/workflows`, token);
+  for (const f of (list.body ?? []).filter((x) => /\.ya?ml$/.test(x.name))) {
+    const file = await api(`repos/krizaka/${repo}/contents/${f.path}`, token);
+    if (!file.body) continue;
+    failures.push(...selfHostedProblems(repo, f.path, Buffer.from(file.body.content, "base64").toString("utf8"), true));
+  }
+  return failures;
+}
+
 export async function main(env = process.env) {
   const token = env.GH_TOKEN;
   if (!token) throw new Error("GH_TOKEN (a token that can read branch protection) is required");
@@ -115,6 +182,7 @@ export async function main(env = process.env) {
   } else {
     for (const r of reposRes.body) {
       failures.push(...noassertionProblems(r.name, r.license?.spdx_id ?? null));
+      if (!r.archived) failures.push(...(await publicRunnerGaps(r.name, token)));
     }
   }
   if (failures.length) {
