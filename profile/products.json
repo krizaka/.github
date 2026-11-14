@@ -5,7 +5,8 @@
   "order": [
     "sovkora",
     "verikora",
-    "folioviv"
+    "folioviv",
+    "kridoc"
   ],
   "products": {
     "sovkora": {
@@ -212,6 +213,27 @@
           "tier": "library",
           "repo": "folioviv",
           "path": "packages"
+        }
+      ]
+    },
+    "kridoc": {
+      "name": "Kridoc",
+      "knowhow": "Business documents and files storage (Law 25)",
+      "proof": "Business documents and files storage, built around Québec's Law 25.",
+      "status": "development",
+      "repo": "kridoc",
+      "dev": {
+        "host": "dev.kridoc.com"
+      },
+      "prod": {
+        "host": "www.kridoc.com"
+      },
+      "components": [
+        {
+          "label": "Web app",
+          "tier": "client-web",
+          "repo": "kridoc",
+          "path": "apps/web"
         }
       ]
     }
