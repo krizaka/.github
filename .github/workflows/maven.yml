@@ -276,7 +276,8 @@ jobs:
   sonar-light:
     name: SonarCloud (docs only)
     needs: changes
-    if: ${{ inputs.sonar && !cancelled() && needs.changes.outputs.code == 'false' }}
+    # Never on a push to main: a light scan carries no coverage and would replace main's measures with a partial analysis (krizaka-internal#3567).
+    if: ${{ inputs.sonar && !cancelled() && needs.changes.outputs.code == 'false' && github.event_name != 'push' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -399,6 +400,7 @@ jobs:
           SONAR: ${{ needs.sonar.result }}
           SONAR_WANTED: ${{ inputs.sonar }}
           SONAR_LIGHT: ${{ needs.sonar-light.result }}
+          EVENT: ${{ github.event_name }}
         run: |
           fail=0
           echo "gate: code=${CODE:-unknown} changes=$CHANGES verify=$VERIFY"
@@ -411,7 +413,7 @@ jobs:
           if [ "$CODE" != "false" ] && [ "${SONAR_WANTED:-false}" = "true" ] && [ "$VERIFY" = success ] && [ "${SONAR:-skipped}" != success ]; then
             echo "::error::sonar must run and succeed when the gate did not answer false"; fail=1
           fi
-          if [ "$CODE" = "false" ] && [ "${SONAR_WANTED:-false}" = "true" ] && [ "${SONAR_LIGHT:-skipped}" != success ]; then
+          if [ "$CODE" = "false" ] && [ "$EVENT" != push ] && [ "${SONAR_WANTED:-false}" = "true" ] && [ "${SONAR_LIGHT:-skipped}" != success ]; then
             echo "::error::sonar-light must run and succeed on a docs-only change"; fail=1
           fi
           case "${SONAR_LIGHT:-skipped}" in success|skipped) ;; *) echo "::error::sonar-light $SONAR_LIGHT"; fail=1 ;; esac
