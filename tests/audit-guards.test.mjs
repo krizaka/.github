@@ -54,7 +54,7 @@ const wf = (runsOn) => `jobs:\n  build:\n    name: build\n${runsOn}\n    steps:\
 const CASES = [
   ["a hosted runner", wf("    runs-on: ubuntu-latest"), []],
   ["inline self-hosted", wf("    runs-on: self-hosted"), [4]],
-  ["a flow list with labels", wf("    runs-on: [self-hosted, orazaka-golden]"), [4]],
+  ["a flow list with labels", wf("    runs-on: [self-hosted, golden]"), [4]],
   ["a block list", wf("    runs-on:\n      - self-hosted\n      - macOS"), [5]],
   ["a labels mapping", wf("    runs-on:\n      group: g\n      labels: [self-hosted]"), [6]],
   ["an expression", wf("    runs-on: ${{ fromJSON('[\"self-hosted\"]') }}"), [4]],
@@ -76,6 +76,6 @@ test("a private repository may use a self-hosted runner", () => {
 });
 test("a tracked exception names its ticket and silences only that file", () => {
   for (const [key, ticket] of Object.entries(SELF_HOSTED_EXCEPTIONS)) assert.match(ticket, /^krizaka-internal#\d+$/, key);
-  assert.deepEqual(selfHostedProblems("sovkora", ".github/workflows/packs-golden.yml", wf("    runs-on: [self-hosted, orazaka-golden]"), true), []);
+  assert.deepEqual(selfHostedProblems("sovkora", ".github/workflows/packs-golden.yml", wf("    runs-on: [self-hosted, golden]"), true), []);
   assert.equal(selfHostedProblems("sovkora", ".github/workflows/other.yml", wf("    runs-on: self-hosted"), true).length, 1);
 });

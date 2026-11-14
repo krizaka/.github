@@ -88,7 +88,7 @@ const indentOf = (line) => line.length - line.trimStart().length;
  * (a tracked exception, never a silent skip). Key: `<repo>/<path>`.
  */
 export const SELF_HOSTED_EXCEPTIONS = {
-  // `[self-hosted, orazaka-golden]`: no such runner exists; the job moves to a hosted runner (krizaka-internal#3635).
+  // `[self-hosted, golden]`: no such runner exists; the job moves to a hosted runner (krizaka-internal#3635).
   "sovkora/.github/workflows/packs-golden.yml": "krizaka-internal#3635",
 };
 
