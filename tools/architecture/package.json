@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@krizaka/architecture": "0.2.1",
-    "@krizaka/org": "1.1.0",
+    "@krizaka/org": "1.5.0",
     "@likec4/language-services": "1.60.0",
     "bundle-require": "5.1.0",
     "esbuild": "0.28.2"
