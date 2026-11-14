@@ -656,3 +656,15 @@ for (const name of ["node-ci", "maven", "python-ci", "java-ci"]) {
     assert.match(r.summary, /a pure documentation repo/);
   });
 }
+
+// krizaka-internal#3567: a light scan has no coverage; run on a push to main it would replace main's measures with a partial analysis.
+for (const name of ["node-ci", "java-ci", "maven"]) {
+  test(`${name}: the docs-only light scan never runs on a push to main, and the gate does not ask for it there`, () => {
+    const src = read(name);
+    const light = jobs(src).find((j) => j.id === "sonar-light");
+    assert.match(light.text, /github\.event_name != 'push'/);
+    const gate = jobs(src).find((j) => j.id === "gate").text;
+    assert.match(gate, /EVENT: \$\{\{ github\.event_name \}\}/);
+    assert.match(gate, /"\$CODE" = "false" \] && \[ "\$EVENT" != push \]/);
+  });
+}
