@@ -108,8 +108,10 @@ export async function main(env = process.env, http = realHttp, log = console) {
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
-  main().then((code) => process.exit(code), (e) => {
+  try {
+    process.exitCode = await main();
+  } catch (e) {
     console.error(oneLine(e.message));
-    process.exit(2);
-  });
+    process.exitCode = 2;
+  }
 }
