@@ -1,0 +1,33 @@
+# SonarCloud with the coverage of this repository's node:test suites (krizaka-internal#3553). The shared node-ci.yml runs `npm test`
+# (package.json: node --test with the lcov reporter, coverage/lcov.info) and scans with it, on every pull request and on main, so the
+# project's coverage measure on main stays current. `CI gate` (ci-gate.yml) stays the judge of the suites on a pull request.
+# SonarCloud's Automatic Analysis of this project must be turned off once this job is green (a project cannot have both).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sonar:
+    name: SonarCloud coverage
+    permissions:
+      contents: read
+    uses: ./.github/workflows/node-ci.yml
+    with:
+      lint-script: ""
+      build-script: ""
+      sonar: true
+      sonar-coverage-paths: coverage/lcov.info
+      sonar-args: -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+      timeout-minutes: 20
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

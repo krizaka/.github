@@ -1,0 +1,9 @@
+{
+  "name": "krizaka-dotgithub",
+  "version": "0.0.0",
+  "private": true,
+  "description": "No dependency: this file only gives the shared node-ci workflow a test script, so the coverage of scripts/ and actions/ reaches SonarCloud. actions/security-tools is left out here: it needs gitleaks and zizmor, installed and run by lint-workflows.yml.",
+  "scripts": {
+    "test": "mkdir -p coverage && node --test --test-timeout=120000 --test-force-exit --experimental-test-coverage --test-reporter=spec --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=coverage/lcov.info tests/*.test.mjs scripts/*.test.mjs actions/app-videos/app-videos.test.mjs actions/cdn-purge/cdn-purge.test.mjs actions/dup-check/dup-ratchet.test.mjs actions/licence-check/licence-gate.test.mjs actions/release-notes/release-notes.test.mjs"
+  }
+}
