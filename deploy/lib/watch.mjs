@@ -61,6 +61,35 @@ export function failureReason(deployment) {
   return out.join("; ") || "no step reason reported";
 }
 
+const FAILED_PHASES = new Set(["ERROR", "CANCELED"]);
+
+/** An automatic or manual rollback: it re-activates an older commit, it is never the outcome of a commit being deployed. */
+const isRollback = (d) => /rollback/i.test(`${d.cause ?? ""} ${JSON.stringify(d.cause_details ?? {})}`);
+
+/** The newest deployment caused by a commit (a push or a plain create-deployment), a rollback never counting: its phase is the verdict of the last commit. */
+export function newestCommitDeployment(deployments) {
+  return [...deployments].filter((d) => !isRollback(d)).sort((a, b) => Date.parse(b.created_at ?? 0) - Date.parse(a.created_at ?? 0))[0];
+}
+
+function reasonLine(name, reason) {
+  const detail = reason?.message ?? reason?.code;
+  return detail ? name + ": " + detail : name;
+}
+
+/** The reasons of the steps that failed in a deployment's progress, one string: « build/npm-ci: message ». */
+export function failureReason(deployment) {
+  const out = [];
+  const walk = (steps, path) => {
+    for (const step of steps ?? []) {
+      const name = [...path, step.name].filter(Boolean).join("/");
+      if (step.status === "ERROR") out.push(reasonLine(name, step.reason));
+      walk(step.steps, [...path, step.name]);
+    }
+  };
+  walk(deployment.progress?.steps, []);
+  return out.join("; ") || "no step reason reported";
+}
+
 /** Files one GitHub component of an app in the report: manual, ok, failed, waiting or missing. */
 async function checkComponent(report, entry, github, { doctl, fetch, now, env, graceMinutes }) {
   if (!github.deploy_on_push) {
