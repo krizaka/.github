@@ -23,6 +23,7 @@ test("drift-all: a different plain value, an unreadable spec, a missing app and 
   f.services[0].envs[2].value = "other.example";
   const r1 = await driftAll({ registry, doctl: team(), fetch: serve(f), env: {} });
   assert.match(r1.drift[0].differences.join(), /MAIL_DOMAIN/);
+  assert.match(r1.drift[0].fix, /run deploy-spec-apply for krizaka-com/, "the alert names the fix");
   const r2 = await driftAll({ registry, doctl: team(), fetch: serve(f, 404), env: {} });
   assert.match(r2.drift[0].differences[0], /GitHub answered 404/);
   const r3 = await driftAll({ registry: { apps: [{ ...registry.apps[0], app: "ghost" }] }, doctl: team(), fetch: serve(f), env: {} });
@@ -45,6 +46,7 @@ test("drift-all: a spec file that does not parse (a duplicate key) is reported, 
   const bad = async () => new Response("a: 1\na: 2\n", { status: 200 });
   const r = await driftAll({ registry, doctl: team(), fetch: bad, env: {} });
   assert.match(r.drift[0].differences[0], /not a valid spec/);
+  assert.equal(r.drift[0].fix, undefined, "an apply cannot fix a spec that does not parse");
 });
 
 test("drift-all: apps.json lists every app once, with a repo and a spec path", () => {

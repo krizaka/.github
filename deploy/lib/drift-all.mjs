@@ -14,7 +14,10 @@ const readHeaders = (env) => {
   return { "user-agent": "krizaka-deploy", ...(token ? { authorization: `Bearer ${token}` } : {}) };
 };
 
-/** @returns { ok: string[], drift: { app, differences: string[] }[] } */
+/** The one command that makes a dev app equal its merged spec again: the deploy-spec-apply workflow of krizaka/.github. */
+export const applyFix = (app) => `run deploy-spec-apply for ${app}: gh workflow run deploy-spec-apply.yml -R krizaka/.github -f app=${app}`;
+
+/** @returns { ok: string[], drift: { app, differences: string[], fix?: string }[] } */
 export async function driftAll({ registry, doctl, fetch = globalThis.fetch, env = process.env, argv = [] }) {
   assertContext({ env, argv });
   const team = await doctl.assertTeam();
@@ -41,12 +44,15 @@ export async function driftAll({ registry, doctl, fetch = globalThis.fetch, env 
       continue;
     }
     let differences;
+    let parsed = true;
     try {
       differences = await specDrift(parseSpec(await res.text()), liveSpec);
     } catch (error) {
+      parsed = false;
       differences = [`${repo}/${spec} is not a valid spec: ${String(error.message).split("\n")[0]}`];
     }
-    if (differences.length) drift.push({ app, differences });
+    // A Krizaka-team app whose spec file reads is fixed by the CI door (krizaka-internal#3879); krizaka-prod has no door yet.
+    if (differences.length) drift.push({ app, differences, ...(parsed && team === DEFAULT_TEAM ? { fix: applyFix(app) } : {}) });
     else ok.push(app);
   }
   const listed = new Set(apps.map((a) => a.app));
@@ -57,9 +63,9 @@ export async function driftAll({ registry, doctl, fetch = globalThis.fetch, env 
 export async function driftAllCommand({ registry, doctl, log = console.log, summary = process.env.GITHUB_STEP_SUMMARY }) {
   const report = await driftAll({ registry, doctl, argv: process.argv.slice(2) });
   log(`equal ${report.ok.length} · drifting ${report.drift.length}`);
-  for (const d of report.drift) log(`DRIFT ${d.app}\n  - ${d.differences.join("\n  - ")}`);
+  for (const d of report.drift) log(`DRIFT ${d.app}\n  - ${d.differences.join("\n  - ")}${d.fix ? `\n  fix: ${d.fix}` : ""}`);
   if (summary) {
-    const rows = report.drift.map((d) => `- **${d.app}**\n${d.differences.map((x) => `  - ${x}`).join("\n")}`);
+    const rows = report.drift.map((d) => `- **${d.app}**\n${d.differences.map((x) => `  - ${x}`).join("\n")}${d.fix ? `\n  - fix: \`${d.fix}\`` : ""}`);
     appendFileSync(summary, `### krizaka-deploy drift-all\n\n${rows.join("\n") || "Every spec file equals its live app."}\n`);
   }
   return report;
