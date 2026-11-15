@@ -15,7 +15,7 @@ import { pathToFileURL } from "node:url";
 
 export const FOCUS_REPOS = [
   "krizaka-com", "krizaka-ui", "krizaka-ts", "krizaka-java", "verikora", "folioviv",
-  "sovkora", "sovkora-web", ".github",
+  "sovkora", ".github",
 ];
 export const REQUIRED_CHECKS = [
   { label: "CI gate", re: /^(?:[\w-]+ \/ )?CI gate$/ },
@@ -30,7 +30,6 @@ export const OWN_GATES = {
   "krizaka-ui": "Type-check, test, build",
   "krizaka-java": "maven / Verify (tests, javadoc, sources)",
   sovkora: "workspace",
-  "sovkora-web": "component / verify",
 };
 
 /**
@@ -68,7 +67,7 @@ export function releaseTokenProblems(yaml) {
  * Public repositories whose spdx_id is NOASSERTION by design: GitHub cannot yet classify FSL-1.1-ALv2
  * (not in the SPDX list), so the verbatim FSL text produces NOASSERTION. Allow-listed by name (krizaka-internal#2917).
  */
-export const FSL_REPOS = ["sovkora"];
+export const FSL_REPOS = ["sovkora", "verikora", "folioviv", "kridoc"];
 
 /**
  * A public repo must have a recognised licence (spdx_id !== NOASSERTION) unless it is an FSL repo.
