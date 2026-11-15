@@ -11,6 +11,8 @@
 # which deploys from protected branches only (a reusable workflow's `environment:` would resolve in the caller, which has no such token).
 # A product repository dispatches it on a push to main that changes its spec (the caller workflow deploy-spec-apply.yml there):
 #   gh workflow run deploy-spec-apply.yml -R krizaka/.github --ref main -f app=verikora-dev
+# `only` (e.g. services/web) applies some components of the file and keeps the others as they run: a component the file adds but that
+# waits for a founder step (verikora-dev's backup jobs and their BACKUP_AGE_RECIPIENT) does not hold back a fix of the web service.
 # The daily drift report (deploy-watch, job `drift`) names this command for every drifting dev app.
 name: deploy-spec-apply
 
@@ -25,6 +27,10 @@ on:
         description: "Only print what the apply would change."
         type: boolean
         default: false
+      only:
+        description: "Apply only these components of the file (section/name, comma-separated, e.g. services/web); the others stay as they run."
+        type: string
+        default: ""
 
 permissions: {}
 
@@ -42,6 +48,7 @@ jobs:
       contents: read
     env:
       APP: ${{ inputs.app }}
+      ONLY: ${{ inputs.only }}
     steps:
       - name: Is the DigitalOcean token set?
         env:
@@ -64,6 +71,10 @@ jobs:
         run: |
           if ! [[ "$APP" =~ ^[a-z0-9][a-z0-9-]{0,62}$ ]]; then
             echo "::error title=deploy-spec-apply::'$APP' is not an app name"
+            exit 1
+          fi
+          if [ -n "$ONLY" ] && ! [[ "$ONLY" =~ ^[a-z_]+/[a-z0-9-]+(,[a-z_]+/[a-z0-9-]+)*$ ]]; then
+            echo "::error title=deploy-spec-apply::'$ONLY' is not a list of section/name"
             exit 1
           fi
           repo=$(jq -r --arg app "$APP" '.apps[] | select(.app == $app and (.team // "Krizaka-team") == "Krizaka-team") | .repo' tools/deploy/apps.json)
@@ -93,7 +104,9 @@ jobs:
 
       # Reads only: the team, the app, the live spec, the merge, the schema validation and the live site. Writes nothing.
       - name: Dry run (what the apply changes)
-        run: node tools/deploy/bin/krizaka-deploy.mjs deploy --config product/.krizaka-deploy.json --app "$APP" --apply --dry-run
+        run: |
+          only=(); [ -n "$ONLY" ] && only=(--only "$ONLY")
+          node tools/deploy/bin/krizaka-deploy.mjs deploy --config product/.krizaka-deploy.json --app "$APP" --apply --dry-run "${only[@]}"
 
       - name: Apply, rebuild main, wait for ACTIVE
         if: ${{ !inputs.dry-run }}
@@ -101,4 +114,5 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           sha=$(git -C product rev-parse HEAD)
-          node tools/deploy/bin/krizaka-deploy.mjs deploy --config product/.krizaka-deploy.json --app "$APP" --apply --expect-sha "$sha"
+          only=(); [ -n "$ONLY" ] && only=(--only "$ONLY")
+          node tools/deploy/bin/krizaka-deploy.mjs deploy --config product/.krizaka-deploy.json --app "$APP" --apply --expect-sha "$sha" "${only[@]}"
