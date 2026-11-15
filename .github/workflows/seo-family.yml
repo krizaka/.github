@@ -1,5 +1,5 @@
 # The Krizaka family SEO guard, daily (krizaka-com AGENTS §2.4).
-# Runs scripts/check-seo-family.mjs of krizaka-com against every indexed site and opens (or comments on) one issue
+# Runs `krizaka-seo-family` (shipped by @krizaka/config at an exact version) against every indexed site and opens (or comments on) one issue
 # per site when it fails. Since 2026-10-21 (epic #119) the products' public addresses are www.<product>.com (indexed)
 # and dev.<product>.com is checked as a development host (the dev app itself since 2026-11-06): robots Disallow, noindex. The live DigitalOcean spec has twice drifted to APP_SEARCH_INDEXING=off (noindex +
 # Disallow: /), which hid a site from Google: this is the alarm. Fix the live spec with doctl and the repo's .do/app.yaml.
@@ -35,20 +35,12 @@ jobs:
           - { host: dev.folioviv.com, args: "--index off" }
           - { host: dev.sovkora.com, args: "--index off" }
     steps:
-      - name: Fetch the guard
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: krizaka/krizaka-com
-          sparse-checkout: scripts/check-seo-family.mjs
-          sparse-checkout-cone-mode: false
-          persist-credentials: false
-
       - name: Check ${{ matrix.host }}
         id: seo
         run: |
           set +e
           read -r -a extra <<< "${ARGS}"
-          node scripts/check-seo-family.mjs --base "https://${HOST}" --host "https://${HOST}" "${extra[@]}" 2>&1 | tee seo.log
+          npx --yes -p @krizaka/config@0.26.0 krizaka-seo-family --base "https://${HOST}" --host "https://${HOST}" "${extra[@]}" 2>&1 | tee seo.log
           echo "code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
         env:
           HOST: ${{ matrix.host }}
