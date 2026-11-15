@@ -77,14 +77,14 @@ async function applySpec(ctx, appId, liveSpec, indexingOptions) {
   const { config, options, deps, step } = ctx;
   if (!config.spec) throw new GuardError("config", '--apply needs "spec" in the configuration');
   const { secret = async () => undefined, readFile = readFileFs } = deps;
-  const { allowDrop = [], allowChange = [], setSecret = [] } = options;
+  const { allowDrop = [], allowChange = [], setSecret = [], shareSecret = [] } = options;
   const fileSpec = parseSpec(await readFile(resolve(config.root, config.spec), "utf8"));
   assertIndexing(fileSpec, { ...indexingOptions, label: config.spec });
   assertIngressRoutes(fileSpec, { label: config.spec });
   const { only = [] } = options;
   const source = only.length ? scopeToComponents(fileSpec, liveSpec, only) : fileSpec;
   if (only.length) step("only", `${only.join(", ")} from ${config.spec}; every other component as it runs`);
-  const merged = await mergeWithLive(source, liveSpec, { secret, allowDrop, allowChange, setSecret });
+  const merged = await mergeWithLive(source, liveSpec, { secret, allowDrop, allowChange, setSecret, shareSecret });
   if (merged.problems.length) throw new GuardError("secrets", `${config.spec} cannot be applied:\n  - ${merged.problems.join("\n  - ")}`);
   assertIndexing(merged.spec, { ...indexingOptions, label: "merged spec" });
   const text = dumpSpec(merged.spec);

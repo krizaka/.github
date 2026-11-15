@@ -196,3 +196,25 @@ test("spec-apply: the recipient comes from the environment variable of the job, 
   await assert.rejects(deploy(baseConfig(), { apply: true }, missing.deps), (e) => e.guard === "secrets" && /BACKUP_AGE_RECIPIENT/.test(e.message));
   assert.ok(!missing.calls.some((c) => c.args[1] === "update"), "nothing is applied");
 });
+
+test("spec-apply --share-secret: a job's secret takes the live encrypted value of the same key held by another component; without the flag it is refused", async () => {
+  const withJob = `${fileSpec}jobs:\n  - name: backup\n    envs:\n      - { key: MAIL_API_KEY, scope: RUN_TIME, type: SECRET, value: "__MAIL_API_KEY__" }\n`;
+  const first = fakeDoctl();
+  const deps = (d) => ({ doctl: d.doctl, fetch: site(), readFile: async () => withJob, log: () => {}, sleep: async () => {} });
+  await assert.rejects(deploy(baseConfig(), { apply: true, dryRun: true }, deps(first)), (e) => e.guard === "secrets" && /jobs\/backup: MAIL_API_KEY/.test(e.message));
+  const second = fakeDoctl();
+  const lines = [];
+  await deploy(baseConfig(), { apply: true, shareSecret: ["MAIL_API_KEY"] }, { ...deps(second), log: (l) => lines.push(l) });
+  const sent = JSON.parse(second.calls.find((c) => c.args[1] === "update").input);
+  assert.equal(sent.jobs[0].envs[0].value, SECRET_VALUE, "the job holds the web's encrypted value, not a plain one");
+  assert.ok(!lines.join("\n").includes(SECRET_VALUE), "never printed");
+  const third = fakeDoctl();
+  await assert.rejects(deploy(baseConfig(), { apply: true, dryRun: true, shareSecret: ["OTHER_KEY"] }, deps(third)), (e) => e.guard === "secrets");
+});
+
+test("the workflow: the share-secret input is validated as secret names and passed to the dry run and the apply", () => {
+  const text = readFileSync(new URL("../../.github/workflows/deploy-spec-apply.yml", import.meta.url), "utf8");
+  assert.match(text, /SHARE: \$\{\{ inputs\.share-secret \}\}/);
+  assert.match(text, /\^\[A-Z\]\[A-Z0-9_\]\*\(,\[A-Z\]\[A-Z0-9_\]\*\)\*\$/, "validated");
+  assert.equal(text.split('--share-secret "$SHARE"').length - 1, 2, "both calls");
+});
