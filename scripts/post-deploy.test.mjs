@@ -87,8 +87,8 @@ test("the reusable workflow waits, pings the changed URLs only, checks the live 
   assert.match(workflow, /post-deploy\.mjs wait/);
   assert.ok(workflow.indexOf("post-deploy.mjs wait") < workflow.indexOf("post-deploy.mjs changed"), "wait comes first");
   assert.ok(workflow.indexOf("post-deploy.mjs changed") < workflow.indexOf("post-deploy.mjs indexnow"));
-  assert.ok(workflow.indexOf("post-deploy.mjs indexnow") < workflow.indexOf("node seo/scripts/check-seo-family.mjs"));
-  assert.match(workflow, /check-seo-family\.mjs --base "\$\{SITE\}" --host "\$\{SITE\}"/);
+  assert.ok(workflow.indexOf("post-deploy.mjs indexnow") < workflow.indexOf("krizaka-seo-family --base"));
+  assert.match(workflow, /krizaka-seo-family --base "\$\{SITE\}" --host "\$\{SITE\}"/);
   assert.match(workflow, /issues: write/);
   assert.match(workflow, /repos\/krizaka\/krizaka-internal\/issues/);
   assert.doesNotMatch(workflow, /repos\/\$\{GITHUB_REPOSITORY\}\/issues/, "never on the site's own repository");
