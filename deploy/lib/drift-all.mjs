@@ -14,7 +14,31 @@ const readHeaders = (env) => {
   return { "user-agent": "krizaka-deploy", ...(token ? { authorization: `Bearer ${token}` } : {}) };
 };
 
-/** @returns { ok: string[], drift: { app, differences: string[] }[] } */
+/** The one command that makes a dev app equal its merged spec again: the deploy-spec-apply workflow of krizaka/.github. */
+export const applyFix = (app) => `run deploy-spec-apply for ${app}: gh workflow run deploy-spec-apply.yml -R krizaka/.github -f app=${app}`;
+
+/** One app against its repository's spec: null when they agree, else { app, differences, fix? }. */
+async function appDrift({ app, repo, spec }, liveSpec, { team, fetch, env }) {
+  if (!liveSpec) return { app, differences: [`listed in apps.json but not in the team ${team}`] };
+  let res;
+  try {
+    res = await fetch(raw(repo, spec), { headers: readHeaders(env), signal: AbortSignal.timeout(15_000) });
+  } catch (error) {
+    return { app, differences: [`cannot read ${repo}/${spec}: ${error.message}`] };
+  }
+  if (res.status !== 200) return { app, differences: [`cannot read ${repo}/${spec} (GitHub answered ${res.status})`] };
+  let differences;
+  try {
+    differences = await specDrift(parseSpec(await res.text()), liveSpec);
+  } catch (error) {
+    return { app, differences: [`${repo}/${spec} is not a valid spec: ${String(error.message).split("\n")[0]}`] };
+  }
+  if (!differences.length) return null;
+  // A Krizaka-team app whose spec file reads is fixed by the CI door (krizaka-internal#3879); krizaka-prod has no door yet.
+  return { app, differences, ...(team === DEFAULT_TEAM ? { fix: applyFix(app) } : {}) };
+}
+
+/** @returns { ok: string[], drift: { app, differences: string[], fix?: string }[] } */
 export async function driftAll({ registry, doctl, fetch = globalThis.fetch, env = process.env, argv = [] }) {
   assertContext({ env, argv });
   const team = await doctl.assertTeam();
@@ -23,31 +47,10 @@ export async function driftAll({ registry, doctl, fetch = globalThis.fetch, env 
   const byName = new Map(live.map((a) => [a?.spec?.name, a?.spec]));
   const ok = [];
   const drift = [];
-  for (const { app, repo, spec } of apps) {
-    const liveSpec = byName.get(app);
-    if (!liveSpec) {
-      drift.push({ app, differences: [`listed in apps.json but not in the team ${team}`] });
-      continue;
-    }
-    let res;
-    try {
-      res = await fetch(raw(repo, spec), { headers: readHeaders(env), signal: AbortSignal.timeout(15_000) });
-    } catch (error) {
-      drift.push({ app, differences: [`cannot read ${repo}/${spec}: ${error.message}`] });
-      continue;
-    }
-    if (res.status !== 200) {
-      drift.push({ app, differences: [`cannot read ${repo}/${spec} (GitHub answered ${res.status})`] });
-      continue;
-    }
-    let differences;
-    try {
-      differences = await specDrift(parseSpec(await res.text()), liveSpec);
-    } catch (error) {
-      differences = [`${repo}/${spec} is not a valid spec: ${String(error.message).split("\n")[0]}`];
-    }
-    if (differences.length) drift.push({ app, differences });
-    else ok.push(app);
+  for (const entry of apps) {
+    const result = await appDrift(entry, byName.get(entry.app), { team, fetch, env });
+    if (result) drift.push(result);
+    else ok.push(entry.app);
   }
   const listed = new Set(apps.map((a) => a.app));
   for (const name of byName.keys()) if (!listed.has(name)) drift.push({ app: name, differences: ["a live app that apps.json does not list (add it, with its spec)"] });
@@ -57,9 +60,10 @@ export async function driftAll({ registry, doctl, fetch = globalThis.fetch, env 
 export async function driftAllCommand({ registry, doctl, log = console.log, summary = process.env.GITHUB_STEP_SUMMARY }) {
   const report = await driftAll({ registry, doctl, argv: process.argv.slice(2) });
   log(`equal ${report.ok.length} · drifting ${report.drift.length}`);
-  for (const d of report.drift) log(`DRIFT ${d.app}\n  - ${d.differences.join("\n  - ")}`);
+  const fixLine = (d, prefix) => (d.fix ? `\n${prefix}` + d.fix : "");
+  for (const d of report.drift) log(`DRIFT ${d.app}\n  - ${d.differences.join("\n  - ")}${fixLine(d, "  fix: ")}`);
   if (summary) {
-    const rows = report.drift.map((d) => `- **${d.app}**\n${d.differences.map((x) => `  - ${x}`).join("\n")}`);
+    const rows = report.drift.map((d) => `- **${d.app}**\n${d.differences.map((x) => "  - " + x).join("\n")}${fixLine(d, "  - fix: ")}`);
     appendFileSync(summary, `### krizaka-deploy drift-all\n\n${rows.join("\n") || "Every spec file equals its live app."}\n`);
   }
   return report;

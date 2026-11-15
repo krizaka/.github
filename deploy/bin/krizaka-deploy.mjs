@@ -2,6 +2,7 @@
 // krizaka-deploy — one way to deploy a Krizaka app to DigitalOcean App Platform (krizaka/.github#113).
 //
 //   krizaka-deploy deploy [--config .krizaka-deploy.json] [--dry-run] [--apply] [--expect-sha <sha>] [--skip-head-check] [--allow-drop KEY,KEY] [--allow-change KEY,KEY] [--set-secret KEY,KEY]
+//                         [--app <name>]   CI (deploy-spec-apply): refuses unless deploy/apps.json lists <name>, of the Krizaka team, with the config's spec
 //   krizaka-deploy watch  [--grace 10] [--trigger] [--apps a,b]   post-merge check: a merge to main must start a deployment within the grace period (exit 1 if not)
 //   krizaka-deploy verify --app <name> --sha <sha> [--grace 10] [--timeout 25]   per-merge guard: the deployment caused by that commit must reach ACTIVE (exit 1 otherwise)
 //   krizaka-deploy routes <spec.yaml>…                            offline: fails a spec that lists routes one by one (max 3 path rules per component)
@@ -75,6 +76,14 @@ try {
   if (command === "check") {
     await runChecks(config, { fetch: globalThis.fetch, step: (n, d) => console.log(`${n}${d ? `: ${d}` : ""}`), sleepFn: (ms) => new Promise((r) => setTimeout(r, ms)) });
     process.exit(0);
+  }
+  const target = value("--app");
+  if (target) {
+    const { readFileSync } = await import("node:fs");
+    const { applyTarget } = await import("../lib/spec-apply.mjs");
+    const registry = JSON.parse(readFileSync(new URL("../apps.json", import.meta.url), "utf8"));
+    const { repo, spec } = applyTarget(registry, target, config);
+    console.log(`target: ${target} (${repo}, ${spec}), listed in deploy/apps.json`);
   }
   const report = await deploy(
     config,

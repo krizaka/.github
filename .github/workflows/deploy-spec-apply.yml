@@ -1,0 +1,104 @@
+# The CI door that applies a merged App Platform spec to its dev app (krizaka-internal#3879). Before it, a spec change merged in a
+# product repository reached the live app only through an operator's `krizaka-deploy deploy --apply` with a write token: verikora-dev
+# missed MEDIA_DOCUMENTS_TENANT for 22 h and refused 11 deployments (krizaka-internal#3878). Now:
+#   1. the target comes from deploy/apps.json on main of this repository: the app, its repository, its spec file; an app the registry
+#      does not list, or lists for krizaka-prod, is refused (production is out of scope);
+#   2. `krizaka-deploy deploy --apply --dry-run` prints what the apply changes, by key and field — never a value;
+#   3. `krizaka-deploy deploy --apply` sends the merged spec (the live encrypted secrets are kept, a variable the file drops or a plain
+#      value it changes is refused), rebuilds main, waits for ACTIVE and checks that the head of main is what runs, then the live site.
+#
+# It runs here, not in the caller: the write token is the secret DIGITALOCEAN_ACCESS_TOKEN of the `dev` environment of krizaka/.github,
+# which deploys from protected branches only (a reusable workflow's `environment:` would resolve in the caller, which has no such token).
+# A product repository dispatches it on a push to main that changes its spec (the caller workflow deploy-spec-apply.yml there):
+#   gh workflow run deploy-spec-apply.yml -R krizaka/.github --ref main -f app=verikora-dev
+# The daily drift report (deploy-watch, job `drift`) names this command for every drifting dev app.
+name: deploy-spec-apply
+
+on:
+  workflow_dispatch:
+    inputs:
+      app:
+        description: "The dev app to apply (its name in deploy/apps.json, e.g. verikora-dev)."
+        required: true
+        type: string
+      dry-run:
+        description: "Only print what the apply would change."
+        type: boolean
+        default: false
+
+permissions: {}
+
+concurrency:
+  group: deploy-spec-apply-${{ inputs.app }}
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    name: Apply the merged spec of ${{ inputs.app }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: dev
+    permissions:
+      contents: read
+    env:
+      APP: ${{ inputs.app }}
+    steps:
+      - name: Is the DigitalOcean token set?
+        env:
+          DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+        run: |
+          if [ -z "$DIGITALOCEAN_ACCESS_TOKEN" ]; then
+            echo "::error title=deploy-spec-apply::the secret DIGITALOCEAN_ACCESS_TOKEN of the dev environment is not set; no spec can be applied"
+            exit 1
+          fi
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: deploy
+          persist-credentials: false
+          path: tools
+
+      # The registry decides which repository and which spec; the input only names the app (the CLI checks it again with --app).
+      - name: Which repository holds the spec?
+        id: target
+        run: |
+          if ! [[ "$APP" =~ ^[a-z0-9][a-z0-9-]{0,62}$ ]]; then
+            echo "::error title=deploy-spec-apply::'$APP' is not an app name"
+            exit 1
+          fi
+          repo=$(jq -r --arg app "$APP" '.apps[] | select(.app == $app and (.team // "Krizaka-team") == "Krizaka-team") | .repo' tools/deploy/apps.json)
+          if [ -z "$repo" ]; then
+            echo "::error title=deploy-spec-apply::$APP is not a Krizaka-team app of deploy/apps.json: refused"
+            exit 1
+          fi
+          echo "repo=$repo" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ steps.target.outputs.repo }}
+          ref: main
+          persist-credentials: false
+          path: product
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+
+      - uses: digitalocean/action-doctl@3cb3953159719656269e044e0e24ca16dd2a690f # v2.5.2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Install the CLI
+        run: npm ci --omit=dev --ignore-scripts --no-audit --no-fund --prefix tools/deploy
+
+      # Reads only: the team, the app, the live spec, the merge, the schema validation and the live site. Writes nothing.
+      - name: Dry run (what the apply changes)
+        run: node tools/deploy/bin/krizaka-deploy.mjs deploy --config product/.krizaka-deploy.json --app "$APP" --apply --dry-run
+
+      - name: Apply, rebuild main, wait for ACTIVE
+        if: ${{ !inputs.dry-run }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          sha=$(git -C product rev-parse HEAD)
+          node tools/deploy/bin/krizaka-deploy.mjs deploy --config product/.krizaka-deploy.json --app "$APP" --apply --expect-sha "$sha"
