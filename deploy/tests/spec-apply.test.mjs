@@ -41,7 +41,7 @@ test("spec-apply --dry-run: prints the diff by key, writes nothing, never prints
   assert.ok(report.steps.some((s) => s.name === "diff" && /1 change/.test(s.detail)), "the diff is a step of the report (the job summary)");
   assert.ok(!out.includes(SECRET_VALUE), "the live secret's value is never printed");
   assert.ok(!out.includes("tenant-value-from-the-file"), "a value is never printed, only its key");
-  assert.ok(!out.includes("mg.krizaka.com"), "a carried value is never printed");
+  assert.doesNotMatch(out, /mg\.krizaka\.com/, "a carried value is never printed");
 });
 
 test("spec-apply: the apply sends the live encrypted secret back and adds the missing key", async () => {
