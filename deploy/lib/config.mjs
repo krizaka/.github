@@ -10,6 +10,8 @@ import { GuardError } from "./errors.mjs";
  *   "health": "/api/healthz",                    // path (or absolute URL) answering 2xx when the app is up
  *   "indexing": "off",                           // "on" for an indexed site, "off" for a noindex one — REQUIRED
  *   "indexingVariable": true,                    // false when the app has no APP_SEARCH_INDEXING switch (krizaka.com)
+ *   "liveIndexing": "off",                       // what the host answers when it differs from the spec's flag (default: "indexing");
+ *                                                //   verikora-dev: the flag is on, the dev host is closed by host (308 to www, noindex)
  *   "spec": "deploy/digitalocean/app.yaml",      // the spec `--apply` sends (optional without --apply)
  *   "product": "folioviv",                        // `secret.sh @<product>` fills secrets locally (optional)
  *   "seoFamily": { "script": "scripts/check-seo-family.mjs", "args": ["--organization"] },   // optional
@@ -41,6 +43,7 @@ export function validateConfig(raw, root = process.cwd()) {
     fail(`"url" is not a URL: ${raw.url}`);
   }
   if (url.protocol !== "https:") fail('"url" must be https');
+  if (raw.liveIndexing !== undefined && raw.liveIndexing !== "on" && raw.liveIndexing !== "off") fail('"liveIndexing" must be "on" or "off" when set');
   const health = new URL(raw.health, url);
   if (health.origin !== url.origin) fail('"health" must stay on the site\'s origin');
   return {
@@ -50,6 +53,7 @@ export function validateConfig(raw, root = process.cwd()) {
     health: health.href,
     indexing: raw.indexing,
     indexingVariable: raw.indexingVariable !== false,
+    liveIndexing: raw.liveIndexing ?? raw.indexing,
     spec: raw.spec ?? null,
     product: raw.product ?? null,
     seoFamily: raw.seoFamily ?? null,
