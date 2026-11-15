@@ -180,7 +180,10 @@ export async function deploy(config, options = {}, deps) {
     await rebuild(ctx, appId, indexingOptions);
     // 6. The live site says what it should.
     const { fetch = globalThis.fetch, spawnCheck, sleep = sleepDefault } = deps;
-    await runChecks(config, { fetch, spawnCheck, healthAttempts, healthDelayMs, sleepFn: sleep, step });
+    const checks = runChecks(config, { fetch, spawnCheck, healthAttempts, healthDelayMs, sleepFn: sleep, step });
+    // A dry run checks the deployment the apply would replace: its failure is a fact to read, not a reason to keep it.
+    if (dryRun) await checks.catch((error) => reportLiveFailure(error, step));
+    else await checks;
   } catch (error) {
     // Whatever failed after the first change: say where to go back to.
     log(report.rollback);
@@ -190,14 +193,21 @@ export async function deploy(config, options = {}, deps) {
   return report;
 }
 
-/** Health, robots / noindex, the SEO family contract — against `config.url`. */
+/** In a dry run, a refused live check is reported (step « live checks ») instead of stopping the run; any other error still stops it. */
+function reportLiveFailure(error, step) {
+  if (!(error instanceof GuardError)) throw error;
+  step("live checks", `REFUSED on the running deployment, which the apply replaces: ${error.message}`);
+}
+
+/** Health, robots / noindex, the SEO family contract — against `config.url`, as the host answers (`liveIndexing`). */
 export async function runChecks(config, { fetch, spawnCheck, healthAttempts = 12, healthDelayMs = 10_000, sleepFn, step = () => {} }) {
   const health = await checkHealth(config.health, { fetch, attempts: healthAttempts, delayMs: healthDelayMs, sleepFn });
   step("health", `${config.health} → ${health.status}`);
-  const indexing = await checkIndexing(config.url, config.indexing, { fetch, healthUrl: config.health });
+  const live = config.liveIndexing ?? config.indexing;
+  const indexing = await checkIndexing(config.url, live, { fetch, healthUrl: config.health });
   step("robots", `${indexing.robots}${indexing.noindex ? `, noindex by ${indexing.noindex}` : ""}${indexing.redirect ? `, HTML 308 to ${indexing.redirect}` : ""}`);
   if (config.seoFamily) {
-    await checkSeoFamily(config.url, { script: config.seoFamily.script, args: config.seoFamily.args ?? [], index: config.indexing, cwd: config.root, spawnCheck });
+    await checkSeoFamily(config.url, { script: config.seoFamily.script, args: config.seoFamily.args ?? [], index: live, cwd: config.root, spawnCheck });
     step("seo-family", "contract met");
   }
 }

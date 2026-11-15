@@ -75,9 +75,11 @@ test("cli: a dry run reads, never writes (every doctl call is a read, always in 
   config(sb.dir);
   // One attempt, no wait: the unreachable site must not cost the 12 x 10 s of a real deploy (118 s -> ~6 s).
   const r = await runCli(["deploy", "--dry-run", "--health-attempts", "1", "--health-delay-ms", "0"], { dir: sb.dir });
-  // The site is unreachable on purpose (127.0.0.1:1): the dry run gets as far as the live checks, having changed nothing.
-  assert.equal(r.code, 1);
+  // The site is unreachable on purpose (127.0.0.1:1): the dry run goes through the live checks, reports their refusal (they check the
+  // deployment an apply would replace) and ends, having changed nothing.
+  assert.equal(r.code, 0);
   assert.match(r.out, /\[dry-run\] create-deployment: would run with --force-rebuild/);
+  assert.match(r.out, /\[dry-run\] live checks: REFUSED on the running deployment/);
   const calls = sb.log();
   assert.ok(calls.every((l) => l.startsWith("--context default ")));
   assert.ok(!calls.some((l) => /create-deployment| update |spec validate/.test(l)), calls.join("\n"));

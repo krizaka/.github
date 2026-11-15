@@ -137,3 +137,32 @@ test("spec-apply --only: a component the file does not have is refused", async (
   const deps = { doctl, fetch: site(), readFile: async () => fileSpec, log: () => {}, sleep: async () => {} };
   await assert.rejects(deploy(baseConfig(), { apply: true, dryRun: true, only: ["workers/ghost"] }, deps), (e) => e.guard === "only" && /workers\/ghost/.test(e.message));
 });
+
+test("spec-apply --dry-run: a live check that fails is reported, not fatal: it checks the deployment the apply replaces", async () => {
+  const { doctl, calls } = fakeDoctl();
+  const closed = fakeFetch({ "/api/health": { status: 200 }, "/robots.txt": { body: "User-agent: *\nDisallow: /\n" } });
+  const lines = [];
+  const report = await deploy(baseConfig(), { apply: true, dryRun: true }, { doctl, fetch: closed, readFile: async () => fileSpec, log: (l) => lines.push(l), sleep: async () => {} });
+  assert.ok(report.steps.some((s) => s.name === "live checks" && /robots/.test(s.detail)), "the failure is in the report");
+  assert.ok(!verbs(calls).includes("apps update"), "still a dry run");
+  // After a real deploy the same failure is fatal.
+  const real = fakeDoctl();
+  await assert.rejects(deploy(baseConfig(), { apply: true, skipHeadCheck: true }, { doctl: real.doctl, fetch: closed, readFile: async () => fileSpec, log: () => {}, sleep: async () => {} }), (e) => e.guard === "robots");
+});
+
+test("config liveIndexing: the host's answer is checked apart from the spec's flag (verikora-dev: flag on, dev host closed by host)", async () => {
+  const { validateConfig } = await import("../lib/config.mjs");
+  const raw = { app: "verikora-dev", url: "https://dev.verikora.com", health: "/api/healthz", indexing: "on" };
+  assert.equal(validateConfig(raw).liveIndexing, "on", "defaults to indexing");
+  assert.equal(validateConfig({ ...raw, liveIndexing: "off" }).liveIndexing, "off");
+  assert.throws(() => validateConfig({ ...raw, liveIndexing: "maybe" }), /"liveIndexing"/);
+  const { doctl } = fakeDoctl();
+  const devHost = fakeFetch({
+    "/api/healthz": { status: 200, headers: { "x-robots-tag": "noindex" } },
+    "/robots.txt": { body: "User-agent: *\nDisallow: /\n", headers: { "x-robots-tag": "noindex" } },
+    "/": { status: 308, headers: { location: "https://www.verikora.com/" } },
+  });
+  const config = baseConfig({ url: "https://dev.verikora.com", health: "https://dev.verikora.com/api/healthz", liveIndexing: "off" });
+  const report = await deploy(config, { skipHeadCheck: true }, { doctl, fetch: devHost, log: () => {}, sleep: async () => {} });
+  assert.ok(report.steps.some((s) => s.name === "robots" && /noindex/.test(s.detail)), "the closed dev host passes the off checks");
+});
