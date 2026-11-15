@@ -1,0 +1,96 @@
+# Per-merge deploy guard (krizaka-internal#3780). DigitalOcean shows the deployment's status; this makes the code check it:
+# on a push to main, it polls the App Platform deployment CAUSED BY THAT COMMIT until a final phase and fails unless it is
+# ACTIVE. An automatic rollback that is ACTIVE after an ERROR is red (the commit did not deploy); so are CANCELED, a
+# deployment still building at the timeout, and no deployment started within the grace. The failure names the app, the
+# commit, the phase and the failed step's reason. A red main is what the watchdog and the freeze already see.
+#
+# A caller (a DigitalOcean-deployed repository), on push to main:
+#   deploy-verify:
+#     uses: krizaka/.github/.github/workflows/deploy-verify.yml@main
+#     with: { app: verikora-dev }
+#     secrets: { DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }} }
+# The token is a READ-ONLY, app-scoped DigitalOcean token held as a secret of the calling repository (a reusable
+# workflow's `environment:` resolves in the caller, so the `dev` environment of krizaka/.github is not visible to it).
+# Without it the job warns and passes (nothing to verify with); krizaka-prod apps need their own token (founder step).
+name: deploy-verify
+
+on:
+  workflow_call:
+    inputs:
+      app:
+        description: "The App Platform app name (spec.name)."
+        type: string
+        required: true
+      sha:
+        description: "The commit that must have deployed (default: the calling run's commit)."
+        type: string
+        default: ""
+      grace-minutes:
+        description: "Minutes the push webhook may take to start a deployment."
+        type: string
+        default: "10"
+      wait-minutes:
+        description: "Minutes a deployment may take to reach a final phase."
+        type: string
+        default: "20"
+      team:
+        description: "Expected DigitalOcean team (the token's team)."
+        type: string
+        default: "Krizaka-team"
+    secrets:
+      DIGITALOCEAN_ACCESS_TOKEN:
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: The deployment of this commit is ACTIVE
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+      APP: ${{ inputs.app }}
+      SHA: ${{ inputs.sha || github.sha }}
+      GRACE: ${{ inputs.grace-minutes }}
+      WAIT: ${{ inputs.wait-minutes }}
+      KRIZAKA_DO_TEAM: ${{ inputs.team }}
+    steps:
+      - name: Is the DigitalOcean token set?
+        id: gate
+        run: |
+          if [ -z "$DIGITALOCEAN_ACCESS_TOKEN" ]; then
+            echo "::warning title=deploy-verify is off::the secret DIGITALOCEAN_ACCESS_TOKEN is not set in this repository (krizaka-internal#3780); the deployment of $APP is not verified"
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.gate.outputs.enabled == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/.github
+          ref: main
+          sparse-checkout: deploy
+          sparse-checkout-cone-mode: true
+          persist-credentials: false
+          path: tools
+
+      - if: steps.gate.outputs.enabled == 'true'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+
+      - if: steps.gate.outputs.enabled == 'true'
+        uses: digitalocean/action-doctl@3cb3953159719656269e044e0e24ca16dd2a690f # v2.5.2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - if: steps.gate.outputs.enabled == 'true'
+        name: Install the CLI
+        run: npm ci --omit=dev --ignore-scripts --no-audit --no-fund --prefix tools/deploy
+
+      - if: steps.gate.outputs.enabled == 'true'
+        name: Verify the deployment of this commit
+        run: node tools/deploy/bin/krizaka-deploy.mjs verify --app "$APP" --sha "$SHA" --grace "$GRACE" --timeout "$WAIT"
