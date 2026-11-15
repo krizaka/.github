@@ -14,6 +14,7 @@ import {
   driftOf,
   levelOf,
   lockfileTargets,
+  runPostbump,
   normalisePackages,
   planManifest,
   regenerateLockfiles,
@@ -251,5 +252,32 @@ describe("every lockfile whose manifest the wave changes is regenerated", () => 
   });
   it("regenerates nothing when no manifest changed", () => {
     assert.deepEqual(lockfileTargets(repo(), []), []);
+  });
+});
+
+describe("the repository's own krizaka:postbump runs after the bump (krizaka-internal#3721)", () => {
+  const withScript = () =>
+    repoWith({
+      "package.json": { name: "root", scripts: { "krizaka:postbump": "pnpm run gen" }, dependencies: { "@krizaka/ui": "^3.73.0" } },
+      "pnpm-lock.yaml": "lockfileVersion: '9.0'\n",
+    });
+  it("installs the bumped lockfile then runs the script, in the root", () => {
+    const root = withScript();
+    const calls = [];
+    assert.equal(runPostbump(root, (command, args, cwd) => calls.push([command, ...args, cwd])), true);
+    assert.deepEqual(calls, [
+      ["pnpm", "install", "--frozen-lockfile", "--ignore-scripts", root],
+      ["pnpm", "run", "krizaka:postbump", root],
+    ]);
+  });
+  it("does nothing when the repository declares no krizaka:postbump", () => {
+    const root = repoWith({ "package.json": { name: "root", scripts: { test: "x" } }, "pnpm-lock.yaml": "lockfileVersion: '9.0'\n" });
+    const calls = [];
+    assert.equal(runPostbump(root, (...call) => calls.push(call)), false);
+    assert.deepEqual(calls, []);
+  });
+  it("lets a failing script fail the job", () => {
+    const root = withScript();
+    assert.throws(() => runPostbump(root, (command, args) => { if (args[0] === "run") throw new Error("gen failed"); }), /gen failed/);
   });
 });

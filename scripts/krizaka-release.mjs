@@ -6,6 +6,7 @@
 //   node scripts/krizaka-release.mjs dispatch  '<packages json>' [--dry-run]   send the event (needs GH_TOKEN)
 //   node scripts/krizaka-release.mjs bump '<packages json>' [--scope=wave|breaking] [--dry-run] [--no-wait]   edit the package.json files of this checkout
 //   node scripts/krizaka-release.mjs lock                                regenerate every lockfile of the manifests `bump` changed
+//   node scripts/krizaka-release.mjs postbump                            run the repo's root `krizaka:postbump` script, when it has one (krizaka-internal#3721)
 //   node scripts/krizaka-release.mjs check <clones folder>               release-consumers.json against the real dependencies
 //
 // `<packages json>` is `{ "@krizaka/ui": "3.74.0" }` or the `publishedPackages` of changesets (`[{ name, version }]`).
@@ -151,6 +152,27 @@ export function regenerateLockfiles(root, targets, run = (command, args, cwd) =>
   }
 }
 
+const POSTBUMP_SCRIPT = "krizaka:postbump";
+const INSTALL_COMMANDS = {
+  pnpm: ["pnpm", ["install", "--frozen-lockfile", "--ignore-scripts"]],
+  npm: ["npm", ["ci", "--ignore-scripts"]],
+};
+
+/**
+ * The repository's own regeneration of what it derives from the installed @krizaka packages (a generated rule list, an exports map):
+ * its root `package.json` script `krizaka:postbump`. Installs the bumped lockfile, runs the script; a failing command throws (the job fails,
+ * no red pull request is opened). Returns false when the repository declares none. `run(command, args, cwd)` is injected.
+ */
+export function runPostbump(root, run = (command, args, cwd) => execFileSync(command, args, { cwd, stdio: "inherit" })) {
+  const manifest = join(root, "package.json");
+  if (!existsSync(manifest) || typeof JSON.parse(readFileSync(manifest, "utf8")).scripts?.[POSTBUMP_SCRIPT] !== "string") return false;
+  const manager = detectPackageManager(root);
+  const [command, args] = INSTALL_COMMANDS[manager];
+  run(command, args, root);
+  run(manager, ["run", POSTBUMP_SCRIPT], root);
+  return true;
+}
+
 /** Waits (with backoff) until the registry serves every version; returns the ones still missing. */
 export async function waitForPublished(packages, { fetchVersion, sleep = (ms) => new Promise((r) => setTimeout(r, ms)), attempts = 12 } = {}) {
   let missing = Object.entries(packages);
@@ -247,6 +269,11 @@ function lockCommand() {
   return 0;
 }
 
+function postbumpCommand() {
+  console.log(runPostbump(process.cwd()) ? `${POSTBUMP_SCRIPT} ran` : `no ${POSTBUMP_SCRIPT} script: nothing to regenerate`);
+  return 0;
+}
+
 async function main([command, argument, ...flags]) {
   const consumers = JSON.parse(readFileSync(CONSUMERS_FILE, "utf8")).repos;
   const dryRun = flags.includes("--dry-run");
@@ -264,7 +291,8 @@ async function main([command, argument, ...flags]) {
   if (command === "dispatch") return dispatchAll(consumers, packages, dryRun);
   if (command === "bump") return bumpCommand(packages, flags, dryRun);
   if (command === "lock") return lockCommand();
-  console.error("Usage: krizaka-release.mjs <consumers|dispatch|bump|lock|check> …");
+  if (command === "postbump") return postbumpCommand();
+  console.error("Usage: krizaka-release.mjs <consumers|dispatch|bump|lock|postbump|check> …");
   return 2;
 }
 
