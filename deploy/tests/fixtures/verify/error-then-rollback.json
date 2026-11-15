@@ -1,0 +1,5 @@
+[
+  {"id":"dep-rollback","phase":"ACTIVE","cause":"automatic rollback","cause_details":{"auto_rollback":{"rollback_deployment_id":"dep-old"}},"created_at":"2026-11-15T10:12:00Z","services":[{"name":"web","source_commit_hash":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}]},
+  {"id":"dep-bad","phase":"ERROR","cause":"commit pushed to github.com/krizaka/verikora branch main","cause_details":{"git_push":{"commit_sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}},"created_at":"2026-11-15T10:05:00Z","services":[{"name":"web","source_commit_hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}],"progress":{"steps":[{"name":"build","status":"SUCCESS"},{"name":"deploy","status":"ERROR","steps":[{"name":"health-check","status":"ERROR","reason":{"code":"DeployContainerHealthChecksFailed","message":"Health checks failed"}}]}]}},
+  {"id":"dep-old","phase":"SUPERSEDED","cause":"commit pushed","cause_details":{"git_push":{"commit_sha":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}},"created_at":"2026-11-15T09:00:00Z","services":[{"name":"web","source_commit_hash":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}]}
+]

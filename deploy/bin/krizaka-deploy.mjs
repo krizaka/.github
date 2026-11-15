@@ -3,6 +3,7 @@
 //
 //   krizaka-deploy deploy [--config .krizaka-deploy.json] [--dry-run] [--apply] [--expect-sha <sha>] [--skip-head-check] [--allow-drop KEY,KEY] [--allow-change KEY,KEY] [--set-secret KEY,KEY]
 //   krizaka-deploy watch  [--grace 10] [--trigger] [--apps a,b]   post-merge check: a merge to main must start a deployment within the grace period (exit 1 if not)
+//   krizaka-deploy verify --app <name> --sha <sha> [--grace 10] [--timeout 25]   per-merge guard: the deployment caused by that commit must reach ACTIVE (exit 1 otherwise)
 //   krizaka-deploy routes <spec.yaml>…                            offline: fails a spec that lists routes one by one (max 3 path rules per component)
 //   krizaka-deploy drift [--config …]                              the repository's spec equals the live spec (read-only; exit 1 and the differences otherwise)
 //   krizaka-deploy drift-all                                       every app of the team against its repository's spec (deploy/apps.json); report only
@@ -26,9 +27,9 @@ const value = (name) => {
   return argv[i].includes("=") ? argv[i].slice(name.length + 1) : argv[i + 1];
 };
 
-if (flag("--help") || !["deploy", "check", "watch", "routes", "drift", "drift-all"].includes(command)) {
-  console.log("usage: krizaka-deploy [deploy|check|watch] [--config file] [--dry-run] [--apply] [--expect-sha sha] [--skip-head-check] [--allow-drop KEY,…] [--allow-change KEY,…] [--health-attempts n] [--health-delay-ms ms]");
-  process.exit(["deploy", "check", "watch", "routes", "drift", "drift-all"].includes(command) ? 0 : 2);
+if (flag("--help") || !["deploy", "check", "watch", "verify", "routes", "drift", "drift-all"].includes(command)) {
+  console.log("usage: krizaka-deploy [deploy|check|watch|verify] [--config file] [--dry-run] [--apply] [--expect-sha sha] [--skip-head-check] [--allow-drop KEY,…] [--allow-change KEY,…] [--health-attempts n] [--health-delay-ms ms]");
+  process.exit(["deploy", "check", "watch", "verify", "routes", "drift", "drift-all"].includes(command) ? 0 : 2);
 }
 
 if (command === "routes") {
@@ -57,6 +58,8 @@ if (command === "drift-all") {
 
 import { watchCommand } from "../lib/watch-cli.mjs";
 if (command === "watch") await watchCommand({ flag, value });
+import { verifyCommand } from "../lib/verify-cli.mjs";
+if (command === "verify") await verifyCommand({ value });
 
 try {
   const config = loadConfig(value("--config") ?? ".krizaka-deploy.json");

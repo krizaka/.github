@@ -1,0 +1,4 @@
+[
+  {"id":"dep-cancel","phase":"CANCELED","cause":"commit pushed","cause_details":{"git_push":{"commit_sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}},"created_at":"2026-11-15T10:05:00Z","services":[{"name":"web","source_commit_hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}],"progress":{"steps":[{"name":"build","status":"CANCELED"}]}},
+  {"id":"dep-old","phase":"ACTIVE","cause":"commit pushed","cause_details":{"git_push":{"commit_sha":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}},"created_at":"2026-11-15T09:00:00Z","services":[{"name":"web","source_commit_hash":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}]}
+]

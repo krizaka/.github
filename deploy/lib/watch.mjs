@@ -24,15 +24,18 @@ async function headOf(repo, branch, { fetch, env }) {
   return { sha: body.sha, at: date };
 }
 
+/** Was this deployment caused by this commit (a push, or a create-deployment that built it)? */
+export const causedBy = (d, sha) => componentsOf(d).some((c) => c.source_commit_hash === sha) || d.cause_details?.git_push?.commit_sha === sha;
+
 /** Did a deployment of this commit start? (any phase: a failed one started, it is reported apart.) */
 function deploymentOf(deployments, sha) {
-  return deployments.find((d) => STARTED_PHASES.has(d.phase) && (componentsOf(d).some((c) => c.source_commit_hash === sha) || d.cause_details?.git_push?.commit_sha === sha));
+  return deployments.find((d) => STARTED_PHASES.has(d.phase) && causedBy(d, sha));
 }
 
 const FAILED_PHASES = new Set(["ERROR", "CANCELED"]);
 
 /** An automatic or manual rollback: it re-activates an older commit, it is never the outcome of a commit being deployed. */
-const isRollback = (d) => /rollback/i.test(`${d.cause ?? ""} ${JSON.stringify(d.cause_details ?? {})}`);
+export const isRollback = (d) => /rollback/i.test(`${d.cause ?? ""} ${JSON.stringify(d.cause_details ?? {})}`);
 
 /** The newest deployment caused by a commit (a push or a plain create-deployment), a rollback never counting: its phase is the verdict of the last commit. */
 export function newestCommitDeployment(deployments) {
