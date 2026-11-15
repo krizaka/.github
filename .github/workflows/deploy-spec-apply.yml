@@ -109,6 +109,9 @@ jobs:
       - uses: digitalocean/action-doctl@3cb3953159719656269e044e0e24ca16dd2a690f # v2.5.2
         with:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+          # "latest" resolved to v1.98.1 on the runner, whose spec parser refuses `schedule` (verikora-dev's scheduled backup jobs):
+          # pinned to the release the operators run (krizaka-internal#3899).
+          version: "1.179.0"
 
       - name: Install the CLI
         run: npm ci --omit=dev --ignore-scripts --no-audit --no-fund --prefix tools/deploy
