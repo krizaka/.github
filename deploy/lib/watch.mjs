@@ -39,13 +39,18 @@ export function newestCommitDeployment(deployments) {
   return [...deployments].filter((d) => !isRollback(d)).sort((a, b) => Date.parse(b.created_at ?? 0) - Date.parse(a.created_at ?? 0))[0];
 }
 
+function reasonLine(name, reason) {
+  const detail = reason?.message ?? reason?.code;
+  return detail ? name + ": " + detail : name;
+}
+
 /** The reasons of the steps that failed in a deployment's progress, one string: « build/npm-ci: message ». */
 export function failureReason(deployment) {
   const out = [];
   const walk = (steps, path) => {
     for (const step of steps ?? []) {
       const name = [...path, step.name].filter(Boolean).join("/");
-      if (step.status === "ERROR") out.push(`${name}${step.reason?.message ? `: ${step.reason.message}` : step.reason?.code ? `: ${step.reason.code}` : ""}`);
+      if (step.status === "ERROR") out.push(reasonLine(name, step.reason));
       walk(step.steps, [...path, step.name]);
     }
   };
