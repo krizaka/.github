@@ -139,7 +139,8 @@ export function spawnNode(args, { cwd }) {
 export async function checkSeoFamily(baseUrl, { script, args = [], index, cwd = process.cwd(), spawnCheck = spawnNode }) {
   // The script takes the site's intent from --index; the configuration's `indexing` is the one source of it.
   // The `dev` contract is `--index off` plus the development-host mode of the script (pages served, canonical on www).
-  const intent = !index || args.includes("--index") ? [] : index === "dev" ? ["--index", "off", "--dev-host"] : ["--index", index];
+  let intent = [];
+  if (index && !args.includes("--index")) intent = index === "dev" ? ["--index", "off", "--dev-host"] : ["--index", index];
   const { code, log } = await spawnCheck([script, "--base", baseUrl, "--host", baseUrl, ...intent, ...args], { cwd });
   if (code !== 0) throw new GuardError("seo-family", `${script} failed (exit ${code}):\n${log.split("\n").slice(-15).join("\n")}`);
   return { exit: 0 };
