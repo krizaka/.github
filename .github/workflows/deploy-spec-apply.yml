@@ -33,6 +33,10 @@ on:
         description: "Apply only these components of the file (section/name, comma-separated, e.g. services/web); the others stay as they run."
         type: string
         default: ""
+      share-secret:
+        description: "Secrets (KEY, comma-separated) a component takes from the live value of the same key in another component (a job that needs the web's database URL)."
+        type: string
+        default: ""
 
 permissions: {}
 
@@ -51,6 +55,7 @@ jobs:
     env:
       APP: ${{ inputs.app }}
       ONLY: ${{ inputs.only }}
+      SHARE: ${{ inputs.share-secret }}
     steps:
       - name: Is the DigitalOcean token set?
         env:
@@ -77,6 +82,10 @@ jobs:
           fi
           if [ -n "$ONLY" ] && ! [[ "$ONLY" =~ ^[a-z_]+/[a-z0-9-]+(,[a-z_]+/[a-z0-9-]+)*$ ]]; then
             echo "::error title=deploy-spec-apply::'$ONLY' is not a list of section/name"
+            exit 1
+          fi
+          if [ -n "$SHARE" ] && ! [[ "$SHARE" =~ ^[A-Z][A-Z0-9_]*(,[A-Z][A-Z0-9_]*)*$ ]]; then
+            echo "::error title=deploy-spec-apply::'$SHARE' is not a list of secret names"
             exit 1
           fi
           repo=$(jq -r --arg app "$APP" '.apps[] | select(.app == $app and (.team // "Krizaka-team") == "Krizaka-team") | .repo' tools/deploy/apps.json)
@@ -110,6 +119,7 @@ jobs:
           KRIZAKA_SECRET_BACKUP_AGE_RECIPIENT: ${{ secrets.KRIZAKA_SECRET_BACKUP_AGE_RECIPIENT }}
         run: |
           only=(); [ -n "$ONLY" ] && only=(--only "$ONLY")
+          [ -n "$SHARE" ] && only+=(--share-secret "$SHARE")
           node tools/deploy/bin/krizaka-deploy.mjs deploy --config product/.krizaka-deploy.json --app "$APP" --apply --dry-run "${only[@]}"
 
       - name: Apply, rebuild main, wait for ACTIVE
@@ -120,4 +130,5 @@ jobs:
         run: |
           sha=$(git -C product rev-parse HEAD)
           only=(); [ -n "$ONLY" ] && only=(--only "$ONLY")
+          [ -n "$SHARE" ] && only+=(--share-secret "$SHARE")
           node tools/deploy/bin/krizaka-deploy.mjs deploy --config product/.krizaka-deploy.json --app "$APP" --apply --expect-sha "$sha" "${only[@]}"

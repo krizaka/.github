@@ -92,6 +92,8 @@ export function isSecretPlaceholder(value) {
  *    same key), else `secret(KEY)`, else it is a problem;
  *  - a SECRET (typed so in the file, or live) whose value in the file is unset / empty / a placeholder KEEPS THE LIVE ENCRYPTED VALUE; the
  *    vault never replaces a live secret by itself — only `setSecret` (--set-secret KEY) does, with the vault's value (a problem when it has none);
+ *  - `shareSecret` (--share-secret KEY): a SECRET of a component that has no live value takes the live encrypted value of the same key
+ *    held by another component of the app (a job that needs the web's database URL); the vault is not asked, no value is read;
  *  - a live variable the file does not mention would be DELETED by the apply: a problem, unless listed in `allowDrop`;
  *  - a plain (non-secret) variable whose value differs from the live one would be CHANGED: a problem, unless listed in
  *    `allowChange` — the live app is often ahead of the file (a limit lowered by hand), and an apply must not silently revert it.
@@ -108,9 +110,10 @@ export async function mergeWithLive(fileSpec, liveSpec, options = {}) {
   for (const name of missing) state.problems.push(`placeholder __${name}__ has no value (KRIZAKA_SECRET_${name} or the vault)`);
 
   const liveByWhere = liveVariables(liveSpec);
+  const withShared = { ...options, shared: sharedSecrets(liveByWhere) };
   for (const { where, envs } of containersOf(spec)) {
     const live = liveByWhere.get(where) ?? new Map();
-    for (const env of envs ?? []) await resolveVariable(state, options, where, env, live.get(env.key));
+    for (const env of envs ?? []) await resolveVariable(state, withShared, where, env, live.get(env.key));
     reportDropped(state, options, where, live, new Set((envs ?? []).map((env) => env.key)));
   }
   return { spec, ...state };
@@ -124,6 +127,15 @@ function liveVariables(liveSpec) {
     byWhere.get(where).set(env.key, env);
   }
   return byWhere;
+}
+
+/** The live encrypted secrets by key, from any component (App Platform seals them under the app's key): what `shareSecret` hands to a component. */
+function sharedSecrets(liveByWhere) {
+  const byKey = new Map();
+  for (const live of liveByWhere.values()) {
+    for (const [key, env] of live) if (isLiveSecret(env) && hasLiveValue(env) && !byKey.has(key)) byKey.set(key, env);
+  }
+  return byKey;
 }
 
 /** The app and every component of a spec, with their variables. */
@@ -176,6 +188,12 @@ async function resolveVariable(state, options, where, env, fromLive) {
   }
   if (hasLiveValue(fromLive)) {
     env.value = fromLive.value;
+    state.carried.push(`${where}:${env.key}`);
+    return;
+  }
+  const shared = isListed(options.shareSecret, where, env.key) ? options.shared?.get(env.key) : undefined;
+  if (shared) {
+    env.value = shared.value;
     state.carried.push(`${where}:${env.key}`);
     return;
   }
