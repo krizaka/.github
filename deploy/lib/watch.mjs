@@ -29,6 +29,30 @@ function deploymentOf(deployments, sha) {
   return deployments.find((d) => STARTED_PHASES.has(d.phase) && (componentsOf(d).some((c) => c.source_commit_hash === sha) || d.cause_details?.git_push?.commit_sha === sha));
 }
 
+const FAILED_PHASES = new Set(["ERROR", "CANCELED"]);
+
+/** An automatic or manual rollback: it re-activates an older commit, it is never the outcome of a commit being deployed. */
+const isRollback = (d) => /rollback/i.test(`${d.cause ?? ""} ${JSON.stringify(d.cause_details ?? {})}`);
+
+/** The newest deployment caused by a commit (a push or a plain create-deployment), a rollback never counting: its phase is the verdict of the last commit. */
+export function newestCommitDeployment(deployments) {
+  return [...deployments].filter((d) => !isRollback(d)).sort((a, b) => Date.parse(b.created_at ?? 0) - Date.parse(a.created_at ?? 0))[0];
+}
+
+/** The reasons of the steps that failed in a deployment's progress, one string: « build/npm-ci: message ». */
+export function failureReason(deployment) {
+  const out = [];
+  const walk = (steps, path) => {
+    for (const step of steps ?? []) {
+      const name = [...path, step.name].filter(Boolean).join("/");
+      if (step.status === "ERROR") out.push(`${name}${step.reason?.message ? `: ${step.reason.message}` : step.reason?.code ? `: ${step.reason.code}` : ""}`);
+      walk(step.steps, [...path, step.name]);
+    }
+  };
+  walk(deployment.progress?.steps, []);
+  return out.join("; ") || "no step reason reported";
+}
+
 /** Files one GitHub component of an app in the report: manual, ok, failed, waiting or missing. */
 async function checkComponent(report, entry, github, { doctl, fetch, now, env, graceMinutes }) {
   if (!github.deploy_on_push) {
@@ -40,9 +64,15 @@ async function checkComponent(report, entry, github, { doctl, fetch, now, env, g
   const deployments = JSON.parse((await doctl.run(["apps", "list-deployments", entry.appId, "-o", "json"])) || "[]");
   const found = deploymentOf(deployments, head.sha);
   const row = { ...entry, sha: head.sha, ageMinutes };
+  // The newest commit-caused deployment decides, even when DigitalOcean's automatic rollback is ACTIVE after it (verikora-dev, krizaka-internal#3780).
+  const newest = newestCommitDeployment(deployments);
+  const failedOne = newest && FAILED_PHASES.has(newest.phase) ? newest : null;
+  if (failedOne) {
+    const commit = failedOne.cause_details?.git_push?.commit_sha ?? componentsOf(failedOne)[0]?.source_commit_hash ?? head.sha;
+    report.failed.push({ ...row, sha: commit, deployment: failedOne.id, phase: failedOne.phase, reason: failureReason(failedOne) });
+  }
   if (found) {
-    const failed = found.phase === "ERROR" || found.phase === "CANCELED";
-    (failed ? report.failed : report.ok).push({ ...row, deployment: found.id, phase: found.phase });
+    if (!failedOne) report.ok.push({ ...row, deployment: found.id, phase: found.phase });
   } else (ageMinutes < graceMinutes ? report.waiting : report.missing).push(row);
 }
 
@@ -55,7 +85,7 @@ async function reportProblems(report, { doctl, log, trigger }) {
     m.triggered = created?.id ?? null;
     log(`  triggered deployment ${m.triggered} (plain, no --force-rebuild; \`krizaka-deploy\` verifies the commit that runs)`);
   }
-  for (const f of report.failed) log(`FAILED ${f.app}: deployment ${f.deployment} of ${f.sha.slice(0, 10)} ended ${f.phase}`);
+  for (const f of report.failed) log(`FAILED ${f.app}: deployment ${f.deployment} of commit ${f.sha.slice(0, 10)} ended ${f.phase}: ${f.reason}`);
 }
 
 /**
