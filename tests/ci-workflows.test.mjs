@@ -199,13 +199,12 @@ test("java gate: red on failure, cancellation, or an unasked skip; open when the
 // The daily SEO check (epic #119): the products' public addresses are www.<product>.com (indexed),
 // every live dev.<product>.com is checked as a development host that sends its pages to www.
 // dev.sovkora.com retired 2026-11-05 (#2600): sovkora keeps its www row, its dev host is gone and must not come back.
-test("the daily SEO check covers the www addresses and the dev hosts, never indexed (krizaka-internal#2659)", () => {
+test("the daily SEO check covers the www addresses, and the dev hosts of profile/products.json as dev hosts that serve pages, never indexed (krizaka-internal#2659, #3899)", () => {
   const yml = readFileSync(new URL("../.github/workflows/seo-family.yml", import.meta.url), "utf8");
-  for (const p of ["sovkora", "verikora", "folioviv"]) {
-    assert.match(yml, new RegExp(`host: www\\.${p}\\.com,`), `www.${p}.com`);
-    assert.match(yml, new RegExp(`host: dev\\.${p}\\.com, args: "--index off"`), `dev.${p}.com`);
-  }
-  assert.doesNotMatch(yml, /^\s+- dev\./m, "no dev host is checked as an indexed site");
+  for (const p of ["sovkora", "verikora", "folioviv"]) assert.match(yml, new RegExp(`host: "www\\.${p}\\.com"`), `www.${p}.com`);
+  assert.match(yml, /products\[\] \| select\(\.dev\.host\)/, "the dev hosts come from the registry");
+  assert.match(yml, /args: "--index off --dev-host"/, "a dev host is checked with the dev contract");
+  assert.doesNotMatch(yml, /host: "?dev\./, "no dev host is typed in the workflow");
 });
 
 const SIMPLE = (o) => ({ CODE: "true", CHANGES: "success", VERIFY: "success", EAS: "skipped", ...o });
