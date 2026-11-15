@@ -12,7 +12,9 @@
 # A product repository dispatches it on a push to main that changes its spec (the caller workflow deploy-spec-apply.yml there):
 #   gh workflow run deploy-spec-apply.yml -R krizaka/.github --ref main -f app=verikora-dev
 # `only` (e.g. services/web) applies some components of the file and keeps the others as they run: a component the file adds but that
-# waits for a founder step (verikora-dev's backup jobs and their BACKUP_AGE_RECIPIENT) does not hold back a fix of the web service.
+# waits for a founder step does not hold back a fix of the web service.
+# The dry run and the apply (only) get KRIZAKA_SECRET_BACKUP_AGE_RECIPIENT, the PUBLIC age recipient of verikora-dev's backup jobs; the
+# CLI resolves `__BACKUP_AGE_RECIPIENT__` from it and refuses the file when it is missing. The private identity is never in CI.
 # The daily drift report (deploy-watch, job `drift`) names this command for every drifting dev app.
 name: deploy-spec-apply
 
@@ -104,6 +106,8 @@ jobs:
 
       # Reads only: the team, the app, the live spec, the merge, the schema validation and the live site. Writes nothing.
       - name: Dry run (what the apply changes)
+        env:
+          KRIZAKA_SECRET_BACKUP_AGE_RECIPIENT: ${{ secrets.KRIZAKA_SECRET_BACKUP_AGE_RECIPIENT }}
         run: |
           only=(); [ -n "$ONLY" ] && only=(--only "$ONLY")
           node tools/deploy/bin/krizaka-deploy.mjs deploy --config product/.krizaka-deploy.json --app "$APP" --apply --dry-run "${only[@]}"
@@ -112,6 +116,7 @@ jobs:
         if: ${{ !inputs.dry-run }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          KRIZAKA_SECRET_BACKUP_AGE_RECIPIENT: ${{ secrets.KRIZAKA_SECRET_BACKUP_AGE_RECIPIENT }}
         run: |
           sha=$(git -C product rev-parse HEAD)
           only=(); [ -n "$ONLY" ] && only=(--only "$ONLY")

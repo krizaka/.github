@@ -6,6 +6,7 @@ import { readFileSync } from "node:fs";
 import { deploy } from "../lib/deploy.mjs";
 import { applyTarget, specChanges } from "../lib/spec-apply.mjs";
 import { GuardError } from "../lib/errors.mjs";
+import { createSecretProvider } from "../lib/secrets.mjs";
 import { baseConfig, fakeDoctl, fakeFetch, head, ROBOTS_ON } from "./helpers.mjs";
 
 const site = () => fakeFetch({ "/api/health": { status: 200 }, "/robots.txt": { body: ROBOTS_ON }, ...head() });
@@ -165,4 +166,33 @@ test("config liveIndexing: the host's answer is checked apart from the spec's fl
   const config = baseConfig({ url: "https://dev.verikora.com", health: "https://dev.verikora.com/api/healthz", liveIndexing: "off" });
   const report = await deploy(config, { skipHeadCheck: true }, { doctl, fetch: devHost, log: () => {}, sleep: async () => {} });
   assert.ok(report.steps.some((s) => s.name === "robots" && /noindex/.test(s.detail)), "the closed dev host passes the off checks");
+});
+
+test("the workflow: the dry run and the apply carry KRIZAKA_SECRET_BACKUP_AGE_RECIPIENT, and no other step does (krizaka-internal#3879)", () => {
+  const text = readFileSync(new URL("../../.github/workflows/deploy-spec-apply.yml", import.meta.url), "utf8");
+  const steps = text.split(/\n {6}- /).slice(1);
+  const carrying = steps.filter((s) => s.includes("KRIZAKA_SECRET_BACKUP_AGE_RECIPIENT"));
+  assert.deepEqual(carrying.map((s) => s.split("\n")[0].replace(/^name: /, "")), ["Dry run (what the apply changes)", "Apply, rebuild main, wait for ACTIVE"]);
+  for (const s of carrying) assert.match(s, /KRIZAKA_SECRET_BACKUP_AGE_RECIPIENT: \$\{\{ secrets\.KRIZAKA_SECRET_BACKUP_AGE_RECIPIENT \}\}/);
+  assert.doesNotMatch(text, /echo .*BACKUP_AGE_RECIPIENT/, "the value is never printed");
+});
+
+test("spec-apply: the recipient comes from the environment variable of the job, and a missing one is refused without a value", async () => {
+  const withJob = `${fileSpec}jobs:\n  - name: backup\n    envs:\n      - { key: BACKUP_AGE_RECIPIENT, scope: RUN_TIME, type: SECRET, value: "__BACKUP_AGE_RECIPIENT__" }\n`;
+  const RECIPIENT = "age1recipientpublickeyforthetestonly0000000000000000000000000000000";
+  const run1 = async (env) => {
+    const { doctl, calls } = fakeDoctl();
+    const lines = [];
+    const secret = createSecretProvider({ env, tool: "/nonexistent" });
+    const deps = { doctl, fetch: site(), readFile: async () => withJob, log: (l) => lines.push(l), sleep: async () => {}, secret };
+    return { deps, calls, lines };
+  };
+  const ok = await run1({ KRIZAKA_SECRET_BACKUP_AGE_RECIPIENT: RECIPIENT });
+  await deploy(baseConfig(), { apply: true }, ok.deps);
+  const sent = JSON.parse(ok.calls.find((c) => c.args[1] === "update").input);
+  assert.equal(sent.jobs[0].envs[0].value, RECIPIENT, "the job gets the recipient");
+  assert.ok(!ok.lines.join("\n").includes(RECIPIENT), "never printed");
+  const missing = await run1({});
+  await assert.rejects(deploy(baseConfig(), { apply: true }, missing.deps), (e) => e.guard === "secrets" && /BACKUP_AGE_RECIPIENT/.test(e.message));
+  assert.ok(!missing.calls.some((c) => c.args[1] === "update"), "nothing is applied");
 });
