@@ -156,16 +156,17 @@ test("config liveIndexing: the host's answer is checked apart from the spec's fl
   const raw = { app: "verikora-dev", url: "https://dev.verikora.com", health: "/api/healthz", indexing: "on" };
   assert.equal(validateConfig(raw).liveIndexing, "on", "defaults to indexing");
   assert.equal(validateConfig({ ...raw, liveIndexing: "off" }).liveIndexing, "off");
+  assert.equal(validateConfig({ ...raw, liveIndexing: "dev" }).liveIndexing, "dev");
   assert.throws(() => validateConfig({ ...raw, liveIndexing: "maybe" }), /"liveIndexing"/);
   const { doctl } = fakeDoctl();
   const devHost = fakeFetch({
     "/api/healthz": { status: 200, headers: { "x-robots-tag": "noindex" } },
     "/robots.txt": { body: "User-agent: *\nDisallow: /\n", headers: { "x-robots-tag": "noindex" } },
-    "/": { status: 308, headers: { location: "https://www.verikora.com/" } },
+    "/": { body: '<meta name="robots" content="noindex"><link rel="canonical" href="https://www.verikora.com/fr">' },
   });
-  const config = baseConfig({ url: "https://dev.verikora.com", health: "https://dev.verikora.com/api/healthz", liveIndexing: "off" });
+  const config = baseConfig({ url: "https://dev.verikora.com", health: "https://dev.verikora.com/api/healthz", liveIndexing: "dev" });
   const report = await deploy(config, { skipHeadCheck: true }, { doctl, fetch: devHost, log: () => {}, sleep: async () => {} });
-  assert.ok(report.steps.some((s) => s.name === "robots" && /noindex/.test(s.detail)), "the closed dev host passes the off checks");
+  assert.ok(report.steps.some((s) => s.name === "robots" && /noindex/.test(s.detail)), "the dev host serving noindex pages passes the dev checks");
 });
 
 test("the workflow: the dry run and the apply carry KRIZAKA_SECRET_BACKUP_AGE_RECIPIENT, and no other step does (krizaka-internal#3879)", () => {
