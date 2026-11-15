@@ -36,7 +36,8 @@ export async function verify(options, deps) {
     const deployments = JSON.parse((await doctl.run(["apps", "list-deployments", found.id, "-o", "json"])) || "[]");
     const v = verdictOf(deployments, sha);
     const minutes = (now() - started) / 60_000;
-    log(`${app} ${short}: ${v.state}${v.phase ? ` (${v.phase})` : ""} after ${minutes.toFixed(1)} min`);
+    const phase = v.phase ? ` (${v.phase})` : "";
+    log(`${app} ${short}: ${v.state}${phase} after ${minutes.toFixed(1)} min`);
     if (v.state === "ok") return { ok: true, app, sha, ...v, message: `${app}: commit ${short} is deployed (${v.phase}, deployment ${v.deployment})` };
     if (v.state === "failed") return { ok: false, app, sha, ...v, message: `${app}: commit ${short} did not deploy: deployment ${v.deployment} ended ${v.phase}: ${v.reason}` };
     if (v.state === "none" && minutes >= graceMinutes) return { ok: false, app, sha, phase: "NOT_STARTED", message: `${app}: commit ${short} not started: no deployment of it within ${graceMinutes} min` };
