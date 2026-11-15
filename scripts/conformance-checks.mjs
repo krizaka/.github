@@ -99,21 +99,27 @@ async function sourceHits(snap, check, scope, finder) {
   return hits;
 }
 
-const KZ_FALLBACK = /var\(--kz-[\w-]+\s*,[^)]*\)/g;
-const RAW_COLOUR = /(?<![\w&/-])#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})(?![\w-])|\b(?:rgba?|hsla?)\(/g;
+const KZ_FALLBACK = /var\(--kz-[\w-]+\s?,[^)]*\)/g;
+const HEX_COLOUR = /(?<![\w&/-])#([0-9a-fA-F]+)(?![\w-])/g;
+const COLOUR_FUNCTION = /\b(?:rgb|hsl)a?\(/g;
+const HEX_LENGTHS = new Set([3, 4, 6, 8]);
 /** The lines that declare a raw colour (`#rgb`, `#rrggbb`, `rgb(`, `hsl(`), outside a `var(--kz-…, fallback)`. */
 export function rawColourHits(text) {
   return text.split("\n").flatMap((raw, i) => {
     const line = raw.replace(KZ_FALLBACK, "");
-    return [...line.matchAll(RAW_COLOUR)].map(() => ({ line: i + 1 }));
+    const hexes = [...line.matchAll(HEX_COLOUR)].filter((m) => HEX_LENGTHS.has(m[1].length));
+    return [...hexes, ...line.matchAll(COLOUR_FUNCTION)].map(() => ({ line: i + 1 }));
   });
 }
 
-const BIRD_LITERAL = /\bbird\s*[=:]\s*\{?\s*["'`][\w-]+["'`](?!\s*\|)/;
-const MASCOT_TONE = /\bMascot\w*\b.*\btone\s*[=:]\s*\{?\s*["'`](?!own["'`])[\w-]+["'`]/;
+const BIRD_LITERAL = /\bbird\s?[=:]\s?\{?["'`][\w-]+["'`](?! ?\|)/;
+const TONE_LITERAL = /\btone\s?[=:]\s?\{?["'`]([\w-]+)["'`]/;
 /** The lines that give a mascot's bird as a string literal (`bird="duck"`, `bird: 'owl'`, not a type union), or a mascot's tone other than `own`. */
 export function birdLiteralHits(text) {
-  return text.split("\n").flatMap((line, i) => (BIRD_LITERAL.test(line) || MASCOT_TONE.test(line) ? [{ line: i + 1 }] : []));
+  return text.split("\n").flatMap((line, i) => {
+    const tone = line.includes("Mascot") ? TONE_LITERAL.exec(line)?.[1] : undefined;
+    return BIRD_LITERAL.test(line) || (tone !== undefined && tone !== "own") ? [{ line: i + 1 }] : [];
+  });
 }
 
 /** One handler per check type: each returns { ok, why }. */
@@ -282,7 +288,8 @@ const CHECKS = {
       .filter((p) => kit.has(p.name))
       .map((p) => ({ ...p, minors: minorsBehind(p.have, p.latest) }))
       .filter((p) => p.minors > max);
-    return verdict(late.length === 0, `more than ${max} minor(s) behind the kit: ${late.map((p) => `${p.name} ${p.have} → ${p.latest}`).join(", ")}`);
+    const named = late.map((p) => `${p.name} ${p.have} → ${p.latest}`).join(", ");
+    return verdict(late.length === 0, `more than ${max} minor(s) behind the kit: ${named}`);
   },
   // No raw colour in a site's sources (krizaka-internal#3783). `known[repo]` is the ratchet: the violations that exist today, which may only go down.
   "raw-colour": async (check, snap) => {
