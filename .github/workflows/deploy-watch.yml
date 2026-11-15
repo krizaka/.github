@@ -6,6 +6,11 @@
 # A deployment that started and ended ERROR / CANCELED is listed as failed (it is not a missing one). Apps without
 # deploy_on_push (sovkora-dev core) are deployed by hand and never expected to start by themselves.
 #
+# The newest deployment caused by a commit decides: ERROR / CANCELED fails the job (« deployment failed », one line per app with
+# the commit, the phase and the step's reason) even when DigitalOcean's automatic rollback is ACTIVE after it
+# (verikora-dev, 11 hidden failures, krizaka-internal#3780). The watchdog's `schedule-red` rule reads the scheduled run.
+# The coming-soon apps live in the krizaka-prod team: job `watch-prod`, its own read-only token (secret of the `prod` environment).
+#
 # Reads the secret DIGITALOCEAN_ACCESS_TOKEN of the `dev` environment (an app-scoped token; the environment only
 # deploys from protected branches, so a pull request never sees it): without it the job says so in a warning and does
 # nothing. A future `prod` environment gets its own token.
@@ -57,7 +62,7 @@ concurrency:
 
 jobs:
   watch:
-    name: A merge starts a deployment
+    name: A deployment failed or never started
     if: ${{ github.event.schedule != '23 5 * * *' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -100,6 +105,58 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           GRACE: ${{ inputs.grace-minutes || '10' }}
           TRIGGER: ${{ inputs.trigger || 'true' }}
+          APPS: ${{ inputs.apps }}
+        run: |
+          args=(watch --grace "$GRACE")
+          [ "$TRIGGER" = "true" ] && args+=(--trigger)
+          [ -n "$APPS" ] && args+=(--apps "$APPS")
+          node deploy/bin/krizaka-deploy.mjs "${args[@]}"
+
+  watch-prod:
+    name: A deployment failed or never started (krizaka-prod)
+    if: ${{ github.event.schedule != '23 5 * * *' && github.event_name != 'workflow_call' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: prod
+    env:
+      DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+      KRIZAKA_DO_TEAM: krizaka-prod
+    steps:
+      - name: Is the DigitalOcean token set?
+        id: gate
+        run: |
+          if [ -z "$DIGITALOCEAN_ACCESS_TOKEN" ]; then
+            echo "::warning title=deploy-watch-prod is off::the secret DIGITALOCEAN_ACCESS_TOKEN of the prod environment is not set (krizaka-internal#3780); the coming-soon apps are not watched"
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.gate.outputs.enabled == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - if: steps.gate.outputs.enabled == 'true'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+
+      - if: steps.gate.outputs.enabled == 'true'
+        uses: digitalocean/action-doctl@3cb3953159719656269e044e0e24ca16dd2a690f # v2.5.2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - if: steps.gate.outputs.enabled == 'true'
+        name: Install the CLI
+        run: npm ci --omit=dev --ignore-scripts --no-audit --no-fund --prefix deploy
+
+      - if: steps.gate.outputs.enabled == 'true'
+        name: Watch
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GRACE: ${{ inputs.grace-minutes || '10' }}
+          TRIGGER: "false" # the prod token is read-only: report, never start a deployment
           APPS: ${{ inputs.apps }}
         run: |
           args=(watch --grace "$GRACE")

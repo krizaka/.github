@@ -71,3 +71,45 @@ test("watch: an app of another team or an unreadable head fails loudly instead o
   const w = world({ apps: [app("blog", "krizaka/blog")], deployments: { "id-blog": [] } });
   await assert.rejects(run(w, fakeFetch({})), (e) => e.guard === "commit");
 });
+
+// Recorded shapes of `doctl apps list-deployments` (verikora-dev, 2026-11-14/15): the failed commit deployment, then DigitalOcean's automatic rollback.
+const push = (sha, phase, minutes, over = {}) => ({ id: `push-${phase}-${minutes}`, phase, created_at: minutesAgo(minutes), cause: `commit ${sha.slice(0, 7)} pushed to github.com/krizaka/verikora`, cause_details: { type: "GIT_PUSH", git_push: { commit_sha: sha } }, services: [{ name: "web", source_commit_hash: sha }], ...over });
+const rollback = (sha, minutes) => ({ id: `rb-${minutes}`, phase: "ACTIVE", created_at: minutesAgo(minutes), cause: "automatic rollback after a failed deployment", cause_details: { type: "AUTOROLLBACK" }, services: [{ name: "web", source_commit_hash: sha }] });
+const failedBuild = { steps: [{ name: "deploy", status: "ERROR", steps: [{ name: "health check", status: "ERROR", reason: { code: "DeployContainerHealthChecksFailed", message: "Health checks failed on port 8080" } }] }] };
+
+test("watch (a): the newest commit deployment ERROR followed by an automatic rollback ACTIVE is failed, the app named with its commit, phase and reason", async () => {
+  const w = world({ apps: [app("verikora-dev", "krizaka/verikora")], deployments: { "id-verikora-dev": [rollback(OLD, 5), push(HEAD, "ERROR", 6, { progress: failedBuild }), push(OLD, "SUPERSEDED", 600)] } });
+  const report = await run(w, fakeFetch(github("krizaka/verikora", HEAD, 30)));
+  assert.equal(report.failed.length, 1);
+  assert.equal(report.failed[0].app, "verikora-dev");
+  assert.equal(report.failed[0].sha, HEAD);
+  assert.equal(report.failed[0].phase, "ERROR");
+  assert.match(report.failed[0].reason, /deploy\/health check: Health checks failed on port 8080/);
+  assert.equal(report.ok.length, 0);
+});
+
+test("watch (b): the newest commit deployment ACTIVE is green", async () => {
+  const w = world({ apps: [app("verikora-dev", "krizaka/verikora")], deployments: { "id-verikora-dev": [push(HEAD, "ACTIVE", 6), push(OLD, "SUPERSEDED", 600)] } });
+  const report = await run(w, fakeFetch(github("krizaka/verikora", HEAD, 30)));
+  assert.equal(report.failed.length, 0);
+  assert.equal(report.ok[0].app, "verikora-dev");
+});
+
+test("watch (b'): a later good commit after an old failure is green", async () => {
+  const w = world({ apps: [app("verikora-dev", "krizaka/verikora")], deployments: { "id-verikora-dev": [push(HEAD, "ACTIVE", 6), rollback(OLD, 60), push(OLD, "ERROR", 61)] } });
+  const report = await run(w, fakeFetch(github("krizaka/verikora", HEAD, 30)));
+  assert.equal(report.failed.length, 0);
+});
+
+test("watch (c): a CANCELED commit deployment is failed", async () => {
+  const w = world({ apps: [app("verikora-dev", "krizaka/verikora")], deployments: { "id-verikora-dev": [push(HEAD, "CANCELED", 6)] } });
+  const report = await run(w, fakeFetch(github("krizaka/verikora", HEAD, 30)));
+  assert.equal(report.failed[0].phase, "CANCELED");
+});
+
+test("watch (d): an app without deploy_on_push is never expected, even with a failed deployment in its list", async () => {
+  const w = world({ apps: [app("sovkora-dev", "krizaka/sovkora", { deploy_on_push: undefined })], deployments: { "id-sovkora-dev": [push(HEAD, "ERROR", 6)] } });
+  const report = await run(w, fakeFetch(github("krizaka/sovkora", HEAD, 90)));
+  assert.equal(report.failed.length, 0);
+  assert.equal(report.manual[0].app, "sovkora-dev");
+});
