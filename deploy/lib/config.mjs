@@ -11,7 +11,8 @@ import { GuardError } from "./errors.mjs";
  *   "indexing": "off",                           // "on" for an indexed site, "off" for a noindex one — REQUIRED
  *   "indexingVariable": true,                    // false when the app has no APP_SEARCH_INDEXING switch (krizaka.com)
  *   "liveIndexing": "off",                       // what the host answers when it differs from the spec's flag (default: "indexing");
- *                                                //   verikora-dev: the flag is on, the dev host is closed by host (308 to www, noindex)
+ *                                                //   "dev": a development host that serves its pages, never indexed (robots Disallow, noindex, canonical and hreflang on www);
+ *                                                //   verikora-dev: the flag is on, the dev host is closed by host
  *   "spec": "deploy/digitalocean/app.yaml",      // the spec `--apply` sends (optional without --apply)
  *   "product": "folioviv",                        // `secret.sh @<product>` fills secrets locally (optional)
  *   "seoFamily": { "script": "scripts/check-seo-family.mjs", "args": ["--organization"] },   // optional
@@ -43,7 +44,7 @@ export function validateConfig(raw, root = process.cwd()) {
     fail(`"url" is not a URL: ${raw.url}`);
   }
   if (url.protocol !== "https:") fail('"url" must be https');
-  if (raw.liveIndexing !== undefined && raw.liveIndexing !== "on" && raw.liveIndexing !== "off") fail('"liveIndexing" must be "on" or "off" when set');
+  if (raw.liveIndexing !== undefined && raw.liveIndexing !== "on" && raw.liveIndexing !== "off" && raw.liveIndexing !== "dev") fail('"liveIndexing" must be "on", "off" or "dev" when set');
   const health = new URL(raw.health, url);
   if (health.origin !== url.origin) fail('"health" must stay on the site\'s origin');
   return {

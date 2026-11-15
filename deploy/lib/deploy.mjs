@@ -205,7 +205,7 @@ export async function runChecks(config, { fetch, spawnCheck, healthAttempts = 12
   step("health", `${config.health} → ${health.status}`);
   const live = config.liveIndexing ?? config.indexing;
   const indexing = await checkIndexing(config.url, live, { fetch, healthUrl: config.health });
-  step("robots", `${indexing.robots}${indexing.noindex ? `, noindex by ${indexing.noindex}` : ""}${indexing.redirect ? `, HTML 308 to ${indexing.redirect}` : ""}`);
+  step("robots", `${indexing.robots}${indexing.noindex ? `, noindex by ${indexing.noindex}` : ""}${indexing.canonical ? `, pages served, canonical ${indexing.canonical}` : ""}`);
   if (config.seoFamily) {
     await checkSeoFamily(config.url, { script: config.seoFamily.script, args: config.seoFamily.args ?? [], index: live, cwd: config.root, spawnCheck });
     step("seo-family", "contract met");
