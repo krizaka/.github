@@ -3,7 +3,7 @@
 #      the moment the build is served, red when the time is up);
 #   2. IndexNow with the URLs that CHANGED only (the sitemap's new or re-dated URLs since the last submission, kept in the
 #      cache), the key file served by the site; a site closed to crawlers (`indexed: false` or robots Disallow: /) is not pinged;
-#   3. the family's SEO guard (krizaka-com) against the LIVE host, with the site's own arguments;
+#   3. the family's SEO guard (`krizaka-seo-family`, shipped by @krizaka/config at an exact version) against the LIVE host, with the site's own arguments;
 #   4. red -> one issue on the CALLING repository (a comment when it is already open).
 # A caller (needs `issues: write`; the key is public by design, a plain input; pin to a SHA):
 #   post-deploy:
@@ -36,7 +36,7 @@ on:
         type: boolean
         default: true
       seo-args:
-        description: "Extra arguments of check-seo-family.mjs (e.g. --organization, or --index off --redirects-to https://www.x.com)"
+        description: "Extra arguments of krizaka-seo-family (e.g. --organization, or --index off --redirects-to https://www.x.com)"
         type: string
         default: ""
       timeout-minutes:
@@ -70,15 +70,6 @@ jobs:
           sparse-checkout-cone-mode: false
           persist-credentials: false
           path: tools
-
-      - name: Fetch the family's SEO guard
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: krizaka/krizaka-com
-          sparse-checkout: scripts/check-seo-family.mjs
-          sparse-checkout-cone-mode: false
-          persist-credentials: false
-          path: seo
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -118,7 +109,7 @@ jobs:
         run: |
           set -o pipefail
           read -r -a extra <<< "${ARGS}"
-          node seo/scripts/check-seo-family.mjs --base "${SITE}" --host "${SITE}" "${extra[@]}" 2>&1 | tee -a deploy.log
+          npx --yes -p @krizaka/config@0.26.0 krizaka-seo-family --base "${SITE}" --host "${SITE}" "${extra[@]}" 2>&1 | tee -a deploy.log
 
       - id: alert-app
         if: ${{ failure() }}
