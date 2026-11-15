@@ -10,6 +10,9 @@
 # auto-merge: CI decides; the `breaking` leg (a major, or a 0.x minor) opens its own pull request « chore(deps): breaking … »,
 # labelled `breaking`, never auto-merged, never mixed with the wave. Both start from the current default branch. A leg that finds
 # main already at the target versions opens nothing and closes its stale pull request. Dependabot stays as the weekly safety net.
+# Then, when the repository's root package.json has a `krizaka:postbump` script, it installs the bumped lockfile and runs it, so what the
+# repository derives from the installed packages (gen:ui-names, gen:package-exports) is committed in the same pull request; a failing
+# script fails the job, never a red pull request (krizaka-internal#3721). Budgets are never re-recorded: a human decides.
 # `dry-run` prints the plan and writes nothing.
 name: Bump @krizaka packages
 
@@ -92,6 +95,11 @@ jobs:
       - name: Regenerate every lockfile of a changed manifest
         if: steps.bump.outputs.changed == 'true' && !inputs.dry-run
         run: node "$GITHUB_WORKSPACE/.krizaka-org/scripts/krizaka-release.mjs" lock
+        working-directory: ${{ inputs.working-directory }}
+
+      - name: Regenerate what the repository derives from the bumped packages (krizaka:postbump)
+        if: steps.bump.outputs.changed == 'true' && !inputs.dry-run
+        run: node "$GITHUB_WORKSPACE/.krizaka-org/scripts/krizaka-release.mjs" postbump
         working-directory: ${{ inputs.working-directory }}
 
       - name: Open the pull request
