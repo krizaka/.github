@@ -77,6 +77,9 @@ function checkShape({ id, check = {} }) {
     "time-limits": () => true,
     "format-declared": () => true,
     "versions-current": () => !check.ecosystems || check.ecosystems.every((e) => ["npm", "maven"].includes(e)),
+    "kit-lag": () => Array.isArray(check.packages) && check.packages.length > 0,
+    "raw-colour": () => true,
+    "bird-literal": () => true,
     "required-profile": () => Boolean(check.byKind && Object.values(check.byKind).every((gs) => Array.isArray(gs) && gs.every((g) => g.name && g.pattern))),
   };
   return needs[check.type]?.() === false ? [`${id}: the ${check.type} check is incomplete`] : [];

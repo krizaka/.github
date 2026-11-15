@@ -1379,6 +1379,56 @@
         "type": "manual",
         "note": "replace maven.pkg.github.com with the Maven Central coordinate; replace npm.pkg.github.com with the npm registry; see ADR-021"
       }
+    },
+    {
+      "id": "site-kit-current",
+      "title": "A site stays on the kit: no @krizaka/ui, tokens, tailwind, org or config pin more than one minor behind the latest",
+      "issue": "krizaka/krizaka-internal#3783",
+      "applies": {
+        "when": [{ "inList": "orchestration/sites.json" }]
+      },
+      "check": {
+        "type": "kit-lag",
+        "packages": ["@krizaka/ui", "@krizaka/tokens", "@krizaka/tailwind", "@krizaka/org", "@krizaka/config"],
+        "maxMinors": 1
+      },
+      "fix": {
+        "type": "manual",
+        "note": "bump the kit packages of the site to the latest (the bump-krizaka.yml workflow does it on a release; krizaka-coming-soon needs the workflow first, release-propagation); until its own fix ticket lands the cell is reported, it blocks no other repository"
+      }
+    },
+    {
+      "id": "site-no-raw-colour",
+      "title": "A site declares no raw colour (#rgb, #rrggbb, rgb(, hsl( in app/, lib/ or a stylesheet); it uses a @krizaka/tokens variable (ratchet: the known violations may only go down)",
+      "issue": "krizaka/krizaka-internal#3783",
+      "applies": {
+        "when": [{ "inList": "orchestration/sites.json" }]
+      },
+      "check": {
+        "type": "raw-colour",
+        "except": ["(^|/)og\\.png/route\\.tsx?$", "(^|/)manifest\\.ts$"],
+        "known": { "krizaka-blog": 29, "krizaka-com": 58, "krizaka-java": 39, "krizaka-ts": 3, "krizaka-ui": 625 }
+      },
+      "fix": {
+        "type": "manual",
+        "note": "replace the literal by a var(--kz-…) token of @krizaka/tokens; og.png/route.tsx and manifest.ts need literal colours (image, PWA manifest) and are allowed; lower the known count of this rule when you remove a violation"
+      }
+    },
+    {
+      "id": "site-bird-from-org",
+      "title": "A site hard-codes no bird: its mascot comes from org.sites[].mascot through the kit's SiteMascot (a content bird lives in a data file listed in `allow`)",
+      "issue": "krizaka/krizaka-internal#3783",
+      "applies": {
+        "when": [{ "inList": "orchestration/sites.json" }]
+      },
+      "check": {
+        "type": "bird-literal",
+        "allow": ["(^|/)lib/building-blocks\\.ts$", "(^|/)lib/families\\.ts$"]
+      },
+      "fix": {
+        "type": "manual",
+        "note": "render the identity mascot with SiteMascot (krizaka-internal#3786); a building block's own bird is data: put it in a data file and list that file in `allow` of this rule"
+      }
     }
   ]
 }
