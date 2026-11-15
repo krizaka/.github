@@ -220,6 +220,11 @@ export function driftOf(consumers, clones) {
   return drift;
 }
 
+/** The site repositories (orchestration/sites.json) that release-consumers.json does not list: no release would ever reach them. */
+export function missingSites(consumers, sites) {
+  return sites.filter((repo) => !(repo in consumers)).map((repo) => `${repo}: a site with no entry in release-consumers.json`);
+}
+
 /** Edits this checkout's manifests (`scope`: `wave`, `breaking` or `all`); returns the plans and the paths of the changed manifests. */
 export function bumpCheckout(root, packages, dryRun, scope = "all") {
   const paths = manifestPaths(root);
@@ -278,7 +283,8 @@ async function main([command, argument, ...flags]) {
   const consumers = JSON.parse(readFileSync(CONSUMERS_FILE, "utf8")).repos;
   const dryRun = flags.includes("--dry-run");
   if (command === "check") {
-    const drift = driftOf(consumers, argument);
+    const sites = JSON.parse(readFileSync(new URL("../orchestration/sites.json", import.meta.url), "utf8")).repos;
+    const drift = [...missingSites(consumers, sites), ...driftOf(consumers, argument)];
     drift.forEach((line) => console.error(line));
     return drift.length > 0 ? 1 : 0;
   }

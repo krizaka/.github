@@ -11,6 +11,8 @@
       "@krizaka/config",
       "@krizaka/db",
       "@krizaka/discovery",
+      "@krizaka/email",
+      "@krizaka/email-verification",
       "@krizaka/fonts",
       "@krizaka/i18n",
       "@krizaka/icons",
@@ -21,6 +23,7 @@
       "@krizaka/payments",
       "@krizaka/privacy",
       "@krizaka/query",
+      "@krizaka/rate-limit",
       "@krizaka/realtime",
       "@krizaka/settings",
       "@krizaka/storage",
@@ -70,31 +73,40 @@
       "@krizaka/charts",
       "@krizaka/config",
       "@krizaka/discovery",
+      "@krizaka/email-verification",
       "@krizaka/fonts",
       "@krizaka/i18n",
       "@krizaka/icons",
+      "@krizaka/org",
       "@krizaka/query",
+      "@krizaka/rate-limit",
       "@krizaka/tailwind",
+      "@krizaka/time",
       "@krizaka/tokens",
       "@krizaka/ui"
     ],
     "krizaka-blog": [
+      "@krizaka/architecture",
       "@krizaka/charts",
       "@krizaka/config",
       "@krizaka/email",
       "@krizaka/fonts",
       "@krizaka/i18n",
       "@krizaka/icons",
+      "@krizaka/org",
       "@krizaka/query",
+      "@krizaka/rate-limit",
       "@krizaka/tailwind",
       "@krizaka/tokens",
       "@krizaka/ui"
     ],
     "krizaka-lab": [
       "@krizaka/charts",
+      "@krizaka/config",
       "@krizaka/fonts",
       "@krizaka/i18n",
       "@krizaka/icons",
+      "@krizaka/query",
       "@krizaka/tailwind",
       "@krizaka/tokens",
       "@krizaka/ui"
@@ -110,9 +122,11 @@
       "@krizaka/ui"
     ],
     "krizaka-ui": [
+      "@krizaka/architecture",
       "@krizaka/config",
       "@krizaka/org",
-      "@krizaka/organize"
+      "@krizaka/organize",
+      "@krizaka/ui-builder"
     ],
     "krizaka-ts": [
       "@krizaka/a11y-audit",
@@ -120,6 +134,16 @@
       "@krizaka/i18n",
       "@krizaka/icons",
       "@krizaka/intl",
+      "@krizaka/query",
+      "@krizaka/tailwind",
+      "@krizaka/tokens",
+      "@krizaka/ui"
+    ],
+    "krizaka-coming-soon": [
+      "@krizaka/config",
+      "@krizaka/fonts",
+      "@krizaka/i18n",
+      "@krizaka/org",
       "@krizaka/query",
       "@krizaka/tailwind",
       "@krizaka/tokens",

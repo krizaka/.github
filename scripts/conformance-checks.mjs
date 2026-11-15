@@ -6,7 +6,7 @@
 import { problemsOf } from "./agents-md.mjs";
 import { formatVerdict } from "./format-declared.mjs";
 import { jobsWithoutTimeout, configWithoutTestTimeout, nodeTestWithoutTimeout } from "./check-timeouts.mjs";
-import { behind, pinsOf, versionsVerdict } from "./conformance-versions.mjs";
+import { behind, compareVersions, pinsOf, versionsVerdict } from "./conformance-versions.mjs";
 import { candidateOf, isPublicSource, publicEmailHits } from "./public-email.mjs";
 import { callerPermissionProblems } from "./caller-permissions.mjs";
 import { byCodePoint, isPackageManifest, isTestConfig, WORKFLOW_PATH } from "./conformance-basics.mjs";
@@ -74,6 +74,46 @@ export function queueReportsVerdict(required, workflows) {
   }
   if (required.some((c) => SONAR_APP_CHECK.test(c)) && scans.length === 0) problems.push("« SonarCloud Code Analysis » is required but no CI scan job (sonar-scan) exists: the app does not analyse a merge queue SHA");
   return verdict(problems.length === 0, problems.join("; "));
+}
+
+/** How many minors a pin is behind: 0 when current, Infinity when a major behind. */
+export function minorsBehind(have, latest) {
+  const [hMajor, hMinor] = have.split(".").map(Number);
+  const [lMajor, lMinor] = latest.split(".").map(Number);
+  if (compareVersions(have, latest) >= 0) return 0;
+  return hMajor === lMajor ? lMinor - hMinor : Infinity;
+}
+
+/** A site's sources: `app/**`, `lib/**` (at the root or in `site/`, `apps/site/`) and every stylesheet, never dependencies or build output. */
+const SITE_SOURCE = /(?:(?:^|\/)(?:app|lib)\/.*\.(?:tsx?|jsx?|mjs|css)|\.css)$/;
+const SITE_CODE = /(?:^|\/)(?:app|lib|components)\/.*\.(?:tsx?|jsx?|mjs)$/;
+const NOT_SOURCE = /(?:^|\/)(?:node_modules|\.next|dist|build|coverage)\/|\.(?:test|spec)\.[jt]sx?$|(?:^|\/)__tests__\//;
+
+/** `path:line` of what `finder` reports in the site's source files; `except` and `allow` are regexes of paths left out. */
+async function sourceHits(snap, check, scope, finder) {
+  const spared = [...(check.except ?? []), ...(check.allow ?? [])].map((p) => new RegExp(p));
+  const hits = [];
+  for (const path of snap.paths.filter((p) => scope.test(p) && !NOT_SOURCE.test(p) && !spared.some((re) => re.test(p))).sort(byCodePoint)) {
+    for (const hit of finder((await snap.read(path)) ?? "")) hits.push(`${path}:${hit.line}`);
+  }
+  return hits;
+}
+
+const KZ_FALLBACK = /var\(--kz-[\w-]+\s*,[^)]*\)/g;
+const RAW_COLOUR = /(?<![\w&/-])#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})(?![\w-])|\b(?:rgba?|hsla?)\(/g;
+/** The lines that declare a raw colour (`#rgb`, `#rrggbb`, `rgb(`, `hsl(`), outside a `var(--kz-…, fallback)`. */
+export function rawColourHits(text) {
+  return text.split("\n").flatMap((raw, i) => {
+    const line = raw.replace(KZ_FALLBACK, "");
+    return [...line.matchAll(RAW_COLOUR)].map(() => ({ line: i + 1 }));
+  });
+}
+
+const BIRD_LITERAL = /\bbird\s*[=:]\s*\{?\s*["'`][\w-]+["'`](?!\s*\|)/;
+const MASCOT_TONE = /\bMascot\w*\b.*\btone\s*[=:]\s*\{?\s*["'`](?!own["'`])[\w-]+["'`]/;
+/** The lines that give a mascot's bird as a string literal (`bird="duck"`, `bird: 'owl'`, not a type union), or a mascot's tone other than `own`. */
+export function birdLiteralHits(text) {
+  return text.split("\n").flatMap((line, i) => (BIRD_LITERAL.test(line) || MASCOT_TONE.test(line) ? [{ line: i + 1 }] : []));
 }
 
 /** One handler per check type: each returns { ok, why }. */
@@ -231,6 +271,29 @@ const CHECKS = {
       for (const hit of publicEmailHits(path, (await snap.read(path)) ?? "", check)) hits.push(`${path}:${hit.line} ${hit.address}`);
     }
     return verdict(hits.length === 0, `${hits.length} Krizaka address(es) on a public page, e.g. ${hits.slice(0, 3).join(", ")}`);
+  },
+  // A site stays on the kit (krizaka-internal#3783): no pin of the kit packages more than `maxMinors` minors behind the latest. Minors, not days:
+  // in 0.x one minor is the breaking line, so the same count. It reuses `lateOf` (no grace: every pin behind), then measures the distance.
+  "kit-lag": async (check, snap) => {
+    if (!snap.latest) return unread("the published versions");
+    const kit = new Set(check.packages);
+    const max = check.maxMinors ?? 1;
+    const late = (await lateOf(snap, { ecosystems: ["npm"], graceDays: 0 }))
+      .filter((p) => kit.has(p.name))
+      .map((p) => ({ ...p, minors: minorsBehind(p.have, p.latest) }))
+      .filter((p) => p.minors > max);
+    return verdict(late.length === 0, `more than ${max} minor(s) behind the kit: ${late.map((p) => `${p.name} ${p.have} → ${p.latest}`).join(", ")}`);
+  },
+  // No raw colour in a site's sources (krizaka-internal#3783). `known[repo]` is the ratchet: the violations that exist today, which may only go down.
+  "raw-colour": async (check, snap) => {
+    const hits = await sourceHits(snap, check, SITE_SOURCE, rawColourHits);
+    const known = check.known?.[snap.name] ?? 0;
+    return verdict(hits.length <= known, `${hits.length} raw colour(s), ratchet ${known}, e.g. ${hits.slice(0, 3).join(", ")}`);
+  },
+  // No string literal for a mascot's bird or tone in a site's code (krizaka-internal#3783): the site renders it from the org data. `allow`: data files of content birds.
+  "bird-literal": async (check, snap) => {
+    const hits = await sourceHits(snap, check, SITE_CODE, birdLiteralHits);
+    return verdict(hits.length === 0, `${hits.length} hard-coded bird(s), e.g. ${hits.slice(0, 3).join(", ")}`);
   },
   // What the repository PUBLISHES: the latest npm tarball of each of its public packages (built CSS/JS included), not its sources.
   // A rule change reached the repository (krizaka-internal#879): no family pin older than a version out for `graceDays`.
