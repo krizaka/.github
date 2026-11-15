@@ -119,3 +119,21 @@ test("the workflow: dispatched only, in the dev environment, the dry run before 
   assert.ok(calls[0].includes("--dry-run") && !calls[1].includes("--dry-run"), "the dry run comes first");
   assert.doesNotMatch(text, /run: .*\$\{\{/, "no expression inside a run line");
 });
+
+test("spec-apply --only: the listed component comes from the file, every other one stays as it runs (a founder-gated job is not applied)", async () => {
+  const { doctl, calls } = fakeDoctl();
+  const withJob = `${fileSpec}jobs:\n  - name: backup\n    envs:\n      - { key: BACKUP_AGE_RECIPIENT, scope: RUN_TIME, type: SECRET, value: "__BACKUP_AGE_RECIPIENT__" }\n`;
+  const deps = { doctl, fetch: site(), readFile: async () => withJob, log: () => {}, sleep: async () => {} };
+  await assert.rejects(deploy(baseConfig(), { apply: true, dryRun: true }, deps), (e) => e.guard === "secrets" && /BACKUP_AGE_RECIPIENT/.test(e.message), "the whole file needs the job's secret");
+  await deploy(baseConfig(), { apply: true, only: ["services/web"] }, deps);
+  const sent = JSON.parse(calls.find((c) => c.args[1] === "update").input);
+  assert.equal(sent.jobs, undefined, "the job the file adds is not applied");
+  assert.ok(sent.services[0].envs.some((e) => e.key === "MEDIA_DOCUMENTS_TENANT"), "the listed component is the file's");
+  assert.equal(sent.services[0].envs.find((e) => e.key === "MAIL_API_KEY").value, SECRET_VALUE, "its live secret is kept");
+});
+
+test("spec-apply --only: a component the file does not have is refused", async () => {
+  const { doctl } = fakeDoctl();
+  const deps = { doctl, fetch: site(), readFile: async () => fileSpec, log: () => {}, sleep: async () => {} };
+  await assert.rejects(deploy(baseConfig(), { apply: true, dryRun: true, only: ["workers/ghost"] }, deps), (e) => e.guard === "only" && /workers\/ghost/.test(e.message));
+});

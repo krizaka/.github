@@ -23,6 +23,26 @@ export function applyTarget(registry, app, config) {
   return { app: entry.app, repo: entry.repo, spec: entry.spec };
 }
 
+/**
+ * `--only section/name,…`: the spec to apply is the live one with only the listed components taken from the file — a component the
+ * file adds but that waits for a founder step (a scheduled job with its own secret) is left out. The app-level fields stay live.
+ */
+export function scopeToComponents(fileSpec, liveSpec, only) {
+  const scoped = structuredClone(liveSpec);
+  for (const id of only) {
+    const [given, name] = id.split("/");
+    // The key comes from the constant list, never from the input (no `__proto__` can reach the assignment below).
+    const section = SECTIONS.find((s) => s === given);
+    const component = section ? (fileSpec[section] ?? []).find((c) => c.name === name) : undefined;
+    if (!section || !component) throw new GuardError("only", `--only ${id}: the spec file has no such component (expected <${SECTIONS.join("|")}>/<name>)`);
+    const list = (scoped[section] ??= []);
+    const at = list.findIndex((c) => c.name === name);
+    if (at >= 0) list[at] = structuredClone(component);
+    else list.push(structuredClone(component));
+  }
+  return scoped;
+}
+
 /** One variable list against the live one: added, changed (a secret says « secret replaced »), removed. */
 function envChanges(where, next = [], live = []) {
   const liveByKey = new Map(live.map((e) => [e.key, e]));

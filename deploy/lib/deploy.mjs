@@ -7,7 +7,7 @@ import { assertContext } from "./doctl.mjs";
 import { assertIndexing, assertIngressRoutes, mergeWithLive, parseSpec, dumpSpec } from "./spec.mjs";
 import { componentsOf, verifyRunningHead } from "./head.mjs";
 import { checkHealth, checkIndexing, checkSeoFamily } from "./checks.mjs";
-import { specChanges } from "./spec-apply.mjs";
+import { scopeToComponents, specChanges } from "./spec-apply.mjs";
 
 const FAILED = new Set(["ERROR", "CANCELED", "SUPERSEDED"]);
 
@@ -81,7 +81,10 @@ async function applySpec(ctx, appId, liveSpec, indexingOptions) {
   const fileSpec = parseSpec(await readFile(resolve(config.root, config.spec), "utf8"));
   assertIndexing(fileSpec, { ...indexingOptions, label: config.spec });
   assertIngressRoutes(fileSpec, { label: config.spec });
-  const merged = await mergeWithLive(fileSpec, liveSpec, { secret, allowDrop, allowChange, setSecret });
+  const { only = [] } = options;
+  const source = only.length ? scopeToComponents(fileSpec, liveSpec, only) : fileSpec;
+  if (only.length) step("only", `${only.join(", ")} from ${config.spec}; every other component as it runs`);
+  const merged = await mergeWithLive(source, liveSpec, { secret, allowDrop, allowChange, setSecret });
   if (merged.problems.length) throw new GuardError("secrets", `${config.spec} cannot be applied:\n  - ${merged.problems.join("\n  - ")}`);
   assertIndexing(merged.spec, { ...indexingOptions, label: "merged spec" });
   const text = dumpSpec(merged.spec);
