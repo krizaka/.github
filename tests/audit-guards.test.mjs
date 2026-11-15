@@ -44,7 +44,7 @@ test("a public repo with a recognised licence passes", () => {
   assert.deepEqual(noassertionProblems("some-lib", "MIT"), []);
 });
 test("FSL repos are exempt from NOASSERTION (GitHub cannot classify FSL-1.1-ALv2)", () => {
-  assert.deepEqual(noassertionProblems("sovkora", "NOASSERTION"), []);
+  for (const repo of ["sovkora", "verikora", "folioviv", "kridoc"]) assert.deepEqual(noassertionProblems(repo, "NOASSERTION"), []);
 });
 test("a null spdx_id is not NOASSERTION and does not fail", () => {
   assert.deepEqual(noassertionProblems("some-lib", null), []);
