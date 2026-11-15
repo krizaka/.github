@@ -30,9 +30,11 @@ export function applyTarget(registry, app, config) {
 export function scopeToComponents(fileSpec, liveSpec, only) {
   const scoped = structuredClone(liveSpec);
   for (const id of only) {
-    const [section, name] = id.split("/");
-    const component = SECTIONS.includes(section) ? (fileSpec[section] ?? []).find((c) => c.name === name) : undefined;
-    if (!component) throw new GuardError("only", `--only ${id}: the spec file has no such component (expected <${SECTIONS.join("|")}>/<name>)`);
+    const [given, name] = id.split("/");
+    // The key comes from the constant list, never from the input (no `__proto__` can reach the assignment below).
+    const section = SECTIONS.find((s) => s === given);
+    const component = section ? (fileSpec[section] ?? []).find((c) => c.name === name) : undefined;
+    if (!section || !component) throw new GuardError("only", `--only ${id}: the spec file has no such component (expected <${SECTIONS.join("|")}>/<name>)`);
     const list = (scoped[section] ??= []);
     const at = list.findIndex((c) => c.name === name);
     if (at >= 0) list[at] = structuredClone(component);
