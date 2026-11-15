@@ -14,33 +14,46 @@ permissions:
   contents: read
 
 jobs:
+  # The matrix is the public hosts below plus the development host of every product of profile/products.json (the one registry:
+  # no dev host is typed here). A development host serves its pages and is never indexed: robots Disallow, noindex, canonical and
+  # hreflang on www (`--dev-host`, krizaka-internal#3899), the same contract as `liveIndexing: "dev"` of krizaka-deploy.
+  hosts:
+    name: Hosts
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: matrix
+        run: |
+          jq -c '{include: ([
+              {host: "www.krizaka.com", args: ""}, {host: "ui.krizaka.com", args: ""}, {host: "java.krizaka.com", args: ""},
+              {host: "www.sovkora.com", args: ""}, {host: "www.verikora.com", args: ""}, {host: "www.folioviv.com", args: ""}
+            ] + [.products[] | select(.dev.host) | {host: .dev.host, args: "--index off --dev-host"}])}' profile/products.json > matrix.json
+          echo "matrix=$(cat matrix.json)" >> "$GITHUB_OUTPUT"
+
   check:
     name: ${{ matrix.host }}
+    needs: hosts
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       contents: read
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - { host: www.krizaka.com, args: "" }
-          - { host: ui.krizaka.com, args: "" }
-          - { host: java.krizaka.com, args: "" }
-          - { host: www.sovkora.com, args: "" }
-          - { host: www.verikora.com, args: "" }
-          - { host: www.folioviv.com, args: "" }
-          # The development hosts (dev.<product>.com since 2026-11-06, krizaka-internal#2659): the dev app itself, never indexed.
-          - { host: dev.verikora.com, args: "--index off" }
-          - { host: dev.folioviv.com, args: "--index off" }
-          - { host: dev.sovkora.com, args: "--index off" }
+      matrix: ${{ fromJSON(needs.hosts.outputs.matrix) }}
     steps:
       - name: Check ${{ matrix.host }}
         id: seo
         run: |
           set +e
           read -r -a extra <<< "${ARGS}"
-          npx --yes -p @krizaka/config@0.26.0 krizaka-seo-family --base "https://${HOST}" --host "https://${HOST}" "${extra[@]}" 2>&1 | tee seo.log
+          npx --yes -p @krizaka/config@0.27.0 krizaka-seo-family --base "https://${HOST}" --host "https://${HOST}" "${extra[@]}" 2>&1 | tee seo.log
           echo "code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
         env:
           HOST: ${{ matrix.host }}
