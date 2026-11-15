@@ -63,9 +63,10 @@ export async function driftAll({ registry, doctl, fetch = globalThis.fetch, env 
 export async function driftAllCommand({ registry, doctl, log = console.log, summary = process.env.GITHUB_STEP_SUMMARY }) {
   const report = await driftAll({ registry, doctl, argv: process.argv.slice(2) });
   log(`equal ${report.ok.length} · drifting ${report.drift.length}`);
-  for (const d of report.drift) log(`DRIFT ${d.app}\n  - ${d.differences.join("\n  - ")}${d.fix ? `\n  fix: ${d.fix}` : ""}`);
+  const fixLine = (d, prefix) => (d.fix ? `\n${prefix}` + d.fix : "");
+  for (const d of report.drift) log(`DRIFT ${d.app}\n  - ${d.differences.join("\n  - ")}${fixLine(d, "  fix: ")}`);
   if (summary) {
-    const rows = report.drift.map((d) => `- **${d.app}**\n${d.differences.map((x) => `  - ${x}`).join("\n")}${d.fix ? `\n  - fix: \`${d.fix}\`` : ""}`);
+    const rows = report.drift.map((d) => `- **${d.app}**\n${d.differences.map((x) => "  - " + x).join("\n")}${fixLine(d, "  - fix: ")}`);
     appendFileSync(summary, `### krizaka-deploy drift-all\n\n${rows.join("\n") || "Every spec file equals its live app."}\n`);
   }
   return report;

@@ -3,16 +3,9 @@
 // registry names, on main of the repository the registry names, to a Krizaka-team app. The diff names keys and fields, never a value.
 import { GuardError } from "./errors.mjs";
 import { DEFAULT_TEAM } from "./doctl.mjs";
+import { byCodeUnit, same } from "./drift.mjs";
 
 const SECTIONS = ["services", "workers", "jobs", "static_sites", "functions"];
-/** Code-unit order, spelled out. */
-const byCodeUnit = (a, b) => Number(a > b) - Number(a < b);
-function sortKeys(v) {
-  if (Array.isArray(v)) return v.map(sortKeys);
-  if (!v || typeof v !== "object") return v;
-  return Object.fromEntries(Object.keys(v).sort(byCodeUnit).map((k) => [k, sortKeys(v[k])]));
-}
-const same = (a, b) => JSON.stringify(sortKeys(a ?? null)) === JSON.stringify(sortKeys(b ?? null));
 const isSecret = (env) => env?.type === "SECRET" || String(env?.value).startsWith("EV[");
 
 /**

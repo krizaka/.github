@@ -89,7 +89,8 @@ async function applySpec(ctx, appId, liveSpec, indexingOptions) {
   step("spec", `valid; ${merged.carried.length} variable(s) kept from the live app, ${merged.resolved.length} filled from the vault`);
   // What the apply changes, by key and field: never a value (a carried secret equals the live one and is not listed).
   const changes = specChanges(merged.spec, liveSpec);
-  step("diff", changes.length ? `${changes.length} change(s)\n${changes.map((c) => `    ${c}`).join("\n")}` : "none: the file equals the live app");
+  const listed = changes.map((c) => "    " + c).join("\n");
+  step("diff", changes.length ? `${changes.length} change(s)\n${listed}` : "none: the file equals the live app");
   if (options.dryRun) {
     step("apply", `would update ${appId}`);
     return;

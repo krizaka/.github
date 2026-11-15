@@ -8,13 +8,14 @@ import { envEntries, isSecretPlaceholder, mergeWithLive, parseSpec } from "./spe
 
 const SECTIONS = ["services", "workers", "jobs", "static_sites", "functions"];
 /** Code-unit order, the order `.sort()` gave, spelled out. */
-const byCodeUnit = (a, b) => Number(a > b) - Number(a < b);
+export const byCodeUnit = (a, b) => Number(a > b) - Number(a < b);
 function sortKeys(v) {
   if (Array.isArray(v)) return v.map(sortKeys);
   if (!v || typeof v !== "object") return v;
   return Object.fromEntries(Object.keys(v).sort(byCodeUnit).map((k) => [k, sortKeys(v[k])]));
 }
-const same = (a, b) => JSON.stringify(sortKeys(a ?? null)) === JSON.stringify(sortKeys(b ?? null));
+/** Two spec values are equal, key order aside. */
+export const same = (a, b) => JSON.stringify(sortKeys(a ?? null)) === JSON.stringify(sortKeys(b ?? null));
 
 /** App Platform stores every ingress match with a path (an authority-only rule gets `path: { prefix: "/" }`): compare like with like. */
 const normalizedIngress = (ingress) =>
