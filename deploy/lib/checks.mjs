@@ -105,7 +105,7 @@ export function spawnNode(args, { cwd }) {
   });
 }
 
-/** The family SEO contract (krizaka-com scripts/check-seo-family.mjs, identical in every site). */
+/** The family SEO contract (the `krizaka-seo-family` bin of @krizaka/config; `script` is the path a site's config gives, krizaka-internal#3709). */
 export async function checkSeoFamily(baseUrl, { script, args = [], index, cwd = process.cwd(), spawnCheck = spawnNode }) {
   // The script takes the site's intent from --index; the configuration's `indexing` is the one source of it.
   const intent = index && !args.includes("--index") ? ["--index", index] : [];
