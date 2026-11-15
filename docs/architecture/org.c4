@@ -3,7 +3,7 @@
 // each one's inside is written in its home repository's docs/architecture/.
 model {
   founder = person 'Founder' {
-    description 'Decides money, legal and direction; approves and merges.'
+    description 'Decides the direction and the money. A second app approves pull requests and the train merges them.'
   }
   contributor = person 'Contributor' {
     description 'Takes an issue, opens a pull request, follows the repository rules.'
@@ -32,7 +32,7 @@ model {
     description 'The org media library: brand, defaults, discovery, films.'
   }
   models = external 'Model providers' {
-    description 'The AI models Sovkora routes to, local or hosted.'
+    description 'The AI models the products and the agents run on, local or hosted.'
   }
 
   platform = system 'Krizaka platform' {
@@ -73,7 +73,7 @@ model {
     }
   }
 
-  founder -> platform 'approves and merges'
+  founder -> platform 'sets direction and money'
   contributor -> platform 'opens pull requests'
   agents -> platform 'run lanes and trains'
   platform -> github 'checks, trains and releases'
