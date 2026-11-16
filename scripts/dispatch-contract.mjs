@@ -39,32 +39,40 @@ export function listeners(text) {
   return out;
 }
 
-/**
- * The contract's problems. `files` = [{ repo, path, text }]; `required` = { event: ["repo:workflow-file", ...] }.
- * A sender in a text that is not a workflow (a script, an action) counts as a sender; only workflows are listeners.
- */
-export function check(files, required = {}) {
+const isWorkflow = (path) => /(^|\/)\.github\/workflows\/[^/]+\.ya?ml$/.test(path);
+
+/** Maps event -> where it is sent, and event -> where it is listened to. A sender may be a script or an action; only workflows listen. */
+function index(files) {
   const sent = new Map();
   const heard = new Map();
   const add = (map, event, where) => map.set(event, [...(map.get(event) ?? []), where]);
   for (const f of files) {
     const where = `${f.repo}:${f.path}`;
     for (const e of senders(f.text)) add(sent, e, where);
-    if (/(^|\/)\.github\/workflows\/[^/]+\.ya?ml$/.test(f.path) || /^\.github\/workflows\//.test(f.path)) for (const e of listeners(f.text)) add(heard, e, where);
+    if (isWorkflow(f.path)) for (const e of listeners(f.text)) add(heard, e, where);
   }
-  const problems = [];
-  for (const [e, where] of sent) if (!heard.has(e)) problems.push(`sender without listener: ${e} (sent from ${where.join(", ")})`);
-  for (const [e, where] of heard) if (!sent.has(e) && !(e in required)) problems.push(`listener nobody sends: ${e} (listened by ${where.join(", ")})`);
-  for (const [e, must] of Object.entries(required)) {
-    for (const where of must) {
-      const [repo, file] = where.split(":");
-      if (!(heard.get(e) ?? []).some((w) => w === `${repo}:.github/workflows/${file}`)) problems.push(`${where} must listen to ${e} and does not`);
-    }
-  }
-  return problems;
+  return { sent, heard };
 }
 
-const gh = (...args) => execFileSync("gh", args, { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, stdio: ["ignore", "pipe", "ignore"] });
+function missingRequired(heard, required) {
+  return Object.entries(required).flatMap(([event, must]) =>
+    must
+      .filter((where) => !(heard.get(event) ?? []).includes(`${where.split(":")[0]}:.github/workflows/${where.split(":")[1]}`))
+      .map((where) => `${where} must listen to ${event} and does not`),
+  );
+}
+
+/** The contract's problems. `files` = [{ repo, path, text }]; `required` = { event: ["repo:workflow-file", ...] }. */
+export function check(files, required = {}) {
+  const { sent, heard } = index(files);
+  return [
+    ...[...sent].filter(([e]) => !heard.has(e)).map(([e, where]) => `sender without listener: ${e} (sent from ${where.join(", ")})`),
+    ...[...heard].filter(([e]) => !sent.has(e) && !(e in required)).map(([e, where]) => `listener nobody sends: ${e} (listened by ${where.join(", ")})`),
+    ...missingRequired(heard, required),
+  ];
+}
+
+const gh = (...args) => execFileSync(process.env.GH_BIN ?? "/usr/bin/gh", args, { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, stdio: ["ignore", "pipe", "ignore"] });
 
 function localFiles() {
   const out = [];
@@ -99,6 +107,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const files = [...localFiles(), ...(local ? [] : remoteFiles(repos))];
   const problems = check(files, registry.required);
   for (const p of problems) console.log(`FAIL  ${p}`);
-  console.log(problems.length ? `${problems.length} dispatch contract problem(s).` : `Dispatch contract holds (${files.length} files read${local ? ", local only" : ""}).`);
+  const scope = local ? ", local only" : "";
+  console.log(problems.length ? `${problems.length} dispatch contract problem(s).` : `Dispatch contract holds (${files.length} files read${scope}).`);
   process.exit(problems.length ? 1 : 0);
 }
