@@ -1,0 +1,39 @@
+# The dispatch contract (krizaka-internal#4080): every `repository_dispatch` event the org's workflows send has a listener, every
+# listener has a sender, and the listeners listed in docs/dispatch-events.json are still there. On every pull request and in the
+# merge queue (the unit tests plus the live read of the org's workflows through the GitHub App, contents: read), and every day
+# (a producer repository changed without a pull request here). By hand: `gh workflow run dispatch-contract.yml -R krizaka/.github`.
+name: Dispatch contract
+
+on:
+  pull_request:
+  merge_group:
+  schedule:
+    - cron: "47 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - id: app
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: krizaka # zizmor: ignore[github-app] the contract reads the workflows of every active repository of the org
+          permission-contents: read
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - run: node --test --test-timeout=120000 --test-force-exit scripts/dispatch-contract.test.mjs
+      - name: Every sender has a listener, every listener a sender
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+        run: node scripts/dispatch-contract.mjs

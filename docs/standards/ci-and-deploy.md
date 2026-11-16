@@ -361,3 +361,11 @@ ONE pull request (`chore/brand-icons-<day>`, the app as author, auto-merge) wher
 nothing; one without a sync script has no guard and is skipped. A daily run is the safety net for a lost event; by hand:
 `gh workflow run brand-icons-sync.yml -R krizaka/.github` (`-f dry-run=true` only reports). Tested by
 `scripts/brand-icons-fanout.test.mjs`.
+
+## Dispatch events have a sender and a listener
+
+Every `repository_dispatch` event an org workflow sends (`event_type`) has a workflow that listens to it (`types:`), and every
+listener has a sender; `docs/dispatch-events.json` names the listeners an event must keep (the org profile listens to
+`brand-changed` and `product-release`). `scripts/dispatch-contract.mjs` reads the workflows of every active repository through the
+GitHub API and fails otherwise; the **Dispatch contract** workflow runs it on pull requests, in the merge queue and daily
+(krizaka-internal#4080). A new event means: a sender, a listener, and a line in the registry if a listener is mandatory.
