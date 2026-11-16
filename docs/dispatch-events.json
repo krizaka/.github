@@ -1,0 +1,7 @@
+{
+  "_": "The listeners an org `repository_dispatch` event must keep (scripts/dispatch-contract.mjs, krizaka-internal#4080). Senders and listeners are read from the workflows themselves; this file only names what cannot be read: who MUST listen. Entry: \"<repo>:<workflow file>\".",
+  "required": {
+    "brand-changed": [".github:brand-icons-sync.yml", ".github:profile.yml"],
+    "product-release": [".github:profile.yml", ".github:changelog-rebuild.yml"]
+  }
+}
