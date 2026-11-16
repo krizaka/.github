@@ -136,5 +136,28 @@
    "noHeader": 31,
    "copied": 19
   }
+ },
+ {
+  "date": "2026-11-16",
+  "units": 1220,
+  "byKind": {
+   "CI check": 408,
+   "agent hook": 30,
+   "cron": 55,
+   "deploy": 67,
+   "dev tool": 207,
+   "generator": 77,
+   "git hook": 19,
+   "library": 347,
+   "one-off": 10
+  },
+  "flags": {
+   "nothingCalls": 206,
+   "noTest": 56,
+   "regexOver80": 43,
+   "overSize": 37,
+   "noHeader": 31,
+   "copied": 19
+  }
  }
 ]
