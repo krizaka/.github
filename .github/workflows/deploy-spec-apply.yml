@@ -15,7 +15,7 @@
 # waits for a founder step does not hold back a fix of the web service.
 # The dry run and the apply (only) get KRIZAKA_SECRET_BACKUP_AGE_RECIPIENT, the PUBLIC age recipient of verikora-dev's backup jobs; the
 # CLI resolves `__BACKUP_AGE_RECIPIENT__` from it and refuses the file when it is missing. The private identity is never in CI.
-# The daily drift report (deploy-watch, job `drift`) names this command for every drifting dev app.
+# `krizaka-deploy drift-all` reports the apps whose live spec differs from their file (run by hand; the deploy-watch workflow, and its daily report, are gone: DigitalOcean's alerts and Grafana watch, krizaka-internal#4151).
 name: deploy-spec-apply
 
 on:

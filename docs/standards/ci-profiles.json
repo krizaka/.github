@@ -13,7 +13,7 @@
     },
     "app-web": {
       "for": "A web app deployed from main: build, image, visual and accessibility checks, films from its journeys.",
-      "workflows": ["ci-node", "ui-visual", "ui-a11y", "security-scan", "deps-automerge", "deploy-watch", "media-films"],
+      "workflows": ["ci-node", "ui-visual", "ui-a11y", "security-scan", "deps-automerge", "media-films"],
       "optional": ["seo-post-deploy"]
     },
     "app-mobile": {
