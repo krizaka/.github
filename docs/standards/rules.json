@@ -1429,6 +1429,22 @@
         "type": "manual",
         "note": "render the identity mascot with SiteMascot (krizaka-internal#3786); a building block's own bird is data: put it in a data file and list that file in `allow` of this rule"
       }
+    },
+    {
+      "id": "pages-site-shared-workflow",
+      "title": "A GitHub Pages site builds and deploys through the shared pages-site.yml (check on pull_request and merge_group, deploy on main, no secret), not through a copy of actions/deploy-pages",
+      "issue": "krizaka/krizaka-internal#4149",
+      "applies": {
+        "onlyRepos": ["krizaka-rust", "krizaka-lab", "krizaka-ts", "krizaka-java", "krizaka-ui"]
+      },
+      "check": {
+        "type": "workflow-calls",
+        "workflows": ["pages-site.yml"]
+      },
+      "fix": {
+        "type": "manual",
+        "note": "call krizaka/.github/.github/workflows/pages-site.yml@<sha> (inputs: build-command, output-dir, cname, expect-files, working-directory, package-manager) and delete the site's own deploy-pages job; reported only, not required: the sites migrate one by one (krizaka-internal#4149 steps 5 to 12)"
+      }
     }
   ]
 }
