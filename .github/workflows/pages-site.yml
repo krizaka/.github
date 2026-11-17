@@ -1,0 +1,167 @@
+# One workflow builds and deploys a static site to GitHub Pages (krizaka-internal#4149): the docs sites (ts, java, ui, rust, lab) call it instead of
+# keeping a copy. No secret input: Pages deploys with the job's own OIDC token.
+#   check  - on pull_request and merge_group (and before every deploy): install, build, assert the expected files, the caller's tests. Never deploys.
+#   deploy - on a push to main, a schedule or a manual run of main only: the same build is published (configure-pages, upload-pages-artifact,
+#            deploy-pages) with /build.json = GITHUB_SHA, so post-deploy.yml can poll the live site for the commit.
+# A caller (no `paths:` filter on its pull_request trigger: a required check that is filtered stays « pending ». Pin to a SHA):
+#   on: { pull_request: {}, merge_group: {}, push: { branches: [main] }, workflow_dispatch: {} }
+#   concurrency: { group: pages, cancel-in-progress: false }   # deploy only; the pull_request runs may be cancelled by the caller's own group
+#   jobs:
+#     site:
+#       uses: krizaka/.github/.github/workflows/pages-site.yml@<sha>
+#       permissions: { contents: read, pages: write, id-token: write }
+#       with: { working-directory: site, build-command: npm run build, output-dir: site/out, cname: ts.krizaka.com, expect-files: "index.html" }
+# `pages: write` and `id-token: write` are only used by the deploy job; the check job asks for `contents: read` alone.
+name: pages-site
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: "Node.js version of actions/setup-node."
+        type: string
+        default: "22"
+      package-manager:
+        description: "npm or pnpm. The lockfile of the working directory keys the dependency cache; pnpm is installed from the `packageManager` field."
+        type: string
+        default: npm
+      working-directory:
+        description: "Directory of the install, build and test commands (relative to the repository root)."
+        type: string
+        default: "."
+      install-command:
+        description: "Replaces the default install (`npm ci --ignore-scripts` or `pnpm install --frozen-lockfile --ignore-scripts`; lifecycle scripts never run by default)."
+        type: string
+        default: ""
+      build-command:
+        description: "The site's own build command, run in the working directory (e.g. `npm run build`)."
+        type: string
+        required: true
+      test-command:
+        description: "The caller's checks run before the build (lint, unit tests), in the working directory. Empty: none."
+        type: string
+        default: ""
+      output-dir:
+        description: "The exported site folder, relative to the REPOSITORY ROOT (e.g. site/out)."
+        type: string
+        required: true
+      expect-files:
+        description: "Files the exported site must hold, one per line, relative to output-dir (e.g. index.html, 404.html, sitemap.xml). Empty: index.html only."
+        type: string
+        default: ""
+      cname:
+        description: "The custom domain (e.g. ts.krizaka.com): written as output-dir/CNAME. Empty: no CNAME."
+        type: string
+        default: ""
+      build-env:
+        description: "NOT secret. KEY=VALUE lines exported to the build (e.g. NODE_OPTIONS=--max-old-space-size=6144)."
+        type: string
+        default: ""
+      runs-on:
+        description: "The runner label (a larger runner for a heavy build)."
+        type: string
+        default: ubuntu-latest
+      timeout-minutes:
+        description: "Time limit of the check job (the build included)."
+        type: number
+        default: 30
+      deploy:
+        description: "false: never deploy, even from main (the self-test of this workflow)."
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Site build
+    runs-on: ${{ inputs.runs-on }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    permissions:
+      contents: read
+    env:
+      PACKAGE_MANAGER: ${{ inputs.package-manager }}
+      INSTALL_COMMAND: ${{ inputs.install-command }}
+      BUILD_COMMAND: ${{ inputs.build-command }}
+      TEST_COMMAND: ${{ inputs.test-command }}
+      OUTPUT_DIR: ${{ inputs.output-dir }}
+      EXPECT_FILES: ${{ inputs.expect-files }}
+      CNAME: ${{ inputs.cname }}
+      BUILD_ENV: ${{ inputs.build-env }}
+      WORKING_DIRECTORY: ${{ inputs.working-directory }}
+      # Only a run of main that is not a pull request publishes; the artifact is uploaded here so the site is built once.
+      PUBLISH: ${{ inputs.deploy && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && github.event_name != 'merge_group' }}
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        if: ${{ inputs.package-manager == 'pnpm' }}
+        with:
+          package_json_file: ${{ inputs.working-directory }}/package.json
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: ${{ inputs.package-manager }}
+          cache-dependency-path: ${{ inputs.working-directory }}/${{ inputs.package-manager == 'pnpm' && 'pnpm-lock.yaml' || 'package-lock.json' }}
+      - name: Export the build environment
+        run: |
+          if [ -n "$BUILD_ENV" ]; then printf '%s\n' "$BUILD_ENV" >> "$GITHUB_ENV"; fi
+      - name: Install
+        run: |
+          if [ -n "$INSTALL_COMMAND" ]; then
+            bash -euo pipefail -c "$INSTALL_COMMAND"
+          elif [ "$PACKAGE_MANAGER" = pnpm ]; then
+            pnpm install --frozen-lockfile --ignore-scripts
+          else
+            npm ci --ignore-scripts
+          fi
+      - name: Checks
+        if: ${{ inputs.test-command != '' }}
+        run: bash -euo pipefail -c "$TEST_COMMAND"
+      - name: Build
+        run: bash -euo pipefail -c "$BUILD_COMMAND"
+      - name: The exported site holds what it must, with its CNAME and /build.json
+        working-directory: ${{ github.workspace }}
+        run: |
+          out="$OUTPUT_DIR"
+          test -d "$out" || { echo "::error::no $out after the build"; exit 1; }
+          test -f "$out/index.html" || { echo "::error::$out/index.html is missing"; exit 1; }
+          while IFS= read -r f; do
+            [ -n "$f" ] || continue
+            test -e "$out/$f" || { echo "::error::$out/$f is missing"; exit 1; }
+          done <<< "$EXPECT_FILES"
+          if [ -n "$CNAME" ]; then printf '%s\n' "$CNAME" > "$out/CNAME"; fi
+          printf '{"commit":"%s"}\n' "$GITHUB_SHA" > "$out/build.json"
+          echo "exported site: $(du -sk "$out" | cut -f1) KB, $(find "$out" -type f | wc -l | tr -d ' ') files (Pages limit: 1 GB)"
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+        if: ${{ env.PUBLISH == 'true' }}
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        if: ${{ env.PUBLISH == 'true' }}
+        with:
+          path: ${{ inputs.output-dir }}
+
+  deploy:
+    name: Deploy to Pages
+    needs: check
+    # Never on a pull request or in the merge queue; only the main branch (a manual run of another branch is refused too).
+    if: ${{ inputs.deploy && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && github.event_name != 'merge_group' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    permissions:
+      pages: write
+      id-token: write
+      contents: read
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

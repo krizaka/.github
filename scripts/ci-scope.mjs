@@ -28,6 +28,7 @@ const SELFTEST = [
   ".github/workflows/expo-ci.yml",
   ".github/workflows/python-ci.yml",
   ".github/workflows/krizaka-ci.yml",
+  ".github/workflows/pages-site.yml",
   ".github/workflows/changes.yml",
   ".github/workflows/selftest-ci.yml",
   "actions/**",
