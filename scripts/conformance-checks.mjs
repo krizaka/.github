@@ -12,6 +12,17 @@ import { probeOnlyJobs } from "./scheduled-probe.mjs";
 import { callerPermissionProblems } from "./caller-permissions.mjs";
 import { byCodePoint, isPackageManifest, isTestConfig, WORKFLOW_PATH } from "./conformance-basics.mjs";
 
+/** A workflow step that installs Playwright's browsers. */
+const PLAYWRIGHT_INSTALL = /playwright(?:@[\w.^~-]+)?\s+install\b/;
+const isLockfile = (path) => /(^|\/)(pnpm-lock\.yaml|package-lock\.json)$/.test(path) && !path.includes("node_modules");
+const PNPM_PLAYWRIGHT = /^ {2}'?(playwright|playwright-core|@playwright\/test)@(\d+\.\d+\.\d+)'?:/gm;
+const NPM_PLAYWRIGHT = /"node_modules\/(?:[^"]*\/)?(playwright|playwright-core|@playwright\/test)":\s*\{\s*"version":\s*"(\d+\.\d+\.\d+)"/g;
+/** The Playwright versions one lockfile locks. */
+export function lockedPlaywright(path, body) {
+  const re = path.endsWith(".yaml") ? PNPM_PLAYWRIGHT : NPM_PLAYWRIGHT;
+  return [...body.matchAll(re)].map((m) => ({ path, name: m[1], version: m[2] }));
+}
+
 /** The files that can name a dependency: npm, pnpm workspaces, git submodules, Maven, Gradle (by file name, in any folder). */
 export const MANIFEST_FILES = ["package.json", "pnpm-workspace.yaml", ".gitmodules", "pom.xml", "build.gradle", "build.gradle.kts"];
 export const isManifest = (path) => MANIFEST_FILES.some((name) => path === name || path.endsWith(`/${name}`));
@@ -299,6 +310,15 @@ const CHECKS = {
       .filter((p) => p.minors > max);
     const named = late.map((p) => `${p.name} ${p.have} → ${p.latest}`).join(", ");
     return verdict(late.length === 0, `more than ${max} minor(s) behind the kit: ${named}`);
+  },
+  // A repository that installs Playwright in a workflow locks it at `minimum` or later (krizaka-internal#4129): older Playwright cannot
+  // install its browsers on the Ubuntu 26.04 runners. The version is the fix, never a runs-on pin. Reads every npm and pnpm lockfile.
+  "playwright-locked": async (check, snap) => {
+    if (!PLAYWRIGHT_INSTALL.test(await snap.workflows())) return verdict(true, "");
+    const locked = (await Promise.all(snap.paths.filter(isLockfile).map(async (p) => lockedPlaywright(p, (await snap.read(p)) ?? "")))).flat();
+    if (locked.length === 0) return verdict(false, "a workflow installs Playwright but no lockfile locks it");
+    const old = locked.filter((l) => compareVersions(l.version, `${check.minimum}.0`) < 0).map((l) => `${l.path} ${l.name} ${l.version}`);
+    return verdict(old.length === 0, `Playwright locked below ${check.minimum}: ${old.join(", ")}`);
   },
   // No raw colour in a site's sources (krizaka-internal#3783). `known[repo]` is the ratchet: the violations that exist today, which may only go down.
   "raw-colour": async (check, snap) => {

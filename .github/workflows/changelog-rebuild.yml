@@ -1,6 +1,6 @@
 # krizaka.com's changelog is read at build (krizaka-com scripts/gen-changelog.mjs). A product's release-notes workflow sends
 # `product-release` (repository_dispatch) here; this job forces a rebuild of the krizaka-com app on DigitalOcean, with the
-# `dev` environment's token, as deploy-watch does (krizaka/.github#184). The daily run covers a missed dispatch.
+# `dev` environment's token (krizaka/.github#184). The daily run covers a missed dispatch.
 name: Changelog rebuild
 
 on:
