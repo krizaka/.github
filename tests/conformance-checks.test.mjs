@@ -128,3 +128,36 @@ test("release-consumers: a site with no entry is reported, the listed ones are n
   assert.deepEqual(missingSites({ "krizaka-com": [] }, ["krizaka-com", "krizaka-coming-soon"]), ["krizaka-coming-soon: a site with no entry in release-consumers.json"]);
   assert.deepEqual(missingSites({ a: [] }, ["a"]), []);
 });
+
+const PW = { type: "playwright-locked", minimum: "1.61" };
+const INSTALL = ".github/workflows/e2e.yml";
+const installs = "steps:\n  - run: pnpm exec playwright install --with-deps chromium\n";
+const pnpmLock = (v) => `packages:\n\n  '@playwright/test@${v}':\n    resolution: {integrity: sha512-x}\n\n  playwright-core@${v}:\n    resolution: {integrity: sha512-y}\n`;
+const npmLock = (v) => JSON.stringify({ packages: { "node_modules/playwright": { version: v }, "node_modules/playwright-core": { version: v } } });
+
+test("playwright-locked: red below 1.61 in a pnpm lockfile, green from 1.61", async () => {
+  const red = await runCheck(PW, snap({ [INSTALL]: installs, "pnpm-lock.yaml": pnpmLock("1.60.0") }, null));
+  assert.equal(red.ok, false);
+  assert.match(red.why, /pnpm-lock\.yaml @playwright\/test 1\.60\.0/);
+  const green = await runCheck(PW, snap({ [INSTALL]: installs, "pnpm-lock.yaml": pnpmLock("1.64.1") }, null));
+  assert.equal(green.ok, true);
+});
+
+test("playwright-locked reads an npm lockfile in a sub-folder too", async () => {
+  const red = await runCheck(PW, snap({ [INSTALL]: installs, "apps/web/package-lock.json": npmLock("1.50.1") }, null));
+  assert.equal(red.ok, false);
+  assert.match(red.why, /apps\/web\/package-lock\.json playwright 1\.50\.1/);
+  assert.equal((await runCheck(PW, snap({ [INSTALL]: installs, "apps/web/package-lock.json": npmLock("1.61.0") }, null))).ok, true);
+});
+
+test("playwright-locked: a workflow that installs it with no lock is red, a repository that never installs it is green", async () => {
+  assert.equal((await runCheck(PW, snap({ [INSTALL]: installs }, null))).ok, false);
+  assert.equal((await runCheck(PW, snap({ [INSTALL]: "steps:\n  - run: pnpm test\n", "pnpm-lock.yaml": pnpmLock("1.40.0") }, null))).ok, true);
+});
+
+test("playwright-locked is in the registry, valid and advisory (not a security rule)", () => {
+  const rule = loadRules().find((r) => r.id === "playwright-locked");
+  assert.ok(rule);
+  assert.notEqual(rule.security, true);
+  assert.deepEqual(validateRules([rule]), []);
+});
