@@ -1431,6 +1431,22 @@
       }
     },
     {
+      "id": "pages-site-shared-workflow",
+      "title": "A GitHub Pages site builds and deploys through the shared pages-site.yml (check on pull_request and merge_group, deploy on main, no secret), not through a copy of actions/deploy-pages",
+      "issue": "krizaka/krizaka-internal#4149",
+      "applies": {
+        "onlyRepos": ["krizaka-rust", "krizaka-lab", "krizaka-ts", "krizaka-java", "krizaka-ui"]
+      },
+      "check": {
+        "type": "workflow-calls",
+        "workflows": ["pages-site.yml"]
+      },
+      "fix": {
+        "type": "manual",
+        "note": "call krizaka/.github/.github/workflows/pages-site.yml@<sha> (inputs: build-command, output-dir, cname, expect-files, working-directory, package-manager) and delete the site's own deploy-pages job; reported only, not required: the sites migrate one by one (krizaka-internal#4149 steps 5 to 12)"
+      }
+    },
+    {
       "id": "playwright-locked",
       "title": "A repository that installs Playwright in a workflow locks Playwright 1.61 or later (the Ubuntu 26.04 runners)",
       "issue": "krizaka/krizaka-internal#4129",

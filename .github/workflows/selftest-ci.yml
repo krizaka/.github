@@ -1,7 +1,7 @@
 # Self-test of the reusable CI workflows (krizaka/.github#113): node-ci.yml, expo-ci.yml, python-ci.yml and java-ci.yml run against the tiny projects of
 # tests/fixtures/, and the build pack (krizaka-ci.yml) against those of tests/buildpack/, the way a repository calls them. It proves the two outcomes that matter: a change that needs the heavy
 # jobs RUNS them, and a change that needs none SKIPS them while the gate still reports green. Runs only when the
-# workflows or the fixtures change.
+# workflows or the fixtures change. pages-site.yml (krizaka-internal#4149) is proven on a fixture site, with deploy off.
 name: CI workflows self-test
 
 on:
@@ -15,6 +15,7 @@ on:
       - ".github/workflows/expo-ci.yml"
       - ".github/workflows/python-ci.yml"
       - ".github/workflows/krizaka-ci.yml"
+      - ".github/workflows/pages-site.yml"
       - "actions/**"
       - ".github/workflows/selftest-ci.yml"
       - "tests/fixtures/**"
@@ -195,9 +196,29 @@ jobs:
     with:
       working-directory: tests/buildpack/skip
 
+  pages-site-check:
+    name: pages-site builds, asserts the expected files, runs the caller's tests, never deploys
+    permissions:
+      contents: read
+      pages: write # the deploy job of pages-site.yml asks for these; with `deploy: false` it never runs
+      id-token: write
+    uses: ./.github/workflows/pages-site.yml
+    with:
+      working-directory: tests/fixtures/pages-site
+      test-command: npm test
+      build-command: npm run build
+      output-dir: tests/fixtures/pages-site/out
+      expect-files: |
+        404.html
+      cname: fixture.krizaka.com
+      build-env: |
+        FIXTURE_FLAG=on
+      deploy: false
+      timeout-minutes: 10
+
   verdict:
     name: The runs ran, the skips skipped, every gate reported
-    needs: [node-runs, node-container, node-parallel, node-e2e-skips, node-skips, expo-runs, python-runs, python-skips, java-runs, java-skips, pack-node, pack-maven, pack-python, pack-iac, pack-skips]
+    needs: [node-runs, node-container, node-parallel, node-e2e-skips, node-skips, expo-runs, python-runs, python-skips, java-runs, java-skips, pack-node, pack-maven, pack-python, pack-iac, pack-skips, pages-site-check]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -226,6 +247,7 @@ jobs:
       PACK_PYTHON: ${{ needs.pack-python.outputs.stack }}/${{ needs.pack-python.outputs.verify-result }}/${{ needs.pack-python.outputs.result }}
       PACK_IAC: ${{ needs.pack-iac.outputs.stack }}/${{ needs.pack-iac.outputs.verify-result }}/${{ needs.pack-iac.outputs.result }}
       PACK_SKIPS: ${{ needs.pack-skips.outputs.stack }}/${{ needs.pack-skips.outputs.verify-result }}/${{ needs.pack-skips.outputs.result }}
+      PAGES_CHECK: ${{ needs.pages-site-check.result }}
     steps:
       - run: |
           fail=0
@@ -256,4 +278,6 @@ jobs:
           expect "pack-python"            "$PACK_PYTHON"     python/success/success
           expect "pack-iac"               "$PACK_IAC"        iac/success/success
           expect "pack-skips"             "$PACK_SKIPS"      "node/$skipped/success"
+          # pages-site.yml: the check job ran green; its deploy job never runs here (`deploy: false`).
+          expect "pages-site check"       "$PAGES_CHECK"     success
           exit "$fail"
