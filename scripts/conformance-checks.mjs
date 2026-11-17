@@ -8,6 +8,7 @@ import { formatVerdict } from "./format-declared.mjs";
 import { jobsWithoutTimeout, configWithoutTestTimeout, nodeTestWithoutTimeout } from "./check-timeouts.mjs";
 import { behind, compareVersions, pinsOf, versionsVerdict } from "./conformance-versions.mjs";
 import { candidateOf, isPublicSource, publicEmailHits } from "./public-email.mjs";
+import { probeOnlyJobs } from "./scheduled-probe.mjs";
 import { callerPermissionProblems } from "./caller-permissions.mjs";
 import { byCodePoint, isPackageManifest, isTestConfig, WORKFLOW_PATH } from "./conformance-basics.mjs";
 
@@ -171,6 +172,14 @@ const CHECKS = {
   "workflow-forbids": async (check, snap) => {
     const found = new RegExp(check.pattern).exec(await snap.workflows());
     return { ok: !found, why: found ? `a workflow has « ${found[0]} »` : "" };
+  },
+  // No scheduled workflow whose only job probes a live URL (krizaka-internal#4151): monitoring lives in DigitalOcean and Grafana.
+  "scheduled-probe-only": async (_check, snap) => {
+    for (const p of snap.paths.filter((x) => WORKFLOW_PATH.test(x))) {
+      const jobs = probeOnlyJobs((await snap.read(p)) ?? "");
+      if (jobs.length) return { ok: false, why: `${p}: scheduled, and only probes a live URL (job ${jobs.join(", ")}); alert in DigitalOcean or Grafana instead` };
+    }
+    return { ok: true, why: "" };
   },
   "file-exists": async (check, snap) =>
     verdict(check.paths.some((p) => snap.paths.includes(p)), `no ${check.paths[0]}`),

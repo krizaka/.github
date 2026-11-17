@@ -1445,6 +1445,21 @@
         "type": "manual",
         "note": "call krizaka/.github/.github/workflows/pages-site.yml@<sha> (inputs: build-command, output-dir, cname, expect-files, working-directory, package-manager) and delete the site's own deploy-pages job; reported only, not required: the sites migrate one by one (krizaka-internal#4149 steps 5 to 12)"
       }
+    },
+    {
+      "id": "no-scheduled-url-probe",
+      "title": "No scheduled workflow whose only job probes a live URL: monitoring lives in DigitalOcean (app alerts) and Grafana (Synthetic Monitoring) only",
+      "issue": "krizaka/krizaka-internal#4151",
+      "applies": {
+        "notRepos": [".github"]
+      },
+      "check": {
+        "type": "scheduled-probe-only"
+      },
+      "fix": {
+        "type": "manual",
+        "note": "delete the workflow; add the alert to the app spec (alerts:) or a Synthetic Monitoring check as code in krizaka-agents tools/observability-probes.py; advisory: reported only (krizaka-internal#4151)"
+      }
     }
   ]
 }

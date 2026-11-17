@@ -63,6 +63,7 @@ function checkShape({ id, check = {} }) {
     manual: () => Boolean(check.note),
     "workflow-matches": () => Boolean(check.pattern),
     "workflow-forbids": () => Boolean(check.pattern),
+    "scheduled-probe-only": () => true,
     "file-exists": () => Boolean(check.paths?.length),
     "file-matches": () => Boolean(check.path && check.pattern),
     "manifests-forbid": () => Boolean(check.pattern),
