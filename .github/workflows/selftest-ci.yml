@@ -200,6 +200,8 @@ jobs:
     name: pages-site builds, asserts the expected files, runs the caller's tests, never deploys
     permissions:
       contents: read
+      pages: write # the deploy job of pages-site.yml asks for these; with `deploy: false` it never runs
+      id-token: write
     uses: ./.github/workflows/pages-site.yml
     with:
       working-directory: tests/fixtures/pages-site
