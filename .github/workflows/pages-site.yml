@@ -30,7 +30,7 @@ on:
         type: string
         default: "."
       install-command:
-        description: "Replaces the default install (`npm ci` or `pnpm install --frozen-lockfile`)."
+        description: "Replaces the default install (`npm ci --ignore-scripts` or `pnpm install --frozen-lockfile --ignore-scripts`; lifecycle scripts never run by default)."
         type: string
         default: ""
       build-command:
@@ -116,9 +116,9 @@ jobs:
           if [ -n "$INSTALL_COMMAND" ]; then
             bash -euo pipefail -c "$INSTALL_COMMAND"
           elif [ "$PACKAGE_MANAGER" = pnpm ]; then
-            pnpm install --frozen-lockfile
+            pnpm install --frozen-lockfile --ignore-scripts
           else
-            npm ci
+            npm ci --ignore-scripts
           fi
       - name: Checks
         if: ${{ inputs.test-command != '' }}
