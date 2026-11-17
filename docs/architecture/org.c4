@@ -8,7 +8,7 @@ model {
   contributor = person 'Contributor' {
     description 'Takes an issue, opens a pull request, follows the repository rules.'
   }
-  agents = person 'AI agents' {
+  aiAgents = person 'AI agents' {
     description 'One session per lane, one pull request per issue, under the agents rules.'
   }
   customer = person 'Customer' {
@@ -37,7 +37,7 @@ model {
 
   platform = system 'Krizaka platform' {
     #platform
-    description 'How the org works: shared CI and standards, the agents tooling, the infrastructure as code, the templates.'
+    description 'How the org works: shared CI and standards, the infrastructure as code, the templates.'
     metadata {
       home '.github'
     }
@@ -46,13 +46,6 @@ model {
       technology 'GitHub Actions, Node'
       metadata {
         repo '.github'
-      }
-    }
-    tooling = container 'Agents tooling' {
-      description 'Lanes, trains, guards and skills; runs on the founder machine.'
-      technology 'Python, Node'
-      metadata {
-        repo 'krizaka-agents'
       }
     }
     infra = container 'Infrastructure as code' {
@@ -75,7 +68,17 @@ model {
 
   founder -> platform 'sets direction and money'
   contributor -> platform 'opens pull requests'
-  agents -> platform 'run lanes and trains'
+  agents = system 'Krizaka Agents' {
+    #asset
+    description 'The delivery harness for coding agents, working with Claude Code: commands and guards, sessions, trains, coordinator, operations service and crons around Claude Code.'
+    metadata {
+      home 'krizaka-agents'
+    }
+  }
+
+  aiAgents -> agents 'run lanes and trains in its sessions'
+  agents -> platform 'reads the org policy and the standards'
+  agents -> github 'issues, pull requests, merge queue'
   platform -> github 'checks, trains and releases'
   platform.infra -> cloud 'provisions'
 }
