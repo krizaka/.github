@@ -308,6 +308,8 @@ export const siteOf = (d) => {
   return d.subject.split(":")[0];
 };
 
+const runNote = (runUrl, before, after = "") => (runUrl ? before + runUrl + after : "");
+
 /** The tracking issue of one site: a stable title, its current drifts as a checklist, the run link. Never one issue per drift. */
 export const issueFor = (site, drifts, runUrl = "") => ({
   title: `${TITLE_PREFIX}${site}`,
@@ -316,7 +318,7 @@ export const issueFor = (site, drifts, runUrl = "") => ({
     "",
     ...drifts.map((d) => `- [ ] \`${d.rule}\` \`${d.subject}\`: ${d.detail}`),
     "",
-    `The rules are in \`docs/standards/family-surfaces.md\`. The guard re-checks every day and rewrites this issue in place; it closes it when the site has no drift${runUrl ? ` (last run: ${runUrl})` : ""}.`,
+    `The rules are in \`docs/standards/family-surfaces.md\`. The guard re-checks every day and rewrites this issue in place; it closes it when the site has no drift${runNote(runUrl, " (last run: ", ")")}.`,
   ].join("\n"),
 });
 
@@ -407,12 +409,12 @@ export function syncIssues(drifts, gh, runUrl = "") {
       gh(["issue", "create", ...repo, "--title", title, "--body-file", "-", "--label", "repo:.github", "--label", "lane:platform", "--label", "type:fix"], body);
       continue;
     }
-    if (found.state.toUpperCase() === "CLOSED") gh(["issue", "reopen", String(found.number), ...repo, "--comment", `The site drifts again${runUrl ? `: ${runUrl}` : "."}`]);
+    if (found.state.toUpperCase() === "CLOSED") gh(["issue", "reopen", String(found.number), ...repo, "--comment", `The site drifts again${runNote(runUrl, ": ")}.`]);
     gh(["issue", "edit", String(found.number), ...repo, "--body-file", "-"], body);
   }
   for (const [title, found] of known) {
     if (found.state.toUpperCase() !== "OPEN" || bySite.has(title.slice(TITLE_PREFIX.length))) continue;
-    gh(["issue", "close", String(found.number), ...repo, "--comment", `No drift left on this site${runUrl ? `: ${runUrl}` : "."}`]);
+    gh(["issue", "close", String(found.number), ...repo, "--comment", `No drift left on this site${runNote(runUrl, ": ")}.`]);
   }
   return bySite.size;
 }
