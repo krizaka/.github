@@ -1,0 +1,9 @@
+{
+  "name": "krizaka-family-drift-org",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The version of @krizaka/org the family-drift guard compares the rendered sites to (a lockfile, so the install is not ad hoc). Bump it with the org release the sites follow.",
+  "dependencies": {
+    "@krizaka/org": "1.13.0"
+  }
+}

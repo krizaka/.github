@@ -1,0 +1,28 @@
+{
+  "_": "The registry of the family-drift guard (scripts/family-drift.mjs, docs/standards/family-surfaces.md): one line per site, read against the org (@krizaka/org) and repos.json. A site or a site repository without a line is itself a drift.",
+  "profile": "https://raw.githubusercontent.com/krizaka/.github/main/profile/README.md",
+  "unprobed": ["https://github.com/orgs/krizaka/projects/"],
+  "retiredHosts": ["krizaka.github.io"],
+  "kinds": {
+    "company": { "required": ["bar", "hero", "what", "proof", "start", "family", "footer"], "optional": [] },
+    "product": { "required": ["bar", "hero", "what", "proof", "start", "family", "footer"], "optional": [] },
+    "docs": { "required": ["bar", "hero", "proof", "start", "family", "footer"], "optional": ["what"] },
+    "lab": { "required": ["bar", "hero", "proof", "start", "family", "footer"], "optional": ["what"] },
+    "blog": { "required": ["bar", "hero", "proof", "start", "family", "footer"], "optional": ["what"] },
+    "agents": { "required": ["bar", "hero", "what", "proof", "start", "footer"], "optional": ["family"] }
+  },
+  "sites": [
+    { "id": "krizaka", "kind": "company", "repo": "krizaka-com" },
+    { "id": "blog", "kind": "blog", "repo": "krizaka-blog" },
+    { "id": "ui", "kind": "docs", "repo": "krizaka-ui" },
+    { "id": "java", "kind": "docs", "repo": "krizaka-java" },
+    { "id": "ts", "kind": "docs", "repo": "krizaka-ts" },
+    { "id": "rust", "kind": "docs", "repo": "krizaka-rust" },
+    { "id": "lab", "kind": "lab", "repo": "krizaka-lab" },
+    { "id": "sovkora", "kind": "product", "repo": "krizaka-coming-soon" },
+    { "id": "verikora", "kind": "product", "repo": "krizaka-coming-soon" },
+    { "id": "folioviv", "kind": "product", "repo": "krizaka-coming-soon" },
+    { "id": "kridoc", "kind": "product", "repo": "kridoc" },
+    { "id": "agents", "kind": "agents", "repo": "krizaka-agents-site", "host": "agents.krizaka.com", "public": false }
+  ]
+}
