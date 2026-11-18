@@ -64,8 +64,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
-      contents: write
-      pull-requests: write
+      contents: write # pushes the manifest branch when no app key is passed (GITHUB_TOKEN fallback)
+      pull-requests: write # opens the manifest pull request and arms its auto-merge (GITHUB_TOKEN fallback)
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

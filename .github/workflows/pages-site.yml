@@ -156,8 +156,8 @@ jobs:
       group: pages
       cancel-in-progress: false
     permissions:
-      pages: write
-      id-token: write
+      pages: write # actions/deploy-pages publishes the site
+      id-token: write # actions/deploy-pages proves the run to GitHub Pages with OIDC
       contents: read
     environment:
       name: github-pages

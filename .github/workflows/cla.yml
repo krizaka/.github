@@ -23,10 +23,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
-      actions: write
+      actions: write # the CLA action re-runs the pull request's check after a signature or a « recheck »
       contents: read
-      pull-requests: write
-      statuses: write
+      pull-requests: write # the CLA action comments on the pull request
+      statuses: write # the CLA action sets the CLA commit status
     steps:
       - id: app
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0

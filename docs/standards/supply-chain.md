@@ -14,7 +14,7 @@ Measure the whole org: `node scripts/scorecard-report.mjs > scorecard.md` (reads
 | Check | The rule | How it is kept |
 | :--- | :--- | :--- |
 | Pinned-Dependencies | Every `uses:` by full commit SHA with the exact release as comment (`# v8.0.2`, [action-pinning](action-pinning.md)); every Docker `FROM` by digest. | `node scripts/pin-supply-chain.mjs [dir]` (`--exact --check` in CI, `--refresh` for first-party pins commented `# main`); Dependabot bumps the SHAs and digests; a weekly online audit of the org. |
-| Token-Permissions | Top-level `permissions: contents: read` in every workflow; write only on the job that needs it. | Reviewed per workflow. |
+| Token-Permissions | A read-only top-level `permissions:` (`{}`, `read-all` or read scopes) in every workflow; a write only on the job that needs it, with a comment saying why. | The conformance rule `token-permissions` (security, krizaka-internal#4204). |
 | Dependency-Update-Tool | `.github/dependabot.yml`: one ecosystem per manifest kind (npm, maven, pip, cargo, docker, github-actions), **monthly, one grouped PR per ecosystem, limit 1** (decision of 2026-10-13: fewer mails). Security updates arrive grouped apart. | Copy the file of a sibling repository. |
 | Security-Policy | The org default `SECURITY.md` of this repository is detected on every repo (check = 10); a repository may add its own. | Nothing to do. |
 | SAST | CodeQL default setup, on every repository with code. It reads 10 only once the last 30 commits all went through a CodeQL-checked PR: it climbs by itself. | Nothing to do. |
@@ -68,5 +68,6 @@ The same for every other repository that publishes to npm (`release.yml`).
 No secret on `pull_request` jobs. Signing and deploy secrets live in a protected environment (`release`), used only on `main` or tags.
 A caller of a reusable workflow lists the secrets it passes by name (never `secrets: inherit`) and only from the job that runs on `push`;
 the pull-request job passes none. Coding agents' PRs run CI before any human review, so a secret there is a secret handed to unreviewed code.
-`tauri-macos.yml` enforces it (`sign: false` by default and refuses secrets; `sign: true` refuses anything but `push` to `main` or a tag);
-`tests/tauri-macos.test.mjs` checks it.
+`tauri-macos.yml` enforces it (the pull-request path: no secret, nothing written, `sign: true` refused) and `tauri-macos-release.yml`
+signs only on a `push` to `main` or a tag, its `release` job the only one that writes (krizaka-internal#4204: a called workflow
+cannot ask more than its caller grants, even for a skipped job); `tests/tauri-macos.test.mjs` checks both.

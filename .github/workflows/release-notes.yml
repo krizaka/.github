@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      contents: write
+      contents: write # creates or edits the GitHub release of the tag
     concurrency:
       group: release-notes-${{ github.repository }}
       cancel-in-progress: false

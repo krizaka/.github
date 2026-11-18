@@ -13,9 +13,9 @@ permissions: {}
 jobs:
   cla:
     permissions:
-      actions: write
+      actions: write # cla.yml: the CLA action re-runs the check after a signature or a « recheck »
       contents: read
-      pull-requests: write
-      statuses: write
+      pull-requests: write # cla.yml: the CLA action comments on the pull request
+      statuses: write # cla.yml: the CLA action sets the CLA commit status
     uses: krizaka/.github/.github/workflows/cla.yml@3768f46e08aa598952d9eb76c96c7af9d79a627a # main
     secrets: inherit

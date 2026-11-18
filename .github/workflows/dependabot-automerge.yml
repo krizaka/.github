@@ -18,8 +18,8 @@ jobs:
     timeout-minutes: 5
     if: github.event.pull_request.user.login == 'dependabot[bot]'
     permissions:
-      contents: write
-      pull-requests: write
+      contents: write # gh pr merge --auto merges into the default branch
+      pull-requests: write # gh pr merge --auto arms auto-merge on the pull request
     steps:
       - name: Read the update
         id: meta
