@@ -48,7 +48,8 @@ function permissionsAt(lines, i, indent) {
 function jobBlocks(lines) {
   const from = lines.findIndex((l) => /^jobs:\s*(#.*)?$/.test(l));
   const jobs = [];
-  for (let i = from + 1; from >= 0 && i < lines.length && !isTopLevelKey(lines[i]); i++) {
+  if (from < 0) return jobs;
+  for (let i = from + 1; i < lines.length && !isTopLevelKey(lines[i]); i++) {
     const name = /^ {2}([\w-]+):\s*(#.*)?$/.exec(lines[i])?.[1];
     if (name) jobs.push({ name, block: null });
     const own = jobs.length > 0 && permissionsAt(lines, i, 4);
