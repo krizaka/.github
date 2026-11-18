@@ -104,6 +104,10 @@ on:
         description: "Role and database created in that PostgreSQL; the password is `ci-only-password`."
         type: string
         default: ci
+      free-disk-space:
+        description: "Remove the hosted runner's unused preinstalled tools (Android SDK, .NET, GHC, CodeQL: about 25 GB) before the install. The disk is always reported (df -h) at the start and after the tests (krizaka-internal#4263)."
+        type: boolean
+        default: false
       playwright:
         description: "Playwright browsers to install and cache (e.g. chromium). Empty: none."
         type: string
@@ -367,6 +371,7 @@ jobs:
           github-token-env: ${{ inputs.github-token-env }}
           postgres-image: ${{ (matrix.task == 'all' || matrix.task == 'test' || matrix.task == 'build') && inputs.postgres-image || '' }}
           postgres-name: ${{ inputs.postgres-name }}
+          free-disk-space: ${{ inputs.free-disk-space }}
 
       - uses: krizaka/.github/actions/quality@6aa53ad30f933c2ad49d3cb8cccb31fb67eb4762 # main
         with:
