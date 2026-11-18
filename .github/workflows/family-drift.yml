@@ -1,7 +1,7 @@
 name: Family drift
 
-# The rendered footers, homes and the org profile against the org (krizaka-internal#3920, #4008). It REPORTS: one internal issue per drift,
-# opened or commented, and the run stays green: the sites change on their own pace and this never blocks a site's CI. Uptime itself is
+# The rendered footers, homes and the org profile against the org (krizaka-internal#3920, #4008). It REPORTS: one internal tracking issue per site
+# (rewritten in place, closed when the site is clean), and the run stays green: the sites change on their own pace and this never blocks a site's CI. Uptime itself is
 # Grafana's (krizaka-internal#4151); what this reads is the CONTENT, which no synthetic check compares to the org.
 on:
   schedule:

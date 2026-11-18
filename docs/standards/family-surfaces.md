@@ -21,5 +21,5 @@ and any link to it is a `*-unexpected-link`.
 The render contract the homes meet (target spec of #4211, § 4): a slot is an element with `data-slot="<bar|hero|what|proof|start|family|footer>"`,
 the one primary button carries `data-primary`.
 
-It runs daily (`.github/workflows/family-drift.yml`) and opens or comments **one internal issue per drift**, titled
-`.github · fix(family): <rule>: <subject>`. It never blocks a site's CI. Locally: `node scripts/family-drift.mjs --org-dir <dir with @krizaka/org installed>`.
+It runs daily (`.github/workflows/family-drift.yml`) and keeps **one internal tracking issue per site**, titled
+`family-drift: <site>`: its body is rewritten in place with the site's current drifts as a checklist and the run link, it is closed when the site has no drift and reopened when it drifts again. The job summary keeps the full report. It never blocks a site's CI. Locally: `node scripts/family-drift.mjs --org-dir <dir with @krizaka/org installed>`.

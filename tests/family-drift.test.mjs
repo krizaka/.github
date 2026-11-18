@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createServer } from "node:http";
 import {
-  checkFooter, checkHome, checkProfile, checkRegistry, checkSiteLive, fetchLive, issueFor, norm, readFooter, readHome, readProfile, report, runGuard, upsertIssues,
+  checkFooter, checkHome, checkProfile, checkRegistry, checkSiteLive, fetchLive, issueFor, siteOf, norm, readFooter, readHome, readProfile, report, runGuard, syncIssues,
 } from "../scripts/family-drift.mjs";
 
 const fx = (name) => readFileSync(new URL(`./fixtures/family-drift/${name}`, import.meta.url), "utf8");
@@ -103,12 +103,21 @@ test("registry: a site or a repository without a registry line is a drift, and a
   );
 });
 
-test("an issue per drift: a stable title and a body", () => {
-  const d = { rule: "link-dead", subject: "www:https://x.example/a", detail: "answers 404" };
-  const i = issueFor(d);
-  assert.equal(i.title, ".github · fix(family): link-dead: www:https://x.example/a");
-  assert.match(i.body, /answers 404/);
-  assert.equal(issueFor(d).title, i.title);
+test("a site's tracking issue: a stable title, a checklist of its drifts, the run link", () => {
+  const ds = [{ rule: "footer-social", subject: "www:x", detail: "d1" }, { rule: "home-primary", subject: "www", detail: "d2" }];
+  const i = issueFor("www", ds, "https://run");
+  assert.equal(i.title, "family-drift: www");
+  assert.match(i.body, /- \[ \] `footer-social` `www:x`: d1\n- \[ \] `home-primary` `www`: d2/);
+  assert.match(i.body, /https:\/\/run/);
+  assert.equal(issueFor("www", [ds[0]]).title, i.title);
+});
+
+test("siteOf: the site of a drift, or a shared bucket", () => {
+  assert.equal(siteOf({ rule: "footer-social", subject: "www:x" }), "www");
+  assert.equal(siteOf({ rule: "x", subject: "u", site: "ui" }), "ui");
+  assert.equal(siteOf({ rule: "registry-repo-missing", subject: "r" }), "registry");
+  assert.equal(siteOf({ rule: "profile-promise", subject: "m" }), "org-profile");
+  assert.equal(siteOf({ rule: "link-dead", subject: "https://a:1" }), "links");
 });
 
 test("runGuard: reports every drift, a dead family link included, agents left out while not public", async () => {
@@ -156,17 +165,38 @@ test("the report says « no drift » or lists each drift", () => {
   assert.match(report([{ rule: "a", subject: "b", detail: "c | d" }]), /1 drift\(s\)[\s\S]*`a`.*c \\\| d/);
 });
 
-test("upsertIssues opens an issue, comments on the open one, and counts what the cap leaves", () => {
+const recorder = (existing) => {
   const calls = [];
   const gh = (args, input) => {
-    calls.push([args[1], input]);
-    return args[1] === "list" ? JSON.stringify(args[7].includes("seen") ? [{ number: 7, title: ".github · fix(family): r: seen" }] : []) : "";
+    calls.push({ verb: `${args[0]} ${args[1]}`, number: /^\d+$/.test(args[2]) ? Number(args[2]) : null, input, args });
+    return args[1] === "list" ? JSON.stringify(existing) : "";
   };
-  const left = upsertIssues([{ rule: "r", subject: "seen", detail: "d" }, { rule: "r", subject: "new", detail: "d" }], gh);
-  assert.equal(left, 0);
-  assert.deepEqual(calls.map((c) => c[0]), ["list", "comment", "list", "create"]);
-  const many = Array.from({ length: 83 }, (_, n) => ({ rule: "r", subject: String(n), detail: "d" }));
-  assert.equal(upsertIssues(many, () => "[]"), 3);
+  return { calls, gh };
+};
+const verbs = (calls) => calls.map((c) => c.verb);
+
+test("syncIssues: one issue per site however many drifts, created then rewritten in place", () => {
+  const many = Array.from({ length: 30 }, (_, n) => ({ rule: "r", subject: `www:${n}`, detail: "d" }));
+  const first = recorder([]);
+  assert.equal(syncIssues([...many, { rule: "home-primary", subject: "ui", detail: "d" }], first.gh, "https://run"), 2);
+  assert.deepEqual(verbs(first.calls), ["issue list", "issue create", "issue create"]);
+  assert.equal(first.calls[1].input.split("\n").filter((l) => l.startsWith("- [ ]")).length, 30);
+  const again = recorder([{ number: 5, title: "family-drift: www", state: "OPEN" }, { number: 6, title: "unrelated", state: "OPEN" }]);
+  syncIssues(many, again.gh, "https://run");
+  assert.deepEqual(verbs(again.calls), ["issue list", "issue edit"]);
+  assert.equal(again.calls[1].number, 5);
+});
+
+test("syncIssues: a site with no drift left is closed with the run link, a site that drifts again is reopened", () => {
+  const closing = recorder([{ number: 5, title: "family-drift: www", state: "OPEN" }, { number: 8, title: "family-drift: ui", state: "CLOSED" }]);
+  syncIssues([], closing.gh, "https://run/1");
+  assert.deepEqual(verbs(closing.calls), ["issue list", "issue close"]);
+  assert.equal(closing.calls[1].number, 5);
+  assert.ok(closing.calls[1].args.includes("https://run/1") || closing.calls[1].args.some((a) => a.includes("https://run/1")));
+  const reopening = recorder([{ number: 8, title: "family-drift: ui", state: "CLOSED" }]);
+  syncIssues([{ rule: "home-primary", subject: "ui", detail: "d" }], reopening.gh);
+  assert.deepEqual(verbs(reopening.calls), ["issue list", "issue reopen", "issue edit"]);
+  assert.equal(reopening.calls[2].number, 8);
 });
 
 test("fetchLive: the status and the body, status 0 when nothing answers", async () => {

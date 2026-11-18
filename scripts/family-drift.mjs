@@ -16,7 +16,7 @@ import { pathToFileURL } from "node:url";
 const REGISTRY = "docs/standards/family-surfaces.json";
 const REPOS = "repos.json";
 const ISSUE_REPO = "krizaka/krizaka-internal";
-const MAX_ISSUES = 80;
+const TITLE_PREFIX = "family-drift: ";
 const NOTES = /release notes|notes de version|\/releases/i;
 const VERSION = /\d{1,6}\.\d{1,6}\.\d{1,6}/;
 
@@ -299,10 +299,25 @@ export function checkRegistry({ registry, members, repos }) {
   return out;
 }
 
-/** One issue per drift: the title is stable, so a second run comments instead of opening another. */
-export const issueFor = (d) => ({
-  title: `.github · fix(family): ${d.rule}: ${d.subject}`,
-  body: `The family-drift guard found a difference from the org.\n\n- rule: \`${d.rule}\`\n- subject: \`${d.subject}\`\n- ${d.detail}\n\nThe rules are in \`docs/standards/family-surfaces.md\`. The guard re-checks every day and comments here while the drift lasts.`,
+/** The site a drift belongs to: its tracking issue. Footer, home and liveness drifts carry their site; the others fall in one of three shared buckets. */
+export const siteOf = (d) => {
+  if (d.site) return d.site;
+  if (d.rule.startsWith("registry-")) return "registry";
+  if (d.rule.startsWith("profile-")) return "org-profile";
+  if (d.rule === "link-dead") return "links";
+  return d.subject.split(":")[0];
+};
+
+/** The tracking issue of one site: a stable title, its current drifts as a checklist, the run link. Never one issue per drift. */
+export const issueFor = (site, drifts, runUrl = "") => ({
+  title: `${TITLE_PREFIX}${site}`,
+  body: [
+    `The family-drift guard found ${drifts.length} difference(s) from the org on \`${site}\`.`,
+    "",
+    ...drifts.map((d) => `- [ ] \`${d.rule}\` \`${d.subject}\`: ${d.detail}`),
+    "",
+    `The rules are in \`docs/standards/family-surfaces.md\`. The guard re-checks every day and rewrites this issue in place; it closes it when the site has no drift${runUrl ? ` (last run: ${runUrl})` : ""}.`,
+  ].join("\n"),
 });
 
 const hostsOf = (urls) => [...new Set(urls.map(hostOf).filter(Boolean))];
@@ -346,7 +361,7 @@ export async function runGuard({ registry, org, footerFor, repos, fetchPage }) {
     const member = byId.get(site.id);
     if (!member?.urls.site) continue;
     const one = checkSite({ site, member, page: await get(member.urls.site), footerFor, registry, familyHosts });
-    drifts.push(...one.drifts);
+    drifts.push(...one.drifts.map((d) => ({ ...d, site: site.id })));
     one.links.forEach(([url, from]) => see(url, from));
   }
 
@@ -373,15 +388,33 @@ export const report = (drifts) =>
     ? "No drift: the rendered footers, homes and the org profile equal the org.\n"
     : [`${drifts.length} drift(s) from the org:\n`, "| rule | subject | detail |", "| :--- | :--- | :--- |", ...drifts.map((d) => `| \`${d.rule}\` | \`${d.subject}\` | ${d.detail.replace(/[\\|]/g, "\\$&")} |`), ""].join("\n");
 
-/** Opens an issue per drift, or comments on the open one with the same title; `gh(args, input?)` runs the GitHub CLI. */
-export function upsertIssues(drifts, gh) {
-  for (const d of drifts.slice(0, MAX_ISSUES)) {
-    const { title, body } = issueFor(d);
-    const found = JSON.parse(gh(["issue", "list", "--repo", ISSUE_REPO, "--state", "open", "--search", `"${title}" in:title`, "--json", "number,title"]) || "[]").find((i) => i.title === title);
-    if (found) gh(["issue", "comment", String(found.number), "--repo", ISSUE_REPO, "--body-file", "-"], body);
-    else gh(["issue", "create", "--repo", ISSUE_REPO, "--title", title, "--body-file", "-", "--label", "repo:.github", "--label", "lane:platform", "--label", "type:fix"], body);
+/**
+ * One tracking issue per site: created, rewritten in place, reopened when the site drifts again, closed (with the run link) when it has none.
+ * `gh(args, input?)` runs the GitHub CLI. Returns how many sites have an open issue.
+ */
+export function syncIssues(drifts, gh, runUrl = "") {
+  const bySite = Map.groupBy(drifts, siteOf);
+  const known = new Map(
+    JSON.parse(gh(["issue", "list", "--repo", ISSUE_REPO, "--state", "all", "--search", `"${TITLE_PREFIX.trim()}" in:title`, "--limit", "100", "--json", "number,title,state"]) || "[]")
+      .filter((i) => i.title.startsWith(TITLE_PREFIX))
+      .map((i) => [i.title, i]),
+  );
+  const repo = ["--repo", ISSUE_REPO];
+  for (const [site, list] of bySite) {
+    const { title, body } = issueFor(site, list, runUrl);
+    const found = known.get(title);
+    if (!found) {
+      gh(["issue", "create", ...repo, "--title", title, "--body-file", "-", "--label", "repo:.github", "--label", "lane:platform", "--label", "type:fix"], body);
+      continue;
+    }
+    if (found.state.toUpperCase() === "CLOSED") gh(["issue", "reopen", String(found.number), ...repo, "--comment", `The site drifts again${runUrl ? `: ${runUrl}` : "."}`]);
+    gh(["issue", "edit", String(found.number), ...repo, "--body-file", "-"], body);
   }
-  return Math.max(0, drifts.length - MAX_ISSUES);
+  for (const [title, found] of known) {
+    if (found.state.toUpperCase() !== "OPEN" || bySite.has(title.slice(TITLE_PREFIX.length))) continue;
+    gh(["issue", "close", String(found.number), ...repo, "--comment", `No drift left on this site${runUrl ? `: ${runUrl}` : "."}`]);
+  }
+  return bySite.size;
 }
 
 export const fetchLive = async (url) => {
@@ -408,8 +441,8 @@ async function main() {
   if (out) writeFileSync(out, text);
   if (process.argv.includes("--issues")) {
     const gh = (args, input) => execFileSync(process.env.GH_BIN ?? "/usr/bin/gh", args, { encoding: "utf8", input });
-    const left = upsertIssues(drifts, gh);
-    if (left) console.log(`${left} more drift(s) not turned into issues (cap ${MAX_ISSUES} per run).`);
+    const { GITHUB_SERVER_URL: server, GITHUB_REPOSITORY: repository, GITHUB_RUN_ID: run } = process.env;
+    syncIssues(drifts, gh, run ? `${server}/${repository}/actions/runs/${run}` : "");
     return;
   }
   if (drifts.length) process.exitCode = 1;
