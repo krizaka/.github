@@ -152,6 +152,7 @@ test("norm drops the slash and the fragment, and leaves a relative link alone", 
 
 test("the report says « no drift » or lists each drift", () => {
   assert.match(report([]), /No drift/);
+  assert.ok(report([{ rule: "a", subject: "b", detail: "x\\y" }]).includes("x\\\\y"), "a backslash is escaped before a pipe is");
   assert.match(report([{ rule: "a", subject: "b", detail: "c | d" }]), /1 drift\(s\)[\s\S]*`a`.*c \\\| d/);
 });
 

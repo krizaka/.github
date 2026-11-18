@@ -371,7 +371,7 @@ export async function runGuard({ registry, org, footerFor, repos, fetchPage }) {
 export const report = (drifts) =>
   drifts.length === 0
     ? "No drift: the rendered footers, homes and the org profile equal the org.\n"
-    : [`${drifts.length} drift(s) from the org:\n`, "| rule | subject | detail |", "| :--- | :--- | :--- |", ...drifts.map((d) => `| \`${d.rule}\` | \`${d.subject}\` | ${d.detail.replace(/\|/g, "\\|")} |`), ""].join("\n");
+    : [`${drifts.length} drift(s) from the org:\n`, "| rule | subject | detail |", "| :--- | :--- | :--- |", ...drifts.map((d) => `| \`${d.rule}\` | \`${d.subject}\` | ${d.detail.replace(/[\\|]/g, "\\$&")} |`), ""].join("\n");
 
 /** Opens an issue per drift, or comments on the open one with the same title; `gh(args, input?)` runs the GitHub CLI. */
 export function upsertIssues(drifts, gh) {
