@@ -33,7 +33,7 @@ jobs:
           node-version: 24
 
       - name: Install the org package the guard compares to
-        run: npm ci --prefix scripts/family-drift-org --no-audit --no-fund
+        run: npm ci --prefix scripts/family-drift-org --ignore-scripts --no-audit --no-fund
 
       - id: app
         if: github.event_name != 'pull_request'
