@@ -1,8 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { createServer } from "node:http";
 import {
-  checkFooter, checkHome, checkProfile, checkRegistry, checkSiteLive, issueFor, readFooter, readHome, readProfile, runGuard,
+  checkFooter, checkHome, checkProfile, checkRegistry, checkSiteLive, fetchLive, issueFor, norm, readFooter, readHome, readProfile, report, runGuard, upsertIssues,
 } from "../scripts/family-drift.mjs";
 
 const fx = (name) => readFileSync(new URL(`./fixtures/family-drift/${name}`, import.meta.url), "utf8");
@@ -129,4 +130,64 @@ test("runGuard: reports every drift, a dead family link included, agents left ou
   assert.ok(r.includes("registry-site-missing"));
   assert.ok(!probed.some((u) => u.includes("/private/")), "a link behind a login is never probed");
   assert.ok(!drifts.some((d) => d.subject.startsWith("agents")), "agents is not checked while it is not public");
+});
+
+test("html reader: a `>` inside a quoted class, scripts and styles, unquoted and single-quoted attributes", () => {
+  const f = readFooter(`<footer><script>var a = "<a href='/no'>";</script><a class="[&>svg]:x" href=/yes data-x>Yes</a><a href='/two' aria-label='Two'><b>2</b></a><style>a{}</style></footer>`);
+  assert.deepEqual(f.links, [{ href: "/yes", text: "Yes" }, { href: "/two", text: "Two" }]);
+  assert.equal(f.text, "Yes 2");
+  assert.equal(readFooter("<footer><a href='/x'>unclosed").links[0].href, "/x");
+});
+
+test("profile reader: images are not links, a badge that is a link keeps its target and the bold names are read", () => {
+  const p = readProfile("**Sovkora** ![img](https://i.example/a.png) [![badge](https://b.example/x.svg)](https://dev.sovkora.com) [Site](https://www.sovkora.com \"title\")");
+  assert.deepEqual(p.links.map((l) => l.href), ["https://dev.sovkora.com", "https://www.sovkora.com"]);
+  assert.ok(p.bold.has("sovkora"));
+});
+
+test("norm drops the slash and the fragment, and leaves a relative link alone", () => {
+  assert.equal(norm("https://WWW.krizaka.com/en/#top"), "https://www.krizaka.com/en");
+  assert.equal(norm("/en/privacy"), "/en/privacy");
+});
+
+test("the report says « no drift » or lists each drift", () => {
+  assert.match(report([]), /No drift/);
+  assert.match(report([{ rule: "a", subject: "b", detail: "c | d" }]), /1 drift\(s\)[\s\S]*`a`.*c \\\| d/);
+});
+
+test("upsertIssues opens an issue, comments on the open one, and counts what the cap leaves", () => {
+  const calls = [];
+  const gh = (args, input) => {
+    calls.push([args[1], input]);
+    return args[1] === "list" ? JSON.stringify(args[7].includes("seen") ? [{ number: 7, title: ".github · fix(family): r: seen" }] : []) : "";
+  };
+  const left = upsertIssues([{ rule: "r", subject: "seen", detail: "d" }, { rule: "r", subject: "new", detail: "d" }], gh);
+  assert.equal(left, 0);
+  assert.deepEqual(calls.map((c) => c[0]), ["list", "comment", "list", "create"]);
+  const many = Array.from({ length: 83 }, (_, n) => ({ rule: "r", subject: String(n), detail: "d" }));
+  assert.equal(upsertIssues(many, () => "[]"), 3);
+});
+
+test("fetchLive: the status and the body, status 0 when nothing answers", async () => {
+  const server = createServer((req, res) => res.writeHead(req.url === "/gone" ? 404 : 200).end("hello"));
+  await new Promise((r) => server.listen(0, "127.0.0.1", r));
+  const base = `http://127.0.0.1:${server.address().port}`;
+  try {
+    assert.deepEqual(await fetchLive(`${base}/`), { status: 200, body: "hello" });
+    assert.equal((await fetchLive(`${base}/gone`)).status, 404);
+  } finally {
+    server.close();
+  }
+  assert.deepEqual(await fetchLive("http://127.0.0.1:1/"), { status: 0, body: "" });
+});
+
+test("runGuard: a site that is silent while siteLive is true, a profile that does not answer", async () => {
+  const registry = { profile: "https://p.example/README.md", kinds: {}, sites: [{ id: "ui", kind: "docs", repo: "krizaka-ui" }] };
+  const { drifts } = await runGuard({
+    registry, org: { members: org.members.filter((m) => m.id === "ui") }, footerFor: () => { throw new Error("no selection"); },
+    repos: [{ name: "krizaka-ui", kind: "npm" }], fetchPage: async (url) => (url.includes("p.example") ? { status: 500, body: "" } : { status: 200, body: "<h1>x</h1>" }),
+  });
+  assert.deepEqual(rules(drifts), ["footer-selection-missing", "home-primary", "home-promise", "profile-unreadable"]);
+  const silent = await runGuard({ registry, org: { members: org.members.filter((m) => m.id === "ui") }, footerFor: () => org.footers.ui, repos: [{ name: "krizaka-ui", kind: "npm" }], fetchPage: async () => ({ status: 0, body: "" }) });
+  assert.ok(rules(silent.drifts).includes("site-silent"));
 });

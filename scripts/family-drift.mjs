@@ -18,13 +18,102 @@ const REPOS = "repos.json";
 const ISSUE_REPO = "krizaka/krizaka-internal";
 const MAX_ISSUES = 80;
 const NOTES = /release notes|notes de version|\/releases/i;
-const VERSION = /\d+\.\d+\.\d+/;
+const VERSION = /\d{1,6}\.\d{1,6}\.\d{1,6}/;
 
 const ENTITIES = { "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"', "&#39;": "'", "&middot;": "·", "&nbsp;": " " };
 const decode = (s) => s.replace(/&(?:amp|lt|gt|quot|#39|middot|nbsp);/g, (e) => ENTITIES[e]);
-const strip = (s) => decode(s.replace(/<(script|style)\b.*?<\/\1>/gis, " ").replace(/<[^>]*>/g, " ")).replace(/\s+/g, " ").trim();
+const isSpace = (c) => c === " " || c === "\n" || c === "\t" || c === "\r" || c === "\f";
+
+/** The index of the `>` that closes the tag opened at `from`, quotes respected (a class like `[&>svg]` holds a `>`); -1 when it never closes. */
+function tagEnd(html, from) {
+  let quote = "";
+  for (let i = from + 1; i < html.length; i++) {
+    const c = html[i];
+    if (quote) quote = c === quote ? "" : quote;
+    else if (c === '"' || c === "'") quote = c;
+    else if (c === ">") return i;
+  }
+  return -1;
+}
+
+/** The attributes of the inside of a tag (`a href="x" data-primary`), names in lower case, values decoded. A small state machine: no regex to backtrack. */
+function attrsOf(raw) {
+  const out = {};
+  const n = raw.length;
+  let i = 0;
+  while (i < n && !isSpace(raw[i])) i++;
+  while (i < n) {
+    while (i < n && (isSpace(raw[i]) || raw[i] === "/")) i++;
+    const from = i;
+    while (i < n && !isSpace(raw[i]) && raw[i] !== "=" && raw[i] !== "/") i++;
+    const key = raw.slice(from, i).toLowerCase();
+    while (i < n && isSpace(raw[i])) i++;
+    let value = "";
+    if (raw[i] === "=") {
+      i++;
+      while (i < n && isSpace(raw[i])) i++;
+      const quote = raw[i] === '"' || raw[i] === "'" ? raw[i] : "";
+      const start = quote ? i + 1 : i;
+      let end = quote ? raw.indexOf(quote, start) : start;
+      if (end < 0) end = n;
+      if (!quote) while (end < n && !isSpace(raw[end])) end++;
+      value = raw.slice(start, end);
+      i = quote ? end + 1 : end;
+    }
+    if (key) out[key] = decode(value);
+    else i++;
+  }
+  return out;
+}
+
+/** The tags of a page in order: `name` (lower case, `/name` when closing), `attrs`, and where it starts and ends in the text. */
+function tagsOf(html) {
+  const out = [];
+  const lower = html.toLowerCase();
+  let i = 0;
+  while ((i = html.indexOf("<", i)) >= 0) {
+    const end = tagEnd(html, i);
+    if (end < 0) break;
+    const raw = html.slice(i + 1, end);
+    const closing = raw.startsWith("/");
+    const body = closing ? raw.slice(1) : raw;
+    let n = 0;
+    while (n < body.length && !isSpace(body[n]) && body[n] !== "/") n++;
+    out.push({ name: (closing ? "/" : "") + body.slice(0, n).toLowerCase(), attrs: closing ? {} : attrsOf(body), start: i, end: end + 1 });
+    i = end + 1;
+    const rawText = !closing && (out.at(-1).name === "script" || out.at(-1).name === "style");
+    if (rawText) {
+      // The inside of a script or a style is text, never tags: jump to its closing tag.
+      const stop = lower.indexOf(`</${out.at(-1).name}`, i);
+      if (stop < 0) break;
+      i = stop;
+    }
+  }
+  return out;
+}
+
+/** The text of a piece of HTML (or of a Markdown that carries some): tags and the content of scripts and styles gone, entities decoded, spaces squeezed. */
+function strip(html) {
+  let text = "";
+  let last = 0;
+  let until = "";
+  for (const t of tagsOf(html)) {
+    if (until) {
+      if (t.name === until) {
+        until = "";
+        last = t.end;
+      }
+      continue;
+    }
+    text += `${html.slice(last, t.start)} `;
+    last = t.end;
+    if (t.name === "script" || t.name === "style") until = `/${t.name}`;
+  }
+  if (!until) text += html.slice(last);
+  return decode(text).replace(/\s+/g, " ").trim();
+}
+
 const squash = (s) => strip(s).toLowerCase().replace(/[*_`]/g, "");
-const attr = (tag, name) => tag.match(new RegExp(`\\b${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, "i"))?.slice(1).find((v) => v !== undefined);
 
 /** A URL without its fragment, its trailing slash and the case of its host; a relative one stays as it is. */
 export const norm = (u) => {
@@ -43,32 +132,62 @@ const hostOf = (u) => {
   }
 };
 
+/** The links of a list of tags: `href`, and the accessible name (`aria-label`, else the text inside the `<a>`). */
+function linksOf(html, tags) {
+  const out = [];
+  tags.forEach((t, i) => {
+    if (t.name !== "a" || !t.attrs.href) return;
+    const close = tags.slice(i + 1).find((x) => x.name === "/a");
+    const inner = close ? html.slice(t.end, close.start) : "";
+    out.push({ href: t.attrs.href, text: t.attrs["aria-label"] ?? strip(inner) });
+  });
+  return out;
+}
+
 /** The LAST `<footer>` of a page: its links (the accessible name of an icon link is its `aria-label`) and its text; null when there is none. */
 export function readFooter(html) {
-  const start = html.toLowerCase().lastIndexOf("<footer");
-  if (start < 0) return null;
-  const end = html.toLowerCase().indexOf("</footer>", start);
-  const body = html.slice(start, end < 0 ? undefined : end);
-  const links = [...body.matchAll(/<a\b([^>]*)>(.*?)<\/a>/gis)]
-    .map(([, tag, inner]) => ({ href: attr(tag, "href") ?? "", text: attr(tag, "aria-label") ?? strip(inner) }))
-    .filter((l) => l.href);
-  return { links, text: strip(body) };
+  const all = tagsOf(html);
+  const open = all.findLastIndex((t) => t.name === "footer");
+  if (open < 0) return null;
+  const close = all.findIndex((t, i) => i > open && t.name === "/footer");
+  const inside = all.slice(open + 1, close < 0 ? undefined : close);
+  const endAt = close < 0 ? html.length : all[close].start;
+  return { links: linksOf(html, inside), text: strip(html.slice(all[open].end, endAt)) };
 }
 
 /** What a home says of itself: its h1, the `data-slot` it carries (the render contract of `SiteHome`) and its primary buttons (`data-primary`). */
 export function readHome(html) {
-  const h1 = html.match(/<h1\b[^>]*>(.*?)<\/h1>/is);
+  const all = tagsOf(html);
+  const h1 = all.findIndex((t) => t.name === "h1");
+  const h1End = all.findIndex((t, i) => i > h1 && t.name === "/h1");
   return {
-    h1: h1 ? strip(h1[1]) : "",
-    slots: [...new Set([...html.matchAll(/\bdata-slot\s*=\s*"([^"]+)"/g)].map((m) => m[1]))],
-    primary: [...html.matchAll(/<[^>]*\bdata-primary(?:\s*=\s*"true")?[\s>\/][^>]*>/g)].length,
+    h1: h1 < 0 || h1End < 0 ? "" : strip(html.slice(all[h1].end, all[h1End].start)),
+    slots: [...new Set(all.map((t) => t.attrs["data-slot"]).filter(Boolean))],
+    primary: all.filter((t) => t.attrs["data-primary"] !== undefined).length,
   };
+}
+
+/** The `[text](href)` links of a Markdown, an image (`![alt](src)`) excepted; the text of a badge that is a link is empty. */
+function markdownLinks(markdown) {
+  const out = [];
+  let at = 0;
+  while ((at = markdown.indexOf("](", at)) >= 0) {
+    const open = markdown.lastIndexOf("[", at);
+    const close = markdown.indexOf(")", at);
+    const wrapsImage = markdown[at - 1] === ")";
+    const isImage = open > 0 && markdown[open - 1] === "!" && !wrapsImage;
+    if (open >= 0 && close > at && !isImage) {
+      out.push({ href: markdown.slice(at + 2, close).split(/\s/, 1)[0], text: wrapsImage ? "" : markdown.slice(open + 1, at) });
+    }
+    at += 2;
+  }
+  return out;
 }
 
 /** The org profile README: every link, its text without markup and the names it puts in bold (a member it names). */
 export function readProfile(markdown) {
   return {
-    links: [...markdown.matchAll(/(?<!!)\[([^\]]*)\]\((\S+?)\)/g)].map(([, text, href]) => ({ href, text })),
+    links: markdownLinks(markdown),
     text: squash(markdown),
     bold: new Set([...markdown.matchAll(/\*\*([^*]+)\*\*/g)].map((m) => m[1].trim().toLowerCase())),
   };
@@ -80,39 +199,41 @@ const drift = (rule, subject, detail) => ({ rule, subject, detail });
 const collapse = (id, drifts) =>
   [...Map.groupBy(drifts, (d) => d.rule)].map(([rule, same]) => (same.length === 1 ? same[0] : drift(rule, id, same.map((d) => d.detail).join("; "))));
 
+const familyDrifts = (id, expected, read, hrefs, familyHosts) => {
+  const entries = expected.groups.flatMap((g) => g.entries);
+  const expectedHosts = new Set(entries.map((e) => hostOf(e.url)));
+  const missing = entries.filter((e) => !hrefs.has(norm(e.url))).map((e) => drift("footer-family-missing", `${id}:${e.id}`, `the family link to ${e.url} (${e.name}) is not in the footer`));
+  const unexpected = read.links
+    .filter((l) => familyHosts.includes(hostOf(l.href)) && !expectedHosts.has(hostOf(l.href)))
+    .map((l) => drift("footer-unexpected-link", `${id}:${hostOf(l.href)}`, `the footer links ${l.href} (${l.text}), a family address the org does not list for this site`));
+  return [...missing, ...unexpected];
+};
+
+const rowsBDDrifts = (id, expected, hrefs, text) => {
+  const social = expected.social.filter((s) => !hrefs.has(norm(s.url))).map((s) => drift("footer-social", `${id}:${s.id}`, `the ${s.label} link ${s.url} is not in the footer`));
+  const legal = expected.legal
+    .filter((l) => !hrefs.has(norm(l.url.fr)) && !hrefs.has(norm(l.url.en)))
+    .map((l) => drift("footer-legal", `${id}:${l.id}`, `the ${l.label.en} page ${l.url.en} is not linked`));
+  const lineThere = text.includes(squash(expected.line.fr)) || text.includes(squash(expected.line.en));
+  return [...social, ...legal, ...(lineThere ? [] : [drift("footer-line", id, `the line « ${expected.line.en} » is not in the footer`)])];
+};
+
+const rowCDrifts = (id, expected, read, hrefs, text) => {
+  const out = [];
+  if (expected.source && !hrefs.has(norm(expected.source))) out.push(drift("footer-source", id, `the source link ${expected.source} is not in the footer`));
+  if (expected.license && !text.includes(squash(expected.license))) out.push(drift("footer-licence", id, `the licence ${expected.license} is not in the footer`));
+  if (!expected.version) return out;
+  if (!VERSION.test(read.text)) out.push(drift("footer-version", id, "the footer shows no version"));
+  if (!read.links.some((l) => NOTES.test(l.text) || NOTES.test(l.href))) out.push(drift("footer-release-notes", id, "the footer has no release notes link"));
+  return out;
+};
+
 /** Rows A–E of the footer of `id` (`footerFor(id)`) against the rendered one. */
 export function checkFooter({ id, expected, read, familyHosts = [] }) {
   if (!read) return [drift("footer-absent", id, "the page has no <footer>")];
-  const out = [];
   const hrefs = new Set(read.links.map((l) => norm(l.href)));
-  const entries = expected.groups.flatMap((g) => g.entries);
-  for (const e of entries) {
-    if (!hrefs.has(norm(e.url))) out.push(drift("footer-family-missing", `${id}:${e.id}`, `the family link to ${e.url} (${e.name}) is not in the footer`));
-  }
-  const expectedHosts = new Set(entries.map((e) => hostOf(e.url)));
-  for (const l of read.links) {
-    const host = hostOf(l.href);
-    if (host && familyHosts.includes(host) && !expectedHosts.has(host)) {
-      out.push(drift("footer-unexpected-link", `${id}:${host}`, `the footer links ${l.href} (${l.text}), a family address the org does not list for this site`));
-    }
-  }
-  for (const s of expected.social) {
-    if (!hrefs.has(norm(s.url))) out.push(drift("footer-social", `${id}:${s.id}`, `the ${s.label} link ${s.url} is not in the footer`));
-  }
-  for (const l of expected.legal) {
-    if (!hrefs.has(norm(l.url.fr)) && !hrefs.has(norm(l.url.en))) out.push(drift("footer-legal", `${id}:${l.id}`, `the ${l.label.en} page ${l.url.en} is not linked`));
-  }
   const text = squash(read.text);
-  if (!text.includes(squash(expected.line.fr)) && !text.includes(squash(expected.line.en))) {
-    out.push(drift("footer-line", id, `the line « ${expected.line.en} » is not in the footer`));
-  }
-  if (expected.source && !hrefs.has(norm(expected.source))) out.push(drift("footer-source", id, `the source link ${expected.source} is not in the footer`));
-  if (expected.license && !text.includes(squash(expected.license))) out.push(drift("footer-licence", id, `the licence ${expected.license} is not in the footer`));
-  if (expected.version) {
-    if (!VERSION.test(read.text)) out.push(drift("footer-version", id, "the footer shows no version"));
-    if (!read.links.some((l) => NOTES.test(l.text) || NOTES.test(l.href))) out.push(drift("footer-release-notes", id, "the footer has no release notes link"));
-  }
-  return collapse(id, out);
+  return collapse(id, [...familyDrifts(id, expected, read, hrefs, familyHosts), ...rowsBDDrifts(id, expected, hrefs, text), ...rowCDrifts(id, expected, read, hrefs, text)]);
 }
 
 /** The home: the promise is `words.line`, the slots of its kind are there, exactly one primary button. `home` null (not read) checks nothing. */
@@ -181,6 +302,25 @@ export const issueFor = (d) => ({
 
 const hostsOf = (urls) => [...new Set(urls.map(hostOf).filter(Boolean))];
 
+/** One site: its liveness, then (when it answers) its footer and its home. Returns its drifts and the family links its footer carries. */
+function checkSite({ site, member, page, footerFor, registry, familyHosts }) {
+  const drifts = [...checkSiteLive(member, page)];
+  const links = [];
+  if (!answers(page.status)) return { drifts, links };
+  let expected;
+  try {
+    expected = footerFor(site.id);
+  } catch (e) {
+    drifts.push(drift("footer-selection-missing", site.id, e.message));
+  }
+  if (expected) {
+    drifts.push(...checkFooter({ id: site.id, expected, read: readFooter(page.body), familyHosts }));
+    links.push(...expected.groups.flatMap((g) => g.entries).map((e) => [e.url, `the footer of ${site.id}`]));
+  }
+  drifts.push(...checkHome({ id: site.id, kind: site.kind, kinds: registry.kinds, line: member.words.line, home: readHome(page.body) }));
+  return { drifts, links };
+}
+
 /** Everything: read the live pages and the profile, apply the rules, return every drift. `fetchPage(url)` answers `{status, body}` (status 0 when nothing answers). */
 export async function runGuard({ registry, org, footerFor, repos, fetchPage }) {
   const cache = new Map();
@@ -195,31 +335,21 @@ export async function runGuard({ registry, org, footerFor, repos, fetchPage }) {
   const publicHosts = new Set(hostsOf(members.filter((m) => m.visibility === "public" && m.urls.siteLive).map((m) => m.urls.site)));
   const drifts = [...checkRegistry({ registry, members, repos })];
   const links = new Map();
+  const see = (url, from) => links.set(url, [...(links.get(url) ?? []), from]);
 
   for (const site of registry.sites.filter((s) => s.public !== false)) {
     const member = byId.get(site.id);
     if (!member?.urls.site) continue;
-    const page = await get(member.urls.site);
-    drifts.push(...checkSiteLive(member, page));
-    if (!answers(page.status)) continue;
-    let expected;
-    try {
-      expected = footerFor(site.id);
-    } catch (e) {
-      drifts.push(drift("footer-selection-missing", site.id, e.message));
-    }
-    if (expected) {
-      drifts.push(...checkFooter({ id: site.id, expected, read: readFooter(page.body), familyHosts }));
-      for (const e of expected.groups.flatMap((g) => g.entries)) links.set(e.url, [...(links.get(e.url) ?? []), `the footer of ${site.id}`]);
-    }
-    drifts.push(...checkHome({ id: site.id, kind: site.kind, kinds: registry.kinds, line: member.words.line, home: readHome(page.body) }));
+    const one = checkSite({ site, member, page: await get(member.urls.site), footerFor, registry, familyHosts });
+    drifts.push(...one.drifts);
+    one.links.forEach(([url, from]) => see(url, from));
   }
 
   const profile = await get(registry.profile);
   if (answers(profile.status)) {
     const read = readProfile(profile.body);
     drifts.push(...checkProfile({ read, members, familyHosts, publicHosts }));
-    for (const l of read.links.filter((x) => familyHosts.includes(hostOf(x.href)))) links.set(l.href, [...(links.get(l.href) ?? []), "the org profile"]);
+    read.links.filter((x) => familyHosts.includes(hostOf(x.href))).forEach((l) => see(l.href, "the org profile"));
   } else {
     drifts.push(drift("profile-unreadable", registry.profile, `the org profile README answers ${profile.status || "nothing"}`));
   }
@@ -249,7 +379,7 @@ export function upsertIssues(drifts, gh) {
   return Math.max(0, drifts.length - MAX_ISSUES);
 }
 
-const fetchLive = async (url) => {
+export const fetchLive = async (url) => {
   try {
     const res = await fetch(url, { redirect: "follow", signal: AbortSignal.timeout(20000), headers: { "user-agent": "krizaka-family-drift" } });
     return { status: res.status, body: await res.text() };
@@ -272,7 +402,7 @@ async function main() {
   const out = process.argv.includes("--report") ? arg("--report") : null;
   if (out) writeFileSync(out, text);
   if (process.argv.includes("--issues")) {
-    const gh = (args, input) => execFileSync("gh", args, { encoding: "utf8", input });
+    const gh = (args, input) => execFileSync(process.env.GH_BIN ?? "/usr/bin/gh", args, { encoding: "utf8", input });
     const left = upsertIssues(drifts, gh);
     if (left) console.log(`${left} more drift(s) not turned into issues (cap ${MAX_ISSUES} per run).`);
     return;
