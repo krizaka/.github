@@ -1,0 +1,59 @@
+name: Family drift
+
+# The rendered footers, homes and the org profile against the org (krizaka-internal#3920, #4008). It REPORTS: one internal issue per drift,
+# opened or commented, and the run stays green: the sites change on their own pace and this never blocks a site's CI. Uptime itself is
+# Grafana's (krizaka-internal#4151); what this reads is the CONTENT, which no synthetic check compares to the org.
+on:
+  schedule:
+    - cron: '17 11 * * *'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - scripts/family-drift.mjs
+      - docs/standards/family-surfaces.json
+      - .github/workflows/family-drift.yml
+
+permissions: {}
+
+jobs:
+  guard:
+    name: Family drift
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Install the org package the guard compares to
+        run: |
+          version=$(jq -r .orgVersion docs/standards/family-surfaces.json)
+          npm install --prefix "${RUNNER_TEMP}/org" --no-audit --no-fund "@krizaka/org@${version}"
+
+      - id: app
+        if: github.event_name != 'pull_request'
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: krizaka-internal
+          permission-issues: write
+
+      - name: Read the live sites and the org profile
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "${EVENT}" = "pull_request" ]; then
+            node scripts/family-drift.mjs --org-dir "${RUNNER_TEMP}/org" --report "${GITHUB_STEP_SUMMARY}"
+          else
+            node scripts/family-drift.mjs --org-dir "${RUNNER_TEMP}/org" --report "${GITHUB_STEP_SUMMARY}" --issues
+          fi
+        continue-on-error: ${{ github.event_name == 'pull_request' }}

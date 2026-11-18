@@ -1,0 +1,954 @@
+{
+ "members": [
+  {
+   "id": "krizaka",
+   "name": "Krizaka",
+   "kind": "company",
+   "visibility": "public",
+   "urls": {
+    "site": "https://www.krizaka.com",
+    "siteLive": true,
+    "repo": "https://github.com/krizaka/krizaka-com"
+   },
+   "words": {
+    "line": {
+     "fr": "Technologies Krizaka : des logiciels pour les entreprises d'ici, construits à la vue de tous.",
+     "en": "Technologies Krizaka: software for local businesses, built in the open."
+    }
+   }
+  },
+  {
+   "id": "blog",
+   "name": "Blog",
+   "kind": "blog",
+   "visibility": "public",
+   "urls": {
+    "site": "https://blog.krizaka.com",
+    "siteLive": true,
+    "repo": "https://github.com/krizaka/krizaka-blog"
+   },
+   "words": {
+    "line": {
+     "fr": "Le blogue de Krizaka : ce que nous construisons et ce que nous en apprenons.",
+     "en": "The Krizaka blog: what we build and what we learn from it."
+    }
+   }
+  },
+  {
+   "id": "sovkora",
+   "name": "Sovkora",
+   "kind": "product",
+   "visibility": "public",
+   "urls": {
+    "site": "https://www.sovkora.com",
+    "siteLive": true,
+    "repo": "https://github.com/krizaka/sovkora"
+   },
+   "words": {
+    "line": {
+     "fr": "Sovkora : des vidéos et des médias produits par l'IA, du scénario au rendu.",
+     "en": "Sovkora: AI-made video and media, from script to render."
+    }
+   }
+  },
+  {
+   "id": "verikora",
+   "name": "Verikora",
+   "kind": "product",
+   "visibility": "public",
+   "urls": {
+    "site": "https://www.verikora.com",
+    "siteLive": true,
+    "repo": "https://github.com/krizaka/verikora"
+   },
+   "words": {
+    "line": {
+     "fr": "Verikora : lire un document et en vérifier les faits, les chiffres et les données personnelles.",
+     "en": "Verikora: read a document and check its facts, figures and personal data."
+    }
+   }
+  },
+  {
+   "id": "folioviv",
+   "name": "Folioviv",
+   "kind": "product",
+   "visibility": "public",
+   "urls": {
+    "site": "https://www.folioviv.com",
+    "siteLive": true,
+    "repo": "https://github.com/krizaka/folioviv"
+   },
+   "words": {
+    "line": {
+     "fr": "Folioviv : réservations, vitrine et heures d'ouverture des commerces locaux.",
+     "en": "Folioviv: bookings, storefront and opening hours for local businesses."
+    }
+   }
+  },
+  {
+   "id": "kridoc",
+   "name": "Kridoc",
+   "kind": "product",
+   "visibility": "public",
+   "urls": {
+    "site": "https://www.kridoc.com",
+    "siteLive": true,
+    "repo": "https://github.com/krizaka/kridoc"
+   },
+   "words": {
+    "line": {
+     "fr": "Kridoc : vos documents, classés et retrouvables, au même endroit.",
+     "en": "Kridoc: your documents, filed and findable, in one place."
+    }
+   }
+  },
+  {
+   "id": "ui",
+   "name": "Krizaka UI",
+   "kind": "library",
+   "visibility": "public",
+   "urls": {
+    "site": "https://ui.krizaka.com",
+    "siteLive": true,
+    "repo": "https://github.com/krizaka/krizaka-ui"
+   },
+   "words": {
+    "line": {
+     "fr": "Composants React, variables de design et blocs de pages partagés par chaque produit Krizaka.",
+     "en": "React components, design variables and page blocks shared by every Krizaka product."
+    }
+   }
+  },
+  {
+   "id": "java",
+   "name": "Krizaka Java",
+   "kind": "library",
+   "visibility": "public",
+   "urls": {
+    "site": "https://java.krizaka.com",
+    "siteLive": true,
+    "repo": "https://github.com/krizaka/krizaka-java"
+   },
+   "words": {
+    "line": {
+     "fr": "Briques Spring Boot des services Krizaka. Pas encore de registre public : le code et les versions sont sur GitHub.",
+     "en": "Spring Boot building blocks for Krizaka services. No public registry yet: the source and the releases are on GitHub."
+    }
+   }
+  },
+  {
+   "id": "ts",
+   "name": "Krizaka TypeScript",
+   "kind": "library",
+   "visibility": "public",
+   "urls": {
+    "site": "https://ts.krizaka.com",
+    "siteLive": true,
+    "repo": "https://github.com/krizaka/krizaka-ts"
+   },
+   "words": {
+    "line": {
+     "fr": "Briques TypeScript pour le serveur et le client, publiées sur npm sous @krizaka/.",
+     "en": "TypeScript building blocks for server and client, published on npm under @krizaka/."
+    }
+   }
+  },
+  {
+   "id": "lab",
+   "name": "Krizaka Lab",
+   "kind": "lab",
+   "visibility": "public",
+   "urls": {
+    "site": "https://lab.krizaka.com",
+    "siteLive": true,
+    "repo": "https://github.com/krizaka/krizaka-lab"
+   },
+   "words": {
+    "line": {
+     "fr": "Le laboratoire du mouvement : des essais de 3D et d'animation, montrés avant d'entrer dans les produits.",
+     "en": "The motion lab: 3D and animation experiments, shown before they reach the products."
+    }
+   }
+  },
+  {
+   "id": "rust",
+   "name": "Krizaka Rust",
+   "kind": "library",
+   "visibility": "public",
+   "urls": {
+    "site": "https://rust.krizaka.com",
+    "siteLive": true,
+    "repo": "https://github.com/krizaka/krizaka-rust"
+   },
+   "words": {
+    "line": {
+     "fr": "Briques Rust des applications de bureau Krizaka : les règles dans un crate pur, la colle Tauri à part.",
+     "en": "Rust building blocks for the Krizaka desktop apps: the rules in a pure crate, the Tauri glue apart."
+    }
+   }
+  },
+  {
+   "id": "github",
+   "name": "GitHub",
+   "kind": "github",
+   "visibility": "public",
+   "urls": {
+    "site": "https://github.com/krizaka",
+    "siteLive": true,
+    "repo": null
+   },
+   "words": {
+    "line": {
+     "fr": "Le code de Krizaka, sur GitHub.",
+     "en": "Krizaka's code, on GitHub."
+    }
+   }
+  }
+ ],
+ "footers": {
+  "krizaka": {
+   "id": "krizaka",
+   "groups": [
+    {
+     "group": "krizaka",
+     "entries": [
+      {
+       "id": "krizaka",
+       "name": "Krizaka",
+       "short": "Krizaka",
+       "group": "krizaka",
+       "status": "released",
+       "url": "https://www.krizaka.com",
+       "repo": "https://github.com/krizaka/krizaka-com"
+      },
+      {
+       "id": "blog",
+       "name": "Blog",
+       "short": "Blog",
+       "group": "krizaka",
+       "status": "released",
+       "url": "https://blog.krizaka.com",
+       "repo": "https://github.com/krizaka/krizaka-blog"
+      }
+     ]
+    },
+    {
+     "group": "products",
+     "entries": [
+      {
+       "id": "sovkora",
+       "name": "Sovkora",
+       "short": "Sovkora",
+       "group": "products",
+       "status": "development",
+       "url": "https://www.sovkora.com",
+       "repo": "https://github.com/krizaka/sovkora"
+      },
+      {
+       "id": "verikora",
+       "name": "Verikora",
+       "short": "Verikora",
+       "group": "products",
+       "status": "development",
+       "url": "https://www.verikora.com",
+       "repo": "https://github.com/krizaka/verikora"
+      },
+      {
+       "id": "folioviv",
+       "name": "Folioviv",
+       "short": "Folioviv",
+       "group": "products",
+       "status": "development",
+       "url": "https://www.folioviv.com",
+       "repo": "https://github.com/krizaka/folioviv"
+      },
+      {
+       "id": "kridoc",
+       "name": "Kridoc",
+       "short": "Kridoc",
+       "group": "products",
+       "status": "development",
+       "url": "https://www.kridoc.com",
+       "repo": "https://github.com/krizaka/kridoc"
+      }
+     ]
+    },
+    {
+     "group": "open-source",
+     "entries": [
+      {
+       "id": "ui",
+       "name": "Krizaka UI",
+       "short": "UI",
+       "group": "open-source",
+       "status": "development",
+       "url": "https://ui.krizaka.com",
+       "repo": "https://github.com/krizaka/krizaka-ui"
+      },
+      {
+       "id": "java",
+       "name": "Krizaka Java",
+       "short": "Java",
+       "group": "open-source",
+       "status": "development",
+       "url": "https://java.krizaka.com",
+       "repo": "https://github.com/krizaka/krizaka-java"
+      },
+      {
+       "id": "ts",
+       "name": "Krizaka TypeScript",
+       "short": "TypeScript",
+       "group": "open-source",
+       "status": "development",
+       "url": "https://ts.krizaka.com",
+       "repo": "https://github.com/krizaka/krizaka-ts"
+      },
+      {
+       "id": "lab",
+       "name": "Krizaka Lab",
+       "short": "Lab",
+       "group": "open-source",
+       "status": "development",
+       "url": "https://lab.krizaka.com",
+       "repo": "https://github.com/krizaka/krizaka-lab"
+      },
+      {
+       "id": "rust",
+       "name": "Krizaka Rust",
+       "short": "Rust",
+       "group": "open-source",
+       "status": "development",
+       "url": "https://rust.krizaka.com",
+       "repo": "https://github.com/krizaka/krizaka-rust"
+      }
+     ]
+    },
+    {
+     "group": "github",
+     "entries": [
+      {
+       "id": "github",
+       "name": "GitHub",
+       "short": "GitHub",
+       "group": "github",
+       "status": "released",
+       "url": "https://github.com/krizaka",
+       "repo": null
+      }
+     ]
+    }
+   ],
+   "social": [
+    {
+     "id": "instagram",
+     "label": "Instagram",
+     "url": "https://www.instagram.com/krizakahq/"
+    },
+    {
+     "id": "facebook",
+     "label": "Facebook",
+     "url": "https://www.facebook.com/1482481631608218"
+    },
+    {
+     "id": "youtube",
+     "label": "YouTube",
+     "url": "https://www.youtube.com/@krizakahq"
+    },
+    {
+     "id": "linkedin",
+     "label": "LinkedIn",
+     "url": "https://www.linkedin.com/company/krizaka-technologies-inc"
+    }
+   ],
+   "source": null,
+   "license": null,
+   "legal": [
+    {
+     "id": "privacy",
+     "label": {
+      "fr": "Confidentialité",
+      "en": "Privacy"
+     },
+     "url": {
+      "fr": "https://www.krizaka.com/fr/privacy",
+      "en": "https://www.krizaka.com/en/privacy"
+     }
+    },
+    {
+     "id": "terms",
+     "label": {
+      "fr": "Conditions",
+      "en": "Terms"
+     },
+     "url": {
+      "fr": "https://www.krizaka.com/fr/terms",
+      "en": "https://www.krizaka.com/en/terms"
+     }
+    }
+   ],
+   "line": {
+    "fr": "Une entreprise de Technologies Krizaka · Fait à Montréal",
+    "en": "A Technologies Krizaka company · Made in Montréal"
+   },
+   "version": false
+  },
+  "ui": {
+   "id": "ui",
+   "groups": [
+    {
+     "group": "krizaka",
+     "entries": [
+      {
+       "id": "krizaka",
+       "name": "Krizaka",
+       "short": "Krizaka",
+       "group": "krizaka",
+       "status": "released",
+       "url": "https://www.krizaka.com",
+       "repo": "https://github.com/krizaka/krizaka-com"
+      },
+      {
+       "id": "blog",
+       "name": "Blog",
+       "short": "Blog",
+       "group": "krizaka",
+       "status": "released",
+       "url": "https://blog.krizaka.com",
+       "repo": "https://github.com/krizaka/krizaka-blog"
+      }
+     ]
+    },
+    {
+     "group": "products",
+     "entries": [
+      {
+       "id": "sovkora",
+       "name": "Sovkora",
+       "short": "Sovkora",
+       "group": "products",
+       "status": "development",
+       "url": "https://www.sovkora.com",
+       "repo": "https://github.com/krizaka/sovkora"
+      },
+      {
+       "id": "verikora",
+       "name": "Verikora",
+       "short": "Verikora",
+       "group": "products",
+       "status": "development",
+       "url": "https://www.verikora.com",
+       "repo": "https://github.com/krizaka/verikora"
+      },
+      {
+       "id": "folioviv",
+       "name": "Folioviv",
+       "short": "Folioviv",
+       "group": "products",
+       "status": "development",
+       "url": "https://www.folioviv.com",
+       "repo": "https://github.com/krizaka/folioviv"
+      },
+      {
+       "id": "kridoc",
+       "name": "Kridoc",
+       "short": "Kridoc",
+       "group": "products",
+       "status": "development",
+       "url": "https://www.kridoc.com",
+       "repo": "https://github.com/krizaka/kridoc"
+      }
+     ]
+    },
+    {
+     "group": "open-source",
+     "entries": [
+      {
+       "id": "ui",
+       "name": "Krizaka UI",
+       "short": "UI",
+       "group": "open-source",
+       "status": "development",
+       "url": "https://ui.krizaka.com",
+       "repo": "https://github.com/krizaka/krizaka-ui"
+      },
+      {
+       "id": "java",
+       "name": "Krizaka Java",
+       "short": "Java",
+       "group": "open-source",
+       "status": "development",
+       "url": "https://java.krizaka.com",
+       "repo": "https://github.com/krizaka/krizaka-java"
+      },
+      {
+       "id": "ts",
+       "name": "Krizaka TypeScript",
+       "short": "TypeScript",
+       "group": "open-source",
+       "status": "development",
+       "url": "https://ts.krizaka.com",
+       "repo": "https://github.com/krizaka/krizaka-ts"
+      },
+      {
+       "id": "lab",
+       "name": "Krizaka Lab",
+       "short": "Lab",
+       "group": "open-source",
+       "status": "development",
+       "url": "https://lab.krizaka.com",
+       "repo": "https://github.com/krizaka/krizaka-lab"
+      },
+      {
+       "id": "rust",
+       "name": "Krizaka Rust",
+       "short": "Rust",
+       "group": "open-source",
+       "status": "development",
+       "url": "https://rust.krizaka.com",
+       "repo": "https://github.com/krizaka/krizaka-rust"
+      }
+     ]
+    },
+    {
+     "group": "github",
+     "entries": [
+      {
+       "id": "github",
+       "name": "GitHub",
+       "short": "GitHub",
+       "group": "github",
+       "status": "released",
+       "url": "https://github.com/krizaka",
+       "repo": null
+      }
+     ]
+    }
+   ],
+   "social": [
+    {
+     "id": "instagram",
+     "label": "Instagram",
+     "url": "https://www.instagram.com/krizakahq/"
+    },
+    {
+     "id": "facebook",
+     "label": "Facebook",
+     "url": "https://www.facebook.com/1482481631608218"
+    },
+    {
+     "id": "youtube",
+     "label": "YouTube",
+     "url": "https://www.youtube.com/@krizakahq"
+    },
+    {
+     "id": "linkedin",
+     "label": "LinkedIn",
+     "url": "https://www.linkedin.com/company/krizaka-technologies-inc"
+    }
+   ],
+   "source": "https://github.com/krizaka/krizaka-ui",
+   "license": "Apache-2.0",
+   "legal": [
+    {
+     "id": "privacy",
+     "label": {
+      "fr": "Confidentialité",
+      "en": "Privacy"
+     },
+     "url": {
+      "fr": "https://www.krizaka.com/fr/privacy",
+      "en": "https://www.krizaka.com/en/privacy"
+     }
+    },
+    {
+     "id": "terms",
+     "label": {
+      "fr": "Conditions",
+      "en": "Terms"
+     },
+     "url": {
+      "fr": "https://www.krizaka.com/fr/terms",
+      "en": "https://www.krizaka.com/en/terms"
+     }
+    }
+   ],
+   "line": {
+    "fr": "Une entreprise de Technologies Krizaka · Fait à Montréal",
+    "en": "A Technologies Krizaka company · Made in Montréal"
+   },
+   "version": true
+  },
+  "rust": {
+   "id": "rust",
+   "groups": [
+    {
+     "group": "krizaka",
+     "entries": [
+      {
+       "id": "krizaka",
+       "name": "Krizaka",
+       "short": "Krizaka",
+       "group": "krizaka",
+       "status": "released",
+       "url": "https://www.krizaka.com",
+       "repo": "https://github.com/krizaka/krizaka-com"
+      },
+      {
+       "id": "blog",
+       "name": "Blog",
+       "short": "Blog",
+       "group": "krizaka",
+       "status": "released",
+       "url": "https://blog.krizaka.com",
+       "repo": "https://github.com/krizaka/krizaka-blog"
+      }
+     ]
+    },
+    {
+     "group": "products",
+     "entries": [
+      {
+       "id": "sovkora",
+       "name": "Sovkora",
+       "short": "Sovkora",
+       "group": "products",
+       "status": "development",
+       "url": "https://www.sovkora.com",
+       "repo": "https://github.com/krizaka/sovkora"
+      },
+      {
+       "id": "verikora",
+       "name": "Verikora",
+       "short": "Verikora",
+       "group": "products",
+       "status": "development",
+       "url": "https://www.verikora.com",
+       "repo": "https://github.com/krizaka/verikora"
+      },
+      {
+       "id": "folioviv",
+       "name": "Folioviv",
+       "short": "Folioviv",
+       "group": "products",
+       "status": "development",
+       "url": "https://www.folioviv.com",
+       "repo": "https://github.com/krizaka/folioviv"
+      },
+      {
+       "id": "kridoc",
+       "name": "Kridoc",
+       "short": "Kridoc",
+       "group": "products",
+       "status": "development",
+       "url": "https://www.kridoc.com",
+       "repo": "https://github.com/krizaka/kridoc"
+      }
+     ]
+    },
+    {
+     "group": "open-source",
+     "entries": [
+      {
+       "id": "ui",
+       "name": "Krizaka UI",
+       "short": "UI",
+       "group": "open-source",
+       "status": "development",
+       "url": "https://ui.krizaka.com",
+       "repo": "https://github.com/krizaka/krizaka-ui"
+      },
+      {
+       "id": "java",
+       "name": "Krizaka Java",
+       "short": "Java",
+       "group": "open-source",
+       "status": "development",
+       "url": "https://java.krizaka.com",
+       "repo": "https://github.com/krizaka/krizaka-java"
+      },
+      {
+       "id": "ts",
+       "name": "Krizaka TypeScript",
+       "short": "TypeScript",
+       "group": "open-source",
+       "status": "development",
+       "url": "https://ts.krizaka.com",
+       "repo": "https://github.com/krizaka/krizaka-ts"
+      },
+      {
+       "id": "lab",
+       "name": "Krizaka Lab",
+       "short": "Lab",
+       "group": "open-source",
+       "status": "development",
+       "url": "https://lab.krizaka.com",
+       "repo": "https://github.com/krizaka/krizaka-lab"
+      },
+      {
+       "id": "rust",
+       "name": "Krizaka Rust",
+       "short": "Rust",
+       "group": "open-source",
+       "status": "development",
+       "url": "https://rust.krizaka.com",
+       "repo": "https://github.com/krizaka/krizaka-rust"
+      }
+     ]
+    },
+    {
+     "group": "github",
+     "entries": [
+      {
+       "id": "github",
+       "name": "GitHub",
+       "short": "GitHub",
+       "group": "github",
+       "status": "released",
+       "url": "https://github.com/krizaka",
+       "repo": null
+      }
+     ]
+    }
+   ],
+   "social": [
+    {
+     "id": "instagram",
+     "label": "Instagram",
+     "url": "https://www.instagram.com/krizakahq/"
+    },
+    {
+     "id": "facebook",
+     "label": "Facebook",
+     "url": "https://www.facebook.com/1482481631608218"
+    },
+    {
+     "id": "youtube",
+     "label": "YouTube",
+     "url": "https://www.youtube.com/@krizakahq"
+    },
+    {
+     "id": "linkedin",
+     "label": "LinkedIn",
+     "url": "https://www.linkedin.com/company/krizaka-technologies-inc"
+    }
+   ],
+   "source": "https://github.com/krizaka/krizaka-rust",
+   "license": "Apache-2.0",
+   "legal": [
+    {
+     "id": "privacy",
+     "label": {
+      "fr": "Confidentialité",
+      "en": "Privacy"
+     },
+     "url": {
+      "fr": "https://www.krizaka.com/fr/privacy",
+      "en": "https://www.krizaka.com/en/privacy"
+     }
+    },
+    {
+     "id": "terms",
+     "label": {
+      "fr": "Conditions",
+      "en": "Terms"
+     },
+     "url": {
+      "fr": "https://www.krizaka.com/fr/terms",
+      "en": "https://www.krizaka.com/en/terms"
+     }
+    }
+   ],
+   "line": {
+    "fr": "Une entreprise de Technologies Krizaka · Fait à Montréal",
+    "en": "A Technologies Krizaka company · Made in Montréal"
+   },
+   "version": true
+  },
+  "agents": {
+   "id": "agents",
+   "groups": [
+    {
+     "group": "krizaka",
+     "entries": [
+      {
+       "id": "krizaka",
+       "name": "Krizaka",
+       "short": "Krizaka",
+       "group": "krizaka",
+       "status": "released",
+       "url": "https://www.krizaka.com",
+       "repo": "https://github.com/krizaka/krizaka-com"
+      },
+      {
+       "id": "blog",
+       "name": "Blog",
+       "short": "Blog",
+       "group": "krizaka",
+       "status": "released",
+       "url": "https://blog.krizaka.com",
+       "repo": "https://github.com/krizaka/krizaka-blog"
+      }
+     ]
+    },
+    {
+     "group": "products",
+     "entries": [
+      {
+       "id": "sovkora",
+       "name": "Sovkora",
+       "short": "Sovkora",
+       "group": "products",
+       "status": "development",
+       "url": "https://www.sovkora.com",
+       "repo": "https://github.com/krizaka/sovkora"
+      },
+      {
+       "id": "verikora",
+       "name": "Verikora",
+       "short": "Verikora",
+       "group": "products",
+       "status": "development",
+       "url": "https://www.verikora.com",
+       "repo": "https://github.com/krizaka/verikora"
+      },
+      {
+       "id": "folioviv",
+       "name": "Folioviv",
+       "short": "Folioviv",
+       "group": "products",
+       "status": "development",
+       "url": "https://www.folioviv.com",
+       "repo": "https://github.com/krizaka/folioviv"
+      },
+      {
+       "id": "kridoc",
+       "name": "Kridoc",
+       "short": "Kridoc",
+       "group": "products",
+       "status": "development",
+       "url": "https://www.kridoc.com",
+       "repo": "https://github.com/krizaka/kridoc"
+      }
+     ]
+    },
+    {
+     "group": "open-source",
+     "entries": [
+      {
+       "id": "ui",
+       "name": "Krizaka UI",
+       "short": "UI",
+       "group": "open-source",
+       "status": "development",
+       "url": "https://ui.krizaka.com",
+       "repo": "https://github.com/krizaka/krizaka-ui"
+      },
+      {
+       "id": "java",
+       "name": "Krizaka Java",
+       "short": "Java",
+       "group": "open-source",
+       "status": "development",
+       "url": "https://java.krizaka.com",
+       "repo": "https://github.com/krizaka/krizaka-java"
+      },
+      {
+       "id": "ts",
+       "name": "Krizaka TypeScript",
+       "short": "TypeScript",
+       "group": "open-source",
+       "status": "development",
+       "url": "https://ts.krizaka.com",
+       "repo": "https://github.com/krizaka/krizaka-ts"
+      },
+      {
+       "id": "lab",
+       "name": "Krizaka Lab",
+       "short": "Lab",
+       "group": "open-source",
+       "status": "development",
+       "url": "https://lab.krizaka.com",
+       "repo": "https://github.com/krizaka/krizaka-lab"
+      },
+      {
+       "id": "rust",
+       "name": "Krizaka Rust",
+       "short": "Rust",
+       "group": "open-source",
+       "status": "development",
+       "url": "https://rust.krizaka.com",
+       "repo": "https://github.com/krizaka/krizaka-rust"
+      }
+     ]
+    },
+    {
+     "group": "github",
+     "entries": [
+      {
+       "id": "github",
+       "name": "GitHub",
+       "short": "GitHub",
+       "group": "github",
+       "status": "released",
+       "url": "https://github.com/krizaka",
+       "repo": null
+      }
+     ]
+    }
+   ],
+   "social": [
+    {
+     "id": "instagram",
+     "label": "Instagram",
+     "url": "https://www.instagram.com/krizakahq/"
+    },
+    {
+     "id": "facebook",
+     "label": "Facebook",
+     "url": "https://www.facebook.com/1482481631608218"
+    },
+    {
+     "id": "youtube",
+     "label": "YouTube",
+     "url": "https://www.youtube.com/@krizakahq"
+    },
+    {
+     "id": "linkedin",
+     "label": "LinkedIn",
+     "url": "https://www.linkedin.com/company/krizaka-technologies-inc"
+    }
+   ],
+   "source": null,
+   "license": null,
+   "legal": [
+    {
+     "id": "privacy",
+     "label": {
+      "fr": "Confidentialité",
+      "en": "Privacy"
+     },
+     "url": {
+      "fr": "https://www.krizaka.com/fr/privacy",
+      "en": "https://www.krizaka.com/en/privacy"
+     }
+    },
+    {
+     "id": "terms",
+     "label": {
+      "fr": "Conditions",
+      "en": "Terms"
+     },
+     "url": {
+      "fr": "https://www.krizaka.com/fr/terms",
+      "en": "https://www.krizaka.com/en/terms"
+     }
+    }
+   ],
+   "line": {
+    "fr": "Une entreprise de Technologies Krizaka · Fait à Montréal",
+    "en": "A Technologies Krizaka company · Made in Montréal"
+   },
+   "version": false
+  }
+ }
+}
