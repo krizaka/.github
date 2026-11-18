@@ -1,6 +1,5 @@
 {
   "_": "The registry of the family-drift guard (scripts/family-drift.mjs, docs/standards/family-surfaces.md): one line per site, read against the org (@krizaka/org) and repos.json. A site or a site repository without a line is itself a drift.",
-  "orgVersion": "1.13.0",
   "profile": "https://raw.githubusercontent.com/krizaka/.github/main/profile/README.md",
   "unprobed": ["https://github.com/orgs/krizaka/projects/"],
   "retiredHosts": ["krizaka.github.io"],

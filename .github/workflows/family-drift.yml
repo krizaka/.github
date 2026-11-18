@@ -11,6 +11,7 @@ on:
     paths:
       - scripts/family-drift.mjs
       - docs/standards/family-surfaces.json
+      - scripts/family-drift-org/**
       - .github/workflows/family-drift.yml
 
 permissions: {}
@@ -32,9 +33,7 @@ jobs:
           node-version: 24
 
       - name: Install the org package the guard compares to
-        run: |
-          version=$(jq -r .orgVersion docs/standards/family-surfaces.json)
-          npm install --prefix "${RUNNER_TEMP}/org" --no-audit --no-fund "@krizaka/org@${version}"
+        run: npm ci --prefix scripts/family-drift-org --no-audit --no-fund
 
       - id: app
         if: github.event_name != 'pull_request'
@@ -52,8 +51,8 @@ jobs:
           EVENT: ${{ github.event_name }}
         run: |
           if [ "${EVENT}" = "pull_request" ]; then
-            node scripts/family-drift.mjs --org-dir "${RUNNER_TEMP}/org" --report "${GITHUB_STEP_SUMMARY}"
+            node scripts/family-drift.mjs --org-dir scripts/family-drift-org --report "${GITHUB_STEP_SUMMARY}"
           else
-            node scripts/family-drift.mjs --org-dir "${RUNNER_TEMP}/org" --report "${GITHUB_STEP_SUMMARY}" --issues
+            node scripts/family-drift.mjs --org-dir scripts/family-drift-org --report "${GITHUB_STEP_SUMMARY}" --issues
           fi
         continue-on-error: ${{ github.event_name == 'pull_request' }}

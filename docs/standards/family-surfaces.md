@@ -4,7 +4,7 @@ The family says the same thing everywhere: the footer, the promise, the member l
 **rendered** (krizaka-internal#3920, closing the class of bug of #4008: the sources were right, the sites were not).
 
 The registry is [`family-surfaces.json`](family-surfaces.json): one line per site (`id`, `kind`, `repo`), the org profile README it reads, the
-home slots required per kind, the pinned `@krizaka/org` version it compares to. A site or a site repository without a line is itself a drift.
+home slots required per kind. The `@krizaka/org` version it compares to is the lockfile of `scripts/family-drift-org/`. A site or a site repository without a line is itself a drift.
 
 | Reader | Reads | Rules |
 | :--- | :--- | :--- |
