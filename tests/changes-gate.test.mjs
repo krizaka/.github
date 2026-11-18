@@ -95,3 +95,11 @@ test("the workflow is callable, pinned, and documents the fail-open `if` callers
   assert.match(yml, /^on:\n {2}workflow_call:/m);
   for (const m of yml.matchAll(/^\s*(?:- )?uses:\s*(\S+@\S+)/gm)) assert.match(m[1], /@[0-9a-f]{40}$/, m[1]);
 });
+
+test("a push to the default branch runs in full when full-on-default-push is set, even docs-only (its Sonar analysis)", () => {
+  const push = { EVENT: "push", REF_TYPE: "branch", REF_NAME: "main", DEFAULT_BRANCH: "main", IGNORE: docs, GATE_TEST_FILES: JSON.stringify(["README.md"]) };
+  assert.equal(gate({ ...push, FULL_ON_DEFAULT_PUSH: "true" }), "true");
+  assert.equal(gate({ ...push, FULL_ON_DEFAULT_PUSH: "false" }), "false"); // opt-in: the default is unchanged
+  assert.equal(gate({ ...push, FULL_ON_DEFAULT_PUSH: "true", REF_NAME: "feat/x" }), "false"); // another branch keeps the skip
+  assert.equal(gate({ ...push, FULL_ON_DEFAULT_PUSH: "true", EVENT: "pull_request" }), "false"); // a pull request keeps the skip
+});
