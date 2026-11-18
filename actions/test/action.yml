@@ -79,6 +79,11 @@ runs:
         ARGS: ${{ inputs.test-args }}
       run: if [ -n "$ARGS" ]; then "$PM" run "$SCRIPT" -- "$ARGS"; else "$PM" run "$SCRIPT"; fi
 
+    - name: Disk after the tests
+      if: ${{ always() && inputs.test-script != '' }}
+      shell: bash
+      run: df -h
+
     - name: Verify
       if: ${{ inputs.stack == 'maven' }}
       shell: bash

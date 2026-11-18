@@ -48,6 +48,9 @@ inputs:
   postgres-name:
     description: "Role and database created in that PostgreSQL; the password is `ci-only-password`."
     default: ci
+  free-disk-space:
+    description: "Remove the hosted Linux runner's unused preinstalled tools (Android SDK, .NET, GHC, CodeQL) first. The disk is reported either way."
+    default: "false"
   java-version:
     description: "maven / workspace: JDK version."
     default: "21"
@@ -94,6 +97,18 @@ runs:
         case "$STACK" in node|blog) case "$PM" in npm|pnpm) ;; *) echo "::error::package-manager must be npm or pnpm, got '$PM'"; exit 1 ;; esac ;; *) ;; esac
         case "$STACK" in python) case "$PY_PM" in pip|uv) ;; *) echo "::error::python-manager must be pip or uv, got '$PY_PM'"; exit 1 ;; esac ;; *) ;; esac
         if [ "$STACK" = workspace ] && [ -z "$COMPONENT" ]; then echo "::error::the workspace stack needs a component"; exit 1; fi
+
+    # ── the disk: measured, and freed when asked (krizaka-internal#4263) ────────────────────────────────────────────
+    - name: Disk before
+      shell: bash
+      run: df -h
+
+    - name: Free the runner's unused tools
+      if: ${{ inputs.free-disk-space == 'true' && runner.os == 'Linux' }}
+      shell: bash
+      run: |
+        sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
+        df -h /
 
     # ── the Sovkora workspace (component.yml's flow) ─────────────────────────────────────────────────────────────────
     - name: Place ${{ inputs.component }} at its workspace path
