@@ -120,7 +120,7 @@ jobs:
     name: Changed files
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/changes.yml@6aa53ad30f933c2ad49d3cb8cccb31fb67eb4762 # main
+    uses: krizaka/.github/.github/workflows/changes.yml@10140f24680f66980862a3d90978c016942f74e8 # main
     with:
       relevant: ${{ inputs.relevant }}
       ignore: ${{ inputs.ignore }}
@@ -158,7 +158,7 @@ jobs:
       # The repository's folders stay clean (docs/standards/repo-layout.md): the component as checked out, before it moves.
       - name: Repository layout (component)
         if: ${{ inputs.workspace-component != '' }}
-        uses: krizaka/.github/actions/repo-layout@6aa53ad30f933c2ad49d3cb8cccb31fb67eb4762 # main
+        uses: krizaka/.github/actions/repo-layout@10140f24680f66980862a3d90978c016942f74e8 # main
         with:
           working-directory: incoming
 
@@ -183,7 +183,7 @@ jobs:
 
       - name: Repository layout
         if: ${{ inputs.workspace-component == '' }}
-        uses: krizaka/.github/actions/repo-layout@6aa53ad30f933c2ad49d3cb8cccb31fb67eb4762 # main
+        uses: krizaka/.github/actions/repo-layout@10140f24680f66980862a3d90978c016942f74e8 # main
 
       - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
