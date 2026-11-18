@@ -9,6 +9,7 @@ import { jobsWithoutTimeout, configWithoutTestTimeout, nodeTestWithoutTimeout } 
 import { behind, compareVersions, pinsOf, versionsVerdict } from "./conformance-versions.mjs";
 import { candidateOf, isPublicSource, publicEmailHits } from "./public-email.mjs";
 import { probeOnlyJobs } from "./scheduled-probe.mjs";
+import { tokenPermissionProblems } from "./token-permissions.mjs";
 import { callerPermissionProblems } from "./caller-permissions.mjs";
 import { byCodePoint, isPackageManifest, isTestConfig, WORKFLOW_PATH } from "./conformance-basics.mjs";
 
@@ -191,6 +192,15 @@ const CHECKS = {
       if (jobs.length) return { ok: false, why: `${p}: scheduled, and only probes a live URL (job ${jobs.join(", ")}); alert in DigitalOcean or Grafana instead` };
     }
     return { ok: true, why: "" };
+  },
+  // Every workflow token is read-only by default (krizaka-internal#4204, Scorecard Token-Permissions): `permissions: {}` or `read-all`
+  // at the top, the rest on the job that needs it, each write with a comment saying why (scripts/token-permissions.mjs).
+  "token-permissions": async (_check, snap) => {
+    const problems = [];
+    for (const p of snap.paths.filter((x) => WORKFLOW_PATH.test(x))) {
+      for (const { line, why } of tokenPermissionProblems((await snap.read(p)) ?? "")) problems.push(`${p}:${line} ${why}`);
+    }
+    return verdict(problems.length === 0, `${problems.length} problem(s), e.g. ${problems.slice(0, 3).join("; ")}`);
   },
   "file-exists": async (check, snap) =>
     verdict(check.paths.some((p) => snap.paths.includes(p)), `no ${check.paths[0]}`),

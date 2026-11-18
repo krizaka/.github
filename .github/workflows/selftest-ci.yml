@@ -201,7 +201,7 @@ jobs:
     permissions:
       contents: read
       pages: write # the deploy job of pages-site.yml asks for these; with `deploy: false` it never runs
-      id-token: write
+      id-token: write # asked by the deploy job of pages-site.yml too; with `deploy: false` it never runs
     uses: ./.github/workflows/pages-site.yml
     with:
       working-directory: tests/fixtures/pages-site

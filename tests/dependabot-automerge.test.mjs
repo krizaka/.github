@@ -19,5 +19,6 @@ test("the caller template is read-only at the top and writes only on its job (Sc
   const top = template.slice(0, template.indexOf("\njobs:")).split("\n").filter((l) => !l.startsWith("#")).join("\n");
   assert.match(top, /^permissions:\n {2}contents: read\n/m);
   assert.doesNotMatch(top, /write/);
-  assert.match(template.slice(template.indexOf("\njobs:")), /permissions:\n {6}contents: write\n {6}pull-requests: write/);
+  // Each write carries its reason on its line (the conformance rule token-permissions, krizaka-internal#4204).
+  assert.match(template.slice(template.indexOf("\njobs:")), /permissions:\n {6}contents: write # \S.*\n {6}pull-requests: write # \S.*\n/);
 });

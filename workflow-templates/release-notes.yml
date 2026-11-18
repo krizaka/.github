@@ -11,7 +11,7 @@ permissions: {}
 jobs:
   release:
     permissions:
-      contents: write
+      contents: write # release-notes.yml: creates or edits the GitHub release of the tag
     uses: krizaka/.github/.github/workflows/release-notes.yml@5a6ae3ac28625b1dd1d1468ca31b44dddd133094 # main
     secrets:
       RELEASE_APP_PRIVATE_KEY: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}

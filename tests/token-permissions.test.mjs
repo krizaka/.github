@@ -1,32 +1,102 @@
-// OpenSSF Scorecard « Token-Permissions » (krizaka/.github, scorecard 5.9): one workflow with a job that has no
-// `permissions:` and no top-level block sets the whole check to 0. Every workflow declares a top-level block that is
-// never a write; the two reusable workflows below cannot (their release job takes the caller's grant) and are named here.
+// Every workflow declares a read-only token by default (krizaka-internal#4204, OpenSSF Scorecard Token-Permissions): the top level is
+// `permissions: {}`, `read-all` or read scopes only, a job that needs more says so on the job, and each write carries a comment saying why.
+// Scorecard 5.9 gave krizaka/.github 0 for one workflow with no top-level block (maven.yml, tauri-macos.yml); the last test keeps it at 10.
+// Fixtures red and green, then the check type through runCheck, the registry entry, and this repository's own workflows.
+import test from "node:test";
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
-import test from "node:test";
+import { tokenPermissionProblems } from "../scripts/token-permissions.mjs";
+import { isSecurity, loadRules, runCheck, snapshotOf, validateRules } from "../scripts/conformance.mjs";
 
-const DIR = new URL("../.github/workflows/", import.meta.url);
-// File -> why it has no top-level block. A new entry needs a reason a reviewer accepts; the list only shrinks.
-const NO_TOP_LEVEL = {
-  "maven.yml": "reusable workflow: callers control the grant; every job declares contents: read itself; release-central uses the maven-central environment",
-  "tauri-macos.yml": "release takes the caller's contents: write; a block (or a job-level write) makes pull-request callers fail at startup",
-};
+const workflow = (top, job = "") => `name: x
+on:
+  push:
+${top}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+${job}    steps:
+      - run: echo
+`;
 
-const files = readdirSync(DIR).filter((f) => f.endsWith(".yml"));
+const whys = (text) => tokenPermissionProblems(text).map((p) => p.why);
 
-function topLevelPermissions(text) {
-  const m = text.match(/^permissions:[ \t]*(.*)\n((?:[ \t]+.*\n|[ \t]*\n)*)/m);
-  return m ? `${m[1]}\n${m[2]}`.trim() : null;
-}
-
-test("every workflow declares a top-level permissions block, but the named exceptions", () => {
-  const missing = files.filter((f) => topLevelPermissions(readFileSync(new URL(f, DIR), "utf8")) === null);
-  assert.deepEqual(missing.sort(), Object.keys(NO_TOP_LEVEL).sort());
+test("green: permissions {}, read-all or read scopes at the top, with or without a trailing comment", () => {
+  assert.deepEqual(tokenPermissionProblems(workflow("permissions: {}")), []);
+  assert.deepEqual(tokenPermissionProblems(workflow("permissions:\n  contents: read\n  actions: none")), []);
+  assert.deepEqual(tokenPermissionProblems(workflow("permissions: read-all")), []);
+  assert.deepEqual(tokenPermissionProblems(workflow("permissions: {} # each job asks for its own")), []);
 });
 
-test("no top-level block grants a write or write-all", () => {
-  for (const f of files) {
-    const block = topLevelPermissions(readFileSync(new URL(f, DIR), "utf8"));
-    assert.doesNotMatch(block ?? "", /write/, `${f}: a top-level write reaches every job`);
-  }
+test("red: no top-level permissions (the repository's default token decides)", () => {
+  const problems = tokenPermissionProblems(workflow(""));
+  assert.equal(problems.length, 1);
+  assert.equal(problems[0].line, 1);
+  assert.match(problems[0].why, /no top-level permissions/);
+});
+
+test("red: a top-level write, write-all, or an empty block", () => {
+  assert.match(whys(workflow("permissions:\n  contents: read\n  issues: write # even explained"))[0], /top-level permissions are not read-only/);
+  assert.match(whys(workflow("permissions: write-all"))[0], /top-level permissions are not read-only/);
+  assert.match(whys(workflow("permissions:"))[0], /top-level permissions are not read-only/);
+  assert.equal(tokenPermissionProblems(workflow("permissions:\n  issues: write"))[0].line, 4);
+});
+
+test("green: a job asks for what it needs, a write with its reason on the line or on the line above", () => {
+  const trailing = "    permissions:\n      contents: write # pushes the regenerated profile to main\n      pull-requests: read\n";
+  const above = "    permissions:\n      # pushes the regenerated profile to main\n      contents: write\n";
+  assert.deepEqual(tokenPermissionProblems(workflow("permissions: {}", trailing)), []);
+  assert.deepEqual(tokenPermissionProblems(workflow("permissions: {}", above)), []);
+  assert.deepEqual(tokenPermissionProblems(workflow("permissions: {}", "    permissions:\n      contents: read\n")), []);
+});
+
+test("red: a job-level write without a comment saying why, and a bare write-all", () => {
+  const bare = tokenPermissionProblems(workflow("permissions: {}", "    permissions:\n      contents: read\n      statuses: write\n"));
+  assert.equal(bare.length, 1);
+  assert.equal(bare[0].line, 11);
+  assert.match(bare[0].why, /job `build`: statuses: write without a comment/);
+  assert.match(whys(workflow("permissions: {}", "    permissions: write-all\n"))[0], /job `build`: write-all without a comment/);
+  assert.deepEqual(tokenPermissionProblems(workflow("permissions: {}", "    permissions: write-all # releases every package\n")), []);
+});
+
+test("a flow mapping is read like a block: read-only at the top, a write on the job with its reason on the line", () => {
+  assert.deepEqual(tokenPermissionProblems(workflow("permissions: { contents: read } # write scopes live on the job")), []);
+  assert.match(whys(workflow("permissions: { contents: read, issues: write }"))[0], /top-level permissions are not read-only/);
+  assert.deepEqual(tokenPermissionProblems(workflow("permissions: {}", "    permissions: { contents: write } # pushes the release tag\n")), []);
+  const bare = tokenPermissionProblems(workflow("permissions: {}", "    permissions: { contents: read, pull-requests: write }\n"));
+  assert.deepEqual(bare.map((p) => p.why), ["job `build`: pull-requests: write without a comment saying why"]);
+});
+
+test("an empty comment is not a reason, and a comment above another row does not cover the write", () => {
+  assert.equal(tokenPermissionProblems(workflow("permissions: {}", "    permissions:\n      contents: write #\n")).length, 1);
+  const shifted = "    permissions:\n      # reads the repository\n      contents: read\n      issues: write\n";
+  assert.equal(tokenPermissionProblems(workflow("permissions: {}", shifted)).length, 1);
+});
+
+const snap = (files) => snapshotOf("krizaka-x", "npm", Object.keys(files).sort(), async (p) => files[p] ?? null, {});
+const CHECK = { type: "token-permissions" };
+
+test("the check names the file and the line, and passes on a repository whose workflows comply", async () => {
+  const red = await runCheck(CHECK, snap({ ".github/workflows/a.yml": workflow("permissions: {}"), ".github/workflows/b.yml": workflow("") }));
+  assert.equal(red.ok, false);
+  assert.match(red.why, /\.github\/workflows\/b\.yml:1 no top-level permissions/);
+  const green = await runCheck(CHECK, snap({ ".github/workflows/a.yml": workflow("permissions: read-all"), "README.md": "permissions:" }));
+  assert.equal(green.ok, true);
+});
+
+test("the rule is registered, valid and a security rule (fanned out by the matrix)", () => {
+  const rule = loadRules().find((r) => r.check.type === "token-permissions");
+  assert.ok(rule, "rules.json has the rule");
+  assert.equal(rule.id, "token-permissions");
+  assert.deepEqual(validateRules([rule]), []);
+  assert.equal(isSecurity(rule), true);
+});
+
+test("every workflow of krizaka/.github passes the rule", () => {
+  const dir = new URL("../.github/workflows/", import.meta.url);
+  const problems = readdirSync(dir)
+    .filter((f) => /\.ya?ml$/.test(f))
+    .flatMap((f) => tokenPermissionProblems(readFileSync(new URL(f, dir), "utf8")).map((p) => `${f}:${p.line} ${p.why}`));
+  assert.deepEqual(problems, []);
 });

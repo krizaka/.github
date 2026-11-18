@@ -117,8 +117,11 @@ on:
         description: "success or failure: the gate's verdict."
         value: ${{ jobs.gate.outputs.result }}
 
-# No workflow-level `permissions:`: this is a reusable workflow; callers set the grant. Every job states `contents: read`
-# itself or declares no permissions (registry, gate); release-central uses the maven-central environment.
+# A reusable workflow: callers set the grant. The workflow level grants nothing (OpenSSF Scorecard Token-Permissions,
+# krizaka-internal#4204); every job states its own (`contents: read`, or `{}` for registry and gate), so this caps no job.
+# release-central uses the maven-central environment.
+permissions: {}
+
 jobs:
   # A change no build can read (licence, templates) skips `verify` (reported « Skipped », which passes branch protection).
   # Fail-open; a tag, a schedule and a dispatch run in full.

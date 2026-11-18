@@ -1,6 +1,6 @@
 {
   "_": "The rule registry of the org (krizaka/.github#393): every org rule that must hold in every active repository, with the check that proves it. scripts/conformance.mjs runs it against repos.json (repo x rule). A rule without a check does not pass tests/conformance.test.mjs. Rules review of 2026-11-05: the registry was frozen at its 35 rules during the moratorium; the founder's exception of 2026-11-06 (« la matrice est la référence », krizaka-internal#2635) adds the public-face rules of réunion 6 and the register's mirror, and every cell is deterministic (pass, fail, unknown, manual, n/a, with its commit and evidence), and the same-day rollout to every active repo (AGENT-RULES, « A rule reaches every repo »: `node scripts/conformance-fanout.mjs --apply`, the daily run's failure, the issue per red repo) holds only for the rules marked `\"security\": true`; the others are reported in the matrix, never fanned out.",
-  "checks": "path-matches {pattern, contains}: a tracked path matches (sorted, the first match is the evidence), and with contains one of them holds the text | lists-rule-ids {path}: the file names exactly the ids of this registry in its org-rules table | manual {note}: no deterministic check yet, the cell is manual and never pass | workflow-calls {workflows | byKind} | caller-permissions {}: a job that calls a reusable workflow of the org grants what the called jobs ask for (read at the SHA the caller pins) | workflow-matches {pattern} | workflow-forbids {pattern} | file-exists {paths} | file-matches {path, pattern} | manifests-forbid {pattern} | published-no-mention {pattern, allow}: no file of the latest npm tarball of a public package of the repository matches (built CSS/JS included; `allow`: history files such as CHANGELOG.md) | format-declared {}: every language of the repository has its formatter declared and run in CI (scripts/format-declared.mjs) | no-mention {pattern, allow, allowIn}: no tracked text file matches the pattern (path prefixes in `allow`, or in `allowIn[repo]`, are history). `applies`: kinds, notRepos, onlyRepos, when [{pathEndsWith}|{fileExists}|{fileMatches}|{inList}]. `fix`: copy {from, to} | append-section {file, from, heading} | manual {note}.",
+  "checks": "path-matches {pattern, contains}: a tracked path matches (sorted, the first match is the evidence), and with contains one of them holds the text | lists-rule-ids {path}: the file names exactly the ids of this registry in its org-rules table | manual {note}: no deterministic check yet, the cell is manual and never pass | workflow-calls {workflows | byKind} | caller-permissions {}: a job that calls a reusable workflow of the org grants what the called jobs ask for (read at the SHA the caller pins) | token-permissions {}: every workflow has a read-only top-level `permissions:` ({}, read-all or read scopes) and a comment on each job-level write (scripts/token-permissions.mjs) | workflow-matches {pattern} | workflow-forbids {pattern} | file-exists {paths} | file-matches {path, pattern} | manifests-forbid {pattern} | published-no-mention {pattern, allow}: no file of the latest npm tarball of a public package of the repository matches (built CSS/JS included; `allow`: history files such as CHANGELOG.md) | format-declared {}: every language of the repository has its formatter declared and run in CI (scripts/format-declared.mjs) | no-mention {pattern, allow, allowIn}: no tracked text file matches the pattern (path prefixes in `allow`, or in `allowIn[repo]`, are history). `applies`: kinds, notRepos, onlyRepos, when [{pathEndsWith}|{fileExists}|{fileMatches}|{inList}]. `fix`: copy {from, to} | append-section {file, from, heading} | manual {note}.",
   "rules": [
     {
       "id": "security-scan",
@@ -1472,6 +1472,20 @@
       "fix": {
         "type": "manual",
         "note": "delete the workflow; add the alert to the app spec (alerts:) or a Synthetic Monitoring check as code in krizaka-agents tools/observability-probes.py; advisory: reported only (krizaka-internal#4151)"
+      }
+    },
+    {
+      "id": "token-permissions",
+      "security": true,
+      "title": "Every workflow token is read-only by default: the top level declares `permissions: {}`, `read-all` or read scopes only, a job that needs more declares it on the job, and each write carries a comment saying why (OpenSSF Scorecard Token-Permissions)",
+      "issue": "krizaka/krizaka-internal#4204",
+      "applies": {},
+      "check": {
+        "type": "token-permissions"
+      },
+      "fix": {
+        "type": "manual",
+        "note": "add `permissions: {}` (or `contents: read`) at the top of each workflow, move each write onto the job that needs it, and give it a one-line comment on its line or the line above (`contents: write # pushes the release tag`); a reusable workflow whose write would exceed a pull-request caller's grant moves that job into its own file (tauri-macos-release.yml)"
       }
     }
   ]
