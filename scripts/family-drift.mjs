@@ -36,58 +36,63 @@ function tagEnd(html, from) {
   return -1;
 }
 
+const skipWhile = (raw, from, test) => {
+  let i = from;
+  while (i < raw.length && test(raw[i])) i++;
+  return i;
+};
+
+/** The value after the `=` at `raw[at]`: quoted or bare; returns it and where the next attribute starts. */
+function valueAt(raw, at) {
+  const from = skipWhile(raw, at + 1, isSpace);
+  const quote = raw[from] === '"' || raw[from] === "'" ? raw[from] : "";
+  if (!quote) {
+    const end = skipWhile(raw, from, (c) => !isSpace(c));
+    return { value: raw.slice(from, end), next: end };
+  }
+  const close = raw.indexOf(quote, from + 1);
+  const end = close < 0 ? raw.length : close;
+  return { value: raw.slice(from + 1, end), next: end + 1 };
+}
+
 /** The attributes of the inside of a tag (`a href="x" data-primary`), names in lower case, values decoded. A small state machine: no regex to backtrack. */
 function attrsOf(raw) {
   const out = {};
-  const n = raw.length;
-  let i = 0;
-  while (i < n && !isSpace(raw[i])) i++;
-  while (i < n) {
-    while (i < n && (isSpace(raw[i]) || raw[i] === "/")) i++;
-    const from = i;
-    while (i < n && !isSpace(raw[i]) && raw[i] !== "=" && raw[i] !== "/") i++;
-    const key = raw.slice(from, i).toLowerCase();
-    while (i < n && isSpace(raw[i])) i++;
-    let value = "";
-    if (raw[i] === "=") {
-      i++;
-      while (i < n && isSpace(raw[i])) i++;
-      const quote = raw[i] === '"' || raw[i] === "'" ? raw[i] : "";
-      const start = quote ? i + 1 : i;
-      let end = quote ? raw.indexOf(quote, start) : start;
-      if (end < 0) end = n;
-      if (!quote) while (end < n && !isSpace(raw[end])) end++;
-      value = raw.slice(start, end);
-      i = quote ? end + 1 : end;
-    }
+  let i = skipWhile(raw, 0, (c) => !isSpace(c));
+  while (i < raw.length) {
+    i = skipWhile(raw, i, (c) => isSpace(c) || c === "/");
+    const nameEnd = skipWhile(raw, i, (c) => !isSpace(c) && c !== "=" && c !== "/");
+    const key = raw.slice(i, nameEnd).toLowerCase();
+    const at = skipWhile(raw, nameEnd, isSpace);
+    const { value, next } = raw[at] === "=" ? valueAt(raw, at) : { value: "", next: at };
     if (key) out[key] = decode(value);
-    else i++;
+    i = next > i ? next : i + 1;
   }
   return out;
 }
 
-/** The tags of a page in order: `name` (lower case, `/name` when closing), `attrs`, and where it starts and ends in the text. */
+/** One tag from its inside (`/a`, `a href="x"`): lower-case name (`/name` when closing) and attributes. */
+function parseTag(raw) {
+  const closing = raw.startsWith("/");
+  const body = closing ? raw.slice(1) : raw;
+  const name = body.slice(0, skipWhile(body, 0, (c) => !isSpace(c) && c !== "/"));
+  return { name: (closing ? "/" : "") + name.toLowerCase(), attrs: closing ? {} : attrsOf(body) };
+}
+
+const RAW_TEXT = new Set(["script", "style"]);
+
+/** The tags of a page in order: `name` (lower case, `/name` when closing), `attrs`, and where it starts and ends in the text. The inside of a script or a style is text, never tags. */
 function tagsOf(html) {
   const out = [];
   const lower = html.toLowerCase();
-  let i = 0;
-  while ((i = html.indexOf("<", i)) >= 0) {
+  let i = html.indexOf("<");
+  while (i >= 0) {
     const end = tagEnd(html, i);
     if (end < 0) break;
-    const raw = html.slice(i + 1, end);
-    const closing = raw.startsWith("/");
-    const body = closing ? raw.slice(1) : raw;
-    let n = 0;
-    while (n < body.length && !isSpace(body[n]) && body[n] !== "/") n++;
-    out.push({ name: (closing ? "/" : "") + body.slice(0, n).toLowerCase(), attrs: closing ? {} : attrsOf(body), start: i, end: end + 1 });
-    i = end + 1;
-    const rawText = !closing && (out.at(-1).name === "script" || out.at(-1).name === "style");
-    if (rawText) {
-      // The inside of a script or a style is text, never tags: jump to its closing tag.
-      const stop = lower.indexOf(`</${out.at(-1).name}`, i);
-      if (stop < 0) break;
-      i = stop;
-    }
+    const tag = { ...parseTag(html.slice(i + 1, end)), start: i, end: end + 1 };
+    out.push(tag);
+    i = RAW_TEXT.has(tag.name) ? lower.indexOf(`</${tag.name}`, tag.end) : tag.end;
+    if (i >= 0) i = html.indexOf("<", i);
   }
   return out;
 }
@@ -119,7 +124,7 @@ const squash = (s) => strip(s).toLowerCase().replace(/[*_`]/g, "");
 export const norm = (u) => {
   try {
     const url = new URL(u);
-    return `${url.protocol}//${url.host}${url.pathname.replace(/\/+$/, "")}${url.search}`;
+    return `${url.protocol}//${url.host}${url.pathname.replace(/\/$/, "")}${url.search}`;
   } catch {
     return u;
   }
@@ -150,8 +155,8 @@ export function readFooter(html) {
   const open = all.findLastIndex((t) => t.name === "footer");
   if (open < 0) return null;
   const close = all.findIndex((t, i) => i > open && t.name === "/footer");
-  const inside = all.slice(open + 1, close < 0 ? undefined : close);
-  const endAt = close < 0 ? html.length : all[close].start;
+  const inside = all.slice(open + 1, close < 0 ? all.length : close);
+  const endAt = all[close]?.start ?? html.length;
   return { links: linksOf(html, inside), text: strip(html.slice(all[open].end, endAt)) };
 }
 
