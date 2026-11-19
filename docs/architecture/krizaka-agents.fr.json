@@ -6,7 +6,7 @@
   "AI agents": "Agents IA",
   "One session per lane, one pull request per issue, under the agents rules.": "Une session par voie, une pull request par ticket, sous les règles des agents.",
   "Krizaka Agents": "Krizaka Agents",
-  "The delivery harness for coding agents, working with Claude Code: commands and guards, sessions, trains, coordinator, operations service and crons around Claude Code.": "Le harnais de livraison des agents de code, avec Claude Code : commandes et garde-fous, sessions, trains, coordinateur, service des opérations et tâches planifiées autour de Claude Code.",
+  "What we put around AI models so their work can be trusted: the commands and guards, the sessions, the trains, the watchdog and the operations database around Claude Code.": "Ce que nous mettons autour des modèles d'IA pour que leur travail soit fiable : les commandes et les garde-fous, les sessions, les trains, le veilleur et la base des opérations, autour de Claude Code.",
   "GitHub": "GitHub",
   "Code, issues, pull requests, CI, the merge queue and the tags.": "Le code, les tickets, les pull requests, la CI, la file de fusion et les étiquettes.",
   "Cloud hosting": "Hébergement cloud",
