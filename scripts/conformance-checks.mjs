@@ -281,6 +281,12 @@ const CHECKS = {
     if (!snap.mergeGuard) return unread("the merge guard of main");
     return mergedResultVerdict(await snap.mergeGuard());
   },
+  // main is protected (krizaka-restricted#368): a ruleset or branch protection that requires a pull request, refuses a force push and
+  // refuses deletion. The same reader as merged-result; `mergeGuard` is absent offline: nothing to prove.
+  "main-protected": async (_check, snap) => {
+    if (!snap.mergeGuard) return unread("the protection of main");
+    return mainProtectedVerdict(await snap.mergeGuard());
+  },
   // The required checks on main match the repository profile (apps: CI gate, Sonar, security scan, + journeys / visual where the repo has them;
   // libraries: CI gate, Sonar, security). Each group is a regex over the required contexts; `when` (a workflow it calls) scopes a group to repos that have the thing.
   "required-profile": async (check, snap) => {
@@ -379,6 +385,32 @@ export async function versionsReport(snapshots) {
 
 export function patternOf(check) {
   return check.pattern ?? (check.patternBase64 ? Buffer.from(check.patternBase64, "base64").toString("utf8") : undefined);
+}
+
+/** The guard of main from what GitHub answers: `rules`, the active rules of main (`/rules/branches/main`), and `classic`, its branch
+    protection (`/branches/main/protection`, null when main has none). A part holds when the ruleset or the classic protection gives it:
+    GitHub applies both. */
+export function guardOf(rules, classic) {
+  const has = (type) => rules.some((r) => r.type === type);
+  return {
+    mergeQueue: has("merge_queue"),
+    strict: classic?.required_status_checks?.strict === true || rules.some((r) => r.type === "required_status_checks" && r.parameters?.strict_required_status_checks_policy === true),
+    protected: rules.length > 0 || classic !== null,
+    pullRequest: has("pull_request") || Boolean(classic?.required_pull_request_reviews),
+    forcePushBlocked: has("non_fast_forward") || (classic !== null && classic.allow_force_pushes?.enabled !== true),
+    deletionBlocked: has("deletion") || (classic !== null && classic.allow_deletions?.enabled !== true),
+  };
+}
+
+/** `guard` as `guardOf` reads it: red when main lacks a pull request, the force-push block or the deletion block. */
+export function mainProtectedVerdict(guard) {
+  if (!guard.protected) return verdict(false, "main has no ruleset and no branch protection: anyone with write access can push, force push or delete it");
+  const missing = [
+    !guard.pullRequest && "no pull request required",
+    !guard.forcePushBlocked && "force push allowed",
+    !guard.deletionBlocked && "deletion allowed",
+  ].filter(Boolean);
+  return verdict(missing.length === 0, `main is not fully protected: ${missing.join(", ")}`);
 }
 
 /** `guard` = { mergeQueue, strict } as read from the rulesets and the branch protection of main. */

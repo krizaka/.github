@@ -7,6 +7,7 @@ import { gunzipSync } from "node:zlib";
 import { byCodePoint, isPackageManifest, sha256 } from "./conformance-basics.mjs";
 import { latestOf } from "./conformance-versions.mjs";
 import { snapshotOf } from "./conformance-registry.mjs";
+import { guardOf } from "./conformance-checks.mjs";
 
 async function api(path, accept = "application/vnd.github+json", record = null) {
   const auth = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
@@ -102,10 +103,15 @@ export async function liveSnapshot({ name, kind }, org = "krizaka") {
     for (const c of classic?.checks ?? []) contexts.add(c.context);
     return [...contexts];
   };
-  const mergeGuard = async () => {
-    const rules = (await api(`/repos/${org}/${name}/rules/branches/main`, undefined, record)) ?? [];
-    const classic = await api(`/repos/${org}/${name}/branches/main/protection/required_status_checks`, undefined, record);
-    return { mergeQueue: rules.some((r) => r.type === "merge_queue"), strict: classic?.strict === true || rules.some((r) => r.type === "required_status_checks" && r.parameters?.strict_required_status_checks_policy === true) };
+  // The guard of main (merged-result, main-protected): the active rules and the classic protection, read once per run.
+  let guard;
+  const mergeGuard = () => {
+    guard ??= (async () => {
+      const rules = (await api(`/repos/${org}/${name}/rules/branches/main`, undefined, record)) ?? [];
+      const classic = await api(`/repos/${org}/${name}/branches/main/protection`, undefined, record);
+      return guardOf(rules, classic);
+    })();
+    return guard;
   };
   // A reusable workflow of the org, read at the ref a caller pins (the check `caller-permissions`).
   const reusable = (repo, file, ref) => api(`/repos/${org}/${repo}/contents/.github/workflows/${encodeURIComponent(file)}?ref=${encodeURIComponent(ref)}`, "application/vnd.github.raw+json", record);
