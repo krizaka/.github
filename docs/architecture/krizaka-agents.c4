@@ -1,0 +1,150 @@
+// The agents tooling as the public sites draw it: the inside of the system « Krizaka Agents » (`agents`, org.c4).
+// Written against the org's base (specification.c4, org.c4, next to this file): it only extends `agents` and uses the org's
+// people and external systems; its French words are krizaka-agents.fr.json. One model for every site that shows it
+// (agents.krizaka.com, the blog's chapter « The architecture of Krizaka Agents »): each lays it out with @krizaka/architecture
+// (`--system agents`) and commits the layout with the sha256 of this file, which its check compares (krizaka-internal#4184).
+model {
+  extend agents {
+    cto = container 'CTO session' {
+      description 'An agent in conversation with the founder. Validates and splits the work, writes each brief, launches the teams, reads the alerts first.'
+      technology 'Claude Code'
+    }
+    launcher = container 'Launcher' {
+      description 'Plain code, no model. Builds every headless session the same way: isolated, pinned, checked at start, capped in turns, budget and minutes.'
+      technology 'Python'
+    }
+    sessions = container 'Team sessions' {
+      description 'Headless, one per ticket, each in its own worktree: the teams, the repair session, the acceptance check.'
+      technology 'Claude Code'
+    }
+    rules = library 'Rules and skills' {
+      description 'The rules, the skills and the preamble every session reads. Versioned and reviewed like code.'
+      technology 'Markdown'
+    }
+    guards = container 'Guards' {
+      description 'Hooks around every tool call, at commit and at push, the local precheck, the ratchets. They refuse; they never fix by themselves.'
+      technology 'Hooks, Python'
+    }
+    trains = queue 'Trains' {
+      description 'One ordered queue per repository. A runner carries the head through GitHub merge queue; a red PR is skipped with its reason.'
+      technology 'Python, shell'
+    }
+    watchdog = container 'Watchdog' {
+      description 'No model. Local checks every 15 minutes, GitHub read at most once an hour. Raises alerts; never writes to GitHub.'
+      technology 'Python, cron'
+    }
+    opsdb = datastore 'Operations database' {
+      description 'Local SQLite files, a projection: alerts, events, trains, live sessions; the board copy in a file of its own. Never a source: GitHub wins.'
+      technology 'SQLite'
+    }
+    cockpit = app 'Cockpit' {
+      description 'The founder screen: teams, trains, alerts, the architecture. It reads; it never writes to GitHub, the alerts or the board.'
+      technology 'Next.js'
+    }
+  }
+
+  founder -> agents.cto 'instructs, decides'
+  founder -> github 'writes the tickets'
+  founder -> agents.cockpit 'watches'
+  aiAgents -> agents.sessions 'run as its sessions'
+  agents.cto -> github 'reads the board, writes the tickets'
+  agents.cto -> models 'thinks on a hosted model'
+  agents.cto -> agents.launcher 'launches a team with a brief'
+  agents.cto -> agents.opsdb 'reads the open alerts first'
+  agents.launcher -> agents.sessions 'builds: isolated, pinned, checked'
+  agents.launcher -> agents.opsdb 'records starts and ends'
+  agents.sessions -> agents.rules 'read'
+  agents.sessions -> agents.guards 'commit and push through'
+  agents.sessions -> github 'open pull requests'
+  agents.sessions -> models 'think on a hosted model'
+  agents.sessions -> agents.trains 'queue a pull request'
+  agents.trains -> github 'update, approve, enqueue'
+  agents.trains -> agents.opsdb 'record events'
+  agents.watchdog -> github 'reads, at most hourly'
+  agents.watchdog -> agents.opsdb 'raises alerts'
+  agents.cockpit -> agents.opsdb 'reads'
+  agents.opsdb -> github 'asks only for what changed'
+  github -> cloud 'deploys main'
+}
+
+views {
+  view agents_context {
+    title 'The agents tooling · context'
+    include founder, aiAgents, agents, github, cloud, models
+    include founder -> agents with {
+      title 'instructs the CTO session, watches the cockpit'
+    }
+    include agents -> github with {
+      title 'opens, lands and watches pull requests'
+    }
+    include agents -> models with {
+      title 'every session runs on a hosted model'
+    }
+    style * {
+      size xsmall
+    }
+    autoLayout TopBottom 40 30
+  }
+
+  view agents_containers of agents {
+    title 'The agents tooling · containers'
+    include *
+    // the model provider is drawn in the context view; here it would widen the view past a desktop page
+    exclude aiAgents, models
+    style * {
+      size xsmall
+    }
+    autoLayout TopBottom 40 30
+  }
+
+  dynamic view pr_life {
+    title 'The life of a pull request, from ticket to main'
+    founder -> github 'writes the ticket and its « Done when »'
+    agents.cto -> github 'validates and sizes the ticket'
+    agents.cto -> agents.launcher 'launches a team with the brief'
+    agents.launcher -> agents.sessions 'starts it in a fresh worktree'
+    agents.sessions -> agents.rules 'reads the rules and the skills'
+    agents.sessions -> agents.guards 'commits and pushes through the hooks'
+    agents.sessions -> github 'opens the PR, mirrors « Done when »'
+    agents.sessions -> agents.trains 'queues the PR'
+    agents.trains -> github 'updates, waits for CI, enqueues'
+    github -> cloud 'merges and deploys main'
+    agents.trains -> agents.opsdb 'records the landing'
+    agents.cockpit -> agents.opsdb 'reads it for the founder'
+    style * {
+      size xsmall
+    }
+    autoLayout TopBottom 40 30
+  }
+
+  dynamic view alert_life {
+    title 'The life of an alert, from the watchdog to its resolution'
+    agents.watchdog -> github 'reads the checks and the pull requests, at most hourly'
+    agents.watchdog -> agents.opsdb 'raises an alert: one row per subject, open'
+    agents.cockpit -> agents.opsdb 'reads it for the founder'
+    agents.cto -> agents.opsdb 'reads the open alerts before any new work'
+    agents.cto -> agents.opsdb 'acknowledges it with a note: who looked, what was decided'
+    agents.cto -> agents.sessions 'launches a team on the cause, with a brief'
+    agents.sessions -> github 'opens the fix; the train lands it through the merge queue'
+    agents.watchdog -> github 'sees the check green again, on a complete read'
+    agents.watchdog -> agents.opsdb 'resolves the row, with the passing read as proof'
+    style * {
+      size xsmall
+    }
+    autoLayout LeftRight 60 40
+  }
+
+  dynamic view opsdb_sync {
+    title 'How the operations database follows GitHub'
+    agents.cto -> agents.opsdb 'a reader asks for the board copy'
+    agents.opsdb -> github 'if stale: asks only for what changed since the last read'
+    github -> agents.opsdb 'answers with the changed issues and pull requests, upserted'
+    agents.cto -> github 'a move is written on GitHub first'
+    agents.cto -> agents.opsdb 'then the cached card follows'
+    agents.cockpit -> agents.opsdb 'reads the copy, no network call'
+    style * {
+      size xsmall
+    }
+    autoLayout TopBottom 40 30
+  }
+}
