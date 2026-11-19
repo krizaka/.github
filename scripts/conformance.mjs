@@ -17,6 +17,7 @@
 // nothing readable: never pass, never fail), `manual` (no deterministic check exists: never shown as pass) or `n/a`.
 //
 // Active = repos.json minus archived, `Archive` and `Paused` repositories, which are listed out of scope (never « exceptions »).
+// Exception: a rule marked `everyRepo` (main-protected, krizaka-restricted#368) also reaches the `Paused` ones, still in the org: a paused repository is a door.
 // Split by job (ADR-026 phase D): conformance-basics (shared constants), -registry (rules, scope, snapshot), -checks (one handler per check
 // type), -live (reading GitHub), -report (markdown and JSON); this file evaluates the matrix and runs it. Owner: krizaka/.github (lane platform).
 // Reads GitHub with GH_TOKEN / GITHUB_TOKEN (the app token for the private ones).
@@ -27,7 +28,7 @@ import { runCheck, patternOf, lateOf, versionsReport } from "./conformance-check
 import { liveSnapshot } from "./conformance-live.mjs";
 import { renderVersions } from "./conformance-versions.mjs";
 import { render, reportOf } from "./conformance-report.mjs";
-import { appliesTo, failing, loadRules, missingFromOrg, missingMessage, readJson, scopeOf, validateRules } from "./conformance-registry.mjs";
+import { appliesTo, doorsOf, failing, loadRules, missingFromOrg, missingMessage, readJson, scopeOf, validateRules } from "./conformance-registry.mjs";
 
 export * from "./conformance-basics.mjs";
 export * from "./conformance-checks.mjs";
@@ -130,22 +131,24 @@ export async function main(argv) {
     return 0;
   }
   const { active, paused } = scopeOf(readJson("repos.json").repositories);
+  const doors = doorsOf(readJson("repos.json").repositories); // paused but still a door: only the rules marked everyRepo reach them
+  const reached = [...active, ...doors];
   if (argv.includes("--check-org")) {
     const orgNames = readFileSync(flag(argv, "--check-org"), "utf8").split(/\s+/).filter(Boolean);
-    const message = missingMessage(missingFromOrg([...active.map((r) => r.name), "krizaka-internal"], orgNames));
+    const message = missingMessage(missingFromOrg([...reached.map((r) => r.name), "krizaka-internal"], orgNames));
     if (message) console.error(message);
     return message ? 1 : 0;
   }
   if (argv.includes("--repo-list")) {
-    console.log(active.map((r) => r.name).join(","));
+    console.log(reached.map((r) => r.name).join(","));
     return 0;
   }
   const only = flag(argv, "--repos")?.split(",");
   const onlyRules = flag(argv, "--rules")?.split(",");
   const picked = onlyRules ? rules.filter((r) => onlyRules.includes(r.id)) : rules;
-  const targets = active.filter((r) => !only || only.includes(r.name));
+  const targets = reached.filter((r) => !only || only.includes(r.name));
   const snapshots = [];
-  for (const r of targets) snapshots.push(await liveSnapshot(r)); // one at a time: dozens of parallel lookups exhaust the resolver
+  for (const r of targets) snapshots.push({ ...(await liveSnapshot(r)), paused: doors.includes(r) }); // one at a time: dozens of parallel lookups exhaust the resolver
   const lists = { "orchestration/release-consumers.json": consumersList(), "orchestration/sites.json": sitesList() };
   const cells = await evaluate(picked, snapshots, lists);
   const summary = summarise(picked, cells);

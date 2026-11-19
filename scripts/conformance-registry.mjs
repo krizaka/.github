@@ -23,6 +23,7 @@ export function validateRules(rules) {
     if (!/^krizaka\/[\w.-]+#\d+$/.test(rule.issue ?? "")) problems.push(`${at}: no issue (krizaka/<repo>#<n>)`);
     if (!CHECK_TYPES.includes(rule.check?.type)) problems.push(`${at}: no check (a rule without its check is refused)`);
     if (!FIX_TYPES.includes(rule.fix?.type)) problems.push(`${at}: no fix (use manual with a note)`);
+    if (rule.everyRepo !== undefined && rule.everyRepo !== true) problems.push(`${at}: everyRepo is true or absent`);
     if (rule.security !== undefined && rule.security !== true) problems.push(`${at}: security is true or absent`);
     problems.push(...checkShape(rule));
     problems.push(...exemptionProblems(rule));
@@ -98,6 +99,14 @@ export function scopeOf(repositories) {
   };
 }
 
+/**
+ * The paused repositories still in the org: a door too (krizaka-restricted holds the sensitive issues). Only a rule marked
+ * `"everyRepo": true` (main-protected) reaches them; the other rules keep them out of scope.
+ */
+export function doorsOf(repositories) {
+  return repositories.filter((r) => r.archived !== true && /^(\*\*)?Paused\b/.test(r.status ?? ""));
+}
+
 /** The listed repositories (plus the extra names the token needs) that the org does not have: what makes the token request answer 422. */
 export function missingFromOrg(listed, orgNames) {
   const known = new Set(orgNames);
@@ -132,6 +141,7 @@ export function snapshotOf(name, kind, paths, readFile, { commit = null, scan = 
 /** Does the rule concern this repository? */
 export async function appliesTo(rule, snap, lists = {}) {
   const { kinds, notRepos = [], onlyRepos, when = [] } = rule.applies ?? {};
+  if (snap.paused && rule.everyRepo !== true) return false;
   if (kinds && !kinds.includes(snap.kind)) return false;
   if (onlyRepos && !onlyRepos.includes(snap.name)) return false;
   if (notRepos.includes(snap.name)) return false;
