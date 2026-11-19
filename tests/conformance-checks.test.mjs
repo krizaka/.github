@@ -224,3 +224,21 @@ test("guardOf: the merge guard and the protection of main read from the rules an
   assert.equal(guardOf([], CLASSIC).strict, true);
   assert.equal(guardOf([{ type: "required_status_checks", parameters: { strict_required_status_checks_policy: true } }], null).strict, true);
 });
+
+// org-secret-scoped (krizaka-restricted#372): through runCheck on a snapshot, the org secrets this repository sees are passed in.
+const SCOPED = { type: "org-secret-scoped" };
+const secretSnap = (files, seen) =>
+  snapshotOf("krizaka-x", "node", Object.keys(files).sort(), async (p) => files[p] ?? null, { orgSecrets: seen && (async () => seen), reusable: async () => null });
+
+test("org-secret-scoped: red when the repository sees an org secret no workflow uses, green when it uses each one", async () => {
+  const files = { ".github/workflows/ci.yml": "jobs:\n  t:\n    env:\n      T: ${{ secrets.NPM_TOKEN }}\n", "README.md": "${{ secrets.EXPO_TOKEN }}" };
+  const red = await runCheck(SCOPED, secretSnap(files, [{ name: "NPM_TOKEN", visibility: "all" }, { name: "EXPO_TOKEN", visibility: "all" }]));
+  assert.equal(red.ok, false);
+  assert.match(red.why, /EXPO_TOKEN/);
+  const green = await runCheck(SCOPED, secretSnap(files, [{ name: "NPM_TOKEN", visibility: "selected" }]));
+  assert.equal(green.ok, true);
+});
+
+test("org-secret-scoped is not read offline", async () => {
+  assert.equal((await runCheck(SCOPED, secretSnap({}, null))).ok, null);
+});

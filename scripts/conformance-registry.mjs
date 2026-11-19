@@ -112,7 +112,7 @@ export function missingMessage(missing) {
 }
 
 /** A repository as the checks see it: its tracked paths and a reader of one file (null when absent). */
-export function snapshotOf(name, kind, paths, readFile, { commit = null, scan = null, published = null, requiredChecks = null, mergeGuard = null, latest = null, reusable = null, now = Date.now() } = {}) {
+export function snapshotOf(name, kind, paths, readFile, { commit = null, scan = null, published = null, requiredChecks = null, mergeGuard = null, latest = null, reusable = null, orgSecrets = null, now = Date.now() } = {}) {
   const cache = new Map();
   const evidence = [];
   const read = async (path) => {
@@ -126,7 +126,7 @@ export function snapshotOf(name, kind, paths, readFile, { commit = null, scan = 
     const texts = await Promise.all(paths.filter((p) => WORKFLOW_PATH.test(p)).map(read));
     return texts.filter(Boolean).join("\n");
   };
-  return { name, kind, commit, paths, read, workflows, scan, published, requiredChecks, mergeGuard, latest, reusable, now, evidence };
+  return { name, kind, commit, paths, read, workflows, scan, published, requiredChecks, mergeGuard, latest, reusable, orgSecrets, now, evidence };
 }
 
 /** Does the rule concern this repository? */

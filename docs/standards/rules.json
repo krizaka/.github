@@ -717,6 +717,20 @@
       }
     },
     {
+      "id": "org-secret-scoped",
+      "security": true,
+      "title": "No repository sees an org secret it does not use: each org Actions secret is scoped to the repositories whose workflows (or the org reusable workflows they call with secrets: inherit) name it",
+      "issue": "krizaka/krizaka-restricted#372",
+      "applies": {},
+      "check": {
+        "type": "org-secret-scoped"
+      },
+      "fix": {
+        "type": "manual",
+        "note": "fix = set the secret to selected repositories (slice 2 of krizaka-restricted#372): the inventory (node scripts/org-secrets-inventory.mjs) names who uses it; founder or CTO change, never an agent"
+      }
+    },
+    {
       "id": "required-checks-profile",
       "title": "The checks required on main match the repository profile: apps CI gate, Sonar (blocking a pull request only on its Security rating, krizaka/.github#542), security scan, journeys gate where it has journeys; libraries CI gate, Sonar, security scan. Visual regression is not a required check of a pull request: it blocks the release only (rules review 2026-11-05)",
       "issue": "krizaka/krizaka-internal#2000",

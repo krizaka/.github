@@ -11,6 +11,7 @@ import { candidateOf, isPublicSource, publicEmailHits } from "./public-email.mjs
 import { probeOnlyJobs } from "./scheduled-probe.mjs";
 import { tokenPermissionProblems } from "./token-permissions.mjs";
 import { callerPermissionProblems } from "./caller-permissions.mjs";
+import { orgSecretVerdict, secretUsage } from "./org-secrets.mjs";
 import { byCodePoint, isPackageManifest, isTestConfig, WORKFLOW_PATH } from "./conformance-basics.mjs";
 
 /** A workflow step that installs Playwright's browsers. */
@@ -34,6 +35,9 @@ export const REUSABLE_WORKFLOW_REPOS = [".github", "sovkora"];
 const WORKFLOW_USE = /uses:\s*krizaka\/([\w.-]+)\/\.github\/workflows\/([\w.-]+\.ya?ml)@/g;
 const callsOf = (text) =>
   new Set([...text.matchAll(WORKFLOW_USE)].filter((m) => REUSABLE_WORKFLOW_REPOS.includes(m[1])).map((m) => m[2]));
+
+/** The files a secret can be named in for a job: the workflows and the composite actions (`action.yml` anywhere). */
+const isSecretSource = (path) => WORKFLOW_PATH.test(path) || /(^|\/)action\.ya?ml$/.test(path);
 
 const verdict = (ok, why) => ({ ok, why: ok ? "" : why });
 /** A check that has nothing to read (offline, no token): neither pass nor fail. */
@@ -286,6 +290,15 @@ const CHECKS = {
   "main-protected": async (_check, snap) => {
     if (!snap.mergeGuard) return unread("the protection of main");
     return mainProtectedVerdict(await snap.mergeGuard());
+  },
+  // No repository sees an org secret it does not use (krizaka-restricted#372): its workflows and composite actions name it, or a reusable
+  // workflow of the org it calls with `secrets: inherit` does (read at the pinned ref). `orgSecrets` is absent offline: nothing to prove.
+  "org-secret-scoped": async (_check, snap) => {
+    if (!snap.orgSecrets) return unread("the org secrets");
+    const seen = await snap.orgSecrets();
+    if (!seen) return unread("the org secrets (the token cannot list them)");
+    const files = await Promise.all(snap.paths.filter(isSecretSource).map(async (p) => ({ path: p, text: (await snap.read(p)) ?? "" })));
+    return orgSecretVerdict(seen, await secretUsage(files, snap.reusable ?? (async () => null)));
   },
   // The required checks on main match the repository profile (apps: CI gate, Sonar, security scan, + journeys / visual where the repo has them;
   // libraries: CI gate, Sonar, security). Each group is a regex over the required contexts; `when` (a workflow it calls) scopes a group to repos that have the thing.
