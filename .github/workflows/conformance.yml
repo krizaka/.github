@@ -70,6 +70,17 @@ jobs:
           permission-administration: read
           permission-metadata: read
           permission-issues: write
+      # The org secrets (krizaka-restricted#372, rule org-secret-scoped): names, visibility and selected repositories only, read-only.
+      # A token of its own, so an app without that permission never stops the matrix: the cells are then unknown, never red.
+      - id: secrets-app
+        continue-on-error: true
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: krizaka
+          repositories: .github
+          permission-organization-secrets: read
       # The architecture (ADR-027, krizaka-internal#2809): every active repository at its default branch, its current state
       # (@krizaka/architecture), the hand-written models read with the org base, the drift and one verdict per repository. Before the
       # matrix, which reads those verdicts; a failure here never stops the matrix (its cells are then unknown, never green).
@@ -86,6 +97,7 @@ jobs:
       - name: The matrix
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
+          ORG_SECRETS_TOKEN: ${{ steps.secrets-app.outputs.token }}
           EVENT: ${{ github.event_name }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |

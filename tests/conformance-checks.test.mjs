@@ -227,6 +227,24 @@ test("guardOf: the merge guard and the protection of main read from the rules an
   assert.equal(guardOf([{ type: "required_status_checks", parameters: { strict_required_status_checks_policy: true } }], null).strict, true);
 });
 
+// org-secret-scoped (krizaka-restricted#372): through runCheck on a snapshot, the org secrets this repository sees are passed in.
+const SCOPED = { type: "org-secret-scoped" };
+const secretSnap = (files, seen) =>
+  snapshotOf("krizaka-x", "node", Object.keys(files).sort(), async (p) => files[p] ?? null, { orgSecrets: seen && (async () => seen), reusable: async () => null });
+
+test("org-secret-scoped: red when the repository sees an org secret no workflow uses, green when it uses each one", async () => {
+  const files = { ".github/workflows/ci.yml": "jobs:\n  t:\n    env:\n      T: ${{ secrets.NPM_TOKEN }}\n", "README.md": "${{ secrets.EXPO_TOKEN }}" };
+  const red = await runCheck(SCOPED, secretSnap(files, [{ name: "NPM_TOKEN", visibility: "all" }, { name: "EXPO_TOKEN", visibility: "all" }]));
+  assert.equal(red.ok, false);
+  assert.match(red.why, /EXPO_TOKEN/);
+  const green = await runCheck(SCOPED, secretSnap(files, [{ name: "NPM_TOKEN", visibility: "selected" }]));
+  assert.equal(green.ok, true);
+});
+
+test("org-secret-scoped is not read offline", async () => {
+  assert.equal((await runCheck(SCOPED, secretSnap({}, null))).ok, null);
+});
+
 test("main-protected reaches a paused repository; the other rules do not", async () => {
   const paused = { ...guarded([], null), paused: true };
   assert.equal(await appliesTo(MAIN_PROTECTED, paused), true);
@@ -253,4 +271,10 @@ test("repos.json lists the two repositories the matrix missed, so main-protected
   const doors = doorsOf(readJson("repos.json").repositories).map((r) => r.name);
   for (const n of ["krizaka-agents-site", "krizaka-social"]) assert.ok(active.some((r) => r.name === n), n);
   for (const n of ["krizaka-restricted", "krizaka-cla-signatures"]) assert.ok(doors.includes(n) && paused.some((r) => r.name === n), n);
+});
+
+test("org-secret-scoped reaches a paused repository too: it still sees the org secrets", () => {
+  const rule = loadRules().find((r) => r.id === "org-secret-scoped");
+  assert.equal(rule.security, true);
+  assert.equal(rule.everyRepo, true);
 });

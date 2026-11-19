@@ -8,9 +8,9 @@ import { byCodePoint, isPackageManifest, sha256 } from "./conformance-basics.mjs
 import { latestOf } from "./conformance-versions.mjs";
 import { snapshotOf } from "./conformance-registry.mjs";
 import { guardOf } from "./conformance-checks.mjs";
+import { seenBy } from "./org-secrets.mjs";
 
-async function api(path, accept = "application/vnd.github+json", record = null) {
-  const auth = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
+async function api(path, accept = "application/vnd.github+json", record = null, auth = process.env.GH_TOKEN || process.env.GITHUB_TOKEN) {
   const res = await fetch(`https://api.github.com${path}`, {
     headers: { accept, ...(auth ? { authorization: `Bearer ${auth}` } : {}) },
     signal: AbortSignal.timeout(30000),
@@ -45,6 +45,47 @@ export function tarballMatches(gz, re) {
     off += 512 + Math.ceil(size / 512) * 512;
   }
   return hits;
+}
+
+/** Every page of a list endpoint whose answer is `{ <key>: [...] }`; null when the token cannot read it (404). */
+async function pages(path, key, auth) {
+  const out = [];
+  for (let page = 1; page <= 20; page++) {
+    const body = await api(`${path}${path.includes("?") ? "&" : "?"}per_page=100&page=${page}`, undefined, null, auth);
+    if (!body) return null;
+    out.push(...body[key]);
+    if (body[key].length < 100) break;
+  }
+  return out;
+}
+
+const orgSecretsRead = new Map();
+/**
+ * The org's Actions secrets, read once per run: [{ name, visibility, repos }] (`repos` the selected repositories' names, null unless
+ * `selected`). Names and visibility only: GitHub never returns a value. Read-only; null when the token cannot list them (a 403 or 404):
+ * the check is then unread, never red.
+ */
+export function orgSecretsOf(org = "krizaka") {
+  if (!orgSecretsRead.has(org)) {
+    orgSecretsRead.set(org, (async () => {
+      // ORG_SECRETS_TOKEN: the matrix workflow's read-only token for them; else the run's token (a session's app token).
+      const auth = process.env.ORG_SECRETS_TOKEN || process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
+      try {
+        const secrets = await pages(`/orgs/${org}/actions/secrets`, "secrets", auth);
+        if (!secrets) return null;
+        const out = [];
+        for (const s of secrets.toSorted((a, b) => byCodePoint(a.name, b.name))) {
+          const repos = s.visibility === "selected" ? ((await pages(`/orgs/${org}/actions/secrets/${encodeURIComponent(s.name)}/repositories`, "repositories", auth)) ?? []).map((r) => r.name) : null;
+          out.push({ name: s.name, visibility: s.visibility, repos });
+        }
+        return out;
+      } catch (error) {
+        console.error(`org secrets not read: ${error.message}`);
+        return null;
+      }
+    })());
+  }
+  return orgSecretsRead.get(org);
 }
 
 /** The live snapshot of one repository (default branch). */
@@ -115,7 +156,14 @@ export async function liveSnapshot({ name, kind }, org = "krizaka") {
   };
   // A reusable workflow of the org, read at the ref a caller pins (the check `caller-permissions`).
   const reusable = (repo, file, ref) => api(`/repos/${org}/${repo}/contents/.github/workflows/${encodeURIComponent(file)}?ref=${encodeURIComponent(ref)}`, "application/vnd.github.raw+json", record);
-  snap = snapshotOf(name, kind, paths, raw, { commit, scan, published, requiredChecks, mergeGuard, reusable, latest: (pin) => latestOf(pin, api) });
+  // The org secrets this repository sees: its own privacy is read live (a private or internal repository sees the `private` ones).
+  const orgSecrets = async () => {
+    const all = await orgSecretsOf(org);
+    if (!all) return null;
+    const meta = await api(`/repos/${org}/${name}`, undefined, record);
+    return seenBy(all, { name, private: meta?.visibility !== "public" });
+  };
+  snap = snapshotOf(name, kind, paths, raw, { commit, scan, published, requiredChecks, mergeGuard, reusable, orgSecrets, latest: (pin) => latestOf(pin, api) });
   return snap;
 }
 
