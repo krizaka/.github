@@ -208,9 +208,9 @@
  },
  {
   "date": "2026-11-19",
-  "units": 1292,
+  "units": 1293,
   "byKind": {
-   "CI check": 434,
+   "CI check": 435,
    "agent hook": 31,
    "cron": 60,
    "deploy": 74,
@@ -221,10 +221,10 @@
    "one-off": 11
   },
   "flags": {
-   "nothingCalls": 224,
-   "noTest": 59,
+   "nothingCalls": 225,
+   "noTest": 58,
    "regexOver80": 50,
-   "overSize": 46,
+   "overSize": 47,
    "noHeader": 32,
    "copied": 19
   }
