@@ -3,7 +3,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { birdLiteralHits, guardOf, minorsBehind, rawColourHits, runCheck } from "../scripts/conformance-checks.mjs";
-import { snapshotOf, validateRules, loadRules } from "../scripts/conformance-registry.mjs";
+import { appliesTo, doorsOf, readJson, scopeOf, snapshotOf, validateRules, loadRules } from "../scripts/conformance-registry.mjs";
+import { evaluate } from "../scripts/conformance.mjs";
 import { missingSites } from "../scripts/krizaka-release.mjs";
 import { sitesOf } from "../scripts/gen-sites.mjs";
 
@@ -180,6 +181,7 @@ test("main-protected: a security rule on every repository, fixed by the founder'
   assert.ok(MAIN_PROTECTED, "the rule main-protected is in rules.json");
   assert.equal(MAIN_PROTECTED.security, true);
   assert.deepEqual(MAIN_PROTECTED.applies, {});
+  assert.equal(MAIN_PROTECTED.everyRepo, true, "paused repositories are a door too: the rule reaches them");
   assert.match(MAIN_PROTECTED.fix.note, /founder login/);
   assert.deepEqual(validateRules(loadRules()), []);
 });
@@ -241,4 +243,38 @@ test("org-secret-scoped: red when the repository sees an org secret no workflow 
 
 test("org-secret-scoped is not read offline", async () => {
   assert.equal((await runCheck(SCOPED, secretSnap({}, null))).ok, null);
+});
+
+test("main-protected reaches a paused repository; the other rules do not", async () => {
+  const paused = { ...guarded([], null), paused: true };
+  assert.equal(await appliesTo(MAIN_PROTECTED, paused), true);
+  assert.equal((await evaluate([MAIN_PROTECTED], [paused]))["krizaka-x"]["main-protected"].status, "fail");
+  const other = loadRules().find((r) => r.id !== "main-protected" && r.everyRepo !== true);
+  assert.equal(await appliesTo(other, paused), false);
+});
+
+test("doorsOf: the paused repositories still in the org, never the archived ones", () => {
+  const doors = doorsOf([
+    { name: "a", status: "Complies", archived: false },
+    { name: "p", status: "**Paused** (issues only)", archived: false },
+    { name: "q", status: "Paused", archived: null },
+    { name: "z", status: "Archive", archived: null },
+    { name: "y", status: "Paused", archived: true },
+  ]);
+  assert.deepEqual(doors.map((r) => r.name), ["p", "q"]);
+});
+
+test("repos.json lists the two repositories the matrix missed, so main-protected runs on them", () => {
+  const names = readJson("repos.json").repositories.map((r) => r.name);
+  assert.ok(names.includes("krizaka-agents-site") && names.includes("krizaka-social"));
+  const { active, paused } = scopeOf(readJson("repos.json").repositories);
+  const doors = doorsOf(readJson("repos.json").repositories).map((r) => r.name);
+  for (const n of ["krizaka-agents-site", "krizaka-social"]) assert.ok(active.some((r) => r.name === n), n);
+  for (const n of ["krizaka-restricted", "krizaka-cla-signatures"]) assert.ok(doors.includes(n) && paused.some((r) => r.name === n), n);
+});
+
+test("org-secret-scoped reaches a paused repository too: it still sees the org secrets", () => {
+  const rule = loadRules().find((r) => r.id === "org-secret-scoped");
+  assert.equal(rule.security, true);
+  assert.equal(rule.everyRepo, true);
 });

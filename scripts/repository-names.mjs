@@ -19,6 +19,9 @@ const SHARED_REPOSITORIES = new Set([
   "krizaka-cla-signatures",
   // The coming-soon faces of the commercial domains (krizaka-internal#2372): shared by the three products until each opens.
   "krizaka-coming-soon",
+  // The public documentation site of Krizaka Agents and the internal publisher of the scheduled social posts (krizaka-restricted#368).
+  "krizaka-agents-site",
+  "krizaka-social",
 ]);
 const FORBIDDEN = /(?:^|-)(?:client|design-system|kit)(?:-|$)/;
 const SLUG = "[a-z0-9]+(?:-[a-z0-9]+)*";
