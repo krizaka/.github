@@ -70,7 +70,11 @@ model {
 views {
   view agents_context {
     title 'The agents tooling · context'
-    include founder, aiAgents, agents, github, cloud, models
+    include founder, aiAgents, github, cloud, models
+    // the org's description of the system is written for the org; a public drawing says it in the site's words
+    include agents with {
+      description 'What we put around AI models so their work can be trusted: the commands and guards, the sessions, the trains, the watchdog and the operations database around Claude Code.'
+    }
     include founder -> agents with {
       title 'instructs the CTO session, watches the cockpit'
     }
@@ -89,6 +93,9 @@ views {
   view agents_containers of agents {
     title 'The agents tooling · containers'
     include *
+    include agents with {
+      description 'What we put around AI models so their work can be trusted: the commands and guards, the sessions, the trains, the watchdog and the operations database around Claude Code.'
+    }
     // the model provider is drawn in the context view; here it would widen the view past a desktop page
     exclude aiAgents, models
     style * {
