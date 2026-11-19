@@ -108,6 +108,13 @@ jobs:
           status=${PIPESTATUS[0]}
           { echo '### Conformance matrix'; cat matrix.md; } >> "$GITHUB_STEP_SUMMARY"
           exit "$status"
+      # The reviewed scope of the org secrets (krizaka-restricted#372): docs/standards/org-secrets-scope.json must equal the live usage.
+      - name: The org secrets scope file matches the usage
+        if: ${{ always() && steps.secrets-app.outcome == 'success' }}
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          ORG_SECRETS_TOKEN: ${{ steps.secrets-app.outputs.token }}
+        run: node scripts/org-secrets-scope.mjs --check
       # Daily (and by hand): the matrix is published where the founder and the cockpit read it. A token of its own: contents
       # write on krizaka/.github only, to the data branch conformance-matrix (never main).
       - id: publish
