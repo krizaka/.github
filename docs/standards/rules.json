@@ -705,6 +705,7 @@
     {
       "id": "main-protected",
       "security": true,
+      "everyRepo": true,
       "title": "Every repository has main protected: a ruleset or branch protection that requires a pull request, refuses a force push and refuses deletion",
       "issue": "krizaka/krizaka-restricted#368",
       "applies": {},

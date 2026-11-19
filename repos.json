@@ -6,7 +6,7 @@
       "owner": "krizaka",
       "role": "Organization profile, shared CI and tooling",
       "team": "krizaka",
-      "kind": "none",
+      "kind": "npm",
       "deploy": [],
       "archived": false,
       "visibility": "public",
@@ -35,7 +35,7 @@
         "kridoc"
       ],
       "archived": false,
-      "visibility": "private",
+      "visibility": "public",
       "status": "Complies"
     },
     {
@@ -47,6 +47,17 @@
       "deploy": [],
       "archived": false,
       "visibility": "private",
+      "status": "Complies"
+    },
+    {
+      "name": "krizaka-agents-site",
+      "owner": "krizaka",
+      "role": "The public documentation site of Krizaka Agents (static, deployed by GitHub Pages from main)",
+      "team": "krizaka",
+      "kind": "none",
+      "deploy": [],
+      "archived": false,
+      "visibility": "public",
       "status": "Complies"
     },
     {
@@ -170,6 +181,17 @@
       "status": "Complies"
     },
     {
+      "name": "krizaka-social",
+      "owner": "krizaka",
+      "role": "The internal publisher of the scheduled social posts (reads its calendar from main)",
+      "team": "krizaka",
+      "kind": "npm",
+      "deploy": [],
+      "archived": false,
+      "visibility": "private",
+      "status": "Complies"
+    },
+    {
       "name": "krizaka-template",
       "owner": "krizaka",
       "role": "Template repository",
@@ -187,9 +209,9 @@
       "team": "krizaka",
       "kind": "none",
       "deploy": [],
-      "archived": true,
+      "archived": null,
       "visibility": "private",
-      "status": "Archive (left the org: moved to a personal account, replaced by krizaka-template)"
+      "status": "Archive (left the org, replaced by krizaka-template: out of the matrix)"
     },
     {
       "name": "krizaka-template-web",
@@ -198,9 +220,9 @@
       "team": "krizaka",
       "kind": "none",
       "deploy": [],
-      "archived": true,
+      "archived": null,
       "visibility": "private",
-      "status": "Archive (left the org: moved to a personal account, replaced by krizaka-template)"
+      "status": "Archive (left the org, replaced by krizaka-template: out of the matrix)"
     },
     {
       "name": "krizaka-ts",

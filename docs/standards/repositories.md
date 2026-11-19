@@ -20,7 +20,7 @@ exception: it is named after the product alone, with no role suffix.
   `krizaka-<capability>` for a shared service. The current capabilities are `desktop` (the shared Tauri crate) and
   `composer` (Krizaka Composer, the Krizaka fork of Puck published as `@krizaka/composer`: the visual page editor,
   folioviv ADR-010). Company repositories: `krizaka-agents`, `krizaka-internal`, `krizaka-restricted`,
-  `krizaka-cla-signatures`, `krizaka-coming-soon`.
+  `krizaka-cla-signatures`, `krizaka-coming-soon`, `krizaka-agents-site` (the public documentation site of the agents) and `krizaka-social` (the scheduled social posts).
 - **Templates:** `krizaka-template-<target>` (`web`, `desktop`).
 
 This is a closed role vocabulary. A new product or shared capability must be added to this standard and the name checker
@@ -41,6 +41,7 @@ rule. GitHub redirects every old name; the old → new table is `docs/standards/
 | `folioviv` | Main product repository (Folioviv) | Complies |
 | `kridoc` | Kridoc: product repository, a web app (www.kridoc.com) whose coming-soon page is its stable face while the product is in design; mobile and macOS apps follow | Complies |
 | `krizaka-agents` | How the agents work: rules, scripts, skills (private) | Complies |
+| `krizaka-agents-site` | The public documentation site of Krizaka Agents (static, deployed by GitHub Pages from main) | Complies |
 | `krizaka-blog` | Shared blog | Complies |
 | `krizaka-cla-signatures` | Signatures of the CLA, written by the CLA workflow | **Paused** (data only, no code: out of the matrix) |
 | `krizaka-com` | Shared company site | Complies |
@@ -53,6 +54,7 @@ rule. GitHub redirects every old name; the old → new table is `docs/standards/
 | `krizaka-template-desktop` | Template | **Archive** (left the org, replaced by `krizaka-template`: out of the matrix) |
 | `krizaka-template-web` | Template | **Archive** (left the org, replaced by `krizaka-template`: out of the matrix) |
 | `krizaka-rust` | Shared Rust building blocks | Complies |
+| `krizaka-social` | The internal publisher of the scheduled social posts (reads its calendar from main) | Complies |
 | `krizaka-template` | Template repository | **Paused** (name pending decision: a template must have a target suffix, e.g. `krizaka-template-starter`) |
 | `krizaka-ts` | Shared TypeScript building blocks | Complies |
 | `krizaka-ui` | Shared design system | Complies |
