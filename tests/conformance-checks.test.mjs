@@ -2,7 +2,7 @@
 // or hard-codes a bird. Pure parts, then the three check types through runCheck on a snapshot.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { birdLiteralHits, minorsBehind, rawColourHits, runCheck } from "../scripts/conformance-checks.mjs";
+import { birdLiteralHits, guardOf, minorsBehind, rawColourHits, runCheck } from "../scripts/conformance-checks.mjs";
 import { snapshotOf, validateRules, loadRules } from "../scripts/conformance-registry.mjs";
 import { missingSites } from "../scripts/krizaka-release.mjs";
 import { sitesOf } from "../scripts/gen-sites.mjs";
@@ -160,4 +160,67 @@ test("playwright-locked is in the registry, valid and advisory (not a security r
   assert.ok(rule);
   assert.notEqual(rule.security, true);
   assert.deepEqual(validateRules([rule]), []);
+});
+
+// main-protected (krizaka-restricted#368): main has a ruleset or branch protection that requires a pull request, refuses a force
+// push and refuses deletion. The fixtures are what GitHub answers: the active rules of main (`/rules/branches/main`) and the classic
+// protection (`/branches/main/protection`, null on its 404 « Branch not protected »).
+const MAIN_PROTECTED = loadRules().find((r) => r.id === "main-protected");
+const guarded = (rules, classic) => snapshotOf("krizaka-x", "npm", [], async () => null, { mergeGuard: async () => guardOf(rules, classic) });
+const ruleset = (...types) => types.map((type) => (type === "required_status_checks" ? { type, parameters: { required_status_checks: [{ context: "ci / CI gate" }] } } : { type }));
+const FULL_RULESET = ruleset("pull_request", "required_status_checks", "non_fast_forward", "deletion");
+const CLASSIC = {
+  required_status_checks: { strict: true, contexts: ["ci / CI gate"] },
+  required_pull_request_reviews: { required_approving_review_count: 0 },
+  allow_force_pushes: { enabled: false },
+  allow_deletions: { enabled: false },
+};
+
+test("main-protected: a security rule on every repository, fixed by the founder's login", () => {
+  assert.ok(MAIN_PROTECTED, "the rule main-protected is in rules.json");
+  assert.equal(MAIN_PROTECTED.security, true);
+  assert.deepEqual(MAIN_PROTECTED.applies, {});
+  assert.match(MAIN_PROTECTED.fix.note, /founder login/);
+  assert.deepEqual(validateRules(loadRules()), []);
+});
+
+test("main-protected: no ruleset and no branch protection is red", async () => {
+  const red = await runCheck(MAIN_PROTECTED.check, guarded([], null));
+  assert.equal(red.ok, false);
+  assert.match(red.why, /no ruleset and no branch protection/);
+});
+
+test("main-protected: a ruleset or classic protection with a pull request, required checks, no force push and no deletion is green", async () => {
+  assert.deepEqual(await runCheck(MAIN_PROTECTED.check, guarded(FULL_RULESET, null)), { ok: true, why: "" });
+  assert.deepEqual(await runCheck(MAIN_PROTECTED.check, guarded([], CLASSIC)), { ok: true, why: "" });
+  // The parts may come from both: GitHub applies the ruleset and the classic protection together.
+  assert.equal((await runCheck(MAIN_PROTECTED.check, guarded(ruleset("pull_request"), { allow_force_pushes: { enabled: false }, allow_deletions: { enabled: false } }))).ok, true);
+});
+
+test("main-protected: each missing part is red and named", async () => {
+  const cases = [
+    [ruleset("required_status_checks", "non_fast_forward", "deletion"), null, /pull request/],
+    [ruleset("pull_request", "required_status_checks", "deletion"), null, /force push/],
+    [ruleset("pull_request", "required_status_checks", "non_fast_forward"), null, /deletion/],
+    [[], { ...CLASSIC, required_pull_request_reviews: undefined }, /pull request/],
+    [[], { ...CLASSIC, allow_force_pushes: { enabled: true } }, /force push/],
+    [[], { ...CLASSIC, allow_deletions: { enabled: true } }, /deletion/],
+  ];
+  for (const [rules, classic, part] of cases) {
+    const red = await runCheck(MAIN_PROTECTED.check, guarded(rules, classic));
+    assert.equal(red.ok, false, `${part}`);
+    assert.match(red.why, part);
+  }
+});
+
+test("main-protected: offline (no guard data) proves nothing", async () => {
+  const offline = snapshotOf("krizaka-x", "npm", [], async () => null);
+  assert.equal((await runCheck(MAIN_PROTECTED.check, offline)).ok, null);
+});
+
+test("guardOf: the merge guard and the protection of main read from the rules and the classic protection", () => {
+  assert.deepEqual(guardOf([], null), { mergeQueue: false, strict: false, protected: false, pullRequest: false, forcePushBlocked: false, deletionBlocked: false });
+  assert.equal(guardOf(ruleset("merge_queue"), null).mergeQueue, true);
+  assert.equal(guardOf([], CLASSIC).strict, true);
+  assert.equal(guardOf([{ type: "required_status_checks", parameters: { strict_required_status_checks_policy: true } }], null).strict, true);
 });

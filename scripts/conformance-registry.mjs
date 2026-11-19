@@ -75,6 +75,7 @@ function checkShape({ id, check = {} }) {
     "any-of": () => composite(check),
     "required-check": () => Boolean(check.context),
     "merged-result": () => true,
+    "main-protected": () => true,
     "queue-reports": () => true,
     "time-limits": () => true,
     "format-declared": () => true,

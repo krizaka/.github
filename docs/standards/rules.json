@@ -703,6 +703,20 @@
       }
     },
     {
+      "id": "main-protected",
+      "security": true,
+      "title": "Every repository has main protected: a ruleset or branch protection that requires a pull request, refuses a force push and refuses deletion",
+      "issue": "krizaka/krizaka-restricted#368",
+      "applies": {},
+      "check": {
+        "type": "main-protected"
+      },
+      "fix": {
+        "type": "manual",
+        "note": "add a ruleset on main (or classic branch protection) that requires a pull request, blocks force pushes and blocks deletion (founder login: protection change, never an agent)"
+      }
+    },
+    {
       "id": "required-checks-profile",
       "title": "The checks required on main match the repository profile: apps CI gate, Sonar (blocking a pull request only on its Security rating, krizaka/.github#542), security scan, journeys gate where it has journeys; libraries CI gate, Sonar, security scan. Visual regression is not a required check of a pull request: it blocks the release only (rules review 2026-11-05)",
       "issue": "krizaka/krizaka-internal#2000",
