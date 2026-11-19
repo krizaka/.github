@@ -42,28 +42,23 @@ const callOf = (uses) => {
 function jobsOf(lines) {
   const from = lines.findIndex((l) => /^jobs:\s*(?:#.*)?$/.test(l)) + 1;
   if (from === 0) return [];
-  const jobs = [];
-  let jobIndent = null;
-  let keyIndent = null;
-  let cur = null;
-  for (let i = from; i < lines.length; i++) {
-    const line = lines[i];
-    if (isBlank(line)) continue;
-    const indent = indentOf(line);
-    if (indent === 0) break;
-    jobIndent ??= indent;
-    if (indent === jobIndent) {
-      cur = { job: /^\s*([\w-]+):/.exec(line)?.[1] ?? "?", uses: null, inherit: false };
-      jobs.push(cur);
-      keyIndent = null;
-    } else if (cur && indent > jobIndent) {
-      keyIndent ??= indent;
-      if (indent !== keyIndent) continue;
-      cur.uses = valueOf(line, "uses") ?? cur.uses;
-      if (valueOf(line, "secrets") === "inherit") cur.inherit = true;
-    }
+  const body = lines.slice(from).filter((l) => !isBlank(l));
+  const end = body.findIndex((l) => indentOf(l) === 0);
+  const rows = end < 0 ? body : body.slice(0, end);
+  const jobIndent = rows.length ? indentOf(rows[0]) : 0;
+  return rows.flatMap((line, i) => (indentOf(line) === jobIndent ? [jobAt(rows, i, jobIndent)] : []));
+}
+
+/** The job whose header is `rows[i]`: its `uses:` and whether it passes `secrets: inherit`. */
+function jobAt(rows, i, jobIndent) {
+  const job = { job: /^\s*([\w-]+):/.exec(rows[i])?.[1] ?? "?", uses: null, inherit: false };
+  const keyIndent = indentOf(rows[i + 1] ?? "");
+  for (let j = i + 1; j < rows.length && indentOf(rows[j]) > jobIndent; j++) {
+    if (indentOf(rows[j]) !== keyIndent) continue;
+    job.uses = valueOf(rows[j], "uses") ?? job.uses;
+    if (valueOf(rows[j], "secrets") === "inherit") job.inherit = true;
   }
-  return jobs;
+  return job;
 }
 
 /** The jobs that call a reusable workflow with `secrets: inherit`: [{ job, repo, file, ref }] (`repo` "." for the same repository).
@@ -72,7 +67,7 @@ export function inheritCalls(text) {
   const lines = text.split("\n");
   const jobs = jobsOf(lines).map((j) => ({ ...j, call: callOf(j.uses) })).filter((j) => j.call);
   const tied = jobs.filter((j) => j.inherit);
-  const saysInherit = /^\s*secrets:\s*["']?inherit\b/m.test(text);
+  const saysInherit = lines.some((l) => valueOf(l, "secrets") === "inherit");
   const picked = tied.length === 0 && saysInherit ? callsAnywhere(lines) : tied;
   return picked.map((j) => ({ job: j.job, ...j.call }));
 }
@@ -153,6 +148,7 @@ export function inventoryRows(orgSecrets, repos) {
   });
 }
 
+const userCell = (u) => `${u.repo} (\`${u.where}\`)`;
 const cell = (items) => (items.length ? items.join("<br>") : "—");
 
 /** The inventory as a Markdown table: names and files only. */
@@ -160,6 +156,6 @@ export function renderInventory(rows) {
   return [
     "| Secret | Visibility today | Used by (the file that proves it) | Sees it without using it | Not judged (counted as used) |",
     "|---|---|---|---|---|",
-    ...rows.map((r) => `| \`${r.name}\` | ${r.visibility} | ${cell(r.users.map((u) => `${u.repo} (\`${u.where}\`)`))} | ${cell(r.idle)} | ${cell(r.unknown)} |`),
+    ...rows.map((r) => `| \`${r.name}\` | ${r.visibility} | ${cell(r.users.map(userCell))} | ${cell(r.idle)} | ${cell(r.unknown)} |`),
   ].join("\n");
 }

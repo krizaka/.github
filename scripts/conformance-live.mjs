@@ -74,7 +74,7 @@ export function orgSecretsOf(org = "krizaka") {
         const secrets = await pages(`/orgs/${org}/actions/secrets`, "secrets", auth);
         if (!secrets) return null;
         const out = [];
-        for (const s of secrets.sort((a, b) => byCodePoint(a.name, b.name))) {
+        for (const s of secrets.toSorted((a, b) => byCodePoint(a.name, b.name))) {
           const repos = s.visibility === "selected" ? ((await pages(`/orgs/${org}/actions/secrets/${encodeURIComponent(s.name)}/repositories`, "repositories", auth)) ?? []).map((r) => r.name) : null;
           out.push({ name: s.name, visibility: s.visibility, repos });
         }
