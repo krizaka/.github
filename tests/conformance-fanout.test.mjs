@@ -1,5 +1,6 @@
 // The fan-out of a rule (krizaka/.github#393): pure parts.
 import test from "node:test";
+import { readFileSync } from "node:fs";
 import assert from "node:assert/strict";
 import { filesFor, pinTemplate, planOf, sectionOf, withHook } from "../scripts/conformance-fanout.mjs";
 import { loadRules } from "../scripts/conformance.mjs";
@@ -22,13 +23,11 @@ test("every copy template exists and calls the workflow its rule checks", async 
   }
 });
 
-test("the anti-slop section is appended to AGENTS.md, or starts one; never twice a heading", async () => {
+test("the anti-slop lines live in the one AGENTS.md template (krizaka-internal#4509): the rule's fix is manual, never a second section", async () => {
   const r = rule("agents-anti-slop");
-  const [appended] = await filesFor(r, { sha: SHA, current: async () => "# AGENTS.md\n\nMine.\n" });
-  assert.match(appended.content, /^# AGENTS.md\n\nMine\.\n\n## 9\. Anti-slop \(ADR-015\)/);
-  const [created] = await filesFor(r, { sha: SHA, current: async () => null });
-  assert.match(created.content, /^# AGENTS.md[\s\S]*## 9\. Anti-slop/);
-  assert.doesNotMatch(created.content, /\]\(docs\//, "links are absolute in another repository");
+  assert.equal(r.fix.type, "manual");
+  assert.equal(await filesFor(r, { sha: SHA, current: async () => "# AGENTS.md\n\nMine.\n" }), null);
+  assert.match(readFileSync(new URL("../docs/standards/agents-template.md", import.meta.url), "utf8"), new RegExp(r.check.pattern));
   assert.equal(sectionOf("a\n## 9. Anti-slop (ADR-015)\nbody\n", "## 9. Anti-slop (ADR-015)"), "## 9. Anti-slop (ADR-015)\nbody\n");
 });
 

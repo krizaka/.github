@@ -14,7 +14,7 @@
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { isSecurity, loadRules } from "./conformance.mjs";
-import { DETAILS_PATH, detailsOf, MARKER, render, TEMPLATE_PATH } from "./agents-md.mjs";
+import { ANY_MARKER, CLAUDE_LINE, CLAUDE_PATH, claudeProblems, DETAILS_PATH, detailsOf, render, TEMPLATE_PATH } from "./agents-md.mjs";
 
 const ROOT = new URL("../", import.meta.url);
 const read = (path) => readFileSync(new URL(path, ROOT), "utf8");
@@ -74,13 +74,19 @@ async function agentsFiles(repo, current, readLocal) {
   if (!repo) throw new Error("agents-template needs the repository name");
   const before = await current("AGENTS.md");
   const files = [{ path: "AGENTS.md", content: render(entryOf(repo, readLocal), { packageJson: await current("package.json"), template: readLocal(TEMPLATE_PATH) }) }];
-  const keeps = before && !before.includes(MARKER) && before.trim().split("\n").length > 3;
+  const claude = await current(CLAUDE_PATH);
+  if (claudeProblems(claude).length > 0) files.push({ path: CLAUDE_PATH, content: `${CLAUDE_LINE}\n` });
+  const keeps = before && !ANY_MARKER.test(before) && before.trim().split("\n").length > 3;
   if (keeps) {
     if (await current(DETAILS_PATH)) return null;
     files.push({ path: DETAILS_PATH, content: detailsOf(repo, before) });
   } else if (!(await current(DETAILS_PATH))) {
     files.push({ path: DETAILS_PATH, content: `# ${repo} — detail for agents\n\nWhat an agent needs to know about this repository beyond AGENTS.md, by section.\n` });
   }
+  // A CLAUDE.md that said more than the pointer keeps its words: they follow into the detail page, never lost.
+  const said = claude?.trim() ?? "";
+  const details = files.find((f) => f.path === DETAILS_PATH);
+  if (details && said !== "" && claudeProblems(claude).length > 0) details.content += `\n## Former CLAUDE.md\n\n${said}\n`;
   return files;
 }
 
