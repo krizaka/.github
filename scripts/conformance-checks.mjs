@@ -243,9 +243,9 @@ const CHECKS = {
     const unreadable = results.some((r) => r.ok !== false);
     return { ok: unreadable ? null : false, why: results.map((r) => r.why).join("; or ") };
   },
-  // AGENTS.md rendered from docs/standards/agents-template.md: the marker, the headings, at most 80 lines, the skill linked, relative links resolve.
+  // AGENTS.md rendered from docs/standards/agents-template.md: the marker, the six headings in order, at most 150 lines, the skill linked, relative links resolve, and CLAUDE.md as the one line @AGENTS.md or a symlink.
   "agents-template": async (_check, snap) => {
-    const problems = problemsOf(await snap.read("AGENTS.md"), snap.paths);
+    const problems = problemsOf(await snap.read("AGENTS.md"), snap.paths, await snap.read("CLAUDE.md"));
     return verdict(problems.length === 0, problems.join("; "));
   },
   // The check is REQUIRED on main (ruleset or branch protection). `requiredChecks` is absent offline: nothing to prove.

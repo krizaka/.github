@@ -181,7 +181,7 @@
     },
     {
       "id": "agents-anti-slop",
-      "title": "AGENTS.md carries the anti-slop section (template section 9)",
+      "title": "AGENTS.md carries the anti-slop rules (a line list of the Guard-rails section of the one template, docs/standards/agents-template.md)",
       "issue": "krizaka/.github#385",
       "applies": {},
       "check": {
@@ -190,10 +190,8 @@
         "pattern": "Anti-slop"
       },
       "fix": {
-        "type": "append-section",
-        "file": "AGENTS.md",
-        "from": "AGENTS.template.md",
-        "heading": "## 9. Anti-slop (ADR-015)"
+        "type": "manual",
+        "note": "render AGENTS.md from the one template (rule agents-template): its Guard-rails section carries the anti-slop lines (krizaka-internal#4509)"
       }
     },
     {
@@ -622,7 +620,7 @@
     },
     {
       "id": "agents-template",
-      "title": "AGENTS.md is the org template (docs/standards/agents-template.md): purpose, profile, commands, the 10 rules, the krizaka-engineering skill; at most 80 lines, links resolve",
+      "title": "AGENTS.md is the org template v2 (docs/standards/agents-template.md): the six sections in order, at most 150 lines, links resolve; CLAUDE.md is the one line @AGENTS.md or a symlink (report-only until krizaka-internal#4517: not a security rule, so the matrix shows the gap and never fails)",
       "issue": "krizaka/krizaka-internal#876",
       "applies": {
         "kinds": [

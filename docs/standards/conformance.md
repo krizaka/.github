@@ -8,8 +8,9 @@ matrix lists as out of scope. There are no exceptions.
   or its fix fails `tests/conformance.test.mjs`. Checks: `workflow-calls`, `workflow-matches`, `workflow-forbids`, `file-exists`,
   `file-matches`, `manifests-forbid {pattern}` (no manifest, workspace file, submodule list, POM or Gradle file names the pattern),
   `path-forbids {pattern, except}` (no tracked path matches the pattern: `adr-internal` refuses any ADR file outside krizaka-internal, krizaka-internal#3335),
-  `versions-current`, `agents-template` (AGENTS.md is rendered from [`agents-template.md`](agents-template.md) by `scripts/agents-md.mjs`: its marker, the five
-  headings, at most 80 lines, the krizaka-engineering skill linked, every relative link resolves).
+  `versions-current`, `agents-template` (AGENTS.md is rendered from the one template [`agents-template.md`](agents-template.md) (v2, krizaka-internal#4509) by `scripts/agents-md.mjs`: its marker, the six
+  headings in order, at most 150 lines, the krizaka-engineering skill linked, every relative link resolves, and `CLAUDE.md` is the one line `@AGENTS.md` or a symlink to AGENTS.md.
+  **Report-only**: the rule is not a security rule, so the matrix shows each repository's gap and the daily run stays green; making it blocking (`security: true`, so also fanned out) is krizaka-internal#4517).
 - **Deterministic** (founder 2026-11-06, « la matrice doit le prouver d'une façon déterministe », krizaka-internal#2635): each
   repository is read at **one pinned commit** (its default branch SHA, recorded in every cell); every file a check reads is recorded
   with the SHA-256 of what it judged (and the line that matched), a live setting (rulesets, npm) with its URL, HTTP status and
@@ -49,6 +50,6 @@ matrix lists as out of scope. There are no exceptions.
   one issue per key whatever its title does (comment, reopen, or close with the green run as proof; krizaka-internal#2282).
 - **Fan-out**: `node scripts/conformance-fanout.mjs --matrix matrix.json [--rules a,b] [--repos x] [--apply]` opens one pull request per
   red repository for the rules that have a template (`copy`, `append-section`, `settings-hook`, `agents-template` — it renders AGENTS.md from the
-  repository's line of `repos.json` and its scripts, and moves the old AGENTS.md to `docs/agents.md`, never overwriting one); `manual` rules are listed, never guessed.
+  repository's line of `repos.json` and its scripts, writes `CLAUDE.md` as `@AGENTS.md`, and moves the old AGENTS.md (and a former CLAUDE.md) to `docs/agents.md`, never overwriting one); `manual` rules are listed, never guessed.
 - **Closing**: the issue of a rule closes when its column is green in every active repository. Report the matrix, not « done for most ».
 - **Adding a rule**: add the entry (and its template under `workflow-templates/` when it can be one), run the matrix, fan out, fix the rest.
