@@ -14,7 +14,11 @@ export const ANY_MARKER = /krizaka-agents-template v\d+/;;
 export const MAX_LINES = 150;
 export const CLAUDE_PATH = "CLAUDE.md";
 export const CLAUDE_LINE = "@AGENTS.md";
-export const SKILL_URL = "https://github.com/krizaka/krizaka-skills/blob/main/skills/krizaka-engineering/SKILL.md";
+const SKILL_BASE = "https://github.com/krizaka/krizaka-agents/blob/main/plugins/krizaka-engineering/skills/krizaka-engineering";
+export const SKILL_URL = `${SKILL_BASE}/SKILL.md`;
+export const PACKAGES_URL = `${SKILL_BASE}/references/packages.md`;
+/** Accepted with a warning until the sweep of the repositories' AGENTS.md is done (krizaka-internal#4544); then removed. The repository krizaka-skills does not exist. */
+export const LEGACY_SKILL_URLS = ["https://github.com/krizaka/krizaka-skills/blob/main/skills/krizaka-engineering/SKILL.md"];
 export const REQUIRED_HEADINGS = [
   "## Project context",
   "## Essential commands",
@@ -98,7 +102,7 @@ export function problemsOf(text, paths, claude = undefined) {
   if (!text.includes(MARKER)) problems.push(`not rendered from the template (no « ${MARKER} » marker)`);
   if (lines.length > MAX_LINES) problems.push(`${lines.length} lines (at most ${MAX_LINES})`);
   problems.push(...headingProblems(lines));
-  if (!text.includes(SKILL_URL)) problems.push("no link to the krizaka-engineering skill");
+  if (!text.includes(SKILL_URL) && !LEGACY_SKILL_URLS.some((u) => text.includes(u))) problems.push("no link to the krizaka-engineering skill");
   if (/\{\{\w+\}\}/.test(text)) problems.push("a {{placeholder}} was left");
   for (const target of new Set([...text.matchAll(LINK)].map((m) => m[1]))) {
     if (/^(https?:|mailto:|#)/.test(target)) continue;
@@ -107,4 +111,10 @@ export function problemsOf(text, paths, claude = undefined) {
     if (!exists) problems.push(`broken link « ${target} »`);
   }
   return problems;
+}
+
+/** What is accepted today and must change: never a failure. Printed by the caller next to a passing verdict. */
+export function warningsOf(text) {
+  if (text === null || text.includes(SKILL_URL)) return [];
+  return LEGACY_SKILL_URLS.filter((u) => text.includes(u)).map((u) => `the skill link ${u} is dead: use ${SKILL_URL}`);
 }

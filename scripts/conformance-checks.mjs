@@ -3,7 +3,7 @@
 // HOW  Imported by scripts/conformance-registry.mjs and scripts/conformance.mjs (which re-export it); nothing to run. Tests: tests/conformance.test.mjs.
 // OWNER krizaka/.github (lane platform), ADR-026 phase D. Entry point: scripts/conformance.mjs.
 
-import { problemsOf } from "./agents-md.mjs";
+import { problemsOf, warningsOf } from "./agents-md.mjs";
 import { formatVerdict } from "./format-declared.mjs";
 import { jobsWithoutTimeout, configWithoutTestTimeout, nodeTestWithoutTimeout } from "./check-timeouts.mjs";
 import { behind, compareVersions, pinsOf, versionsVerdict } from "./conformance-versions.mjs";
@@ -246,7 +246,9 @@ const CHECKS = {
   // AGENTS.md rendered from docs/standards/agents-template.md: the marker, the six headings in order, at most 150 lines, the skill linked, relative links resolve, and CLAUDE.md as the one line @AGENTS.md or a symlink.
   "agents-template": async (_check, snap) => {
     const problems = problemsOf(await snap.read("AGENTS.md"), snap.paths, await snap.read("CLAUDE.md"));
-    return verdict(problems.length === 0, problems.join("; "));
+    const ok = problems.length === 0;
+    const warnings = warningsOf(await snap.read("AGENTS.md"));
+    return ok ? { ok, why: warnings.map((w) => `warning: ${w}`).join("; ") } : verdict(ok, problems.join("; "));
   },
   // The check is REQUIRED on main (ruleset or branch protection). `requiredChecks` is absent offline: nothing to prove.
   "required-check": async (check, snap) => {
