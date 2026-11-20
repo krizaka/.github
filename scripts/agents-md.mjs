@@ -65,7 +65,21 @@ export function detailsOf(name, oldAgents) {
 export function claudeProblems(claude) {
   if (claude === null) return ["no CLAUDE.md (the one line « @AGENTS.md », or a symlink to AGENTS.md)"];
   const body = claude.trim();
-  return body === CLAUDE_LINE || body === "AGENTS.md" ? [] : [`CLAUDE.md is not « ${CLAUDE_LINE} » or a symlink to AGENTS.md (${body === "" ? "empty" : `${body.split("\n").length} lines`})`];
+  if (body === CLAUDE_LINE || body === "AGENTS.md") return [];
+  const size = body === "" ? "empty" : `${body.split("\n").length} lines`;
+  return [`CLAUDE.md is not « ${CLAUDE_LINE} » or a symlink to AGENTS.md (${size})`];
+}
+
+/** The required headings, each present and after the one before it. */
+function headingProblems(lines) {
+  const problems = [];
+  let from = 0;
+  for (const heading of REQUIRED_HEADINGS) {
+    const at = lines.findIndex((l, i) => i >= from && l.startsWith(heading));
+    if (at >= 0) from = at + 1;
+    else problems.push(lines.some((l) => l.startsWith(heading)) ? `« ${heading} » is out of order` : `no « ${heading} » heading`);
+  }
+  return problems;
 }
 
 const LINK = /\]\(([^)\s]+)\)/g;
@@ -83,12 +97,7 @@ export function problemsOf(text, paths, claude = undefined) {
   const lines = text.trimEnd().split("\n");
   if (!text.includes(MARKER)) problems.push(`not rendered from the template (no « ${MARKER} » marker)`);
   if (lines.length > MAX_LINES) problems.push(`${lines.length} lines (at most ${MAX_LINES})`);
-  let from = 0;
-  for (const heading of REQUIRED_HEADINGS) {
-    const at = lines.findIndex((l, i) => i >= from && l.startsWith(heading));
-    if (at >= 0) from = at + 1;
-    else problems.push(lines.some((l) => l.startsWith(heading)) ? `« ${heading} » is out of order` : `no « ${heading} » heading`);
-  }
+  problems.push(...headingProblems(lines));
   if (!text.includes(SKILL_URL)) problems.push("no link to the krizaka-engineering skill");
   if (/\{\{\w+\}\}/.test(text)) problems.push("a {{placeholder}} was left");
   for (const target of new Set([...text.matchAll(LINK)].map((m) => m[1]))) {
