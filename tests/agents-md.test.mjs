@@ -1,7 +1,8 @@
 // The one AGENTS.md of every repository (docs/standards/agents-template.md, krizaka/krizaka-internal#876): rendered, checked, rolled out.
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { claudeProblems, commandsOf, detailsOf, MAX_LINES, problemsOf, readTemplate, render, REQUIRED_HEADINGS, SKILL_URL } from "../scripts/agents-md.mjs";
+import { claudeProblems, commandsOf, detailsOf, LEGACY_SKILL_URLS, MAX_LINES, PACKAGES_URL, problemsOf, readTemplate, render, REQUIRED_HEADINGS, SKILL_URL, warningsOf } from "../scripts/agents-md.mjs";
 import { filesFor } from "../scripts/conformance-fanout.mjs";
 import { loadRules, runCheck, snapshotOf } from "../scripts/conformance.mjs";
 
@@ -98,4 +99,30 @@ test("an existing docs/agents.md makes the fix manual (never overwritten)", asyn
   const files = { "AGENTS.md": "# Old\n\na\nb\nc\nd\n", "docs/agents.md": "# mine\n" };
   const readLocal = (p) => (p === "repos.json" ? JSON.stringify([ENTRY]) : readTemplate());
   assert.equal(await filesFor(rule, { sha: "c", repo: "demo-app", current: async (p) => files[p] ?? null, readLocal }), null);
+});
+
+test("the skill and packages links point into a repository the org really has, never krizaka-skills", () => {
+  const { repositories } = JSON.parse(readFileSync(new URL("../repos.json", import.meta.url), "utf8"));
+  const names = repositories.filter((r) => !r.archived).map((r) => r.name);
+  for (const url of [SKILL_URL, PACKAGES_URL]) {
+    const repo = /^https:\/\/github\.com\/krizaka\/([^/]+)\/blob\/main\//.exec(url)?.[1];
+    assert.ok(names.includes(repo), `${url}: « ${repo} » is not a repository of repos.json`);
+  }
+  assert.ok(SKILL_URL.endsWith("/skills/krizaka-engineering/SKILL.md"));
+  assert.ok(PACKAGES_URL.endsWith("/skills/krizaka-engineering/references/packages.md"));
+});
+
+test("the new skill link passes with no warning; the legacy link passes with one warning naming the new URL; none fails", () => {
+  const ok = render(ENTRY, { packageJson: PKG });
+  const paths = ["docs/agents.md"];
+  assert.deepEqual(problemsOf(ok, paths), []);
+  assert.deepEqual(warningsOf(ok), []);
+  assert.deepEqual(LEGACY_SKILL_URLS.length, 1);
+  const legacy = ok.replaceAll(SKILL_URL, LEGACY_SKILL_URLS[0]);
+  assert.deepEqual(problemsOf(legacy, paths), []);
+  const warnings = warningsOf(legacy);
+  assert.equal(warnings.length, 1);
+  assert.ok(warnings[0].includes(SKILL_URL));
+  const none = ok.replaceAll(SKILL_URL, "https://example.com/x");
+  assert.ok(problemsOf(none, paths).includes("no link to the krizaka-engineering skill"));
 });
