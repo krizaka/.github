@@ -24,7 +24,7 @@ Each product stands on its own; each proves one skill. Claims are cheap — ever
 <table>
 <tr><td valign="top" width="64"><picture><source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/sovkora/mark-dark.svg?v=5adc3bcf5f"><img src="https://krizaka-assets.b-cdn.net/brand/sovkora/mark-light.svg?v=5adc3bcf5f" alt="Sovkora" width="48"></picture></td><td valign="top">
 
-**Sovkora** · The engine &nbsp;<sup>In development</sup> · <sup>sign-up closed</sup><br>Every request crosses a deterministic pipeline to the best local model: your documents, your models, your network — nothing leaves.<br>[Repository](https://github.com/krizaka/sovkora) · [![Dev: up 1.0.0+d73804c](https://img.shields.io/badge/dev-up_%C2%B7_1.0.0%2Bd73804c-brightgreen)](https://dev.sovkora.com) · ![Prod: not open yet](https://img.shields.io/badge/prod-not_open_yet-lightgrey)
+**Sovkora** · The engine &nbsp;<sup>In development</sup> · <sup>sign-up closed</sup><br>Every request crosses a deterministic pipeline to the best local model: your documents, your models, your network — nothing leaves.<br>[Repository](https://github.com/krizaka/sovkora) · [![Dev: up 1.0.0+c310446](https://img.shields.io/badge/dev-up_%C2%B7_1.0.0%2Bc310446-brightgreen)](https://dev.sovkora.com) · ![Prod: not open yet](https://img.shields.io/badge/prod-not_open_yet-lightgrey)
 
 <details><summary>Components (16): clients, backend-for-frontend, services, workers · green is the latest, orange has a newer one</summary>
 
@@ -89,7 +89,7 @@ Each product stands on its own; each proves one skill. Claims are cheap — ever
 </td></tr>
 <tr><td valign="top" width="64"><picture><source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/verikora/mark-dark.svg?v=c4fbf96eee"><img src="https://krizaka-assets.b-cdn.net/brand/verikora/mark-light.svg?v=c4fbf96eee" alt="Verikora" width="48"></picture></td><td valign="top">
 
-**Verikora** · Reading documents &nbsp;<sup>In development</sup> · <sup>sign-up closed</sup><br>A lease checked rule by rule against the law in force on a date, a PDF examined for signs of editing: every finding quotes its passage, every check is a traced engine run.<br>[Repository](https://github.com/krizaka/verikora) · [![Dev: up 0.1.0+2c3ea7b](https://img.shields.io/badge/dev-up_%C2%B7_0.1.0%2B2c3ea7b-brightgreen)](https://dev.verikora.com) · ![Prod: not open yet](https://img.shields.io/badge/prod-not_open_yet-lightgrey)
+**Verikora** · Reading documents &nbsp;<sup>In development</sup> · <sup>sign-up closed</sup><br>A lease checked rule by rule against the law in force on a date, a PDF examined for signs of editing: every finding quotes its passage, every check is a traced engine run.<br>[Repository](https://github.com/krizaka/verikora) · [![Dev: up 0.1.0+b2fc82d](https://img.shields.io/badge/dev-up_%C2%B7_0.1.0%2Bb2fc82d-brightgreen)](https://dev.verikora.com) · ![Prod: not open yet](https://img.shields.io/badge/prod-not_open_yet-lightgrey)
 
 <details><summary>Components (5): clients, backend-for-frontend, services, workers · green is the latest, orange has a newer one</summary>
 
@@ -165,7 +165,7 @@ Each product stands on its own; each proves one skill. Claims are cheap — ever
 </details>
 
 </td></tr>
-<tr><td valign="top" width="64"><picture><source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/kridoc/mark-dark.svg?v=ae779b0ac6"><img src="https://krizaka-assets.b-cdn.net/brand/kridoc/mark-light.svg?v=ae779b0ac6" alt="Kridoc" width="48"></picture></td><td valign="top">
+<tr><td valign="top" width="64"><picture><source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/kridoc/mark-dark.svg?v=ae779b0ac6"><img src="https://krizaka-assets.b-cdn.net/brand/kridoc/mark-light.svg?v=9044406885" alt="Kridoc" width="48"></picture></td><td valign="top">
 
 **Kridoc** · Business documents and files storage (Law 25) &nbsp;<sup>In development</sup> · <sup>sign-up closed</sup><br>Business documents and files storage, built around Québec's Law 25.<br>[Repository](https://github.com/krizaka/kridoc) · [![Dev: up 0.1.0](https://img.shields.io/badge/dev-up_%C2%B7_0.1.0-brightgreen)](https://dev.kridoc.com) · [![Prod: up 0.1.0](https://img.shields.io/badge/prod-up_%C2%B7_0.1.0-brightgreen)](https://www.kridoc.com)
 
