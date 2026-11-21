@@ -1,6 +1,7 @@
 // The drift between the hand-written models and the facts of main (ADR-027 § 6), and one verdict per active repository
 // (§ 7). Pure: facts, elements and homes in, sorted items and verdicts out.
 import { globMatches } from "@krizaka/architecture";
+import { MACHINE_BLOCKING, coversOf, isCovered } from "./machine.mjs";
 
 export const DRIFT_KINDS = ["undocumented", "phantom", "reached", "gone", "missing", "invalid"];
 const byString = (a, b) => Number(a > b) - Number(a < b);
@@ -68,6 +69,21 @@ function undocumentedOf({ facts, bound, homes, assets }) {
   return items;
 }
 
+/** A data store, database connection, job or service of a repository's files that no current element of the repository covers. */
+function undocumentedMachineOf({ facts, bound, homes, assets, blocking }) {
+  const items = [];
+  for (const repo of facts.repos) {
+    const covers = bound
+      .filter((b) => b.element.lifecycle !== "planned" && b.binding.repo === repo.name && mayBind(systemOf(b.element.id), repo, assets))
+      .flatMap((b) => coversOf(b.element));
+    const home = assets.has(repo.owner) ? (homes.get(repo.owner)?.repo ?? null) : null;
+    for (const f of (repo.machine ?? []).filter((m) => !isCovered(m, covers))) {
+      items.push(item("undocumented", repo.name, home, { path: f.path, fact: { kind: f.kind, name: f.name }, blocking, why: `${repo.name} has the ${f.kind} ${f.name} (${f.detail || f.path}) and no current element covers it: add it to an element's covers metadata` }));
+    }
+  }
+  return items;
+}
+
 /** phantom, reached and gone: an element's lifecycle against what main has. */
 function lifecycleOf({ bound, ctx, homeRepo }) {
   const items = [];
@@ -98,12 +114,12 @@ function homesOf(homes) {
  * Every drift item: facts = { repos, paths } (from factsOf), elements = the org-wide model's elements, homes = Map(system →
  * { repo, status, errors }), assets = the set of asset system ids.
  */
-export function driftOf({ facts, elements, homes, assets }) {
+export function driftOf({ facts, elements, homes, assets, machineBlocking = MACHINE_BLOCKING }) {
   const byName = new Map(facts.repos.map((r) => [r.name, r]));
   const ctx = { byName, paths: facts.paths };
   const homeRepo = (id) => homes.get(systemOf(id))?.repo ?? null;
   const bound = elements.map((e) => ({ element: e, binding: bindingOf(e) })).filter((b) => b.binding);
-  const items = [...undocumentedOf({ facts, bound, homes, assets }), ...lifecycleOf({ bound, ctx, homeRepo }), ...homesOf(homes)];
+  const items = [...undocumentedOf({ facts, bound, homes, assets }), ...undocumentedMachineOf({ facts, bound, homes, assets, blocking: machineBlocking }), ...lifecycleOf({ bound, ctx, homeRepo }), ...homesOf(homes)];
   const order = (a, b) => byString(a.repo ?? "", b.repo ?? "") || DRIFT_KINDS.indexOf(a.kind) - DRIFT_KINDS.indexOf(b.kind) || byString(a.why, b.why);
   return items.sort(order);
 }
@@ -120,7 +136,7 @@ export function verdictsOf({ facts, items, homes, unread, base }) {
   };
   const verdicts = facts.repos.map((repo) => {
     const mine = items.filter((i) => i.repo === repo.name || i.home === repo.name);
-    return { repo: repo.name, commit: repo.commit, status: mine.length ? "fail" : "pass", items: mine, evidence: evidenceOf(repo) };
+    return { repo: repo.name, commit: repo.commit, status: mine.some((i) => i.blocking !== false) ? "fail" : "pass", items: mine, evidence: evidenceOf(repo) };
   });
   for (const u of unread) verdicts.push({ repo: u.repo, commit: null, status: "unknown", items: [], why: u.why, evidence: [] });
   return verdicts.sort((a, b) => byString(a.repo, b.repo));
@@ -132,5 +148,5 @@ export function summaryOf(verdicts, items, homes) {
   const byKind = Object.fromEntries(DRIFT_KINDS.map((k) => [k, items.filter((i) => i.kind === k).length]));
   const homeStates = { ok: 0, missing: 0, invalid: 0 };
   for (const h of homes.values()) homeStates[h.status] += 1;
-  return { active: verdicts.length, inSync: count("pass"), failing: count("fail"), unknown: count("unknown"), drift: items.length, byKind, homes: homeStates };
+  return { active: verdicts.length, inSync: count("pass"), failing: count("fail"), unknown: count("unknown"), drift: items.length, advisory: items.filter((i) => i.blocking === false).length, byKind, homes: homeStates };
 }

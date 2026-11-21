@@ -30,3 +30,11 @@ npm test
 Output schema: [docs/standards/architecture.schema.json](../../docs/standards/architecture.schema.json). Run daily by the
 Conformance workflow (job « Conformance matrix », step « The architecture »), before the matrix that reads its verdicts; its own
 tests run in the workflow « Architecture tool ».
+
+## Machine facts (krizaka-internal#4547)
+
+Besides the units, `lib/machine.mjs` reads what a repository runs on a machine: data stores (`*.db`, `*.sqlite`), external database
+connections (`*_DATABASE_URL`), jobs (the crons of `install.json`, the credential rotation tools) and services (LaunchAgents of
+`install.json` with their port, `*.plist` labels, the self-hosted runner). Each one a model does not bind is an `undocumented` item
+with a `fact`. An element binds facts with `covers` metadata: `covers 'company.db, ops, watchdog'` (`kind:name` also works).
+Those items are `blocking: false` (the verdict stays pass, `summary.advisory` counts them) until `MACHINE_BLOCKING` is set to `true`.

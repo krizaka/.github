@@ -13,7 +13,7 @@ const kinds = (arch, repo) => verdict(arch, repo).items.map((i) => i.kind);
 test("an org whose models bind every unit is in sync: every repository passes, with its commit and evidence", async () => {
   const arch = await buildArchitecture(org());
   assert.deepEqual(arch.verdicts.map((v) => [v.repo, v.status]), [[".github", "pass"], ["krizaka-ui", "pass"], ["sovkora", "pass"], ["sovkora-web", "pass"]]);
-  assert.deepEqual(arch.summary, { active: 4, inSync: 4, failing: 0, unknown: 0, drift: 0, byKind: { undocumented: 0, phantom: 0, reached: 0, gone: 0, missing: 0, invalid: 0 }, homes: { ok: 3, missing: 0, invalid: 0 } });
+  assert.deepEqual(arch.summary, { active: 4, inSync: 4, failing: 0, unknown: 0, drift: 0, advisory: 0, byKind: { undocumented: 0, phantom: 0, reached: 0, gone: 0, missing: 0, invalid: 0 }, homes: { ok: 3, missing: 0, invalid: 0 } });
   assert.equal(verdict(arch, "sovkora-web").commit, "3".repeat(40));
   assert.ok(verdict(arch, "sovkora-web").evidence.some((e) => e.repo === "sovkora" && e.path === "docs/architecture/sovkora.c4" && e.sha256.length === 64));
 });
@@ -129,4 +129,34 @@ test("the output follows docs/standards/architecture.schema.json, with drift of 
     delete f["krizaka-ui"]["docs/architecture/ui.c4"];
   }));
   assert.deepEqual(problems(schema, arch, schema), []);
+});
+
+const WEB_MACHINE = {
+  "tools/install.json": JSON.stringify({ crons: { entries: [{ id: "nightly", schedule: "7 3 * * *" }] }, launchAgents: [{ id: "ops", label: "com.krizaka.ops", args: ["ops/api.py", "serve", "--port", "8788"] }] }),
+  "lib/store.mjs": 'export const STORE = join(dir, "company.db");\n',
+  "tools/db-drift.py": 'URL = os.environ["VERIKORA_DATABASE_URL"]\n',
+  "tools/runner.py": "# LaunchAgent actions.runner.acme.acme-mac-runner\n",
+  "tools/credential-rotate": "#!/usr/bin/env python3\n",
+  "tools/credential-rotate.test.py": 'DB = "ignored-in-tests.db"\n',
+};
+const withMachine = (f) => Object.assign(f["sovkora-web"], WEB_MACHINE);
+const factNames = (arch, repo) => verdict(arch, repo).items.filter((i) => i.fact).map((i) => `${i.fact.kind}:${i.fact.name}`);
+const ALL_FACTS = ["database:VERIKORA_DATABASE_URL", "job:credential-rotate", "job:nightly", "service:actions.runner.acme.acme-mac-runner", "service:ops", "store:company.db"];
+
+test("machine facts: an undeclared store, database, job and service are undocumented, reported without failing the verdict", async () => {
+  const arch = await buildArchitecture(org(withMachine));
+  assert.deepEqual(factNames(arch, "sovkora-web").sort(), ALL_FACTS);
+  assert.equal(verdict(arch, "sovkora-web").status, "pass");
+  assert.equal(arch.summary.advisory, ALL_FACTS.length);
+  assert.ok(verdict(arch, "sovkora-web").items.find((i) => i.fact.name === "ops").why.includes("port 8788"));
+});
+
+test("machine facts: once the switch is on they fail the verdict; a covers metadata binds them", async () => {
+  const blocking = await buildArchitecture({ ...org(withMachine), machineBlocking: true });
+  assert.equal(verdict(blocking, "sovkora-web").status, "fail");
+  const covers = ALL_FACTS.map((f) => f.replace(/^[a-z]+:/, "")).join(", ");
+  const model = SOVKORA_C4.replace("repo 'sovkora-web'", `repo 'sovkora-web'\n        covers '${covers}'`);
+  const covered = await buildArchitecture({ ...org((f) => { withMachine(f); f.sovkora["docs/architecture/sovkora.c4"] = model; }), machineBlocking: true });
+  assert.deepEqual(factNames(covered, "sovkora-web"), []);
+  assert.equal(verdict(covered, "sovkora-web").status, "pass");
 });

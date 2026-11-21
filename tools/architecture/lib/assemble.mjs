@@ -48,7 +48,7 @@ async function checkHomes({ systems, sourceOf, base, systemsFile, known, baseErr
  * sources: [{ name, commit, committedAt, files: Map, tags }] of the active repositories; unread: [{ repo, why }];
  * registry: the rows of repos.json; family: the family systems (sources.mjs familySystems).
  */
-export async function buildArchitecture({ sources, unread = [], registry, family, orgVersion, generatedAt, mode }) {
+export async function buildArchitecture({ sources, unread = [], registry, family, orgVersion, generatedAt, mode, machineBlocking }) {
   const facts = factsOf(sources, registry);
   facts.byName = new Map(facts.repos.map((r) => [r.name, r]));
   const sourceOf = new Map(sources.map((s) => [s.name, s]));
@@ -68,7 +68,7 @@ export async function buildArchitecture({ sources, unread = [], registry, family
   const org = await parse([...base.filter((f) => f.text !== null), systemsFile, ...valid, viewsFile], { layout: true });
 
   const assets = new Set(systems.filter((s) => s.group === "asset").map((s) => s.id));
-  const items = driftOf({ facts, elements: org.elements, homes, assets });
+  const items = driftOf({ facts, elements: org.elements, homes, assets, machineBlocking });
   const bindings = org.elements.map((e) => ({ binding: bindingOf(e), system: systemOf(e.id) })).filter((b) => b.binding).map((b) => ({ repo: b.binding.repo, system: b.system }));
   for (const [id, home] of homes) home.binds = new Set(bindings.filter((b) => b.system === id).map((b) => b.repo));
   const verdicts = verdictsOf({ facts, items, homes, unread, base });
