@@ -1,29 +1,29 @@
-# Architecture as code (ADR-027) — 2026-11-20
+# Architecture as code (ADR-027) — 2026-11-21
 
-**5 / 18** active repositories in sync with `main` · **87** drift items · homes: 4 ok, 8 missing, 0 invalid.
+**5 / 18** active repositories in sync with `main` · **88** drift items · homes: 4 ok, 8 missing, 0 invalid.
 
-Drift by kind: undocumented 79, phantom 0, reached 0, gone 0, missing 8, invalid 0. Read from krizaka/.github at `9994d79`, LikeC4 1.60.0, @krizaka/org 1.5.0.
+Drift by kind: undocumented 80, phantom 0, reached 0, gone 0, missing 8, invalid 0. Read from krizaka/.github at `7d2f5f6`, LikeC4 1.60.0, @krizaka/org 1.5.0.
 
 | repository | commit | verdict | why |
 | :-- | :-- | :-- | :-- |
-| .github | `9994d79` | pass |  |
-| folioviv | `aa3a43f` | fail | undocumented: folioviv is on main and no current element binds it; undocumented: folioviv/apps/desktop is on main and no current element binds it; undocumented: folioviv/apps/mobile is on main and no current element binds it (+2) |
-| kridoc | `84130f9` | pass |  |
-| krizaka-agents | `ad38593` | pass |  |
-| krizaka-agents-site | `21c8177` | fail | undocumented: krizaka-agents-site is on main and no current element binds it |
-| krizaka-blog | `97b5e12` | fail | undocumented: krizaka-blog is on main and no current element binds it; missing: krizaka-blog is the home of blog and has no docs/architecture/*.c4 |
-| krizaka-com | `479d072` | fail | undocumented: krizaka-com is on main and no current element binds it; missing: krizaka-com is the home of krizaka and has no docs/architecture/*.c4 |
-| krizaka-coming-soon | `4bbfdff` | fail | undocumented: krizaka-coming-soon is on main and no current element binds it |
-| krizaka-infra | `2b2059b` | pass |  |
-| krizaka-java | `3cef99f` | fail | undocumented: krizaka-java is on main and no current element binds it; undocumented: krizaka-java/krizaka-billing is on main and no current element binds it; undocumented: krizaka-java/krizaka-bom is on main and no current element binds it (+8) |
-| krizaka-lab | `576e088` | fail | undocumented: krizaka-lab is on main and no current element binds it; missing: krizaka-lab is the home of lab and has no docs/architecture/*.c4 |
-| krizaka-rust | `9b9170c` | fail | undocumented: krizaka-rust is on main and no current element binds it |
-| krizaka-social | `675642c` | fail | undocumented: krizaka-social is on main and no current element binds it |
-| krizaka-ts | `5fb0fbe` | fail | undocumented: krizaka-ts is on main and no current element binds it; undocumented: krizaka-ts/packages/api-keys is on main and no current element binds it; undocumented: krizaka-ts/packages/architecture is on main and no current element binds it (+28) |
-| krizaka-ui | `96e8e70` | fail | undocumented: krizaka-ui/apps/site is on main and no current element binds it; undocumented: krizaka-ui/apps/storybook is on main and no current element binds it; undocumented: krizaka-ui/packages/a11y-audit is on main and no current element binds it (+20) |
-| krizaka-ui-builder | `1db1b7b` | fail | undocumented: krizaka-ui-builder is on main and no current element binds it; undocumented: krizaka-ui-builder/packages/core is on main and no current element binds it |
-| sovkora | `1a753d5` | pass |  |
-| verikora | `c9dca89` | fail | undocumented: verikora is on main and no current element binds it; undocumented: verikora/apps/desktop is on main and no current element binds it; undocumented: verikora/apps/mobile is on main and no current element binds it (+2) |
+| .github | `7d2f5f6` | pass |  |
+| folioviv | `de703b5` | fail | undocumented: folioviv is on main and no current element binds it; undocumented: folioviv/apps/desktop is on main and no current element binds it; undocumented: folioviv/apps/mobile is on main and no current element binds it (+2) |
+| kridoc | `ea68691` | pass |  |
+| krizaka-agents | `922a15a` | pass |  |
+| krizaka-agents-site | `db7ef71` | fail | undocumented: krizaka-agents-site is on main and no current element binds it |
+| krizaka-blog | `12057c8` | fail | undocumented: krizaka-blog is on main and no current element binds it; missing: krizaka-blog is the home of blog and has no docs/architecture/*.c4 |
+| krizaka-com | `3db9e5b` | fail | undocumented: krizaka-com is on main and no current element binds it; missing: krizaka-com is the home of krizaka and has no docs/architecture/*.c4 |
+| krizaka-coming-soon | `d064139` | fail | undocumented: krizaka-coming-soon is on main and no current element binds it |
+| krizaka-infra | `b5271b3` | pass |  |
+| krizaka-java | `8fbc99b` | fail | undocumented: krizaka-java is on main and no current element binds it; undocumented: krizaka-java/krizaka-billing is on main and no current element binds it; undocumented: krizaka-java/krizaka-bom is on main and no current element binds it (+8) |
+| krizaka-lab | `37740ed` | fail | undocumented: krizaka-lab is on main and no current element binds it; missing: krizaka-lab is the home of lab and has no docs/architecture/*.c4 |
+| krizaka-rust | `17233fc` | fail | undocumented: krizaka-rust is on main and no current element binds it |
+| krizaka-social | `e96fa49` | fail | undocumented: krizaka-social is on main and no current element binds it |
+| krizaka-ts | `70184b1` | fail | undocumented: krizaka-ts is on main and no current element binds it; undocumented: krizaka-ts/packages/api-keys is on main and no current element binds it; undocumented: krizaka-ts/packages/architecture is on main and no current element binds it (+29) |
+| krizaka-ui | `858a346` | fail | undocumented: krizaka-ui/apps/site is on main and no current element binds it; undocumented: krizaka-ui/apps/storybook is on main and no current element binds it; undocumented: krizaka-ui/packages/a11y-audit is on main and no current element binds it (+20) |
+| krizaka-ui-builder | `5d5feab` | fail | undocumented: krizaka-ui-builder is on main and no current element binds it; undocumented: krizaka-ui-builder/packages/core is on main and no current element binds it |
+| sovkora | `d079989` | pass |  |
+| verikora | `1a58c3a` | fail | undocumented: verikora is on main and no current element binds it; undocumented: verikora/apps/desktop is on main and no current element binds it; undocumented: verikora/apps/mobile is on main and no current element binds it (+2) |
 
 | system | home | model | repositories bound |
 | :-- | :-- | :-- | --: |
