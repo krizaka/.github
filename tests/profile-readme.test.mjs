@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import {
-  END, badgeUrl, collectKrizakaDeps, compareVersions, depBadge, envBadge, languageBadge, latestStable, mainLanguages, manifestPaths, parseCargoDeps, parseMavenDeps, parsePythonDeps, pomProperty, readHealth, readModel, renderBlock, renderComponents, renderProduct, replaceBlock, statusLabel, treeLanguageBytes, versionOf,
+  END, badgeUrl, collectKrizakaDeps, compareVersions, declaredMarks, depBadge, envBadge, languageBadge, latestStable, mainLanguages, manifestPaths, parseCargoDeps, parseMavenDeps, parsePythonDeps, pomProperty, readHealth, readModel, renderBlock, renderComponents, renderProduct, replaceBlock, statusLabel, treeLanguageBytes, versionOf,
 } from "../scripts/profile-readme.mjs";
 
 const data = JSON.parse(readFileSync(new URL("../profile/products.json", import.meta.url), "utf8"));
@@ -24,16 +24,16 @@ const FILES = {
   "apps/web/package.json": JSON.stringify({ name: "web", dependencies: { "@krizaka/ui": "^3.80.0", "@krizaka/own": "1.0.0" } }),
   "apps/desktop/src-tauri/Cargo.toml": CARGO, "svc/pom.xml": POM, "worker/requirements.txt": "krizaka-worker-kit==0.2.0\nnumpy==2.0.0\n",
 };
+const DECLARATION = JSON.stringify({ marks: { sovkora: { light: "1111111111", dark: "2222222222" }, verikora: { light: "3333333333", dark: "3333333333" }, folioviv: { light: "4444444444", dark: "4444444444" }, kridoc: { light: "aaaaaaaaaa", dark: "aaaaaaaaaa" } } });
 const reader = ({ health = {}, npm = {}, java = null } = {}) => ({
   repoTree: async () => TREE,
   repoLanguages: async () => ({ Java: 5000, CSS: 90000, Shell: 100 }),
-  repoFile: async (_o, _r, path) => FILES[path] ?? "<krizaka.version>0.7.1</krizaka.version>",
+  repoFile: async (_o, _r, path) => (path === "tools/brand-marks.json" ? DECLARATION : FILES[path] ?? "<krizaka.version>0.7.1</krizaka.version>"),
   npmLatest: async (n) => npm[n] ?? (n === "@krizaka/own" ? { missing: true } : { version: "3.81.0" }),
   githubMavenLatest: async () => java ?? "0.8.0",
   gitTagLatest: async () => "0.4.0",
   pypiLatest: async (n) => (n === "krizaka-worker-kit" ? { version: "0.3.0" } : { missing: true }),
   health: async (host) => health[host] ?? { up: false },
-  markHash: async () => "abc",
 });
 const fixtureData = {
   ...data,
@@ -197,4 +197,18 @@ test("replaceBlock rewrites only the marked block and the committed README has i
   const outside = (r) => r.slice(0, r.indexOf("<!-- generated:start")) + r.slice(r.indexOf(END) + END.length);
   assert.equal(outside(next), outside(readme));
   assert.throws(() => replaceBlock("no markers", "x"), /markers/);
+});
+
+// krizaka-internal#4592: the profile gave Kridoc Folioviv's hash (an edge answered), and kept a stale one on a failed fetch.
+test("the ?v= of a mark is the declared hash of that brand and theme, never what an edge answers", async () => {
+  const decl = JSON.parse(DECLARATION);
+  assert.deepEqual(declaredMarks(decl, "kridoc"), { light: "aaaaaaaaaa", dark: "aaaaaaaaaa" });
+  assert.throws(() => declaredMarks(decl, "ghost"), /ghost has no declared marks/);
+  assert.throws(() => declaredMarks({ marks: { x: { light: "zz" } } }, "x"), /light and dark/);
+  const model = await readModel(fixtureData, reader());
+  assert.deepEqual(model.marks.sovkora, { light: "1111111111", dark: "2222222222" });
+  const html = renderBlock(fixtureData, model);
+  assert.match(html, /brand\/sovkora\/mark-dark\.svg\?v=2222222222/);
+  assert.match(html, /brand\/sovkora\/mark-light\.svg\?v=1111111111/);
+  await assert.rejects(readModel(fixtureData, { ...reader(), repoFile: async () => null }), /brand-marks\.json/);
 });

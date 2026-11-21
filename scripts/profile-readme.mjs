@@ -403,14 +403,6 @@ export function makeReader(fetchImpl = fetch, token = "") {
       const r = await get(`https://${host}${path}`);
       return readHealth(r.status, r.text);
     },
-    async markHash(id, theme) {
-      try {
-        const r = await fetchImpl(markUrl(id, theme), { signal: AbortSignal.timeout(15000) });
-        return r.ok ? createHash("sha256").update(Buffer.from(await r.arrayBuffer())).digest("hex").slice(0, 10) : "";
-      } catch {
-        return "";
-      }
-    },
   };
 }
 
@@ -479,6 +471,21 @@ async function readStackRow(row, org, reader, latestOf) {
   return { ...row, packages };
 }
 
+/** The ?v= of a brand's two marks, from the declaration of krizaka-ui (tools/brand-marks.json), never from what a CDN edge answers
+ *  (krizaka-internal#4592: an edge served another brand's file, and a failed fetch kept a stale hash). */
+export function declaredMarks(declaration, id) {
+  const mark = declaration?.marks?.[id];
+  if (!mark) throw new Error(`${id} has no declared marks in krizaka-ui tools/brand-marks.json`);
+  if (!mark.light || !mark.dark) throw new Error(`${id}: the declaration needs a light and dark hash`);
+  return { light: mark.light, dark: mark.dark };
+}
+
+async function readDeclaration(org, reader) {
+  const text = await reader.repoFile(org, "krizaka-ui", "tools/brand-marks.json");
+  if (!text) throw new Error("krizaka-ui tools/brand-marks.json cannot be read: the profile will not guess the marks' ?v=");
+  return JSON.parse(text);
+}
+
 /** Reads everything the block shows. */
 export async function readModel(data, reader) {
   const org = data.organization;
@@ -497,6 +504,7 @@ export async function readModel(data, reader) {
   const health = async (e) => ({ host: e.host, ...(await reader.health(e.host, data.healthPath)) });
   const products = [];
   const marks = {};
+  const declaration = await readDeclaration(org, reader);
   for (const id of data.order) {
     const def = data.products[id];
     const bom = await readBom(def, org, reader);
@@ -506,7 +514,7 @@ export async function readModel(data, reader) {
     const dev = await health(def.dev);
     const prod = await health(def.prod);
     products.push({ id, ...def, components, bom, dev, prod });
-    marks[id] = { dark: await reader.markHash(id, "dark"), light: await reader.markHash(id, "light") };
+    marks[id] = declaredMarks(declaration, id);
   }
   const stack = [];
   for (const row of data.stack) stack.push(await readStackRow(row, org, reader, latestOf));
