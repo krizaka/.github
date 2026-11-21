@@ -1,0 +1,7 @@
+{
+  "$comment": "What the public copy of the architecture (data branch conformance-matrix) never carries (krizaka-internal#4552). The original keeps everything; tools/architecture/lib/public.mjs filters it with this list, the one place that says what is private.",
+  "publicVisibility": ["public"],
+  "privateFactKinds": ["store", "database"],
+  "localPath": "(?:/Users/|/home/|~/)[^\\s'\"]*",
+  "secretName": "\\b[A-Z][A-Z0-9_]*_(?:TOKEN|KEY|SECRET|PASSWORD|URL)\\b"
+}

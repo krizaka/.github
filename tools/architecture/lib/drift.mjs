@@ -114,12 +114,12 @@ function homesOf(homes) {
  * Every drift item: facts = { repos, paths } (from factsOf), elements = the org-wide model's elements, homes = Map(system →
  * { repo, status, errors }), assets = the set of asset system ids.
  */
-export function driftOf({ facts, elements, homes, assets, machineBlocking = MACHINE_BLOCKING }) {
+export function driftOf({ facts, elements, homes, assets, machineBlocking = MACHINE_BLOCKING, extra = [] }) {
   const byName = new Map(facts.repos.map((r) => [r.name, r]));
   const ctx = { byName, paths: facts.paths };
   const homeRepo = (id) => homes.get(systemOf(id))?.repo ?? null;
   const bound = elements.map((e) => ({ element: e, binding: bindingOf(e) })).filter((b) => b.binding);
-  const items = [...undocumentedOf({ facts, bound, homes, assets }), ...undocumentedMachineOf({ facts, bound, homes, assets, blocking: machineBlocking }), ...lifecycleOf({ bound, ctx, homeRepo }), ...homesOf(homes)];
+  const items = [...undocumentedOf({ facts, bound, homes, assets }), ...undocumentedMachineOf({ facts, bound, homes, assets, blocking: machineBlocking }), ...lifecycleOf({ bound, ctx, homeRepo }), ...homesOf(homes), ...extra];
   const order = (a, b) => byString(a.repo ?? "", b.repo ?? "") || DRIFT_KINDS.indexOf(a.kind) - DRIFT_KINDS.indexOf(b.kind) || byString(a.why, b.why);
   return items.sort(order);
 }

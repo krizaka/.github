@@ -11,15 +11,18 @@
 //   … --use <repo>=<dir>                                                     read that repository from another checkout (a
 //                                                                           worktree): check a model before its pull request
 //
-// Writes <dir>/architecture.json (schema docs/standards/architecture.schema.json) and <dir>/summary.md.
+// Writes <dir>/architecture.json (the original, schema docs/standards/architecture.schema.json), <dir>/architecture.public.json (its
+// filter, docs/standards/architecture-public-filter.json: the only one published) and <dir>/summary.md (of the public copy).
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { buildArchitecture } from "./lib/assemble.mjs";
+import { publicOf } from "./lib/public.mjs";
 import { publish } from "./lib/publish.mjs";
 import { renderSummary } from "./lib/render.mjs";
 import { familySystems, orgVersion, registry, sourcesOf } from "./lib/sources.mjs";
 
+const PUBLIC_FILE = "architecture.public.json";
 const flag = (argv, name) => (argv.includes(name) ? argv[argv.indexOf(name) + 1] : null);
 
 export async function build({ local = null, use = {}, now = new Date() } = {}) {
@@ -31,7 +34,7 @@ export async function build({ local = null, use = {}, now = new Date() } = {}) {
 export async function main(argv) {
   const from = flag(argv, "--publish-from");
   if (from) {
-    const arch = JSON.parse(readFileSync(join(from, "architecture.json"), "utf8"));
+    const arch = JSON.parse(readFileSync(join(from, PUBLIC_FILE), "utf8"));
     console.log(`Published: ${await publish({ arch, markdown: readFileSync(join(from, "summary.md"), "utf8") })}`);
     return 0;
   }
@@ -50,7 +53,9 @@ export async function main(argv) {
   if (!out) throw new Error("usage: architecture.mjs (--local <dir>) --out <dir> | --publish-from <dir> | --local <dir> --repo <name>");
   mkdirSync(out, { recursive: true });
   writeFileSync(join(out, "architecture.json"), `${JSON.stringify(arch)}\n`);
-  writeFileSync(join(out, "summary.md"), renderSummary(arch));
+  const open = publicOf(arch);
+  writeFileSync(join(out, PUBLIC_FILE), `${JSON.stringify(open)}\n`);
+  writeFileSync(join(out, "summary.md"), renderSummary(open));
   const s = arch.summary;
   console.log(`${s.inSync}/${s.active} repositories in sync, ${s.drift} drift items, homes ${s.homes.ok} ok / ${s.homes.missing} missing / ${s.homes.invalid} invalid → ${out}`);
   return 0;
