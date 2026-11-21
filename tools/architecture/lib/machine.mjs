@@ -10,7 +10,10 @@ export const MACHINE_BLOCKING = false;
 const TEST_DIR = /(?:^|\/)(?:node_modules|fixtures?|tests?|__tests__)\//;
 const TEST_FILE = /\.(?:test|spec)\.[a-z]+$/;
 const LOCK_PATH = /(?:(?:^|\/)package-lock\.json|\.lock)$/;
-const isSkipped = (path) => TEST_DIR.test(path) || TEST_FILE.test(path) || LOCK_PATH.test(path);
+/** Ignore files: they list names to leave out (`Thumbs.db`), they run nothing. The closed set of sources no fact is read from, with the test paths and lockfiles. */
+const IGNORE_FILE = /(?:^|\/)\.[\w-]*ignore$/;
+const IGNORED_SOURCES = [TEST_DIR, TEST_FILE, LOCK_PATH, IGNORE_FILE];
+const isSkipped = (path) => IGNORED_SOURCES.some((source) => source.test(path));
 const STORE_FILE = /(?<![\w.-])([A-Za-z][\w.-]*\.(?:db|sqlite3?))\b/g;
 const DATABASE_URL = /\b((?:[A-Z][A-Z0-9]*_)*(?:DATABASE|DB)_URL)\b/g;
 const LAUNCH_LABEL = /\b(com\.krizaka\.[a-z][a-z0-9-]*)\.plist\b/g;

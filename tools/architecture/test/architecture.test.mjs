@@ -138,6 +138,9 @@ const WEB_MACHINE = {
   "tools/runner.py": "# LaunchAgent actions.runner.acme.acme-mac-runner\n",
   "tools/credential-rotate": "#!/usr/bin/env python3\n",
   "tools/credential-rotate.test.py": 'DB = "ignored-in-tests.db"\n',
+  ".gitignore": "node_modules\nThumbs.db\nehthumbs.db\n",
+  ".dockerignore": "Thumbs.db\n",
+  "test/fixtures/probes.mjs": 'export const probe = { db: "p.db" };\n',
 };
 const withMachine = (f) => Object.assign(f["sovkora-web"], WEB_MACHINE);
 const factNames = (arch, repo) => verdict(arch, repo).items.filter((i) => i.fact).map((i) => `${i.fact.kind}:${i.fact.name}`);
