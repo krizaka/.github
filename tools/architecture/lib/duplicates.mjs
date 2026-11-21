@@ -1,6 +1,11 @@
 // One architecture model per system (krizaka-internal#4552): a model file lives in its system's home only. The same file name
 // under docs/architecture/ in two repositories is two models of one system. Pure: the sources in, the duplicates out.
+import { readFileSync } from "node:fs";
 import { BASE_FILES, MODEL_DIR } from "./model.mjs";
+
+export const PROJECTIONS_FILE = new URL("../../../docs/standards/architecture-public-projections.json", import.meta.url);
+/** The known public projections, `{ path: "repo:docs/architecture/x.c4", home, reason, ticket }`: a closed set that only shrinks. */
+export const loadProjections = () => JSON.parse(readFileSync(PROJECTIONS_FILE, "utf8")).projections;
 
 const DOTGITHUB = ".github";
 const byString = (a, b) => Number(a > b) - Number(a < b);
@@ -12,13 +17,16 @@ function keeperOf(file, holders) {
   return holders.find((r) => r === stem) ?? holders.find((r) => r !== DOTGITHUB) ?? holders[0];
 }
 
-/** [{ file, keeper, copies: ["repo:path", …] (sorted), strays: [repo, …] }] for every model file held by two repositories or more. */
-export function duplicateModels(sources) {
+/** [{ file, keeper, copies: ["repo:path", …] (sorted), strays: [repo, …] }] for every model file held by two repositories or more,
+    except a copy listed in `projections` (a public projection of the model kept in its home). */
+export function duplicateModels(sources, projections = loadProjections()) {
+  const projected = new Set(projections.map((p) => p.path));
   const holders = new Map();
   for (const { name, files } of sources) {
     for (const path of files.keys()) {
       const file = nameOf(path);
       if (!path.startsWith(MODEL_DIR) || !path.endsWith(".c4") || file.includes("/") || BASE_FILES.includes(file)) continue;
+      if (projected.has(`${name}:${path}`)) continue;
       holders.set(file, [...(holders.get(file) ?? []), name]);
     }
   }

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { buildArchitecture } from "../lib/assemble.mjs";
-import { duplicateModels } from "../lib/duplicates.mjs";
+import { duplicateModels, loadProjections } from "../lib/duplicates.mjs";
 import { org } from "./fixtures.mjs";
 
 const files = (entries) => new Map(Object.entries(entries));
@@ -32,4 +32,33 @@ test("a second copy of a system's model fails the repository that holds the copy
   const why = v.items.map((i) => i.why).join("\n");
   assert.match(why, /\.github:docs\/architecture\/sovkora\.c4/);
   assert.match(why, /sovkora:docs\/architecture\/sovkora\.c4/);
+});
+
+const projection = { path: ".github:docs/architecture/agents.c4", home: "krizaka-agents", reason: "a public site reads it", ticket: "krizaka-internal#4552" };
+const twoHolders = () => [
+  { name: ".github", files: files({ "docs/architecture/agents.c4": model }) },
+  { name: "krizaka-agents", files: files({ "docs/architecture/agents.c4": model }) },
+];
+
+test("duplicates: an allow-listed public projection passes, a new duplicate still fails", () => {
+  assert.deepEqual(duplicateModels(twoHolders(), [projection]), []);
+  const other = [...twoHolders(), { name: "blog", files: files({ "docs/architecture/agents.c4": model }) }];
+  assert.deepEqual(duplicateModels(other, [projection]).map((d) => d.strays), [["blog"]]);
+  assert.equal(duplicateModels(twoHolders(), []).length, 1);
+});
+
+test("duplicates: a projection held by another repository than the listed one is not honoured", () => {
+  const sources = [{ name: "blog", files: files({ "docs/architecture/agents.c4": model }) }, twoHolders()[1]];
+  assert.equal(duplicateModels(sources, [projection]).length, 1);
+});
+
+test("projections: the shipped list is well formed and only shrinks", () => {
+  const MAX_PROJECTIONS = 1; // lower it when a projection is removed; never raise it
+  const list = loadProjections();
+  assert.ok(list.length <= MAX_PROJECTIONS);
+  for (const p of list) {
+    assert.deepEqual(Object.keys(p).sort(), ["home", "path", "reason", "ticket"]);
+    assert.match(p.path, /^[^:]+:docs\/architecture\/[^/]+\.c4$/);
+    assert.match(p.ticket, /^krizaka-internal#\d+$/);
+  }
 });
