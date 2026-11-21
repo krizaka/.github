@@ -3,6 +3,7 @@
 // the publisher of each dependency, the latest tags, behind or not. Pure: the sources (files and tag names at one commit) come
 // in, a sorted object goes out.
 import { buildC4FromFiles, unitsOf } from "@krizaka/architecture";
+import { machineFactsOf } from "./machine.mjs";
 
 const SEMVER = /^(\d+)\.(\d+)\.(\d+)$/;
 const CALVER = /^(\d{4})\.(\d{2})\.(\d{2})(?:\.(\d+))?$/;
@@ -113,7 +114,7 @@ function generatedC4(source) {
 export function factsOf(sources, registry) {
   const rowOf = new Map(registry.map((r) => [r.name, r]));
   const read = sources
-    .map((s) => ({ name: s.name, commit: s.commit, committedAt: s.committedAt, units: unitsOf(s.files), c4: generatedC4(s), tagNames: s.tags ?? [], paths: [...s.files.keys()] }))
+    .map((s) => ({ name: s.name, commit: s.commit, committedAt: s.committedAt, units: unitsOf(s.files), c4: generatedC4(s), machine: machineFactsOf(s.files), tagNames: s.tags ?? [], paths: [...s.files.keys()] }))
     .sort((a, b) => byString(a.name, b.name));
   const tags = new Map(read.map((r) => [r.name, latestTags(r.name, r.tagNames)]));
   const index = publishedIndex(read);
@@ -134,6 +135,7 @@ export function factsOf(sources, registry) {
       languages: [...new Set(r.units.map((u) => u.language))].sort(byString),
       units: r.units.map((u) => ({ ...u, dependsOn: u.dependsOn.map((d) => resolveDep(d, u, ctx)) })),
       c4: r.c4,
+      machine: r.machine,
     };
   });
   const packages = Object.fromEntries(

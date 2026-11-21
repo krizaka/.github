@@ -1,0 +1,74 @@
+// The data stores and machine services a repository runs, read from its files (krizaka-internal#4547, ADR-027 § 7). A model must
+// bind every one of them, as it binds every unit; the binding is the element's `covers` metadata. Pure: files in, sorted facts out.
+
+/** The kinds of machine fact, declared once. */
+export const MACHINE_KINDS = ["store", "database", "job", "service"];
+
+/** A new `undocumented` machine fact blocks a verdict only when this is true: flip it once krizaka-agents' C2 names them (krizaka-internal#4549). */
+export const MACHINE_BLOCKING = false;
+
+const SKIPPED_FILE = /(?:^|\/)(?:node_modules|fixtures?|tests?|__tests__)\/|\.(?:test|spec)\.[a-z]+$|(?:^|\/)package-lock\.json$|\.lock$/;
+const STORE_FILE = /(?<![\w.-])([A-Za-z][\w-]*(?:\.[\w-]+)*\.(?:db|sqlite3?))\b/g;
+const DATABASE_URL = /\b((?:[A-Z][A-Z0-9]*_)*(?:DATABASE|DB)_URL)\b/g;
+const LAUNCH_LABEL = /\b(com\.krizaka\.[a-z][a-z0-9-]*)\.plist\b/g;
+const RUNNER_LABEL = /\b(actions\.runner\.[\w.-]*[\w])/g;
+/** The credential rotation tools: one job each, under `tools/`. */
+const ROTATION_TOOL = /^tools\/(credential[-_](?:age|rotate))(?:\.(?:py|sh|mjs))?$/;
+/** A scratch store of a test helper (`ops-test.db`, `test-events.db`). */
+const TEST_STORE = /(?:^|[-_.])tests?[-_.]/;
+const INSTALL_FILE = /(?:^|\/)install\.json$/;
+
+const byString = (a, b) => Number(a > b) - Number(a < b);
+const fact = (kind, name, path, detail = "") => ({ kind, name, path, detail });
+const stripLabel = (label) => label.replace(/^com\.krizaka\./, "");
+
+function scan(text, pattern) {
+  return [...text.matchAll(pattern)].map((m) => m[1]);
+}
+
+function installFacts(path, text) {
+  let install;
+  try {
+    install = JSON.parse(text);
+  } catch {
+    return [];
+  }
+  const jobs = (install.crons?.entries ?? []).map((c) => fact("job", c.id, path, `cron ${c.schedule ?? ""}`.trim()));
+  const services = (install.launchAgents ?? []).map((a) => {
+    const port = (a.args ?? []).join(" ").match(/--port\s+(\d+)/)?.[1];
+    return fact("service", stripLabel(a.label ?? a.id), path, `LaunchAgent ${a.label ?? a.id}${port ? `, port ${port}` : ""}`);
+  });
+  return [...jobs, ...services];
+}
+
+function patternFacts(path, text) {
+  const stores = scan(text, STORE_FILE).filter((n) => !TEST_STORE.test(n)).map((n) => fact("store", n, path, "data file"));
+  const databases = scan(text, DATABASE_URL).map((n) => fact("database", n, path, "external database connection"));
+  const agents = scan(text, LAUNCH_LABEL).map((l) => fact("service", stripLabel(l), path, `LaunchAgent ${l}`));
+  const runners = scan(text, RUNNER_LABEL).map((l) => fact("service", l, path, "self-hosted runner LaunchAgent"));
+  return [...stores, ...databases, ...agents, ...runners];
+}
+
+function rotationFact(path) {
+  const m = ROTATION_TOOL.exec(path);
+  return m ? [fact("job", m[1].replace(/_/g, "-"), path, "credential rotation tool")] : [];
+}
+
+/** Every machine fact of a repository's files (path → text), one per (kind, name), the first source kept, sorted. */
+export function machineFactsOf(files) {
+  const found = new Map();
+  for (const [path, text] of files) {
+    if (SKIPPED_FILE.test(path)) continue;
+    const facts = [...(INSTALL_FILE.test(path) ? installFacts(path, text) : []), ...patternFacts(path, text), ...rotationFact(path)];
+    for (const f of facts) if (!found.has(`${f.kind}:${f.name}`)) found.set(`${f.kind}:${f.name}`, f);
+  }
+  return [...found.values()].sort((a, b) => byString(`${a.kind}:${a.name}`, `${b.kind}:${b.name}`));
+}
+
+/** The names a model element claims in its `covers` metadata: `name` or `kind:name`, separated by commas or spaces. */
+export function coversOf(element) {
+  const text = element.metadata?.covers;
+  return typeof text === "string" ? text.split(/[\s,]+/).filter(Boolean) : [];
+}
+
+export const isCovered = (f, covers) => covers.some((c) => c === f.name || c === `${f.kind}:${f.name}`);

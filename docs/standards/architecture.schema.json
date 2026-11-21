@@ -41,6 +41,7 @@
         "failing": { "type": "integer", "minimum": 0 },
         "unknown": { "type": "integer", "minimum": 0 },
         "drift": { "type": "integer", "minimum": 0 },
+        "advisory": { "type": "integer", "minimum": 0, "description": "Drift items reported but not blocking (machine facts, until krizaka-agents' model covers them: MACHINE_BLOCKING in tools/architecture/lib/machine.mjs)." },
         "byKind": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
         "homes": {
           "type": "object",
@@ -129,6 +130,8 @@
         "system": { "type": "string" },
         "path": { "type": "string" },
         "unit": { "type": ["string", "null"] },
+        "fact": { "type": "object", "required": ["kind", "name"], "description": "An undocumented machine fact: a data store, an external database, a job or a service a repository runs.", "properties": { "kind": { "enum": ["store", "database", "job", "service"] }, "name": { "type": "string" } } },
+        "blocking": { "type": "boolean", "description": "false: reported (verdict, cockpit) but the verdict stays pass." },
         "line": { "type": "integer" },
         "why": { "type": "string" }
       }
