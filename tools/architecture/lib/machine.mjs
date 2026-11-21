@@ -7,11 +7,14 @@ export const MACHINE_KINDS = ["store", "database", "job", "service"];
 /** A new `undocumented` machine fact blocks a verdict only when this is true: flip it once krizaka-agents' C2 names them (krizaka-internal#4549). */
 export const MACHINE_BLOCKING = false;
 
-const SKIPPED_FILE = /(?:^|\/)(?:node_modules|fixtures?|tests?|__tests__)\/|\.(?:test|spec)\.[a-z]+$|(?:^|\/)package-lock\.json$|\.lock$/;
-const STORE_FILE = /(?<![\w.-])([A-Za-z][\w-]*(?:\.[\w-]+)*\.(?:db|sqlite3?))\b/g;
+const TEST_DIR = /(?:^|\/)(?:node_modules|fixtures?|tests?|__tests__)\//;
+const TEST_FILE = /\.(?:test|spec)\.[a-z]+$/;
+const LOCK_PATH = /(?:(?:^|\/)package-lock\.json|\.lock)$/;
+const isSkipped = (path) => TEST_DIR.test(path) || TEST_FILE.test(path) || LOCK_PATH.test(path);
+const STORE_FILE = /(?<![\w.-])([A-Za-z][\w.-]*\.(?:db|sqlite3?))\b/g;
 const DATABASE_URL = /\b((?:[A-Z][A-Z0-9]*_)*(?:DATABASE|DB)_URL)\b/g;
 const LAUNCH_LABEL = /\b(com\.krizaka\.[a-z][a-z0-9-]*)\.plist\b/g;
-const RUNNER_LABEL = /\b(actions\.runner\.[\w.-]*[\w])/g;
+const RUNNER_LABEL = /\b(actions\.runner\.[\w.-]*\w)/g;
 /** The credential rotation tools: one job each, under `tools/`. */
 const ROTATION_TOOL = /^tools\/(credential[-_](?:age|rotate))(?:\.(?:py|sh|mjs))?$/;
 /** A scratch store of a test helper (`ops-test.db`, `test-events.db`). */
@@ -36,7 +39,8 @@ function installFacts(path, text) {
   const jobs = (install.crons?.entries ?? []).map((c) => fact("job", c.id, path, `cron ${c.schedule ?? ""}`.trim()));
   const services = (install.launchAgents ?? []).map((a) => {
     const port = (a.args ?? []).join(" ").match(/--port\s+(\d+)/)?.[1];
-    return fact("service", stripLabel(a.label ?? a.id), path, `LaunchAgent ${a.label ?? a.id}${port ? `, port ${port}` : ""}`);
+    const label = a.label ?? a.id;
+    return fact("service", stripLabel(label), path, port ? `LaunchAgent ${label}, port ${port}` : `LaunchAgent ${label}`);
   });
   return [...jobs, ...services];
 }
@@ -58,7 +62,7 @@ function rotationFact(path) {
 export function machineFactsOf(files) {
   const found = new Map();
   for (const [path, text] of files) {
-    if (SKIPPED_FILE.test(path)) continue;
+    if (isSkipped(path)) continue;
     const facts = [...(INSTALL_FILE.test(path) ? installFacts(path, text) : []), ...patternFacts(path, text), ...rotationFact(path)];
     for (const f of facts) if (!found.has(`${f.kind}:${f.name}`)) found.set(`${f.kind}:${f.name}`, f);
   }
