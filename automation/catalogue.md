@@ -1,8 +1,8 @@
 # Automation catalogue
 
-Generated 2026-11-20T14:58:01.301Z by https://github.com/krizaka/.github/actions/runs/44758325667 from the files of 18 active repositories at their default branch (ADR-026). Machine-readable: [catalogue.json](catalogue.json), schema `krizaka.automation/1`; fields explained in docs/standards/automation-catalogue.md.
+Generated 2026-11-21T14:17:05.237Z by https://github.com/krizaka/.github/actions/runs/44913029452 from the files of 18 active repositories at their default branch (ADR-026). Machine-readable: [catalogue.json](catalogue.json), schema `krizaka.automation/1`; fields explained in docs/standards/automation-catalogue.md.
 
-**1309 units.**
+**1318 units.**
 
 ## By kind
 
@@ -10,13 +10,13 @@ Generated 2026-11-20T14:58:01.301Z by https://github.com/krizaka/.github/actions
 | :-- | :-- |
 | CI check | 436 |
 | agent hook | 31 |
-| cron | 62 |
+| cron | 64 |
 | deploy | 74 |
-| dev tool | 223 |
+| dev tool | 224 |
 | generator | 80 |
 | git hook | 19 |
-| library | 373 |
-| one-off | 11 |
+| library | 380 |
+| one-off | 10 |
 
 ## By type
 
@@ -24,12 +24,12 @@ Generated 2026-11-20T14:58:01.301Z by https://github.com/krizaka/.github/actions
 | :-- | :-- |
 | action | 22 |
 | agent-hook | 26 |
-| cron | 17 |
+| cron | 18 |
 | entrypoint | 7 |
 | hook-config | 5 |
 | launchagent | 2 |
 | npm-script | 153 |
-| script | 818 |
+| script | 826 |
 | template | 8 |
 | workflow | 251 |
 
@@ -37,7 +37,7 @@ Generated 2026-11-20T14:58:01.301Z by https://github.com/krizaka/.github/actions
 
 | Repository | Units | Nothing calls it | No test | Regex over 80 characters | Over 400 lines | No header | Copied |
 | :-- | :-- | :-- | :-- | :-- | :-- | :-- | :-- |
-| krizaka-agents | 203 | 45 | 4 | 12 | 30 | 5 | 0 |
+| krizaka-agents | 212 | 45 | 4 | 14 | 32 | 5 | 0 |
 | krizaka-ui | 141 | 39 | 12 | 6 | 3 | 4 | 1 |
 | sovkora | 157 | 31 | 9 | 12 | 5 | 1 | 2 |
 | .github | 219 | 15 | 3 | 11 | 4 | 4 | 0 |
@@ -146,7 +146,7 @@ Generated 2026-11-20T14:58:01.301Z by https://github.com/krizaka/.github/actions
 - `krizaka-ui` `packages/charts/scripts/dist-check.mjs` (CI check, 50 lines)
 - … and 18 more in catalogue.json
 
-### Regex over 80 characters (52)
+### Regex over 80 characters (54)
 
 - `krizaka-agents-site` `site/scripts/publication-rules.mjs` (dev tool, 108 lines, longest regex 277)
 - `krizaka-ui` `apps/site/scripts/scan-ui-usage.mjs` (CI check, 134 lines, longest regex 214)
@@ -157,12 +157,13 @@ Generated 2026-11-20T14:58:01.301Z by https://github.com/krizaka/.github/actions
 - `krizaka-agents` `scripts/validate-skills.mjs` (dev tool, 293 lines, longest regex 150)
 - `sovkora` `scripts/ci-plan.mjs` (CI check, 60 lines, longest regex 144)
 - `folioviv` `scripts/lib/public-surface.mjs` (library, 17 lines, longest regex 128)
-- `krizaka-agents` `tools/kz.py` (library, 1286 lines, longest regex 115)
+- `krizaka-agents` `tools/kz.py` (library, 1280 lines, longest regex 115)
 - `sovkora` `scripts/lib/java-layout.mjs` (library, 76 lines, longest regex 115)
 - `.github` `scripts/check-app-links.mjs` (library, 292 lines, longest regex 114)
 - `sovkora` `apps/web/scripts/check-app-links.mjs` (CI check, 322 lines, longest regex 114)
-- `.github` `scripts/conformance-checks.mjs` (library, 449 lines, longest regex 113)
+- `.github` `scripts/conformance-checks.mjs` (library, 451 lines, longest regex 113)
 - `sovkora` `scripts/check-code-names.mjs` (CI check, 164 lines, longest regex 112)
+- `krizaka-agents` `tools/ownership.py` (library, 944 lines, longest regex 111)
 - `.github` `scripts/audit-guards.mjs` (CI check, 259 lines, longest regex 107)
 - `krizaka-com` `scripts/gen-registry-versions.mjs` (generator, 175 lines, longest regex 107)
 - `krizaka-ui` `apps/site/scripts/builder-check.mjs` (generator, 260 lines, longest regex 106)
@@ -174,9 +175,10 @@ Generated 2026-11-20T14:58:01.301Z by https://github.com/krizaka/.github/actions
 - `sovkora` `scripts/lib/bakeoff/verify.mjs` (library, 136 lines, longest regex 100)
 - `.github` `scripts/scheduled-probe.mjs` (library, 60 lines, longest regex 98)
 - `krizaka-agents` `scripts/check-no-private.mjs` (CI check, 57 lines, longest regex 97)
+- `krizaka-agents` `tools/post_missed.py` (library, 187 lines, longest regex 96)
 - `sovkora` `scripts/lib/doc-patterns.mjs` (library, 91 lines, longest regex 95)
-- `krizaka-agents` `tools/team-session.py` (cron, 2046 lines, longest regex 94)
-- `krizaka-agents` `tools/train-control.py` (cron, 390 lines, longest regex 94)
+- `krizaka-agents` `tools/team-session.py` (cron, 2217 lines, longest regex 94)
+- `krizaka-agents` `tools/train-control.py` (cron, 415 lines, longest regex 94)
 - `krizaka-com` `scripts/pr-assets.mjs` (library, 261 lines, longest regex 94)
 - `krizaka-ui` `tools/export-defaults.mjs` (generator, 141 lines, longest regex 94)
 - `krizaka-java` `site/scripts/gen-building-blocks.mjs` (generator, 169 lines, longest regex 91)
@@ -186,53 +188,51 @@ Generated 2026-11-20T14:58:01.301Z by https://github.com/krizaka/.github/actions
 - `krizaka-ui` `packages/tokens/scripts/build.mjs` (generator, 758 lines, longest regex 87)
 - `.github` `scripts/callers-report.mjs` (CI check, 85 lines, longest regex 86)
 - `.github` `scripts/check-public-issues-ours.mjs` (CI check, 99 lines, longest regex 86)
-- `krizaka-agents` `tools/conformity.py` (library, 113 lines, longest regex 86)
-- `krizaka-java` `site/scripts/gen-proof.mjs` (generator, 120 lines, longest regex 86)
-- … and 12 more in catalogue.json
+- … and 14 more in catalogue.json
 
-### Over 400 lines (51)
+### Over 400 lines (53)
 
 - `.github` `actions/detect/detect.mjs` (CI check, 483 lines)
-- `.github` `scripts/conformance-checks.mjs` (library, 449 lines)
+- `.github` `scripts/conformance-checks.mjs` (library, 451 lines)
 - `.github` `scripts/family-drift.mjs` (CI check, 453 lines)
-- `.github` `scripts/profile-readme.mjs` (CI check, 536 lines)
+- `.github` `scripts/profile-readme.mjs` (CI check, 544 lines)
 - `folioviv` `apps/web/scripts/seed-cast.mjs` (dev tool, 408 lines)
 - `folioviv` `scripts/shots-storefront.mjs` (dev tool, 413 lines)
 - `krizaka-agents` `tools/board-cache.py` (library, 431 lines)
 - `krizaka-agents` `tools/board-sync.py` (cron, 496 lines)
 - `krizaka-agents` `tools/codegraph-first-hook.py` (library, 684 lines)
-- `krizaka-agents` `tools/conflicts.py` (library, 719 lines)
+- `krizaka-agents` `tools/conflicts.py` (library, 741 lines)
 - `krizaka-agents` `tools/coord/registry.py` (generator, 1127 lines)
-- `krizaka-agents` `tools/crack.py` (cron, 1095 lines)
-- `krizaka-agents` `tools/credential_age.py` (library, 406 lines)
+- `krizaka-agents` `tools/crack.py` (cron, 1081 lines)
+- `krizaka-agents` `tools/credential_age.py` (library, 566 lines)
 - `krizaka-agents` `tools/credential_rotation/adapters.py` (library, 593 lines)
-- `krizaka-agents` `tools/events_db.py` (library, 569 lines)
+- `krizaka-agents` `tools/events_db.py` (library, 645 lines)
 - `krizaka-agents` `tools/fake-github.py` (library, 486 lines)
 - `krizaka-agents` `tools/fmt.py` (git hook, 455 lines)
 - `krizaka-agents` `tools/freshness.py` (library, 489 lines)
-- `krizaka-agents` `tools/git-guard.py` (git hook, 621 lines)
+- `krizaka-agents` `tools/git-guard.py` (git hook, 635 lines)
 - `krizaka-agents` `tools/install.py` (library, 642 lines)
-- `krizaka-agents` `tools/krizaka-precheck` (git hook, 1179 lines)
-- `krizaka-agents` `tools/kz.py` (library, 1286 lines)
-- `krizaka-agents` `tools/kzstates.py` (library, 421 lines)
-- `krizaka-agents` `tools/lane-dispatch.py` (cron, 556 lines)
+- `krizaka-agents` `tools/krizaka-precheck` (git hook, 1218 lines)
+- `krizaka-agents` `tools/kz.py` (library, 1280 lines)
+- `krizaka-agents` `tools/kzstates.py` (library, 493 lines)
+- `krizaka-agents` `tools/lane-dispatch.py` (cron, 648 lines)
 - `krizaka-agents` `tools/observability-probes.py` (CI check, 430 lines)
-- `krizaka-agents` `tools/ops/api.py` (dev tool, 720 lines)
-- `krizaka-agents` `tools/ops/sessions.py` (library, 449 lines)
-- `krizaka-agents` `tools/ops/sync.py` (library, 425 lines)
-- `krizaka-agents` `tools/overlap-proof.py` (dev tool, 1192 lines)
-- `krizaka-agents` `tools/recette.py` (cron, 599 lines)
+- `krizaka-agents` `tools/ops/api.py` (dev tool, 774 lines)
+- `krizaka-agents` `tools/ops/sessions.py` (library, 450 lines)
+- `krizaka-agents` `tools/ops/sync.py` (library, 491 lines)
+- `krizaka-agents` `tools/overlap-proof.py` (dev tool, 1183 lines)
+- `krizaka-agents` `tools/ownership.py` (library, 944 lines)
+- `krizaka-agents` `tools/recette.py` (cron, 590 lines)
 - `krizaka-agents` `tools/secret-scan.py` (git hook, 462 lines)
-- `krizaka-agents` `tools/session_env.py` (library, 1813 lines)
-- `krizaka-agents` `tools/team-session.py` (cron, 2046 lines)
-- `krizaka-agents` `tools/train-queue.py` (library, 962 lines)
-- `krizaka-agents` `tools/watchdog.py` (cron, 1097 lines)
-- `krizaka-agents` `tools/wt.py` (dev tool, 420 lines)
+- `krizaka-agents` `tools/session_env.py` (library, 1855 lines)
+- `krizaka-agents` `tools/team-session.py` (cron, 2217 lines)
+- `krizaka-agents` `tools/train-control.py` (cron, 415 lines)
+- `krizaka-agents` `tools/train-queue.py` (library, 1015 lines)
+- `krizaka-agents` `tools/watchdog.py` (cron, 1082 lines)
+- `krizaka-agents` `tools/wt.py` (dev tool, 484 lines)
 - `krizaka-blog` `scripts/capture-cockpit.mjs` (dev tool, 621 lines)
 - `krizaka-blog` `scripts/gen-downloads.mjs` (generator, 541 lines)
-- `krizaka-blog` `scripts/gen-junction-cover.mjs` (generator, 1042 lines)
-- `krizaka-com` `scripts/cdn-assets.mjs` (CI check, 758 lines)
-- … and 11 more in catalogue.json
+- … and 13 more in catalogue.json
 
 ### No header (32)
 
@@ -261,7 +261,7 @@ Generated 2026-11-20T14:58:01.301Z by https://github.com/krizaka/.github/actions
 - `krizaka-ts` `.github/workflows/ci.yml` (CI check, 41 lines)
 - `krizaka-ui-builder` `.github/workflows/ci.yml` (CI check, 36 lines)
 - `krizaka-ui-builder` `.github/workflows/editor-task-cost.yml` (CI check, 40 lines)
-- `krizaka-ui` `.github/workflows/release.yml` (deploy, 136 lines)
+- `krizaka-ui` `.github/workflows/release.yml` (deploy, 137 lines)
 - `krizaka-ui` `tools/ci-filter.mjs` (CI check, 29 lines)
 - `krizaka-ui` `tools/consumer-smoke/next/app/api/events/route.ts` (library, 13 lines)
 - `krizaka-ui` `tools/consumer-smoke/next/lib/i18n.ts` (library, 10 lines)
@@ -308,3 +308,4 @@ Generated 2026-11-20T14:58:01.301Z by https://github.com/krizaka/.github/actions
 | 2026-11-18 | 1249 | 213 | 57 | 46 | 43 | 31 | 19 |
 | 2026-11-19 | 1293 | 225 | 58 | 50 | 47 | 32 | 19 |
 | 2026-11-20 | 1309 | 227 | 58 | 52 | 51 | 32 | 21 |
+| 2026-11-21 | 1318 | 227 | 58 | 54 | 53 | 32 | 21 |
