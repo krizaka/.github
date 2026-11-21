@@ -10,7 +10,7 @@ export const MACHINE_BLOCKING = false;
 const TEST_DIR = /(?:^|\/)(?:node_modules|fixtures?|tests?|__tests__)\//;
 const TEST_FILE = /\.(?:test|spec)\.[a-z]+$/;
 const LOCK_PATH = /(?:(?:^|\/)package-lock\.json|\.lock)$/;
-/** Ignore files: they list names to leave out (`Thumbs.db`), they run nothing. The closed set of sources no fact is read from, with the test paths and lockfiles. */
+/** Ignore files: they list file names to leave out, they run nothing. The closed set of sources no fact is read from, with the test paths and lockfiles. */
 const IGNORE_FILE = /(?:^|\/)\.[\w-]*ignore$/;
 const IGNORED_SOURCES = [TEST_DIR, TEST_FILE, LOCK_PATH, IGNORE_FILE];
 const isSkipped = (path) => IGNORED_SOURCES.some((source) => source.test(path));
