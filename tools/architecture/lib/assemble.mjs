@@ -3,6 +3,7 @@
 // (only `generatedAt` holds a clock).
 import { readFileSync } from "node:fs";
 import { driftOf, bindingOf, summaryOf, systemOf, verdictsOf } from "./drift.mjs";
+import { duplicateItems, duplicateModels } from "./duplicates.mjs";
 import { factsOf } from "./facts.mjs";
 import { dependencyGraph, systemOfRepo } from "./graph.mjs";
 import { BASE_FILES, MODEL_DIR, baseOf, checkHome, modelFiles, parse, systemsDsl, viewsDsl } from "./model.mjs";
@@ -68,7 +69,7 @@ export async function buildArchitecture({ sources, unread = [], registry, family
   const org = await parse([...base.filter((f) => f.text !== null), systemsFile, ...valid, viewsFile], { layout: true });
 
   const assets = new Set(systems.filter((s) => s.group === "asset").map((s) => s.id));
-  const items = driftOf({ facts, elements: org.elements, homes, assets, machineBlocking });
+  const items = driftOf({ facts, elements: org.elements, homes, assets, machineBlocking, extra: duplicateItems(duplicateModels(sources)) });
   const bindings = org.elements.map((e) => ({ binding: bindingOf(e), system: systemOf(e.id) })).filter((b) => b.binding).map((b) => ({ repo: b.binding.repo, system: b.system }));
   for (const [id, home] of homes) home.binds = new Set(bindings.filter((b) => b.system === id).map((b) => b.repo));
   const verdicts = verdictsOf({ facts, items, homes, unread, base });
