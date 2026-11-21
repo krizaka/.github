@@ -21,7 +21,7 @@ that the conformance matrix proves against `main`.
 | a library family (Krizaka UI, TypeScript, Java, Lab) | the family's repository (`krizaka-ui`…) | the same |
 | a company site (krizaka.com, the blog) | its repository | the same |
 | the platform, the people, the external systems, the specification | this repository | `docs/architecture/specification.c4`, `docs/architecture/org.c4` |
-| the agents tooling as the public sites draw it (agents.krizaka.com, the blog), written against the system `agents` | this repository, public, so every site's check can read it | `docs/architecture/krizaka-agents.c4` and its French words `krizaka-agents.fr.json`; not read by the architecture tool (the system's home model is krizaka-agents') |
+| the agents tooling as the public sites draw it (agents.krizaka.com, the blog), written against the system `agents` | this repository, public, so every site's check can read it | `docs/architecture/krizaka-agents.c4` and its French words `krizaka-agents.fr.json`; not read by the architecture tool (the system's home model is krizaka-agents'); it is a public projection of that model, listed in `architecture-public-projections.json` and pending slice 2 of krizaka-internal#4552 |
 
 A home writes only its own system's inside, with `extend`, and relationships; it may point at another system, never inside it.
 It never writes a `specification` (the org's is [`docs/architecture/specification.c4`](../architecture/specification.c4)).

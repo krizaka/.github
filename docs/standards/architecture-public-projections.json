@@ -1,0 +1,11 @@
+{
+  "$comment": "The known public projections of a system's architecture model (krizaka-internal#4552): a copy of a model file held outside its home because a public site cannot read the private home. A closed set that may only shrink (tools/architecture/test/duplicates.test.mjs holds the ceiling); a copy not listed here is a duplicate and fails its repository.",
+  "projections": [
+    {
+      "path": ".github:docs/architecture/krizaka-agents.c4",
+      "home": "krizaka-agents",
+      "reason": "krizaka-agents-site reads it from a krizaka/.github checkout to lay out and check its views; the home model lives in the private krizaka-agents repository",
+      "ticket": "krizaka-internal#4552"
+    }
+  ]
+}
