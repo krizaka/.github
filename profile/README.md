@@ -89,7 +89,7 @@ Each product stands on its own; each proves one skill. Claims are cheap — ever
 </td></tr>
 <tr><td valign="top" width="64"><picture><source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/verikora/mark-dark.svg?v=c4fbf96eee"><img src="https://krizaka-assets.b-cdn.net/brand/verikora/mark-light.svg?v=c4fbf96eee" alt="Verikora" width="48"></picture></td><td valign="top">
 
-**Verikora** · Reading documents &nbsp;<sup>In development</sup> · <sup>sign-up closed</sup><br>A lease checked rule by rule against the law in force on a date, a PDF examined for signs of editing: every finding quotes its passage, every check is a traced engine run.<br>[Repository](https://github.com/krizaka/verikora) · [![Dev: up 0.1.0+76bf903](https://img.shields.io/badge/dev-up_%C2%B7_0.1.0%2B76bf903-brightgreen)](https://dev.verikora.com) · ![Prod: not open yet](https://img.shields.io/badge/prod-not_open_yet-lightgrey)
+**Verikora** · Reading documents &nbsp;<sup>In development</sup> · <sup>sign-up closed</sup><br>A lease checked rule by rule against the law in force on a date, a PDF examined for signs of editing: every finding quotes its passage, every check is a traced engine run.<br>[Repository](https://github.com/krizaka/verikora) · [![Dev: up 0.1.0+7227562](https://img.shields.io/badge/dev-up_%C2%B7_0.1.0%2B7227562-brightgreen)](https://dev.verikora.com) · ![Prod: not open yet](https://img.shields.io/badge/prod-not_open_yet-lightgrey)
 
 <details><summary>Components (5): clients, backend-for-frontend, services, workers · green is the latest, orange has a newer one</summary>
 
@@ -128,7 +128,7 @@ Each product stands on its own; each proves one skill. Claims are cheap — ever
 </td></tr>
 <tr><td valign="top" width="64"><picture><source media="(prefers-color-scheme: dark)" srcset="https://krizaka-assets.b-cdn.net/brand/folioviv/mark-dark.svg?v=8268ecf1bf"><img src="https://krizaka-assets.b-cdn.net/brand/folioviv/mark-light.svg?v=8268ecf1bf" alt="Folioviv" width="48"></picture></td><td valign="top">
 
-**Folioviv** · Running a shop, for less &nbsp;<sup>In development</sup> · <sup>sign-up closed</sup><br>Bookings, bilingual invoices with GST and QST to the cent and a ledger the database keeps balanced, for independent Québec shops; the GST/QST return is prepared, and the merchant files it.<br>[Repository](https://github.com/krizaka/folioviv) · [![Dev: up 0.1.0+81a682c](https://img.shields.io/badge/dev-up_%C2%B7_0.1.0%2B81a682c-brightgreen)](https://dev.folioviv.com) · ![Prod: not open yet](https://img.shields.io/badge/prod-not_open_yet-lightgrey)
+**Folioviv** · Running a shop, for less &nbsp;<sup>In development</sup> · <sup>sign-up closed</sup><br>Bookings, bilingual invoices with GST and QST to the cent and a ledger the database keeps balanced, for independent Québec shops; the GST/QST return is prepared, and the merchant files it.<br>[Repository](https://github.com/krizaka/folioviv) · [![Dev: up 0.1.0+e2cba08](https://img.shields.io/badge/dev-up_%C2%B7_0.1.0%2Be2cba08-brightgreen)](https://dev.folioviv.com) · ![Prod: not open yet](https://img.shields.io/badge/prod-not_open_yet-lightgrey)
 
 <details><summary>Components (5): clients, backend-for-frontend, services, workers · green is the latest, orange has a newer one</summary>
 
