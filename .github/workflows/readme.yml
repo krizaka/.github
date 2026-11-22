@@ -1,0 +1,23 @@
+# Standard README check (krizaka-internal#4672, docs/standards/product-readme.md): fails when the generated blocks drift or a section is missing.
+name: README
+
+on:
+  pull_request:
+  merge_group:
+  push:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  readme:
+    name: README
+    permissions:
+      contents: read
+    uses: ./.github/workflows/product-readme.yml
+    with:
+      repo: .github

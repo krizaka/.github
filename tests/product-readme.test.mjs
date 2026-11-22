@@ -3,9 +3,12 @@ import { symlinkSync, mkdtempSync, readFileSync, writeFileSync, mkdirSync } from
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
-import { PathOutsideRootError, confinePath, FSL_LINE, SECTIONS, applyBlocks, main, problemsOf, renderBlocks, renderSchema } from "../scripts/product-readme.mjs";
+import { PathOutsideRootError, confinePath, FSL_LINE, SECTIONS, applyBlocks, main, problemsOf, renderBlocks, renderRepoBlocks, renderSchema } from "../scripts/product-readme.mjs";
+import { KIND_VARIANTS, README_VARIANTS, activeRepositories, findRepository, resolveVariant } from "../scripts/readme-variants.mjs";
+import { KINDS } from "../scripts/gen-repos.mjs";
 
 const data = JSON.parse(readFileSync(new URL("../profile/products.json", import.meta.url), "utf8"));
+const reposData = JSON.parse(readFileSync(new URL("../repos.json", import.meta.url), "utf8"));
 const SCHEMA = "flowchart LR\n  user --> web";
 const blocks = renderBlocks(data, "verikora", { schema: SCHEMA });
 const handWritten = "## Quick start\n\n```bash\nnpm i\nnpm run dev\nopen http://localhost:3000\n```\n\n## Details\n\nMore.\n";
@@ -165,5 +168,91 @@ describe("path options stay inside the repository", () => {
   });
   it("accepts a missing file under the root", () => {
     assert.ok(confinePath("readme", "README.md", root).endsWith("README.md"));
+  });
+});
+
+describe("variants and repos.json registry", () => {
+  it("declares a closed variant mapping covering every kind in gen-repos.mjs", () => {
+    for (const kind of KINDS) {
+      assert.ok(Object.hasOwn(KIND_VARIANTS, kind), `missing kind ${kind} in KIND_VARIANTS`);
+      assert.ok(Object.hasOwn(README_VARIANTS, KIND_VARIANTS[kind]), `unknown variant for ${kind}`);
+    }
+  });
+
+  it("reads the non-archived repository set from repos.json only and resolves every entry", () => {
+    const active = activeRepositories(reposData);
+    assert.ok(active.length > 0);
+    for (const entry of active) {
+      const variant = resolveVariant(entry, data);
+      assert.ok(Object.hasOwn(README_VARIANTS, variant.id), `${entry.name}: ${variant.id}`);
+    }
+  });
+
+  it("refuses an unknown repository kind", () => {
+    assert.throws(
+      () => resolveVariant({ name: "mystery", kind: "cobol", visibility: "public", role: "x" }, data),
+      /Unknown repository kind "cobol"/,
+    );
+  });
+
+  it("refuses an archived or unknown repository in repos.json", () => {
+    assert.throws(() => findRepository(reposData, "does-not-exist"), /repos\.json/);
+    assert.throws(
+      () => findRepository({ repositories: [{ name: "old", kind: "npm", archived: true }] }, "old"),
+      /repos\.json/,
+    );
+  });
+
+  it("omits the public family link for private repositories", () => {
+    const priv = findRepository(reposData, "krizaka-infra");
+    const privBlocks = renderRepoBlocks(priv, data, {
+      repoInfo: { hasCi: true, hasSecurity: true, licence: { id: "apache", file: "LICENSE", hasApachePrior: false } },
+    });
+    assert.doesNotMatch(privBlocks.footer, /github\.com\/krizaka/);
+    assert.match(privBlocks.head, /# krizaka-infra/);
+    assert.doesNotMatch(privBlocks.head, /```mermaid/);
+  });
+
+  it("keeps the public family link for public non-product repositories", () => {
+    const lib = findRepository(reposData, "krizaka-ui");
+    const libBlocks = renderRepoBlocks(lib, data, {
+      repoInfo: { hasCi: true, hasSecurity: true, licence: { id: "apache", file: "LICENSE", hasApachePrior: false } },
+    });
+    assert.match(libBlocks.footer, /github\.com\/krizaka/);
+    assert.match(libBlocks.badges, /Apache--2\.0/);
+  });
+
+  it("renders Folioviv's FSL + prior Apache-2.0 licence line in one line", () => {
+    const folioviv = findRepository(reposData, "folioviv");
+    const fBlocks = renderRepoBlocks(folioviv, data, {
+      schema: SCHEMA,
+      repoInfo: { hasCi: true, hasSecurity: true, licence: { id: "fsl", file: "LICENSE.md", hasApachePrior: true } },
+    });
+    assert.match(fBlocks.badges, /\]\(LICENSE\.md\)/);
+    const footerLines = fBlocks.footer.split("\n").filter((l) => l.includes(FSL_LINE));
+    assert.equal(footerLines.length, 1);
+    assert.match(footerLines[0], /4318e84 \(2026-10-26\)/);
+    assert.match(footerLines[0], /LICENSE-APACHE/);
+    assert.match(footerLines[0], /LICENSE\.md/);
+  });
+
+  it("detects a hand-drifted README via CLI --repo --check", () => {
+    const dir = mkdtempSync(join(tmpdir(), "pr-lib-"));
+    writeFileSync(join(dir, "LICENSE"), "Apache License\nVersion 2.0\n");
+    mkdirSync(join(dir, ".github/workflows"), { recursive: true });
+    writeFileSync(join(dir, ".github/workflows/ci.yml"), "name: CI\n");
+    writeFileSync(join(dir, ".github/workflows/security.yml"), "name: Security\n");
+    const lib = findRepository(reposData, "krizaka-ui");
+    const libBlocks = renderRepoBlocks(lib, data, {
+      repoInfo: { hasCi: true, hasSecurity: true, licence: { id: "apache", file: "LICENSE", hasApachePrior: false } },
+    });
+    const good = readmeOf(libBlocks);
+    writeFileSync(join(dir, "README.md"), good);
+    let stderr = "";
+    assert.equal(main(["--repo", "krizaka-ui", "--check"], { cwd: dir, stdout: () => {}, stderr: (t) => (stderr += t) }), 0, stderr);
+    writeFileSync(join(dir, "README.md"), good.replace("> Shared design system", "> Hand edited line"));
+    stderr = "";
+    assert.equal(main(["--repo", "krizaka-ui", "--check"], { cwd: dir, stdout: () => {}, stderr: (t) => (stderr += t) }), 1);
+    assert.match(stderr, /head block is stale/);
   });
 });

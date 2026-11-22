@@ -278,3 +278,89 @@ test("org-secret-scoped reaches a paused repository too: it still sees the org s
   assert.equal(rule.security, true);
   assert.equal(rule.everyRepo, true);
 });
+
+test("product-readme conformance rule is registered, valid, and reaches every non-archived repo", () => {
+  const rule = loadRules().find((r) => r.id === "product-readme");
+  assert.ok(rule, "product-readme rule is in rules.json");
+  assert.equal(rule.everyRepo, true);
+  assert.notEqual(rule.security, true);
+  assert.deepEqual(validateRules(loadRules()), []);
+});
+
+test("product-readme conformance check fails when the workflow check is missing or lacks merge_group / pull_request", async () => {
+  const { renderRepoBlocks } = await import("../scripts/product-readme.mjs");
+  const reposData = readJson("repos.json");
+  const productsData = readJson("profile/products.json");
+  const entry = reposData.repositories.find((r) => r.name === "krizaka-ui");
+  const blocks = renderRepoBlocks(entry, productsData, {
+    repoInfo: { hasCi: true, hasSecurity: true, licence: { id: "apache", file: "LICENSE", hasApachePrior: false } },
+  });
+  const readme = `${blocks.head}\n\n## Quick start\n\n\`\`\`bash\npnpm i\n\`\`\`\n\n${blocks.badges}\n\n## Details\n\nMore.\n\n${blocks.footer}\n`;
+  const baseFiles = {
+    "README.md": readme,
+    LICENSE: "Apache License\nVersion 2.0\n",
+    ".github/workflows/ci.yml": "name: CI\n",
+    ".github/workflows/security.yml": "name: Security\n",
+  };
+  const caller = (triggers) =>
+    `name: README\non:\n${triggers.map((t) => `  ${t}:\n`).join("")}permissions: {}\njobs:\n  readme:\n    uses: krizaka/.github/.github/workflows/product-readme.yml@${"a".repeat(40)} # main\n`;
+  const mk = (files) => snapshotOf("krizaka-ui", "npm", Object.keys(files).sort(), async (p) => files[p] ?? null);
+
+  assert.equal((await runCheck({ type: "product-readme" }, mk({ ...baseFiles, ".github/workflows/readme.yml": caller(["pull_request", "merge_group"]) }))).ok, true);
+
+  const noWf = await runCheck({ type: "product-readme" }, mk(baseFiles));
+  assert.equal(noWf.ok, false);
+  assert.match(noWf.why, /product-readme\.yml/);
+
+  const noQueue = await runCheck({ type: "product-readme" }, mk({ ...baseFiles, ".github/workflows/readme.yml": caller(["pull_request"]) }));
+  assert.equal(noQueue.ok, false);
+  assert.match(noQueue.why, /merge_group/);
+
+  const noPr = await runCheck({ type: "product-readme" }, mk({ ...baseFiles, ".github/workflows/readme.yml": caller(["merge_group"]) }));
+  assert.equal(noPr.ok, false);
+  assert.match(noPr.why, /pull_request/);
+
+  const commented = `# uses: krizaka/.github/.github/workflows/product-readme.yml@${"a".repeat(40)} # main\non:\n  workflow_call:\n`;
+  const dotBlocks = renderRepoBlocks(reposData.repositories.find((r) => r.name === ".github"), productsData, {
+    repoInfo: { hasCi: true, hasSecurity: false, licence: { id: "apache", file: "LICENSE", hasApachePrior: false } },
+  });
+  const dotFiles = {
+    "README.md": `${dotBlocks.head}\n\n## Quick start\n\nRun.\n\n${dotBlocks.badges}\n\n## Details\n\nMore.\n\n${dotBlocks.footer}\n`,
+    LICENSE: "Apache License\nVersion 2.0\n",
+    ".github/workflows/ci.yml": "name: CI\n",
+    ".github/workflows/product-readme.yml": commented,
+    ".github/workflows/readme.yml": "name: README\non:\n  pull_request:\n  merge_group:\npermissions: {}\njobs:\n  readme:\n    uses: ./.github/workflows/product-readme.yml\n",
+  };
+  const dotRes = await runCheck({ type: "product-readme" }, snapshotOf(".github", "npm", Object.keys(dotFiles).sort(), async (p) => dotFiles[p] ?? null));
+  assert.equal(dotRes.ok, true, dotRes.why);
+});
+
+test("product-readme conformance check fails on a hand-drifted README and on an unknown kind", async () => {
+  const { renderRepoBlocks } = await import("../scripts/product-readme.mjs");
+  const reposData = readJson("repos.json");
+  const productsData = readJson("profile/products.json");
+  const entry = reposData.repositories.find((r) => r.name === "krizaka-ui");
+  const blocks = renderRepoBlocks(entry, productsData, {
+    repoInfo: { hasCi: true, hasSecurity: true, licence: { id: "apache", file: "LICENSE", hasApachePrior: false } },
+  });
+  const drifted = `${blocks.head.replace("> Shared design system", "> Drifted by hand")}\n\n## Quick start\n\nRun.\n\n${blocks.badges}\n\n## Details\n\nMore.\n\n${blocks.footer}\n`;
+  const wf = `name: README\non:\n  pull_request:\n  merge_group:\npermissions: {}\njobs:\n  readme:\n    uses: krizaka/.github/.github/workflows/product-readme.yml@${"a".repeat(40)} # main\n`;
+  const files = {
+    "README.md": drifted,
+    LICENSE: "Apache License\nVersion 2.0\n",
+    ".github/workflows/ci.yml": "name: CI\n",
+    ".github/workflows/security.yml": "name: Security\n",
+    ".github/workflows/readme.yml": wf,
+  };
+  const driftRes = await runCheck({ type: "product-readme" }, snapshotOf("krizaka-ui", "npm", Object.keys(files).sort(), async (p) => files[p] ?? null));
+  assert.equal(driftRes.ok, false);
+  assert.match(driftRes.why, /stale/);
+
+  const unknownRepos = { repositories: [{ name: "mystery", kind: "cobol", archived: false, visibility: "public", role: "x" }] };
+  const unknownRes = await runCheck(
+    { type: "product-readme", reposData: unknownRepos, productsData },
+    snapshotOf("mystery", "cobol", [".github/workflows/readme.yml", "README.md"], async (p) => (p === "README.md" ? drifted : wf)),
+  );
+  assert.equal(unknownRes.ok, false);
+  assert.match(unknownRes.why, /Unknown repository kind "cobol"/);
+});

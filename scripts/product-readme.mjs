@@ -1,23 +1,35 @@
 #!/usr/bin/env node
 /**
- * Generate and verify managed blocks in a Krizaka product README.
+ * Generate and verify managed blocks in every Krizaka repository README.
  *
- * Pure rendering and validation helpers are exported for tests; the CLI runs
- * only when this file is executed directly.
+ * The repository set comes from repos.json only; variants are declared once in
+ * scripts/readme-variants.mjs. Pure rendering and validation helpers are
+ * exported for tests and scripts/conformance-checks.mjs; the CLI runs only
+ * when this file is executed directly.
  */
 
 import { existsSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
-import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { MARKS_CDN, statusLabel } from "./profile-readme.mjs";
+import {
+  FSL_LINE,
+  LICENCE_SPECS,
+  detectRepoInfo,
+  findRepository,
+  resolveVariant,
+} from "./readme-variants.mjs";
 
 const DEFAULT_COLOUR = "3e76a8";
+const PRIVATE_COLOUR = "555555";
+const DEFAULT_ORG = "krizaka";
 const DEFAULT_REGISTRY = fileURLToPath(new URL("../profile/products.json", import.meta.url));
+const DEFAULT_REPOS = fileURLToPath(new URL("../repos.json", import.meta.url));
 const DEFAULT_README = "README.md";
 const DEFAULT_SCHEMA = "docs/architecture/c1.mmd";
 
-export const FSL_LINE = "FSL-1.1-ALv2: source-available, each release becomes Apache-2.0 two years later";
+export { FSL_LINE } from "./readme-variants.mjs";
 export const SECTIONS = ["Quick start", "Details"];
 export const BLOCKS = ["head", "badges", "footer"];
 
@@ -66,14 +78,20 @@ export function renderSchema(path, text) {
   return `![Architecture (C1)](${path})`;
 }
 
-function renderHead(data, id, product, schemaBlock) {
+function renderMark(brandId, alt) {
+  return [
+    "<picture>",
+    `  <source media="(prefers-color-scheme: dark)" srcset="${MARKS_CDN}/${brandId}/mark-dark.svg">`,
+    `  <img src="${MARKS_CDN}/${brandId}/mark-light.svg" alt="${alt}" width="48">`,
+    "</picture>",
+  ].join("\n");
+}
+
+function renderProductHead(data, id, product, schemaBlock) {
   const colour = String(product.colour || DEFAULT_COLOUR).replace(/^#/, "");
   const label = statusLabel(data, product);
   const body = [
-    "<picture>",
-    `  <source media="(prefers-color-scheme: dark)" srcset="${MARKS_CDN}/${id}/mark-dark.svg">`,
-    `  <img src="${MARKS_CDN}/${id}/mark-light.svg" alt="${product.name}" width="48">`,
-    "</picture>",
+    renderMark(id, product.name),
     "",
     `# ${product.name}`,
     "",
@@ -86,40 +104,101 @@ function renderHead(data, id, product, schemaBlock) {
   return wrapBlock("head", body);
 }
 
-function renderBadges(org, repo) {
+function renderRepositoryHead(entry, variant) {
+  const visibility = entry.visibility === "private" ? "private" : "public";
+  const colour = visibility === "private" ? PRIVATE_COLOUR : DEFAULT_COLOUR;
+  const role = (entry.role ?? "").trim() || `${entry.name} repository`;
+  const body = [
+    renderMark(variant.mark, entry.name),
+    "",
+    `# ${entry.name}`,
+    "",
+    `> ${role}`,
+    "",
+    `**${variant.label}** · ![${visibility}](https://img.shields.io/badge/${encodeBadgePart(visibility)}-${colour})`,
+  ].join("\n");
+  return wrapBlock("head", body);
+}
+
+function licenceBadgeOf(licence) {
+  const spec = LICENCE_SPECS[licence.id] ?? LICENCE_SPECS.private;
+  const img = `![Licence](https://img.shields.io/badge/licence-${spec.badgeSlug}-${spec.colour})`;
+  return licence.file ? `[${img}](${licence.file})` : img;
+}
+
+function renderBadges(org, repo, repoInfo) {
   const base = `https://github.com/${org}/${repo}/actions/workflows`;
-  const body = [
-    `[![CI](${base}/ci.yml/badge.svg)](${base}/ci.yml)`,
-    `[![Security](${base}/security.yml/badge.svg)](${base}/security.yml)`,
-    "[![Licence](https://img.shields.io/badge/licence-FSL--1.1--ALv2-blue)](LICENSE)",
-  ].join("\n");
-  return wrapBlock("badges", body);
+  const lines = [];
+  if (repoInfo.hasCi) lines.push(`[![CI](${base}/ci.yml/badge.svg)](${base}/ci.yml)`);
+  if (repoInfo.hasSecurity) lines.push(`[![Security](${base}/security.yml/badge.svg)](${base}/security.yml)`);
+  lines.push(licenceBadgeOf(repoInfo.licence));
+  return wrapBlock("badges", lines.join("\n"));
 }
 
-function renderFooter(org) {
-  const body = [
-    "---",
-    "",
-    FSL_LINE,
-    "",
-    `[Part of the Krizaka family of products](https://github.com/${org})`,
-  ].join("\n");
-  return wrapBlock("footer", body);
+function licenceLineOf(licence, priorApache) {
+  const spec = LICENCE_SPECS[licence.id] ?? LICENCE_SPECS.private;
+  if (licence.id === "fsl") {
+    if (priorApache && licence.file) {
+      return `${FSL_LINE} ([${licence.file}](${licence.file}); ${priorApache} remain Apache-2.0 in [LICENSE-APACHE](LICENSE-APACHE)).`;
+    }
+    if (licence.hasApachePrior && licence.file) {
+      return `${FSL_LINE} ([${licence.file}](${licence.file}); earlier commits remain Apache-2.0 in [LICENSE-APACHE](LICENSE-APACHE)).`;
+    }
+    return FSL_LINE;
+  }
+  if (licence.file) return `${spec.badgeLabel}: see [${licence.file}](${licence.file}).`;
+  return spec.line;
 }
 
-export function renderBlocks(data, id, { schema, schemaPath } = {}) {
+function renderFooter(org, variant, { isPublic, licence, priorApache }) {
+  const lines = ["---", "", licenceLineOf(licence, priorApache)];
+  if (isPublic && variant.familyText) {
+    lines.push("", `[${variant.familyText}](https://github.com/${org})`);
+  }
+  return wrapBlock("footer", lines.join("\n"));
+}
+
+function defaultRepoInfoFor(variant) {
+  const isPrivate = variant.defaultLicence === "private";
+  return {
+    hasCi: true,
+    hasSecurity: true,
+    licence: { id: variant.defaultLicence, file: isPrivate ? null : "LICENSE", hasApachePrior: false },
+  };
+}
+
+/** Renders the three managed blocks for any repository entry from repos.json. */
+export function renderRepoBlocks(entry, productsData, { schema, schemaPath, repoInfo } = {}) {
+  const variant = resolveVariant(entry, productsData);
+  const org = productsData?.organization ?? DEFAULT_ORG;
+  const info = repoInfo ?? defaultRepoInfoFor(variant);
+  const isPublic = entry.visibility !== "private";
+  if (variant.id === "product") {
+    const product = productsData?.products?.[entry.name];
+    if (!product) throw new Error(`Unknown product "${entry.name}"`);
+    const schemaBlock = renderSchema(schemaPath || DEFAULT_SCHEMA, schema);
+    const repo = product.repo ?? entry.name;
+    return {
+      head: renderProductHead(productsData, entry.name, product, schemaBlock),
+      badges: renderBadges(org, repo, info),
+      footer: renderFooter(org, variant, { isPublic, licence: info.licence, priorApache: product.priorApache }),
+    };
+  }
+  return {
+    head: renderRepositoryHead(entry, variant),
+    badges: renderBadges(org, entry.name, info),
+    footer: renderFooter(org, variant, { isPublic, licence: info.licence, priorApache: null }),
+  };
+}
+
+/** Product-only helper kept for backward compatibility with existing callers and tests. */
+export function renderBlocks(data, id, { schema, schemaPath, repoInfo } = {}) {
   const product = data?.products?.[id];
   if (!product) {
     throw new Error(`Unknown product "${id}"`);
   }
-  const schemaBlock = renderSchema(schemaPath || DEFAULT_SCHEMA, schema);
-  const org = data.organization;
-  const repo = product.repo ?? id;
-  return {
-    head: renderHead(data, id, product, schemaBlock),
-    badges: renderBadges(org, repo),
-    footer: renderFooter(org),
-  };
+  const entry = { name: id, kind: "app", visibility: "public", role: product.proof };
+  return renderRepoBlocks(entry, data, { schema, schemaPath, repoInfo });
 }
 
 export function applyBlocks(readme, blocks) {
@@ -162,7 +241,9 @@ function parseCliArgs(argv) {
   const { values } = parseArgs({
     args: argv,
     options: {
+      repo: { type: "string" },
       product: { type: "string" },
+      repos: { type: "string", default: DEFAULT_REPOS },
       registry: { type: "string", default: DEFAULT_REGISTRY },
       readme: { type: "string", default: DEFAULT_README },
       schema: { type: "string", default: DEFAULT_SCHEMA },
@@ -171,10 +252,11 @@ function parseCliArgs(argv) {
     },
     strict: true,
   });
-  if (!values.product) {
-    throw new Error("Missing required option: --product <id>");
+  const target = values.repo || values.product;
+  if (!target) {
+    throw new Error("Missing required option: --repo <name> (or --product <id>)");
   }
-  return values;
+  return { ...values, target };
 }
 
 export class PathOutsideRootError extends Error {
@@ -207,6 +289,7 @@ function confinedOptions(opts, cwd) {
   const own = fileURLToPath(new URL("..", import.meta.url));
   return {
     ...opts,
+    repos: confinePath("repos", opts.repos, cwd, [own]),
     registry: confinePath("registry", opts.registry, cwd, [own]),
     readme: confinePath("readme", opts.readme, cwd),
     schemaFile: confinePath("schema", opts.schema, cwd),
@@ -254,11 +337,27 @@ function runRewrite(readmePath, blocks, io) {
   return 0;
 }
 
-function blocksFor(opts) {
-  const schemaInput = loadSchemaInput(opts.schema, opts.schemaFile);
-  if (schemaInput.error) throw new Error(schemaInput.error);
-  const data = JSON.parse(readFileSync(opts.registry, "utf8"));
-  return renderBlocks(data, opts.product, schemaInput);
+function detectDiskRepoInfo(cwd, variant) {
+  const has = (rel) => existsSync(join(cwd, rel));
+  const read = (rel) => (has(rel) ? readFileSync(join(cwd, rel), "utf8") : null);
+  const detected = detectRepoInfo(has, read, variant.defaultLicence);
+  const hasAnyFile = detected.hasCi || detected.hasSecurity || detected.licence.file !== null;
+  if (!hasAnyFile && variant.id === "product") return defaultRepoInfoFor(variant);
+  return detected;
+}
+
+function blocksFor(opts, cwd) {
+  const reposData = JSON.parse(readFileSync(opts.repos, "utf8"));
+  const productsData = JSON.parse(readFileSync(opts.registry, "utf8"));
+  const entry = findRepository(reposData, opts.target);
+  const variant = resolveVariant(entry, productsData);
+  const repoInfo = detectDiskRepoInfo(cwd, variant);
+  if (variant.schema === "required") {
+    const schemaInput = loadSchemaInput(opts.schema, opts.schemaFile);
+    if (schemaInput.error) throw new Error(schemaInput.error);
+    return renderRepoBlocks(entry, productsData, { ...schemaInput, repoInfo });
+  }
+  return renderRepoBlocks(entry, productsData, { repoInfo });
 }
 
 /** Runs the command line and returns the exit code; the working folder and the two streams are passed in. */
@@ -268,7 +367,7 @@ export function main(argv, { cwd = process.cwd(), stdout = (t) => process.stdout
   let blocks;
   try {
     opts = confinedOptions(parseCliArgs(argv), cwd);
-    blocks = blocksFor(opts);
+    blocks = blocksFor(opts, cwd);
   } catch (error) {
     stderr(`${argv.includes("--check") ? "::error::" : "product-readme: "}${error.message}\n`);
     return 1;
