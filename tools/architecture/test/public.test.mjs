@@ -54,3 +54,12 @@ test("the filter does not change the original", () => {
 test("the filter list is a closed set declared once", () => {
   assert.deepEqual(Object.keys(POLICY).sort(), ["$comment", "localPath", "privateFactKinds", "publicVisibility", "secretName"]);
 });
+
+test("a private krizaka-agents home: its system, views, repository, drift and private facts do not reach the public copy", () => {
+  const arch = original();
+  arch.systems[1] = { ...arch.systems[1], id: "agents", home: "krizaka-agents", repos: ["krizaka-agents"] };
+  arch.repos[1] = { name: "krizaka-agents", visibility: "private", units: [], system: "agents" };
+  arch.drift.push({ kind: "undocumented", repo: "krizaka-agents", home: "krizaka-agents", why: "krizaka-agents has the store self.db", fact: { kind: "store", name: "self.db" } });
+  const text = JSON.stringify(publicOf(arch, POLICY));
+  for (const word of ["krizaka-agents", "self.db", "agents_c2", "agents.opsdb"]) assert.ok(!text.includes(word), `${word} leaked`);
+});
