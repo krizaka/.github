@@ -121,6 +121,16 @@
       ]
     },
     {
+      "id": "product-readme",
+      "title": "The product README template, its generator and its guard",
+      "when": [
+        { "repo": ".github", "globs": ["scripts/product-readme.mjs", ".github/workflows/product-readme.yml", "docs/standards/product-readme.md"] }
+      ],
+      "docs": [
+        { "repo": ".github", "path": "docs/standards/product-readme.md" }
+      ]
+    },
+    {
       "id": "org-policy",
       "title": "The org policy: policy.json, its schema and its readers",
       "when": [
