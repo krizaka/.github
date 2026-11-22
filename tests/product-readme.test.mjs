@@ -1,10 +1,9 @@
 import assert from "node:assert/strict";
 import { mkdtempSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
-import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
-import { FSL_LINE, SECTIONS, applyBlocks, problemsOf, renderBlocks, renderSchema } from "../scripts/product-readme.mjs";
+import { FSL_LINE, SECTIONS, applyBlocks, main, problemsOf, renderBlocks, renderSchema } from "../scripts/product-readme.mjs";
 
 const data = JSON.parse(readFileSync(new URL("../profile/products.json", import.meta.url), "utf8"));
 const SCHEMA = "flowchart LR\n  user --> web";
@@ -67,6 +66,11 @@ describe("problemsOf", () => {
     const text = `${blocks.head}\n\n${blocks.badges}\n\n${handWritten}\n${blocks.footer}\n`;
     assert.match(problemsOf(text, blocks).join("\n"), /after the quick start/);
   });
+  it("reports text before the head and after the footer", () => {
+    const text = `intro\n${readmeOf(blocks)}\ntrailing\n`;
+    assert.match(problemsOf(text, blocks).join("\n"), /head block must be first/);
+    assert.match(problemsOf(text, blocks).join("\n"), /footer block must be last/);
+  });
   it("names the template sections", () => assert.deepEqual(SECTIONS, ["Quick start", "Details"]));
 });
 
@@ -79,8 +83,19 @@ describe("applyBlocks", () => {
   });
 });
 
+describe("applyBlocks, partial", () => {
+  it("leaves a README with no markers, and a missing block, untouched", () => {
+    assert.equal(applyBlocks("# Hi\n", blocks), "# Hi\n");
+    assert.equal(applyBlocks("# Hi\n", { head: blocks.head }), "# Hi\n");
+  });
+});
+
 describe("the command line", () => {
-  const run = (args, cwd) => spawnSync(process.execPath, [new URL("../scripts/product-readme.mjs", import.meta.url).pathname, ...args], { cwd, encoding: "utf8" });
+  const run = (args, cwd) => {
+    const out = { stdout: "", stderr: "" };
+    const status = main(args, { cwd, stdout: (x) => (out.stdout += x), stderr: (x) => (out.stderr += x) });
+    return { status, ...out };
+  };
   const repo = () => {
     const dir = mkdtempSync(join(tmpdir(), "pr-"));
     mkdirSync(join(dir, "docs/architecture"), { recursive: true });
@@ -98,10 +113,28 @@ describe("the command line", () => {
     assert.equal(run(["--product", "verikora"], dir).status, 0);
     assert.equal(run(["--product", "verikora", "--check"], dir).status, 0);
   });
-  it("--check exits 1 when the schema file is missing", () => {
+  it("--check exits 1 when the schema file is empty or missing", () => {
     const dir = repo();
     writeFileSync(join(dir, "docs/architecture/c1.mmd"), "");
-    assert.equal(run(["--product", "verikora", "--check"], dir).status, 1);
+    assert.match(run(["--product", "verikora", "--check"], dir).stderr, /empty/);
+    assert.match(run(["--product", "verikora", "--check", "--schema", "nope.mmd"], dir).stderr, /missing/);
+  });
+  it("an image schema is embedded as an image", () => {
+    const dir = repo();
+    writeFileSync(join(dir, "docs/architecture/c1.svg"), "<svg/>");
+    assert.match(run(["--product", "verikora", "--print", "--schema", "docs/architecture/c1.svg"], dir).stdout, /!\[Architecture \(C1\)\]/);
+  });
+  it("--check exits 1 when the README is missing or has no markers; a rewrite refuses both", () => {
+    const dir = repo();
+    assert.equal(run(["--product", "verikora", "--check", "--readme", "none.md"], dir).status, 1);
+    assert.equal(run(["--product", "verikora", "--readme", "none.md"], dir).status, 1);
+    writeFileSync(join(dir, "plain.md"), "# Hi\n");
+    assert.match(run(["--product", "verikora", "--readme", "plain.md"], dir).stderr, /missing block/);
+    assert.equal(run(["--product", "verikora", "--check", "--readme", "plain.md"], dir).status, 1);
+  });
+  it("refuses a missing --product and an unknown one", () => {
+    assert.equal(run([], repo()).status, 1);
+    assert.match(run(["--product", "nope", "--check"], repo()).stderr, /nope/);
   });
   it("--print writes nothing and prints the three blocks", () => {
     const out = run(["--product", "verikora", "--print"], repo());

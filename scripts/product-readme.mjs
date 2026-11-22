@@ -133,42 +133,29 @@ export function applyBlocks(readme, blocks) {
   return result;
 }
 
-export function problemsOf(readme, blocks) {
+function blockProblems(readme, blocks, spans) {
   const problems = [];
-  const spans = {};
   for (const name of BLOCKS) {
-    const span = findBlock(readme, name);
-    spans[name] = span;
-    if (!span) {
-      problems.push(`${name} block is missing`);
-    } else if (readme.slice(span.from, span.to) !== blocks[name]) {
-      problems.push(`${name} block is stale: run node scripts/product-readme.mjs`);
-    }
-  }
-  const headings = {};
-  for (const section of SECTIONS) {
-    const index = findHeading(readme, section);
-    headings[section] = index;
-    if (index === -1) {
-      problems.push(`section « ${section} » is missing`);
-    }
-  }
-  if (spans.head && readme.slice(0, spans.head.from).trim().length > 0) {
-    problems.push("head block must be first");
-  }
-  if (spans.badges) {
-    const quickStart = headings["Quick start"];
-    const details = headings["Details"];
-    const beforeQuickStart = quickStart !== -1 && spans.badges.from < quickStart;
-    const afterDetails = details !== -1 && spans.badges.from > details;
-    if (beforeQuickStart || afterDetails) {
-      problems.push("the badges go after the quick start");
-    }
-  }
-  if (spans.footer && readme.slice(spans.footer.to).trim().length > 0) {
-    problems.push("footer block must be last");
+    if (!spans[name]) problems.push(`${name} block is missing`);
+    else if (readme.slice(spans[name].from, spans[name].to) !== blocks[name]) problems.push(`${name} block is stale: run node scripts/product-readme.mjs`);
   }
   return problems;
+}
+
+function placementProblems(readme, spans) {
+  const problems = [];
+  const quickStart = findHeading(readme, "Quick start");
+  const details = findHeading(readme, "Details");
+  if (spans.head && readme.slice(0, spans.head.from).trim().length > 0) problems.push("head block must be first");
+  if (spans.badges && (spans.badges.from < quickStart || (details !== -1 && spans.badges.from > details))) problems.push("the badges go after the quick start");
+  if (spans.footer && readme.slice(spans.footer.to).trim().length > 0) problems.push("footer block must be last");
+  return problems;
+}
+
+export function problemsOf(readme, blocks) {
+  const spans = Object.fromEntries(BLOCKS.map((name) => [name, findBlock(readme, name)]));
+  const sections = SECTIONS.filter((section) => findHeading(readme, section) === -1).map((section) => `section « ${section} » is missing`);
+  return [...blockProblems(readme, blocks, spans), ...sections, ...placementProblems(readme, spans)];
 }
 
 function parseCliArgs(argv) {
@@ -205,77 +192,60 @@ function loadSchemaInput(schemaArg, cwd) {
   return { schema: text, schemaPath: schemaArg };
 }
 
-function writeErrors(messages, asAnnotation) {
-  const prefix = asAnnotation ? "::error::" : "product-readme: ";
-  for (const message of messages) {
-    process.stderr.write(`${prefix}${message}\n`);
-  }
-}
-
-function runCheck(readmePath, blocks) {
+function runCheck(readmePath, blocks, io) {
   if (!existsSync(readmePath)) {
-    writeErrors([`README not found: ${readmePath}`], true);
+    io.stderr(`::error::README not found: ${readmePath}\n`);
     return 1;
   }
-  const readme = readFileSync(readmePath, "utf8");
-  const problems = problemsOf(readme, blocks);
-  if (problems.length > 0) {
-    writeErrors(problems, true);
-    return 1;
-  }
-  process.stdout.write("product-readme: ok\n");
+  const problems = problemsOf(readFileSync(readmePath, "utf8"), blocks);
+  for (const problem of problems) io.stderr(`::error::${problem}\n`);
+  if (problems.length > 0) return 1;
+  io.stdout("product-readme: ok\n");
   return 0;
 }
 
-function runRewrite(readmePath, blocks) {
+function runRewrite(readmePath, blocks, io) {
   if (!existsSync(readmePath)) {
-    writeErrors([`README not found: ${readmePath}. Add the product-readme markers via the template.`], false);
+    io.stderr(`product-readme: README not found: ${readmePath}. Start from the blocks printed by --print.\n`);
     return 1;
   }
   const readme = readFileSync(readmePath, "utf8");
   const missing = BLOCKS.filter((name) => !findBlock(readme, name));
   if (missing.length > 0) {
-    writeErrors([`missing block(s): ${missing.join(", ")}. Add the markers via the README template.`], false);
+    io.stderr(`product-readme: missing block(s): ${missing.join(", ")}. Add the markers via the README template.\n`);
     return 1;
   }
   writeFileSync(readmePath, applyBlocks(readme, blocks), "utf8");
   return 0;
 }
 
-function main(argv = process.argv.slice(2)) {
-  let opts;
-  try {
-    opts = parseCliArgs(argv);
-  } catch (error) {
-    writeErrors([error.message], argv.includes("--check"));
-    process.exitCode = 1;
-    return;
-  }
-  const cwd = process.cwd();
+function blocksFor(opts, cwd) {
   const schemaInput = loadSchemaInput(opts.schema, cwd);
-  if (schemaInput.error) {
-    writeErrors([schemaInput.error], opts.check);
-    process.exitCode = 1;
-    return;
-  }
+  if (schemaInput.error) throw new Error(schemaInput.error);
+  const data = JSON.parse(readFileSync(resolve(cwd, opts.registry), "utf8"));
+  return renderBlocks(data, opts.product, schemaInput);
+}
+
+/** Runs the command line and returns the exit code; the working folder and the two streams are passed in. */
+export function main(argv, { cwd = process.cwd(), stdout = (t) => process.stdout.write(t), stderr = (t) => process.stderr.write(t) } = {}) {
+  const io = { stdout, stderr };
+  let opts;
   let blocks;
   try {
-    const data = JSON.parse(readFileSync(resolve(cwd, opts.registry), "utf8"));
-    blocks = renderBlocks(data, opts.product, schemaInput);
+    opts = parseCliArgs(argv);
+    blocks = blocksFor(opts, cwd);
   } catch (error) {
-    writeErrors([error.message], opts.check);
-    process.exitCode = 1;
-    return;
+    stderr(`${argv.includes("--check") ? "::error::" : "product-readme: "}${error.message}\n`);
+    return 1;
   }
   if (opts.print) {
-    process.stdout.write(`${BLOCKS.map((name) => blocks[name]).join("\n\n")}\n`);
-    return;
+    stdout(`${BLOCKS.map((name) => blocks[name]).join("\n\n")}\n`);
+    return 0;
   }
   const readmePath = resolve(cwd, opts.readme);
-  process.exitCode = opts.check ? runCheck(readmePath, blocks) : runRewrite(readmePath, blocks);
+  return opts.check ? runCheck(readmePath, blocks, io) : runRewrite(readmePath, blocks, io);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main();
+  process.exitCode = main(process.argv.slice(2));
 }
-
