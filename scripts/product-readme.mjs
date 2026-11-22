@@ -7,7 +7,7 @@
  */
 
 import { existsSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
-import { dirname, isAbsolute, relative, resolve } from "node:path";
+import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { MARKS_CDN, statusLabel } from "./profile-readme.mjs";
@@ -193,17 +193,14 @@ function realPathOf(path) {
   }
 }
 
-const isInside = (root, path) => {
-  const rel = relative(root, path);
-  return rel === "" || (!rel.startsWith("..") && !isAbsolute(rel));
-};
-
 /** The absolute real path of a CLI path option, refused when it leaves the allowed roots (symlinks followed). */
 export function confinePath(option, value, cwd, extraRoots = []) {
   const target = realPathOf(resolve(cwd, value));
-  const roots = [cwd, ...extraRoots].map(realPathOf);
-  if (!roots.some((root) => isInside(root, target))) throw new PathOutsideRootError(option, value);
-  return target;
+  for (const root of [cwd, ...extraRoots].map(realPathOf)) {
+    const rel = relative(root, target);
+    if (rel !== ".." && !rel.startsWith(`..${sep}`) && !isAbsolute(rel)) return target;
+  }
+  throw new PathOutsideRootError(option, value);
 }
 
 function confinedOptions(opts, cwd) {
