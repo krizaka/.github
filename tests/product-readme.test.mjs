@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { symlinkSync, mkdtempSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
-import { FSL_LINE, SECTIONS, applyBlocks, main, problemsOf, renderBlocks, renderSchema } from "../scripts/product-readme.mjs";
+import { PathOutsideRootError, confinePath, FSL_LINE, SECTIONS, applyBlocks, main, problemsOf, renderBlocks, renderSchema } from "../scripts/product-readme.mjs";
 
 const data = JSON.parse(readFileSync(new URL("../profile/products.json", import.meta.url), "utf8"));
 const SCHEMA = "flowchart LR\n  user --> web";
@@ -140,5 +140,30 @@ describe("the command line", () => {
     const out = run(["--product", "verikora", "--print"], repo());
     assert.equal(out.status, 0);
     assert.match(out.stdout, /product-readme:footer:end/);
+  });
+});
+
+describe("path options stay inside the repository", () => {
+  const root = mkdtempSync(join(tmpdir(), "pr-root-"));
+  const outside = mkdtempSync(join(tmpdir(), "pr-out-"));
+  const run = (args) => {
+    const err = [];
+    const code = main(["--product", "verikora", ...args], { cwd: root, stdout: () => {}, stderr: (t) => err.push(t) });
+    return { code, err: err.join("") };
+  };
+  for (const option of ["readme", "schema", "registry"]) {
+    it(`refuses --${option} outside the root`, () => {
+      const { code, err } = run([`--${option}`, join(outside, "x")]);
+      assert.equal(code, 1);
+      assert.match(err, new RegExp(`--${option} must stay inside`));
+    });
+  }
+  it("refuses a relative escape and a symlink out", () => {
+    assert.throws(() => confinePath("readme", "../etc/passwd", root), PathOutsideRootError);
+    symlinkSync(outside, join(root, "link"));
+    assert.throws(() => confinePath("readme", "link/README.md", root), PathOutsideRootError);
+  });
+  it("accepts a missing file under the root", () => {
+    assert.ok(confinePath("readme", "README.md", root).endsWith("README.md"));
   });
 });

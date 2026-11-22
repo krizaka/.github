@@ -6,8 +6,8 @@
  * only when this file is executed directly.
  */
 
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { existsSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
+import { dirname, isAbsolute, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { MARKS_CDN, statusLabel } from "./profile-readme.mjs";
@@ -177,8 +177,46 @@ function parseCliArgs(argv) {
   return values;
 }
 
-function loadSchemaInput(schemaArg, cwd) {
-  const fullPath = resolve(cwd, schemaArg);
+export class PathOutsideRootError extends Error {
+  constructor(option, path) {
+    super(`--${option} must stay inside the repository: ${path}`);
+    this.name = "PathOutsideRootError";
+  }
+}
+
+/** The real path of `path`, or of its nearest existing ancestor with the missing tail put back. */
+function realPathOf(path) {
+  try {
+    return realpathSync(path);
+  } catch {
+    return resolve(realPathOf(dirname(path)), relative(dirname(path), path));
+  }
+}
+
+const isInside = (root, path) => {
+  const rel = relative(root, path);
+  return rel === "" || (!rel.startsWith("..") && !isAbsolute(rel));
+};
+
+/** The absolute real path of a CLI path option, refused when it leaves the allowed roots (symlinks followed). */
+export function confinePath(option, value, cwd, extraRoots = []) {
+  const target = realPathOf(resolve(cwd, value));
+  const roots = [cwd, ...extraRoots].map(realPathOf);
+  if (!roots.some((root) => isInside(root, target))) throw new PathOutsideRootError(option, value);
+  return target;
+}
+
+function confinedOptions(opts, cwd) {
+  const own = fileURLToPath(new URL("..", import.meta.url));
+  return {
+    ...opts,
+    registry: confinePath("registry", opts.registry, cwd, [own]),
+    readme: confinePath("readme", opts.readme, cwd),
+    schemaFile: confinePath("schema", opts.schema, cwd),
+  };
+}
+
+function loadSchemaInput(schemaArg, fullPath) {
   if (!existsSync(fullPath)) {
     return { error: `schema file is missing: ${schemaArg}` };
   }
@@ -219,10 +257,10 @@ function runRewrite(readmePath, blocks, io) {
   return 0;
 }
 
-function blocksFor(opts, cwd) {
-  const schemaInput = loadSchemaInput(opts.schema, cwd);
+function blocksFor(opts) {
+  const schemaInput = loadSchemaInput(opts.schema, opts.schemaFile);
   if (schemaInput.error) throw new Error(schemaInput.error);
-  const data = JSON.parse(readFileSync(resolve(cwd, opts.registry), "utf8"));
+  const data = JSON.parse(readFileSync(opts.registry, "utf8"));
   return renderBlocks(data, opts.product, schemaInput);
 }
 
@@ -232,8 +270,8 @@ export function main(argv, { cwd = process.cwd(), stdout = (t) => process.stdout
   let opts;
   let blocks;
   try {
-    opts = parseCliArgs(argv);
-    blocks = blocksFor(opts, cwd);
+    opts = confinedOptions(parseCliArgs(argv), cwd);
+    blocks = blocksFor(opts);
   } catch (error) {
     stderr(`${argv.includes("--check") ? "::error::" : "product-readme: "}${error.message}\n`);
     return 1;
@@ -242,8 +280,7 @@ export function main(argv, { cwd = process.cwd(), stdout = (t) => process.stdout
     stdout(`${BLOCKS.map((name) => blocks[name]).join("\n\n")}\n`);
     return 0;
   }
-  const readmePath = resolve(cwd, opts.readme);
-  return opts.check ? runCheck(readmePath, blocks, io) : runRewrite(readmePath, blocks, io);
+  return opts.check ? runCheck(opts.readme, blocks, io) : runRewrite(opts.readme, blocks, io);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
