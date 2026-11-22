@@ -1,0 +1,63 @@
+# A product's README is generated from the org template (krizaka-internal#4362, docs/standards/product-readme.md): this check fails
+# when a generated block (head, badges, footer) is stale or a template section is missing. Reusable; the caller runs it on
+# pull_request AND merge_group (a required check reports in both), and names its product (the key in profile/products.json).
+#
+#   product-readme:
+#     uses: krizaka/.github/.github/workflows/product-readme.yml@<sha> # main
+#     with: { product: verikora }
+#     permissions: { contents: read }
+name: product-readme
+
+on:
+  workflow_call:
+    inputs:
+      product:
+        description: The product's key in profile/products.json (verikora, folioviv, …)
+        required: true
+        type: string
+      schema:
+        description: The C1/C2 schema of the product, a Mermaid file (.mmd) or an image, relative to the repository
+        required: false
+        type: string
+        default: docs/architecture/c1.mmd
+      readme:
+        description: The README to check, relative to the repository
+        required: false
+        type: string
+        default: README.md
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Product README
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/.github
+          ref: main
+          path: .org
+          sparse-checkout: |
+            scripts/product-readme.mjs
+            scripts/profile-readme.mjs
+            profile/products.json
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          package-manager-cache: false
+      - name: The generated blocks are current and the template sections are there
+        env:
+          PRODUCT: ${{ inputs.product }}
+          SCHEMA: ${{ inputs.schema }}
+          README: ${{ inputs.readme }}
+        run: node .org/scripts/product-readme.mjs --check --product "$PRODUCT" --schema "$SCHEMA" --readme "$README"
