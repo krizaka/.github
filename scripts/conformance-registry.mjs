@@ -89,6 +89,7 @@ function checkShape({ id, check = {} }) {
     "queue-reports": () => true,
     "time-limits": () => true,
     "format-declared": () => true,
+    "product-readme": () => true,
     "versions-current": () => !check.ecosystems || check.ecosystems.every((e) => ["npm", "maven"].includes(e)),
     "kit-lag": () => Array.isArray(check.packages) && check.packages.length > 0,
     "playwright-locked": () => /^\d+\.\d+$/.test(check.minimum ?? ""),

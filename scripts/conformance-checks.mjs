@@ -3,7 +3,10 @@
 // HOW  Imported by scripts/conformance-registry.mjs and scripts/conformance.mjs (which re-export it); nothing to run. Tests: tests/conformance.test.mjs.
 // OWNER krizaka/.github (lane platform), ADR-026 phase D. Entry point: scripts/conformance.mjs.
 
+import { readFileSync } from "node:fs";
 import { problemsOf, warningsOf } from "./agents-md.mjs";
+import { problemsOf as readmeProblemsOf, renderRepoBlocks } from "./product-readme.mjs";
+import { detectRepoInfo, findRepository, resolveVariant } from "./readme-variants.mjs";
 import { formatVerdict } from "./format-declared.mjs";
 import { jobsWithoutTimeout, configWithoutTestTimeout, nodeTestWithoutTimeout } from "./check-timeouts.mjs";
 import { behind, compareVersions, pinsOf, versionsVerdict } from "./conformance-versions.mjs";
@@ -250,6 +253,8 @@ const CHECKS = {
     const warnings = warningsOf(await snap.read("AGENTS.md"));
     return ok ? { ok, why: warnings.map((w) => `warning: ${w}`).join("; ") } : verdict(ok, problems.join("; "));
   },
+  // Every non-archived repository in repos.json has a conforming README and calls product-readme.yml on pull_request and merge_group (krizaka-internal#4672).
+  "product-readme": async (check, snap) => readmeVerdict(snap, check),
   // The check is REQUIRED on main (ruleset or branch protection). `requiredChecks` is absent offline: nothing to prove.
   "required-check": async (check, snap) => {
     if (!snap.requiredChecks) return unread("the required checks of main");
@@ -441,6 +446,66 @@ export function profileVerdict(groups, required, calls, repo = "") {
     .filter((g) => !required.some((c) => new RegExp(g.pattern).test(c)))
     .map((g) => g.name);
   return verdict(missing.length === 0, `required checks on main lack: ${missing.join(", ")}`);
+}
+
+const OWN_ROOT = new URL("../", import.meta.url);
+const readOwnJson = (path) => JSON.parse(readFileSync(new URL(path, OWN_ROOT), "utf8"));
+const LOCAL_README_CALL = /^[ \t]*uses:[ \t]*\.\/\.github\/workflows\/product-readme\.yml\b/m;
+
+function liveWorkflowText(text) {
+  return text.split("\n").filter((l) => !/^\s*#/.test(l)).join("\n");
+}
+
+async function readmeCallerProblem(snap) {
+  const workflowPaths = snap.paths.filter((p) => WORKFLOW_PATH.test(p)).sort(byCodePoint);
+  let mismatch = null;
+  for (const path of workflowPaths) {
+    const raw = (await snap.read(path)) ?? "";
+    const live = liveWorkflowText(raw);
+    const calls = callsOf(live).has("product-readme.yml") || (snap.name === ".github" && LOCAL_README_CALL.test(live));
+    if (!calls) continue;
+    const triggers = triggersOf(raw);
+    const missing = ["pull_request", "merge_group"].filter((t) => !triggers.includes(t));
+    if (missing.length === 0) return null;
+    mismatch = `${path} calls product-readme.yml without ${missing.join(" and ")}`;
+  }
+  return mismatch ?? "no workflow calls product-readme.yml on pull_request and merge_group";
+}
+
+async function snapshotRepoInfo(snap, variant) {
+  const licenceTexts = new Map();
+  for (const file of ["LICENSE.md", "LICENSE"]) {
+    if (snap.paths.includes(file)) licenceTexts.set(file, (await snap.read(file)) ?? "");
+  }
+  return detectRepoInfo((p) => snap.paths.includes(p), (p) => licenceTexts.get(p) ?? null, variant.defaultLicence);
+}
+
+/** Verifies a repository's README against docs/standards/product-readme.md and its caller workflow. */
+export async function readmeVerdict(snap, { reposData, productsData } = {}) {
+  const repos = reposData ?? readOwnJson("repos.json");
+  const products = productsData ?? readOwnJson("profile/products.json");
+  let entry;
+  let variant;
+  try {
+    entry = findRepository(repos, snap.name);
+    variant = resolveVariant(entry, products);
+  } catch (error) {
+    return verdict(false, error.message);
+  }
+  const wfProblem = await readmeCallerProblem(snap);
+  if (wfProblem) return verdict(false, wfProblem);
+  const readme = await snap.read("README.md");
+  if (readme === null) return verdict(false, "no README.md");
+  const repoInfo = await snapshotRepoInfo(snap, variant);
+  const schema = variant.schema === "required" ? await snap.read("docs/architecture/c1.mmd") : undefined;
+  let blocks;
+  try {
+    blocks = renderRepoBlocks(entry, products, { schema, schemaPath: "docs/architecture/c1.mmd", repoInfo });
+  } catch (error) {
+    return verdict(false, error.message);
+  }
+  const problems = readmeProblemsOf(readme, blocks);
+  return verdict(problems.length === 0, problems.join("; "));
 }
 
 /** @returns {Promise<{ ok: boolean, why: string }>} */

@@ -1,22 +1,28 @@
-# A product's README is generated from the org template (krizaka-internal#4362, docs/standards/product-readme.md): this check fails
-# when a generated block (head, badges, footer) is stale or a template section is missing. Reusable; the caller runs it on
-# pull_request AND merge_group (a required check reports in both), and names its product (the key in profile/products.json).
+# A repository's README is generated from the org template (krizaka-internal#4362, #4672, docs/standards/product-readme.md):
+# this check fails when a generated block (head, badges, footer) is stale or a template section is missing. Reusable; the
+# caller runs it on pull_request AND merge_group (a required check reports in both), and names its repository in repos.json.
 #
-#   product-readme:
+#   readme:
 #     uses: krizaka/.github/.github/workflows/product-readme.yml@<sha> # main
-#     with: { product: verikora }
+#     with: { repo: verikora }
 #     permissions: { contents: read }
 name: product-readme
 
 on:
   workflow_call:
     inputs:
-      product:
-        description: The product's key in profile/products.json (verikora, folioviv, …)
-        required: true
+      repo:
+        description: The repository's name in repos.json (defaults to product input or github.event.repository.name)
+        required: false
         type: string
+        default: ""
+      product:
+        description: Deprecated alias for repo (kept for backward compatibility)
+        required: false
+        type: string
+        default: ""
       schema:
-        description: The C1/C2 schema of the product, a Mermaid file (.mmd) or an image, relative to the repository
+        description: The C1/C2 schema of a product repository, a Mermaid file (.mmd) or an image, relative to the repository
         required: false
         type: string
         default: docs/architecture/c1.mmd
@@ -43,10 +49,12 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: krizaka/.github
-          ref: main
+          ref: ${{ github.repository == 'krizaka/.github' && github.sha || 'main' }}
           path: .org
           sparse-checkout: |
+            repos.json
             scripts/product-readme.mjs
+            scripts/readme-variants.mjs
             scripts/profile-readme.mjs
             profile/products.json
           sparse-checkout-cone-mode: false
@@ -57,7 +65,7 @@ jobs:
           package-manager-cache: false
       - name: The generated blocks are current and the template sections are there
         env:
-          PRODUCT: ${{ inputs.product }}
+          REPO: ${{ inputs.repo || inputs.product || github.event.repository.name }}
           SCHEMA: ${{ inputs.schema }}
           README: ${{ inputs.readme }}
-        run: node .org/scripts/product-readme.mjs --check --product "$PRODUCT" --schema "$SCHEMA" --readme "$README"
+        run: node .org/scripts/product-readme.mjs --check --repo "$REPO" --schema "$SCHEMA" --readme "$README"

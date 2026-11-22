@@ -1515,6 +1515,20 @@
         "type": "manual",
         "note": "add `permissions: {}` (or `contents: read`) at the top of each workflow, move each write onto the job that needs it, and give it a one-line comment on its line or the line above (`contents: write # pushes the release tag`); a reusable workflow whose write would exceed a pull-request caller's grant moves that job into its own file (tauri-macos-release.yml)"
       }
+    },
+    {
+      "id": "product-readme",
+      "everyRepo": true,
+      "title": "Every non-archived repository of repos.json follows the README standard (docs/standards/product-readme.md) and calls product-readme.yml on pull_request and merge_group",
+      "issue": "krizaka/krizaka-internal#4672",
+      "applies": {},
+      "check": {
+        "type": "product-readme"
+      },
+      "fix": {
+        "type": "manual",
+        "note": "generate the managed blocks with `node scripts/product-readme.mjs --repo <name>` and add `.github/workflows/readme.yml` calling `product-readme.yml` on `pull_request` and `merge_group`"
+      }
     }
   ]
 }

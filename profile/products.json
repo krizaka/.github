@@ -177,6 +177,7 @@
       "proof": "Bookings, bilingual invoices with GST and QST to the cent and a ledger the database keeps balanced, for independent Québec shops; the GST/QST return is prepared, and the merchant files it.",
       "status": "development",
       "repo": "folioviv",
+      "priorApache": "commits before 4318e84 (2026-10-26)",
       "dev": {
         "host": "dev.folioviv.com"
       },
