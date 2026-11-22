@@ -34,7 +34,7 @@ function wrapBlock(name, body) {
 }
 
 function findBlock(readme, name) {
-  const startRe = new RegExp(`<!--\\s*product-readme:${name}:start(?:\\s[^>]*)?-->`);
+  const startRe = new RegExp(String.raw`<!--\s*product-readme:${name}:start(?:\s[^>]*)?-->`);
   const match = startRe.exec(readme);
   if (!match) return null;
   const { end } = markersFor(name);
@@ -44,13 +44,13 @@ function findBlock(readme, name) {
 }
 
 function findHeading(readme, section) {
-  const escaped = section.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const match = new RegExp(`^## ${escaped}\\s*$`, "m").exec(readme);
+  const escaped = section.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
+  const match = new RegExp(String.raw`^## ${escaped}\s*$`, "m").exec(readme);
   return match ? match.index : -1;
 }
 
 function encodeBadgePart(text) {
-  return encodeURIComponent(text.replace(/-/g, "--").replace(/_/g, "__"));
+  return encodeURIComponent(text.replaceAll("-", "--").replaceAll("_", "__"));
 }
 
 export function renderSchema(path, text) {
