@@ -44,6 +44,10 @@ on:
         description: "Allow building packages from source at install (runs their setup scripts). Default false: wheels only."
         type: boolean
         default: false
+      security-tools:
+        description: "Install the org security tools (gitleaks at its pin, zizmor) before the setup and the tests, so a repository's secret-scan tests run instead of being excepted from coverage."
+        type: boolean
+        default: false
       setup-command:
         description: "Shell command run after the install (fetch pinned models, generate fixtures); empty: none."
         type: string
@@ -181,6 +185,10 @@ jobs:
             [ -n "$EXTRA" ] && pip install "${bin[@]}" $EXTRA
           fi
           true
+
+      - name: Security tools
+        if: ${{ steps.which.outputs.run == 'true' && inputs.security-tools }}
+        uses: krizaka/.github/actions/security-tools@10140f24680f66980862a3d90978c016942f74e8 # main
 
       - name: Setup
         if: ${{ steps.which.outputs.run == 'true' && inputs.setup-command != '' }}
