@@ -71,7 +71,7 @@ Two PRs green on an old base can turn `main` red once both merge (verikora: lint
 
 <!-- gen:queue-state:start -->
 - **On the merge queue (7):** `folioviv`, `krizaka-com`, `krizaka-template`, `krizaka-ts`, `krizaka-ui`, `krizaka-ui-builder`, `verikora`.
-- **Not on the merge queue yet (6; the Strict column of the table above says which keep strict up-to-date branches):** `.github`, `krizaka-blog`, `krizaka-java`, `krizaka-lab`, `krizaka-rust`, `sovkora`.
+- **Not on the merge queue yet (8; the Strict column of the table above says which keep strict up-to-date branches):** `.github`, `kridoc`, `krizaka-agents-site`, `krizaka-blog`, `krizaka-java`, `krizaka-lab`, `krizaka-rust`, `sovkora`.
 <!-- gen:queue-state:end -->
 
 ## 2.2 « A fix needs a guard » recognises a lowered ratchet
@@ -150,7 +150,7 @@ Every rule set has **one** home. A repo only consumes it.
 **What `@krizaka/config` ships now** (generated from its latest npm package by the scheduled `docs-current` workflow):
 
 <!-- gen:config-exports:start -->
-`@krizaka/config` 0.28.1 ships 8 commands (`krizaka-edit-check`, `krizaka-hooks`, `krizaka-known-violations`, `krizaka-ratchet`, `krizaka-seo-family`, `krizaka-server-client-boundary`, `krizaka-sg-ratchet`, `krizaka-workspace-guard`) and 26 entry points: `./catalog`, `./catalog/schema.json`, `./covered-domains`, `./covered-domains.json`, `./dependency-cruiser`, `./editorconfig`, `./env-spec`, `./eslint`, `./eslint/code-rules`, `./eslint/env-names`, `./eslint/krizaka-ui`, `./eslint/next`, `./eslint/no-locale-ternary`, `./eslint/plugin`, `./eslint/stack`, `./eslint/ui-warnings`, `./facades.json`, `./known-violations`, `./patterns`, `./prettier`, `./ratchet`, `./server-client-boundary`, `./tsconfig/base.json`, `./tsconfig/next.json`, `./tsconfig/react-library.json`, `./tsconfig/react-native.json`.
+`@krizaka/config` 0.29.3 ships 9 commands (`krizaka-edit-check`, `krizaka-export-guard`, `krizaka-hooks`, `krizaka-known-violations`, `krizaka-ratchet`, `krizaka-seo-family`, `krizaka-server-client-boundary`, `krizaka-sg-ratchet`, `krizaka-workspace-guard`) and 27 entry points: `./catalog`, `./catalog/schema.json`, `./covered-domains`, `./covered-domains.json`, `./dependency-cruiser`, `./editorconfig`, `./env-spec`, `./eslint`, `./eslint/code-rules`, `./eslint/env-names`, `./eslint/krizaka-ui`, `./eslint/next`, `./eslint/no-locale-ternary`, `./eslint/plugin`, `./eslint/stack`, `./eslint/ui-warnings`, `./export-guard`, `./facades.json`, `./known-violations`, `./patterns`, `./prettier`, `./ratchet`, `./server-client-boundary`, `./tsconfig/base.json`, `./tsconfig/next.json`, `./tsconfig/react-library.json`, `./tsconfig/react-native.json`.
 <!-- gen:config-exports:end -->
 
 ## 4. Matching a person can read (ADR-026 principle 4, phase D)
