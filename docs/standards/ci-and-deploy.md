@@ -28,7 +28,7 @@ A repository's `ci.yml` keeps its triggers, its `concurrency` and a read-only `p
 ```yaml
 jobs:
   ci:
-    permissions: { contents: read }
+    permissions: { contents: read, actions: read }  # actions: read: the merge queue reuses a proven pull-request run's coverage (krizaka-internal#4840)
     uses: krizaka/.github/.github/workflows/node-ci.yml@<sha> # v1.0.0
     with:
       package-manager: pnpm
