@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/krizaka/.github/blob/main/standards/code-names.schema.json",
+  "title": "code-names.json: the retired code names, one list (krizaka-internal#4284)",
+  "description": "Each term is a retired code name with its replacement, its detect regex and its ordered compound forms. A hit of a term outside a history path is a bug. Read by scripts/code-names/lib.mjs, which refuses a list that does not match this schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "terms", "history"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": {
+      "description": "Semver of the list: a new term or form raises it, so a consumer pinned by commit SHA is bumped through one reviewed change.",
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "terms": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["term", "replacement", "brand", "detect", "forms"],
+        "properties": {
+          "term": { "description": "The retired code name, lower case.", "type": "string", "pattern": "^[a-z]+$" },
+          "replacement": { "description": "The commercial name that replaces it, lower case.", "type": "string", "pattern": "^[a-z]+$" },
+          "brand": { "description": "The replacement as displayed.", "type": "string", "minLength": 1 },
+          "detect": { "description": "The detect regex: a substring match, in any case (flag i), so ORAZAKA_KEY and brand-orazaka are found.", "type": "string", "minLength": 1 },
+          "forms": {
+            "description": "The compound forms, most specific first; the first form that matches a place wins. `to` is a template ($1..$9 are the groups); the case of the term found is kept.",
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["kind", "regex", "to"],
+              "properties": {
+                "kind": { "description": "What the name is: a slice applies only the kinds it owns.", "type": "string", "pattern": "^[a-z][a-z-]*$" },
+                "regex": { "type": "string", "minLength": 1 },
+                "flags": { "description": "Regex flags: `i` (the default) or none, for a form that is upper case only.", "type": "string", "enum": ["", "i"] },
+                "to": { "type": "string", "minLength": 1 },
+                "resolve": { "description": "The replacement must be resolved by this service first (a repository URL by the GitHub API).", "type": "string", "enum": ["github"] }
+              }
+            }
+          }
+        }
+      }
+    },
+    "history": {
+      "description": "Path globs that may keep a name for ever, the only permanent exceptions; central, a repository cannot add one. `<repo>:<glob>` scopes one to a repository.",
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}
