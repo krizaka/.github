@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
+import { once } from "node:events";
 import { mkdtempSync, readFileSync } from "node:fs";
+import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -102,4 +104,134 @@ test("a push to the default branch runs in full when full-on-default-push is set
   assert.equal(gate({ ...push, FULL_ON_DEFAULT_PUSH: "false" }), "false"); // opt-in: the default is unchanged
   assert.equal(gate({ ...push, FULL_ON_DEFAULT_PUSH: "true", REF_NAME: "feat/x" }), "false"); // another branch keeps the skip
   assert.equal(gate({ ...push, FULL_ON_DEFAULT_PUSH: "true", EVENT: "pull_request" }), "false"); // a pull request keeps the skip
+});
+
+// krizaka-internal#4840: the merge queue does not rerun what the pull request's run already proved on the same tree.
+const PR_HEAD = "b".repeat(40);
+const QUEUED = "c".repeat(40);
+const COMPARE = `/repos/krizaka/x/compare/${"a".repeat(40)}...${QUEUED}`;
+const queueEnv = (api) => ({
+  EVENT: "merge_group",
+  MQ_BASE: "a".repeat(40),
+  MQ_HEAD_REF: `refs/heads/gh-readonly-queue/main/pr-1114-${"a".repeat(40)}`,
+  GITHUB_SHA: QUEUED,
+  GITHUB_WORKFLOW_REF: "krizaka/x/.github/workflows/ci.yml@refs/heads/gh-readonly-queue/main/pr-1114-x",
+  GITHUB_API_URL: api,
+  API_TOKEN: "x",
+  IGNORE: docs,
+});
+const greenRun = { path: ".github/workflows/ci.yml", head_sha: PR_HEAD, event: "pull_request", conclusion: "success", html_url: "https://example.test/run/1" };
+
+/** A fake GitHub API: `routes` maps a path (without the query) to a JSON body, a number (an HTTP status) or a function of the URL. */
+function fakeApi(routes) {
+  const seen = [];
+  const server = createServer((req, res) => {
+    const url = new URL(req.url, "http://x");
+    seen.push(req.url);
+    const route = routes[url.pathname];
+    const body = typeof route === "function" ? route(url) : route;
+    if (body === undefined || typeof body === "number") {
+      res.writeHead(body ?? 404).end("{}");
+      return;
+    }
+    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify(body));
+  });
+  return new Promise((resolve) => server.listen(0, "127.0.0.1", () => resolve({ url: `http://127.0.0.1:${server.address().port}`, seen, close: () => server.close() })));
+}
+
+/** The gate run asynchronously (the fake API answers from this process): { code, log }. */
+async function gateAsync(env) {
+  const dir = mkdtempSync(join(tmpdir(), "gate-"));
+  const out = join(dir, "out");
+  const child = spawn(process.execPath, ["--input-type=module", "-e", script], {
+    env: { PATH: process.env.PATH, GITHUB_OUTPUT: out, GITHUB_REPOSITORY: "krizaka/x", ...env },
+  });
+  let log = "";
+  child.stdout.on("data", (d) => (log += d));
+  child.stderr.on("data", (d) => (log += d));
+  const [status] = await once(child, "close");
+  assert.equal(status, 0, log);
+  return { code: readFileSync(out, "utf8").trim().replace("code=", ""), log };
+}
+
+const sameTree = (overrides = {}) => ({
+  "/repos/krizaka/x/pulls/1114": { head: { sha: PR_HEAD } },
+  [`/repos/krizaka/x/git/commits/${PR_HEAD}`]: { tree: { sha: "e".repeat(40) } },
+  [`/repos/krizaka/x/git/commits/${QUEUED}`]: { tree: { sha: "e".repeat(40) } },
+  "/repos/krizaka/x/actions/runs": { workflow_runs: [greenRun] },
+  [COMPARE]: { total_commits: 1, files: [{ filename: "src/a.ts" }] },
+  ...overrides,
+});
+
+async function queue(routes, env = {}) {
+  const api = await fakeApi(routes);
+  try {
+    return { ...(await gateAsync({ ...queueEnv(api.url), ...env })), seen: api.seen };
+  } finally {
+    api.close();
+  }
+}
+
+test("merge queue: the tree a green pull-request run tested skips the heavy jobs (they report « Skipped »)", async () => {
+  const r = await queue(sameTree());
+  assert.equal(r.code, "false", r.log);
+  assert.match(r.log, /https:\/\/example\.test\/run\/1/);
+  const runs = r.seen.find((u) => u.startsWith("/repos/krizaka/x/actions/runs?"));
+  assert.match(runs, new RegExp(`head_sha=${PR_HEAD}`));
+  assert.match(runs, /event=pull_request/);
+  assert.match(runs, /status=success/);
+});
+
+test("merge queue: a different tree (main moved, several pull requests in the group) runs the files' verdict, as before", async () => {
+  const r = await queue(sameTree({ [`/repos/krizaka/x/git/commits/${QUEUED}`]: { tree: { sha: "f".repeat(40) } } }));
+  assert.equal(r.code, "true", r.log);
+  assert.ok(!r.seen.some((u) => u.startsWith("/repos/krizaka/x/actions/runs")), "no run is looked up when the trees differ");
+});
+
+test("merge queue: no green run of this workflow on the pull request's head runs everything", async () => {
+  const cases = {
+    none: { workflow_runs: [] },
+    "another workflow": { workflow_runs: [{ ...greenRun, path: ".github/workflows/other.yml" }] },
+    "another head": { workflow_runs: [{ ...greenRun, head_sha: "d".repeat(40) }] },
+    "not a pull request run": { workflow_runs: [{ ...greenRun, event: "push" }] },
+    cancelled: { workflow_runs: [{ ...greenRun, conclusion: "cancelled" }] },
+    failed: { workflow_runs: [{ ...greenRun, conclusion: "failure" }] },
+  };
+  for (const [name, runs] of Object.entries(cases)) {
+    const r = await queue(sameTree({ "/repos/krizaka/x/actions/runs": runs }));
+    assert.equal(r.code, "true", `${name}: ${r.log}`);
+  }
+});
+
+test("merge queue: an API failure in the proof runs everything (fail-safe)", async () => {
+  for (const path of ["/repos/krizaka/x/pulls/1114", `/repos/krizaka/x/git/commits/${PR_HEAD}`, `/repos/krizaka/x/git/commits/${QUEUED}`, "/repos/krizaka/x/actions/runs"]) {
+    for (const status of [403, 500]) {
+      const r = await queue(sameTree({ [path]: status }));
+      assert.equal(r.code, "true", `${path} ${status}: ${r.log}`);
+    }
+  }
+  const malformed = await queue(sameTree({ "/repos/krizaka/x/actions/runs": { nothing: 1 } }));
+  assert.equal(malformed.code, "true", malformed.log);
+});
+
+test("merge queue: a docs-only entry still skips when the proof fails (the files' verdict is kept)", async () => {
+  const r = await queue(sameTree({ "/repos/krizaka/x/actions/runs": 403, [COMPARE]: { total_commits: 1, files: [{ filename: "README.md" }] } }));
+  assert.equal(r.code, "false", r.log);
+});
+
+test("merge queue: no pull request in the queue branch, or no workflow ref, runs everything", async () => {
+  assert.equal((await queue(sameTree(), { MQ_HEAD_REF: "refs/heads/gh-readonly-queue/main/odd" })).code, "true");
+  assert.equal((await queue(sameTree(), { GITHUB_WORKFLOW_REF: "" })).code, "true");
+});
+
+test("merge queue: reuse-pr-run false keeps the full run (a caller whose queue proves more than its pull request)", async () => {
+  const r = await queue(sameTree(), { REUSE_PR_RUN: "false" });
+  assert.equal(r.code, "true", r.log);
+  assert.ok(!r.seen.some((u) => u.startsWith("/repos/krizaka/x/pulls/")), "the proof is not attempted");
+});
+
+test("the gate never asks for a token scope a caller does not already grant (no startup_failure on a pin bump)", () => {
+  // Listing a pull request's runs needs no `actions: read` on a public repository; a private one answers 403 and runs in full.
+  assert.deepEqual([...yml.matchAll(/^( *)permissions:.*$/gm)].map((m) => m[0]), ["permissions:"]);
+  assert.match(yml, /^permissions:\n {2}contents: read\n\n/m);
 });

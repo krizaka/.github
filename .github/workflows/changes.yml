@@ -17,9 +17,20 @@
 # unless this workflow answered exactly `false`, so a failure here (API error, a cancelled job) runs everything.
 # Nothing is ever skipped because the gate itself broke.
 #
-# `code` is `true` for anything that is not a pull request or a branch push (schedule, dispatch, tag, merge queue),
-# for an empty or truncated file list, and when any changed file matches `relevant` and not `ignore`. Renames count
-# on both sides. Schedules and releases therefore always run in full.
+# `code` is `true` for anything that is not a pull request, a branch push or a merge-queue entry (schedule, dispatch,
+# tag), for an empty or truncated file list, and when any changed file matches `relevant` and not `ignore`. Renames
+# count on both sides. Schedules and releases therefore always run in full.
+#
+# Merge queue (krizaka-internal#4840): an entry whose tree is the very tree a green pull-request run of the same
+# workflow already tested is not tested again: `code` is `false`, the heavy jobs report « Skipped » and every required
+# check still reports on merge_group. That is the case of a pull request up to date with main, alone in its group (the
+# queue's merge commit then has the pull request head's tree, which the pull-request run tested). The proof is: the
+# pull request named by the queue branch (`gh-readonly-queue/<base>/pr-<n>-<sha>`), its head's tree equal to the
+# entry's tree, and a run of this workflow (GITHUB_WORKFLOW_REF, the caller's file) on that head, event pull_request,
+# concluded `success`. Anything else (main moved, several pull requests in the group, no green run, a cancelled or red
+# run, an API error, a private repository whose token cannot list runs) falls back to the entry's file list, as before:
+# any doubt runs everything. A caller whose queue proves more than its pull request sets `reuse-pr-run: false`.
+# Security scans are not behind this gate (security-scan.yml, CodeQL): they keep running on every merge_group.
 name: changes
 
 on:
@@ -36,7 +47,7 @@ on:
         required: false
         default: ""
       release-files:
-        description: "JavaScript RegExp: on a pull request from a release branch (release-please--*, changeset-release/*), when every changed file matches, skip the heavy jobs. Any other branch is untouched (a dependency bump changes the same files and is tested); merge_group always runs in full."
+        description: "JavaScript RegExp: on a pull request from a release branch (release-please--*, changeset-release/*), when every changed file matches, skip the heavy jobs. Any other branch is untouched (a dependency bump changes the same files and is tested); release-files is never used on merge_group."
         type: string
         required: false
         default: ""
@@ -45,9 +56,14 @@ on:
         type: boolean
         required: false
         default: false
+      reuse-pr-run:
+        description: "Merge queue: when the entry's tree is the tree a green pull-request run of this workflow tested, skip the heavy jobs (code=false). Set false for a gate whose jobs the pull request does not run (krizaka-internal#4840)."
+        type: boolean
+        required: false
+        default: true
     outputs:
       code:
-        description: "'false' only when every changed file is irrelevant; otherwise 'true'."
+        description: "'false' only when every changed file is irrelevant, or (merge queue) when a green pull-request run already tested the same tree; otherwise 'true'."
         value: ${{ jobs.changes.outputs.code }}
 
 permissions:
@@ -69,6 +85,8 @@ jobs:
           PR: ${{ github.event.pull_request.number }}
           BEFORE: ${{ github.event.before }}
           MQ_BASE: ${{ github.event.merge_group.base_sha }}
+          MQ_HEAD_REF: ${{ github.event.merge_group.head_ref }}
+          REUSE_PR_RUN: ${{ inputs.reuse-pr-run }}
           RELEVANT: ${{ inputs.relevant }}
           IGNORE: ${{ inputs.ignore }}
           RELEASE_FILES: ${{ inputs.release-files }}
@@ -98,6 +116,22 @@ jobs:
             return res.json();
           }
 
+          // The merge queue: the run that already proved this very tree green on the pull request, or a reason why not.
+          async function provenRun() {
+            const pr = /\/pr-(\d+)-[0-9a-f]{40}$/.exec(env.MQ_HEAD_REF || "")?.[1];
+            if (!pr) return { why: `no pull request in the queue branch ${env.MQ_HEAD_REF}` };
+            const workflow = /^[^/]+\/[^/]+\/([^@]+)@/.exec(env.GITHUB_WORKFLOW_REF || "")?.[1];
+            if (!workflow) return { why: "no workflow ref" };
+            const head = (await get(`/repos/${repo}/pulls/${pr}`)).head.sha;
+            const treeOf = async (sha) => (await get(`/repos/${repo}/git/commits/${sha}`)).tree.sha;
+            const [queued, tested] = await Promise.all([treeOf(env.GITHUB_SHA), treeOf(head)]);
+            if (!queued || queued !== tested) return { why: `the entry's tree ${queued} is not the tree of #${pr}'s head ${tested}` };
+            const { workflow_runs: runs } = await get(`/repos/${repo}/actions/runs?head_sha=${head}&event=pull_request&status=success&per_page=100`);
+            const green = runs.find((r) => r.path === workflow && r.head_sha === head && r.event === "pull_request" && r.conclusion === "success");
+            if (!green) return { why: `no green ${workflow} run on #${pr}'s head ${head}` };
+            return { run: green.html_url, why: `tree ${queued} already proved green on #${pr} by ${green.html_url}: the heavy jobs are not run again` };
+          }
+
           try {
             const relevant = new RegExp(env.RELEVANT || ".");
             const ignore = env.IGNORE ? new RegExp(env.IGNORE) : null;
@@ -115,6 +149,11 @@ jobs:
                 if (page === 30) done("true", "more than 3000 files");
               }
             } else if (env.EVENT === "merge_group" && env.MQ_BASE) {
+              if (env.REUSE_PR_RUN !== "false") {
+                const proof = await provenRun().catch((error) => ({ why: `proof failed: ${error.message}` }));
+                if (proof.run) done("false", proof.why);
+                console.log(`full queue run: ${proof.why}`);
+              }
               // The merge queue's branch: what this entry adds on top of the base it was built on.
               const cmp = await get(`/repos/${repo}/compare/${env.MQ_BASE}...${env.GITHUB_SHA}?per_page=100`);
               if (cmp.total_commits > 250 || (cmp.files || []).length >= 100) done("true", "a large merge group: run everything");
