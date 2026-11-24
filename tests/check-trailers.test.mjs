@@ -117,7 +117,7 @@ test("the exact id+login e-mail and a non-identity line pass the source check", 
 test("an automation that commits as an unknown bot is refused at the source", () => {
   const bad = [
     { path: ".github/workflows/release.yml", text: `          git config user.email "krizaka-release[bot]@users.noreply.github.com"` },
-    { path: ".github/workflows/docs-sync.yml", text: `          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"` },
+    { path: ".github/workflows/docs-sync.yml", text: `          git config user.email "41898283+krizaka-docs[bot]@users.noreply.github.com"` },
   ];
   assert.equal(committerSourceProblems(bad).length, 2);
   assert.doesNotMatch(committerSourceProblems(bad).join(" "), /users\.noreply\.github\.com/, "the offending address is not echoed back");
@@ -135,4 +135,11 @@ test("Dependabot's commits pass, by its exact id; a look-alike does not", () => 
   const DEPENDABOT = "49699333+dependabot[bot]@users.noreply.github.com";
   assert.deepEqual(trailerProblems([commit("chore(deps): bump x\n", { author: DEPENDABOT, committer: "noreply@github.com" })]), []);
   assert.equal(trailerProblems([commit("chore(deps): bump x\n", { author: "49699334+dependabot[bot]@users.noreply.github.com" })]).length, 1);
+});
+
+// krizaka-internal#4834: release-please commits on main as GitHub's own Actions app, by its exact id (41898282).
+test("the release bot's commit passes, by its exact id; a look-alike does not", () => {
+  const RELEASE = "41898282+github-actions[bot]@users.noreply.github.com";
+  assert.deepEqual(trailerProblems([commit("chore: release 1.0.0\n", { author: RELEASE, committer: "noreply@github.com" })]), []);
+  assert.equal(trailerProblems([commit("chore: release 1.0.0\n", { author: "41898283+github-actions[bot]@users.noreply.github.com" })]).length, 1);
 });
