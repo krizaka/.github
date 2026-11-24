@@ -30,11 +30,20 @@ const extOf = (file) => file.split(".").pop().toLowerCase();
 const isMedia = (file) => extOf(file) in MEDIA_TYPES;
 export const contentTypeFor = (file) => MEDIA_TYPES[extOf(file)] ?? "application/octet-stream";
 
+/** `value` without the leading and trailing runs of `char` (no regex: a trailing-run pattern backtracks). */
+function trimChar(value, char) {
+  let start = 0;
+  let end = value.length;
+  while (start < end && value[start] === char) start++;
+  while (end > start && value[end - 1] === char) end--;
+  return value.slice(start, end);
+}
+
 const encodePath = (p) => p.split("/").map(encodeURIComponent).join("/");
 
 /** A path segment safe for a storage key: `feat/x y` → `feat-x-y`. */
 export function slug(value, name) {
-  const s = String(value ?? "").trim().replace(/[^\w.-]+/g, "-").replace(/^-+/, "").replace(/-+$/, "");
+  const s = trimChar(String(value ?? "").trim().replace(/[^\w.-]+/g, "-"), "-");
   if (!s || s === "." || s === "..") throw new Error(`--${name} is required (letters, digits, . _ -)`);
   return s;
 }
@@ -76,7 +85,7 @@ export const objectPath = (repo, key, rel) => `${PREFIX}/${slug(repo, "repo")}/$
 export const cdnUrl = (cfg, path) => `https://${cfg.pullZone}/${encodePath(path)}`;
 export const storageUrl = (cfg, path) => `https://${cfg.endpoint}/${encodeURIComponent(cfg.zone)}/${encodePath(path)}`;
 
-const host = (v) => String(v ?? "").trim().replace(/^https?:\/\//, "").replace(/\/+$/, "");
+const host = (v) => trimChar(String(v ?? "").trim().replace(/^https?:\/\//, ""), "/");
 
 export function loadConfig(env, { requireKey = true } = {}) {
   const cfg = { apiKey: env.MEDIA_STORAGE_API_KEY ?? "", zone: (env.MEDIA_STORAGE_ZONE ?? "").trim(), endpoint: host(env.MEDIA_STORAGE_ENDPOINT) || "storage.bunnycdn.com", pullZone: host(env.MEDIA_CDN_HOSTNAME) };
