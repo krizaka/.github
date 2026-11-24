@@ -148,7 +148,7 @@ export function findHits(text, path, { list = loadList(), repo } = {}) {
 
 const upperFirst = (s) => s[0].toUpperCase() + s.slice(1);
 
-/** The replacement in the case of the name found: ORAZAKA -> SOVKORA, Orazaka -> Sovkora, orazaka -> sovkora. */
+/** The replacement in the case of the name found: upper case stays upper, a capital stays a capital. */
 function casedLike(found, replacement) {
   if (found === found.toUpperCase()) return replacement.toUpperCase();
   return found[0] === found[0].toUpperCase() ? upperFirst(replacement) : replacement;
@@ -163,7 +163,7 @@ function replacementOf(place) {
 
 /**
  * `text` with every place of the asked kinds replaced (all kinds when `kinds` is absent), the case kept. A place of another kind is left
- * as it is, even where a more general form would have matched inside it (`orazaka_db` stays when only `word` is asked).
+ * as it is, even where a more general form would have matched inside it (a database name stays when only the bare word is asked).
  */
 export function replace(text, { kinds, list = loadList() } = {}) {
   const wanted = kinds ? new Set(kinds) : null;

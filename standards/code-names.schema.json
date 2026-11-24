@@ -24,7 +24,7 @@
           "term": { "description": "The retired code name, lower case.", "type": "string", "pattern": "^[a-z]+$" },
           "replacement": { "description": "The commercial name that replaces it, lower case.", "type": "string", "pattern": "^[a-z]+$" },
           "brand": { "description": "The replacement as displayed.", "type": "string", "minLength": 1 },
-          "detect": { "description": "The detect regex: a substring match, in any case (flag i), so ORAZAKA_KEY and brand-orazaka are found.", "type": "string", "minLength": 1 },
+          "detect": { "description": "The detect regex: a substring match, in any case (flag i).", "type": "string", "minLength": 1 },
           "forms": {
             "description": "The compound forms, most specific first; the first form that matches a place wins. `to` is a template ($1..$9 are the groups); the case of the term found is kept.",
             "type": "array",
