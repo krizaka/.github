@@ -30,6 +30,7 @@ jobs:
     name: node-ci runs (npm, env, after-build, next cache)
     permissions:
       contents: read
+      actions: read # node-ci's sonar job reads a proven pull-request run's coverage in the merge queue (krizaka-internal#4840)
     uses: ./.github/workflows/node-ci.yml
     with:
       working-directory: tests/fixtures/node-app
@@ -45,6 +46,7 @@ jobs:
     name: node-ci container (build + smoke)
     permissions:
       contents: read
+      actions: read # node-ci's sonar job reads a proven pull-request run's coverage in the merge queue (krizaka-internal#4840)
     uses: ./.github/workflows/node-ci.yml
     with:
       working-directory: tests/fixtures/node-app
@@ -61,6 +63,7 @@ jobs:
     name: node-ci parallel (a leg per task) and sharded e2e
     permissions:
       contents: read
+      actions: read # node-ci's sonar job reads a proven pull-request run's coverage in the merge queue (krizaka-internal#4840)
     uses: ./.github/workflows/node-ci.yml
     with:
       working-directory: tests/fixtures/node-app
@@ -79,6 +82,7 @@ jobs:
     name: node-ci skips the e2e when no UI file changed
     permissions:
       contents: read
+      actions: read # node-ci's sonar job reads a proven pull-request run's coverage in the merge queue (krizaka-internal#4840)
     uses: ./.github/workflows/node-ci.yml
     with:
       working-directory: tests/fixtures/node-app
@@ -129,6 +133,7 @@ jobs:
     name: node-ci skips when nothing is relevant
     permissions:
       contents: read
+      actions: read # node-ci's sonar job reads a proven pull-request run's coverage in the merge queue (krizaka-internal#4840)
     uses: ./.github/workflows/node-ci.yml
     with:
       working-directory: tests/fixtures/node-app

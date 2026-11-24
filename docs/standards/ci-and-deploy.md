@@ -28,7 +28,7 @@ A repository's `ci.yml` keeps its triggers, its `concurrency` and a read-only `p
 ```yaml
 jobs:
   ci:
-    permissions: { contents: read }
+    permissions: { contents: read, actions: read }  # actions: read: the merge queue reuses a proven pull-request run's coverage (krizaka-internal#4840)
     uses: krizaka/.github/.github/workflows/node-ci.yml@<sha> # v1.0.0
     with:
       package-manager: pnpm
@@ -158,7 +158,7 @@ The default only skips the files that no test or build can read: changesets, lic
 
 | Workflow | For | What it adds |
 | :--- | :--- | :--- |
-| `node-ci.yml` | Next.js, Node, monorepos | `parallel: true`: lint, typecheck, test and build are **side by side** legs (each installs from the npm / pnpm cache) instead of one serial job. `turbo-cache: true`: `.turbo` restored and saved. `e2e-script` + `e2e-shards` (1 to 8) + `e2e-relevant`: Playwright runs as **shards in parallel**, and **only when a changed file matches `e2e-relevant`** (the UI files; a second `changes.yml` call). The gate stays one check, `ci / CI gate`. |
+| `node-ci.yml` | Next.js, Node, monorepos | **Merge queue**: an entry proven by a green pull-request run (`proven-run`) skips verify, e2e and duplication; its `sonar` job runs on that run's coverage (`actions: read` on the job, so every caller grants `actions: read` on its `ci:` job) and the `container` job still builds and Trivy-scans the image (`docker-changes` has `reuse-pr-run: false`). `parallel: true`: lint, typecheck, test and build are **side by side** legs (each installs from the npm / pnpm cache) instead of one serial job. `turbo-cache: true`: `.turbo` restored and saved. `e2e-script` + `e2e-shards` (1 to 8) + `e2e-relevant`: Playwright runs as **shards in parallel**, and **only when a changed file matches `e2e-relevant`** (the UI files; a second `changes.yml` call). The gate stays one check, `ci / CI gate`. |
 | `expo-ci.yml` | Expo apps | lint, typecheck and test side by side; the **EAS build exists only on a `v*` tag** and when `eas-profile` is set (official `expo/expo-github-action`, secret `EXPO_TOKEN`). |
 | `mobile-e2e.yml` | Expo apps with `.maestro/` flows | Builds a self-contained x86_64 Android APK (prebuild + Gradle), boots an emulator with KVM (SHA-pinned action), installs the pinned, sha256-checked Maestro CLI and runs the flows; screenshots, screen recording and JUnit report are artifacts. `setup-command` starts a backend and seeds the demo account (persona « Eric », masked credentials). The required check is **`mobile-e2e / gate`** (caller job named `mobile-e2e`), required on main after three green runs in a row; a flaky flow is fixed or tagged `manual` with an issue, never deleted ([#241](https://github.com/krizaka/.github/issues/241)). |
 | `python-ci.yml` | workers, scripts | `pip` (setup-python wheel cache) or `uv` (setup-uv cache); lint and test side by side; `pytest -n auto` (pytest-xdist). |

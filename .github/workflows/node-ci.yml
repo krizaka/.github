@@ -14,6 +14,8 @@
 #
 # What it owns, so no repository copies it:
 #   changes    the changes.yml gate: a docs-only change skips the heavy jobs (fail-open: a broken gate runs everything).
+#              In the merge queue, an entry whose tree a green pull-request run already tested (`proven-run`) skips verify, e2e and
+#              duplication; sonar analyses it with that run's coverage and container still builds and scans the image (krizaka-internal#4840).
 #   plan       a few seconds: the matrix of verify (and of the e2e shards) from the inputs.
 #   verify     checkout, install (cached), lint, typecheck, tests, build (.next/cache restored), optional services
 #              (PostgreSQL), optional browsers (Playwright, cached) and a repository script after the build. With
@@ -46,7 +48,8 @@
 #
 # Once the protection requires « ci / CI gate », the shim is deleted.
 #
-# Permissions: the caller job grants `contents: read` (more is never used). The called jobs ask for nothing else.
+# Permissions: the caller job grants `contents: read` and `actions: read`. Only the sonar job asks for `actions: read`: on a merge-queue
+# entry proven by a green pull-request run it downloads that run's coverage artifact. A caller that grants less fails at startup.
 name: node-ci
 
 on:
@@ -181,7 +184,7 @@ on:
         type: string
         default: '^\.changeset/|^(LICENSE|SECURITY|CODE_OF_CONDUCT|SUPPORT)(\.md)?$|^\.github/(ISSUE_TEMPLATE/|pull_request_template\.md$|FUNDING\.yml$|dependabot\.yml$)'
       release-files:
-        description: "changes.yml: JavaScript RegExp. On a pull request from a release branch (release-please--*, changeset-release/*), when every changed file matches, the heavy jobs skip and the gate still reports. The merge queue always runs in full."
+        description: "changes.yml: JavaScript RegExp. On a pull request from a release branch (release-please--*, changeset-release/*), when every changed file matches, the heavy jobs skip and the gate still reports. Never used in the merge queue (there a green pull-request run on the same tree is reused, krizaka-internal#4840)."
         type: string
         default: ""
       duplication:
@@ -267,7 +270,7 @@ jobs:
     name: Changed files
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/changes.yml@10140f24680f66980862a3d90978c016942f74e8 # main
+    uses: krizaka/.github/.github/workflows/changes.yml@bb172ae555330fe6f342593c91730821a47005ac # main (merge queue reuses a proven pull-request run, krizaka-internal#4840)
     with:
       relevant: ${{ inputs.relevant }}
       ignore: ${{ inputs.ignore }}
@@ -278,20 +281,22 @@ jobs:
     if: ${{ inputs.container }}
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/changes.yml@10140f24680f66980862a3d90978c016942f74e8 # main
+    uses: krizaka/.github/.github/workflows/changes.yml@bb172ae555330fe6f342593c91730821a47005ac # main (merge queue reuses a proven pull-request run, krizaka-internal#4840)
     with:
       # What can break an image build whatever the caller's `ignore` says: the Dockerfile and .dockerignore, the manifests and
       # lockfiles the install COPYs, the workspace definition. Any other path a COPY names is covered by `relevant: .` of the main gate
       # (deleted paths are listed too).
       relevant: '(^|/)(Dockerfile[^/]*|\.dockerignore|package\.json|pnpm-workspace\.yaml|pnpm-lock\.yaml|package-lock\.json|\.npmrc)$'
       ignore: ""
+      # The image gate never reuses a pull-request run: on a proven queue entry the image is built and scanned again (Trivy, its database moves).
+      reuse-pr-run: false
 
   ui-changes:
     name: Changed UI files
     if: ${{ inputs.e2e-script != '' }}
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/changes.yml@10140f24680f66980862a3d90978c016942f74e8 # main
+    uses: krizaka/.github/.github/workflows/changes.yml@bb172ae555330fe6f342593c91730821a47005ac # main (merge queue reuses a proven pull-request run, krizaka-internal#4840)
     with:
       relevant: ${{ inputs.e2e-relevant }}
       ignore: ${{ inputs.ignore }}
@@ -459,7 +464,8 @@ jobs:
         with:
           name: sonar-coverage
           path: ${{ runner.temp }}/sonar-coverage.tar
-          retention-days: 1
+          # A merge-queue entry proven by this run analyses with it (proven-run): it must outlive a pull request enqueued days later.
+          retention-days: 7
           if-no-files-found: error
 
   e2e:
@@ -536,7 +542,8 @@ jobs:
     name: Container image
     # After verify: no image is built when lint or tests fail. A skipped verify (the gate said no code changed) still lets a Docker-file change build.
     needs: [changes, docker-changes, verify]
-    if: ${{ inputs.container && !cancelled() && (needs.changes.outputs.code != 'false' || needs.docker-changes.outputs.code != 'false') && (needs.verify.result == 'success' || needs.verify.result == 'skipped') }}
+    # A merge-queue entry proven by a green pull-request run (proven-run) still builds and scans its image: a security scan keeps running on merge_group.
+    if: ${{ inputs.container && !cancelled() && (needs.changes.outputs.code != 'false' || needs.docker-changes.outputs.code != 'false' || needs.changes.outputs.proven-run != '') && (needs.verify.result == 'success' || needs.verify.result == 'skipped') }}
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.timeout-minutes }}
     permissions:
@@ -655,7 +662,8 @@ jobs:
     name: SonarCloud (docs only)
     needs: changes
     # Never on a push to main: a light scan carries no coverage and would replace main's measures with a partial analysis (krizaka-internal#3567).
-    if: ${{ inputs.sonar && !cancelled() && needs.changes.outputs.code == 'false' && github.event_name != 'push' }}
+    # Not on a merge-queue entry a green pull-request run already tested (proven-run): the sonar job analyses it with that run's coverage.
+    if: ${{ inputs.sonar && !cancelled() && needs.changes.outputs.code == 'false' && needs.changes.outputs.proven-run == '' && github.event_name != 'push' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -702,11 +710,14 @@ jobs:
   sonar:
     name: SonarCloud
     needs: [changes, verify]
-    if: ${{ inputs.sonar && !cancelled() && needs.changes.outputs.code != 'false' && needs.verify.result == 'success' }}
+    # Also on a merge-queue entry proven by a green pull-request run (proven-run, verify skipped): the queue still owes the analysis that
+    # posts « SonarCloud Code Analysis », and its full gate needs the coverage, which that run uploaded.
+    if: ${{ inputs.sonar && !cancelled() && ((needs.changes.outputs.code != 'false' && needs.verify.result == 'success') || needs.changes.outputs.proven-run != '') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
       contents: read
+      actions: read  # the coverage artifact of the proven pull-request run (download-artifact with run-id); the caller's ci job grants it
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
@@ -719,10 +730,20 @@ jobs:
           fetch-depth: 0  # blame and new-code detection need the history
           persist-credentials: false
 
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      - if: ${{ needs.changes.outputs.proven-run == '' }}
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: sonar-coverage
           path: ${{ runner.temp }}/sonar-coverage
+
+      - name: The coverage of the proven pull-request run
+        if: ${{ needs.changes.outputs.proven-run != '' }}
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: sonar-coverage
+          path: ${{ runner.temp }}/sonar-coverage
+          run-id: ${{ needs.changes.outputs.proven-run }}
+          github-token: ${{ github.token }}
 
       - name: Restore the coverage reports
         working-directory: ${{ inputs.working-directory }}
@@ -777,6 +798,7 @@ jobs:
       - id: verdict
         env:
           CODE: ${{ needs.changes.outputs.code }}
+          PROVEN: ${{ needs.changes.outputs.proven-run }}
           CHANGES: ${{ needs.changes.result }}
           VERIFY: ${{ needs.verify.result }}
           CONTAINER: ${{ needs.container.result }}
@@ -795,7 +817,7 @@ jobs:
           GUARD: ${{ needs.guard.result }}
         run: |
           fail=0
-          echo "gate: code=${CODE:-unknown} changes=$CHANGES plan=${PLAN:-success} verify=$VERIFY container=$CONTAINER (container wanted: $CONTAINER_WANTED) e2e=${E2E:-skipped} (wanted: ${E2E_WANTED:-false}, ui=${UI_CODE:-unknown})"
+          echo "gate: code=${CODE:-unknown} proven-run=${PROVEN:-none} changes=$CHANGES plan=${PLAN:-success} verify=$VERIFY container=$CONTAINER (container wanted: $CONTAINER_WANTED) e2e=${E2E:-skipped} (wanted: ${E2E_WANTED:-false}, ui=${UI_CODE:-unknown})"
           [ "${PLAN:-success}" = success ] || { echo "::error::plan ${PLAN}"; fail=1; }
           # A broken gate (changes) is never a reason to fail: the heavy jobs ran in full.
           [ "$CHANGES" = success ] || echo "::warning::the changes gate did not succeed ($CHANGES): the jobs ran in full"
@@ -814,6 +836,10 @@ jobs:
           if [ "$CONTAINER_WANTED" = "true" ] && [ "$VERIFY" != failure ] && [ "$VERIFY" != cancelled ] && { [ "$CODE" != "false" ] || [ "${DOCKER_CODE:-}" != "false" ]; } && [ "$CONTAINER" != success ]; then
             echo "::error::container must run when a gate did not answer false"; fail=1
           fi
+          # A merge-queue entry proven by a green pull-request run still builds and scans its image.
+          if [ -n "${PROVEN:-}" ] && [ "$CONTAINER_WANTED" = "true" ] && [ "$CONTAINER" != success ]; then
+            echo "::error::container must run and succeed on a merge-queue entry proven by run $PROVEN"; fail=1
+          fi
           # The e2e job runs unless the main gate or the UI gate answered exactly `false`.
           if [ "$CODE" != "false" ] && [ "${E2E_WANTED:-false}" = "true" ] && [ "${UI_CODE:-}" != "false" ] && [ "${E2E:-skipped}" != success ]; then
             echo "::error::e2e must run when no gate answered false"; fail=1
@@ -825,8 +851,12 @@ jobs:
           if [ "$CODE" != "false" ] && [ "${SONAR_WANTED:-false}" = "true" ] && [ "$VERIFY" = success ] && [ "${SONAR:-skipped}" != success ]; then
             echo "::error::sonar must run and succeed when the gate did not answer false"; fail=1
           fi
+          # A merge-queue entry proven by a green pull-request run gets the full analysis, with that run's coverage.
+          if [ -n "${PROVEN:-}" ] && [ "${SONAR_WANTED:-false}" = "true" ] && [ "${SONAR:-skipped}" != success ]; then
+            echo "::error::sonar must run and succeed on a merge-queue entry proven by run $PROVEN"; fail=1
+          fi
           # A docs-only change still gets its Sonar analysis, by the light scan.
-          if [ "$CODE" = "false" ] && [ "$EVENT" != push ] && [ "${SONAR_WANTED:-false}" = "true" ] && [ "${SONAR_LIGHT:-skipped}" != success ]; then
+          if [ "$CODE" = "false" ] && [ "$EVENT" != push ] && [ -z "${PROVEN:-}" ] && [ "${SONAR_WANTED:-false}" = "true" ] && [ "${SONAR_LIGHT:-skipped}" != success ]; then
             echo "::error::sonar-light must run and succeed on a docs-only change"; fail=1
           fi
           case "${SONAR_LIGHT:-skipped}" in success|skipped) ;; *) echo "::error::sonar-light $SONAR_LIGHT"; fail=1 ;; esac
@@ -836,7 +866,7 @@ jobs:
             echo "### CI gate"
             echo "| job | result |"
             echo "| --- | --- |"
-            echo "| changes | $CHANGES (code=${CODE:-unknown}) |"
+            echo "| changes | $CHANGES (code=${CODE:-unknown}, proven-run=${PROVEN:-none}) |"
             echo "| verify | $VERIFY |"
             echo "| container | $CONTAINER |"
             echo "| duplication | ${DUP:-skipped} |"

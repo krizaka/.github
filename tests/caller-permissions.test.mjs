@@ -2,8 +2,8 @@
 // was a startup_failure with 0 jobs in every consumer because the caller job granted nothing while the called job asked contents: read.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { callerPermissionProblems } from "../scripts/caller-permissions.mjs";
+import { readFileSync, readdirSync } from "node:fs";
+import { askedBy, callerPermissionProblems, shapeOf } from "../scripts/caller-permissions.mjs";
 import { loadRules, runCheck, snapshotOf, validateRules } from "../scripts/conformance.mjs";
 
 const SHA = "a".repeat(40);
@@ -68,4 +68,24 @@ test("the fix of the rule copies the bump caller template (the rule is reported,
   const rule = loadRules().find((r) => r.id === "caller-permissions");
   assert.equal(rule.security, undefined);
   assert.deepEqual(rule.fix, { type: "copy", from: "workflow-templates/bump-krizaka.yml", to: ".github/workflows/bump-krizaka.yml" });
+});
+
+// The local calls (`uses: ./.github/workflows/x.yml`) of this repository are not pins, so the conformance check never sees them:
+// node-ci's sonar job asking actions: read made CI, CI gate and its selftests a startup_failure on krizaka/.github#870.
+test("every local call of a reusable workflow in krizaka/.github grants what the called jobs ask", () => {
+  const dir = new URL("../.github/workflows/", import.meta.url);
+  const read = (f) => readFileSync(new URL(f, dir), "utf8");
+  const problems = [];
+  for (const f of readdirSync(dir).filter((n) => /\.ya?ml$/.test(n))) {
+    const { top, jobs } = shapeOf(read(f));
+    const local = read(f).matchAll(/^ {2}([\w-]+):\s*\n(?:(?! {2}\S).*\n)*? {4}uses: \.\/\.github\/workflows\/([\w.-]+\.ya?ml)\s*$/gm);
+    for (const [, name, called] of local) {
+      const granted = jobs.find((j) => j.name === name).perms ?? top ?? {};
+      for (const [scope, level] of Object.entries(askedBy(read(called)))) {
+        const has = granted[scope] ?? granted["*"] ?? "none";
+        if ({ none: 0, read: 1, write: 2 }[has] < { none: 0, read: 1, write: 2 }[level]) problems.push(`${f}/${name} → ${called}: ${scope}: ${level} asked, ${has} granted`);
+      }
+    }
+  }
+  assert.deepEqual(problems, []);
 });

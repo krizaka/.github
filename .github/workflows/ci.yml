@@ -21,6 +21,7 @@ jobs:
     name: SonarCloud coverage
     permissions:
       contents: read
+      actions: read # node-ci's sonar job reads a proven pull-request run's coverage in the merge queue (krizaka-internal#4840)
     uses: ./.github/workflows/node-ci.yml
     with:
       lint-script: ""
