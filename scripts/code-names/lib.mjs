@@ -72,7 +72,8 @@ export function loadList(file = LIST_FILE) {
 }
 
 const GLOB_TOKENS = { "**/": "(?:.*/)?", "**": ".*", "*": "[^/]*", "?": "[^/]" };
-const globRegex = (glob) => new RegExp(`^${glob.replace(/\*\*\/|\*\*|\*|\?|[.+^${}()|[\]\\]/g, (t) => GLOB_TOKENS[t] ?? `\\${t}`)}$`);
+const escapeToken = (t) => GLOB_TOKENS[t] ?? "\\" + t;
+const globRegex = (glob) => new RegExp("^" + glob.replace(/\*\*\/|\*\*|\*|\?|[.+^${}()|[\]\\]/g, escapeToken) + "$");
 
 /** The history globs of a repository: the central ones, plus the ones scoped to it (`<repo>:<glob>`). */
 function historyGlobs(list, repo) {

@@ -102,3 +102,31 @@ test("the schema refuses a term without replacement, a form without kind, a bad 
   badRegex.terms[0].forms[0].regex = "(";
   assert.match(listProblems(badRegex).join(), /regex/);
 });
+
+test("the validator reports each kind of problem", async () => {
+  const { problems } = await import("./lib.mjs");
+  const schema = { type: "object", additionalProperties: false, required: ["a"], properties: { a: { type: "string", enum: ["x"], minLength: 1 }, l: { type: "array", minItems: 1, items: { type: "string", pattern: "^z$" } } } };
+  assert.deepEqual(problems(schema, { a: "x", l: ["z"] }), []);
+  assert.match(problems(schema, { b: 1 }).join(), /unknown key « b »[\s\S]*« a » is required/);
+  assert.match(problems(schema, { a: "" }).join(), /must be one of "x"[\s\S]*is empty/);
+  assert.match(problems(schema, { a: "x", l: [] }).join(), /at least 1/);
+  assert.match(problems(schema, { a: "x", l: ["y"] }).join(), /l\[0\]: must match/);
+  assert.match(problems(schema, []).join(), /expected object/);
+  assert.match(problems({ type: "object", oneOf: [] }, {}).join(), /does not check/);
+});
+
+test("loadList refuses a file that is invalid", async () => {
+  const { loadList: load } = await import("./lib.mjs");
+  const { mkdtempSync, writeFileSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const file = join(mkdtempSync(join(tmpdir(), "cn-")), "list.json");
+  writeFileSync(file, JSON.stringify({ version: "1.0.0", terms: [], history: [] }));
+  assert.throws(() => load(file), /is invalid/);
+});
+
+test("replace keeps the text between places and takes the list by default", () => {
+  assert.equal(replace("a ORAZAKA b"), "a SOVKORA b");
+  assert.equal(replace("no name here"), "no name here");
+  assert.deepEqual(findHits("a\norazaka", "x.md").map((h) => h.line), [2]);
+});
