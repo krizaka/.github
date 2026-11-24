@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { failure, fetchPinState, movePins, pinBranch, pinFiles, pinPattern, pinPrDecision, publishPinPr, pushArgs } from "./propagate-pins.mjs";
+import { failure, fetchPinState, grantAskedScopes, movePins, pinBranch, pinFiles, pinPattern, pinPrDecision, publishPinPr, pushArgs } from "./propagate-pins.mjs";
 
 const OLD = "a".repeat(40);
 const NEW = "b".repeat(40);
@@ -199,4 +199,36 @@ test("guard: the pins move once a day, never hourly", () => {
   assert.match(yml, /at most one pin PR per repository per day/);
   const src = readFileSync(new URL("./propagate-pins.mjs", import.meta.url), "utf8");
   assert.ok(src.indexOf("pinPrDecision(") < src.indexOf('"repo", "clone"'), "the decision comes before the clone");
+});
+
+// A pin that moves to a reusable workflow asking a new scope would be a startup_failure in the caller (krizaka-internal#4840:
+// node-ci's sonar job asks actions: read for the proven pull-request run's coverage): the pin pull request grants it on the caller job.
+const CALLEE = "name: node-ci\non:\n  workflow_call:\npermissions:\n  contents: read\njobs:\n  sonar:\n    runs-on: ubuntu-latest\n    permissions:\n      contents: read\n      actions: read  # the coverage\n    steps:\n      - run: echo\n";
+const callerOf = (perms) => `name: CI\non: push\npermissions:\n  contents: read\njobs:\n  ci:\n    uses: krizaka/.github/.github/workflows/node-ci.yml@${NEW} # main\n${perms}    with:\n      sonar: true\n  other:\n    runs-on: ubuntu-latest\n    permissions:\n      contents: read\n    steps:\n      - run: echo\n`;
+const readCallee = (file) => (file === "node-ci.yml" ? CALLEE : null);
+
+test("grantAskedScopes adds the scope the moved reusable workflow asks to the caller job's own block, once", () => {
+  const before = callerOf("    permissions:\n      contents: read\n");
+  const after = grantAskedScopes(before, readCallee);
+  assert.match(after, /\n {4}permissions:\n {6}contents: read\n {6}actions: read {2}# asked by node-ci\.yml \(propagate-pins\)\n {4}with:/);
+  assert.equal(after.match(/actions: read/g).length, 1, "only the caller job, not the other job");
+  assert.equal(grantAskedScopes(after, readCallee), after, "idempotent");
+});
+
+test("grantAskedScopes leaves a job that already grants enough, an unknown callee and a job with no block of its own", () => {
+  const enough = callerOf("    permissions:\n      contents: read\n      actions: write # reruns\n");
+  assert.equal(grantAskedScopes(enough, readCallee), enough);
+  const unknown = callerOf("    permissions:\n      contents: read\n").replace("node-ci.yml", "java-ci.yml");
+  assert.equal(grantAskedScopes(unknown, readCallee), unknown);
+  const noBlock = callerOf("");
+  assert.equal(grantAskedScopes(noBlock, readCallee), noBlock, "the conformance check caller-permissions names it");
+});
+
+test("movePins grants the asked scopes in the files whose pins moved, read from the new callee", () => {
+  const root = mkdtempSync(join(tmpdir(), "pins-grant-"));
+  mkdirSync(join(root, ".github/workflows"), { recursive: true });
+  const file = join(root, ".github/workflows/ci.yml");
+  writeFileSync(file, callerOf("    permissions:\n      contents: read\n").replace(NEW, OLD));
+  assert.equal(movePins(root, NEW, ".github", readCallee).length, 1);
+  assert.match(readFileSync(file, "utf8"), new RegExp(`node-ci.yml@${NEW}[^]*actions: read`));
 });

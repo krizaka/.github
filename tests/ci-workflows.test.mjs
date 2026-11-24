@@ -667,3 +667,46 @@ for (const name of ["node-ci", "java-ci", "maven"]) {
     assert.match(gate, /"\$CODE" = "false" \] && \[ "\$EVENT" != push \]/);
   });
 }
+
+// --- Merge queue: an entry a green pull-request run already proved (changes.yml `proven-run`, krizaka-internal#4840).
+const PROVEN = (o) => NODE({ CODE: "false", PROVEN: "45427944854", EVENT: "merge_group", VERIFY: "skipped", SONAR_WANTED: "true", SONAR_LIGHT: "skipped", ...o });
+
+test("node gate, proven queue entry: the heavy jobs skipped, the SonarCloud analysis (the run's coverage) must succeed", () => {
+  assert.deepEqual(runGate("node-ci", PROVEN({ SONAR: "success" })), { status: 0, result: "success" });
+  assert.equal(runGate("node-ci", PROVEN({ SONAR: "skipped" })).status, 1, "a proven entry still owes its Sonar analysis");
+  assert.equal(runGate("node-ci", PROVEN({ SONAR: "failure" })).status, 1);
+  // the light scan is not the proven entry's job
+  assert.equal(runGate("node-ci", PROVEN({ SONAR: "success", SONAR_LIGHT: "skipped" })).status, 0);
+  // Sonar not wanted: nothing owed
+  assert.equal(runGate("node-ci", PROVEN({ SONAR_WANTED: "false", SONAR: "skipped" })).status, 0);
+});
+
+test("node gate, proven queue entry: the image and its Trivy scan still run (a security scan keeps running on merge_group)", () => {
+  const image = { SONAR: "success", CONTAINER_WANTED: "true", DOCKER_CODE: "false" };
+  assert.equal(runGate("node-ci", PROVEN({ ...image, CONTAINER: "success" })).status, 0);
+  assert.equal(runGate("node-ci", PROVEN({ ...image, CONTAINER: "skipped" })).status, 1, "the image scan was skipped on a proven entry");
+  assert.equal(runGate("node-ci", PROVEN({ ...image, CONTAINER: "failure" })).status, 1);
+});
+
+test("node gate: a docs-only queue entry (no proven run) still owes the light scan, as before", () => {
+  assert.equal(runGate("node-ci", PROVEN({ PROVEN: "", SONAR: "skipped", SONAR_LIGHT: "success" })).status, 0);
+  assert.equal(runGate("node-ci", PROVEN({ PROVEN: "", SONAR: "skipped", SONAR_LIGHT: "skipped" })).status, 1);
+});
+
+test("node-ci: a proven queue entry analyses with the pull-request run's coverage; the image gate never reuses a run", () => {
+  const src = read("node-ci");
+  const job = (id) => jobs(src).find((j) => j.id === id).text;
+  const pins = [...src.matchAll(/uses: krizaka\/\.github\/\.github\/workflows\/changes\.yml@([0-9a-f]{40})/g)].map((m) => m[1]);
+  assert.equal(new Set(pins).size, 1, "one changes.yml pin");
+  assert.notEqual(pins[0], "10140f24680f66980862a3d90978c016942f74e8", "the pin has the proven-run output (bb172ae or later)");
+  assert.match(job("docker-changes"), /^ {6}reuse-pr-run: false$/m);
+  assert.match(job("sonar-light"), /needs\.changes\.outputs\.proven-run == ''/);
+  const sonar = job("sonar");
+  assert.match(sonar, /if: \$\{\{ inputs\.sonar && !cancelled\(\) && \(\(.*\) \|\| needs\.changes\.outputs\.proven-run != ''\) \}\}/, "only when sonar is wanted");
+  assert.match(sonar, /^ {6}actions: read {2}# /m, "actions: read on the sonar job only, with its reason");
+  assert.match(sonar, /run-id: \$\{\{ needs\.changes\.outputs\.proven-run \}\}/);
+  assert.match(sonar, /if: \$\{\{ needs\.changes\.outputs\.proven-run == '' \}\}\n {8}uses: actions\/download-artifact@/);
+  for (const other of jobs(src).filter((j) => j.id !== "sonar")) assert.doesNotMatch(other.text, /actions: read/, other.id);
+  assert.match(job("container"), /needs\.changes\.outputs\.proven-run != ''/);
+  assert.match(job("verify"), /name: sonar-coverage\n(?: {10}.*\n)*? {10}retention-days: 7$/m, "the coverage outlives a PR enqueued the next day");
+});

@@ -16,6 +16,7 @@ import { execFileSync } from "node:child_process";
 import { mkdtempSync, readFileSync, readdirSync, writeFileSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { askedBy } from "./caller-permissions.mjs";
 
 /** The pins of one source repository's workflows and actions: `krizaka/<source>/<path>@<sha>`. */
 export function pinPattern(source = ".github") {
@@ -52,13 +53,63 @@ export function pinFiles(root) {
   return out;
 }
 
-/** Moves every pin of krizaka/.github to `sha`; returns the files changed. */
-export function movePins(root, sha, source = ".github") {
+const LEVEL = { none: 0, read: 1, write: 2 };
+const CALL = /^ {4}uses:\s*krizaka\/\.github\/\.github\/workflows\/([\w.-]+\.ya?ml)@/;
+const ROW = /^ {6}([\w-]+):\s*(none|read|write)\b/;
+
+/** The caller jobs of a workflow's lines: [{ file, rows: { scope: level }, end }], `end` the line after the job's own `permissions:` rows. */
+function callerBlocks(lines) {
+  const out = [];
+  let job = null;
+  for (let i = 0; i < lines.length; i++) {
+    if (/^ {2}[\w-]+:\s*(#.*)?$/.test(lines[i])) job = { file: null, rows: null, end: -1 };
+    if (!job) continue;
+    const call = CALL.exec(lines[i]);
+    if (call) job.file = call[1];
+    if (/^ {4}permissions:\s*(#.*)?$/.test(lines[i])) {
+      job.rows = {};
+      for (job.end = i + 1; ROW.test(lines[job.end] ?? ""); job.end++) {
+        const [, scope, level] = ROW.exec(lines[job.end]);
+        job.rows[scope] = level;
+      }
+    }
+    if (job.file && job.rows && !out.includes(job)) out.push(job);
+  }
+  return out;
+}
+
+/**
+ * Adds to a caller job's own `permissions:` block each scope the org reusable workflow it calls asks for and the job does not grant:
+ * a pin that moves to a callee asking more (node-ci's `actions: read`, krizaka-internal#4840) would otherwise be a startup_failure.
+ * `readCallee(file)` gives the callee's text at the new pin (null: unknown, left alone). A job with no block of its own is left to the
+ * conformance check caller-permissions.
+ */
+export function grantAskedScopes(text, readCallee) {
+  const lines = text.split("\n");
+  for (const job of callerBlocks(lines).reverse()) {
+    const callee = readCallee(job.file);
+    if (!callee) continue;
+    const missing = Object.entries(askedBy(callee)).filter(([scope, level]) => (LEVEL[job.rows[scope]] ?? 0) < LEVEL[level]);
+    const rows = missing.filter(([scope]) => !(scope in job.rows)).map(([scope, level]) => `      ${scope}: ${level}  # asked by ${job.file} (propagate-pins)`);
+    lines.splice(job.end, 0, ...rows);
+  }
+  return lines.join("\n");
+}
+
+/** The callee of the org's own workflows, read from this checkout (propagate-pins.yml checks out the commit it propagates). */
+const localCallee = (file) => {
+  const path = new URL(`../.github/workflows/${file}`, import.meta.url);
+  return existsSync(path) ? readFileSync(path, "utf8") : null;
+};
+
+/** Moves every pin of krizaka/.github to `sha`, granting what the moved callees ask (grantAskedScopes); returns the files changed. */
+export function movePins(root, sha, source = ".github", readCallee = localCallee) {
   const pin = pinPattern(source);
   const changed = [];
   for (const file of pinFiles(root)) {
     const before = readFileSync(file, "utf8");
-    const after = before.replace(pin, (_, head) => `${head}${sha}`);
+    const moved = before.replace(pin, (_, head) => `${head}${sha}`);
+    const after = source === ".github" && moved !== before ? grantAskedScopes(moved, readCallee) : moved;
     if (after !== before) {
       writeFileSync(file, after);
       changed.push(file);
