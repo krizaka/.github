@@ -270,7 +270,7 @@ jobs:
     name: Changed files
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/changes.yml@bb172ae555330fe6f342593c91730821a47005ac # main (merge queue reuses a proven pull-request run, krizaka-internal#4840)
+    uses: krizaka/.github/.github/workflows/changes.yml@d0c5710d207b411f3e43e1d4069c48961556f75d # main (merge queue reuses a proven pull-request run, krizaka-internal#4840; runs listed without the status filter)
     with:
       relevant: ${{ inputs.relevant }}
       ignore: ${{ inputs.ignore }}
@@ -281,7 +281,7 @@ jobs:
     if: ${{ inputs.container }}
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/changes.yml@bb172ae555330fe6f342593c91730821a47005ac # main (merge queue reuses a proven pull-request run, krizaka-internal#4840)
+    uses: krizaka/.github/.github/workflows/changes.yml@d0c5710d207b411f3e43e1d4069c48961556f75d # main (merge queue reuses a proven pull-request run, krizaka-internal#4840; runs listed without the status filter)
     with:
       # What can break an image build whatever the caller's `ignore` says: the Dockerfile and .dockerignore, the manifests and
       # lockfiles the install COPYs, the workspace definition. Any other path a COPY names is covered by `relevant: .` of the main gate
@@ -296,7 +296,7 @@ jobs:
     if: ${{ inputs.e2e-script != '' }}
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/changes.yml@bb172ae555330fe6f342593c91730821a47005ac # main (merge queue reuses a proven pull-request run, krizaka-internal#4840)
+    uses: krizaka/.github/.github/workflows/changes.yml@d0c5710d207b411f3e43e1d4069c48961556f75d # main (merge queue reuses a proven pull-request run, krizaka-internal#4840; runs listed without the status filter)
     with:
       relevant: ${{ inputs.e2e-relevant }}
       ignore: ${{ inputs.ignore }}
