@@ -133,7 +133,8 @@ jobs:
             const treeOf = async (sha) => (await get(`/repos/${repo}/git/commits/${sha}`)).tree.sha;
             const [queued, tested] = await Promise.all([treeOf(env.GITHUB_SHA), treeOf(head)]);
             if (!queued || queued !== tested) return { why: `the entry's tree ${queued} is not the tree of #${pr}'s head ${tested}` };
-            const { workflow_runs: runs } = await get(`/repos/${repo}/actions/runs?head_sha=${head}&event=pull_request&status=success&per_page=100`);
+            // No `status=` filter: on krizaka-com#802 it left out the head's green run (the conclusion is judged below).
+            const { workflow_runs: runs } = await get(`/repos/${repo}/actions/runs?head_sha=${head}&event=pull_request&per_page=100`);
             const green = runs.find((r) => r.path === workflow && r.head_sha === head && r.event === "pull_request" && r.conclusion === "success");
             if (!green) return { why: `no green ${workflow} run on #${pr}'s head ${head}` };
             return { run: String(green.id), why: `tree ${queued} already proved green on #${pr} by ${green.html_url}: the heavy jobs are not run again` };

@@ -181,7 +181,17 @@ test("merge queue: the tree a green pull-request run tested skips the heavy jobs
   const runs = r.seen.find((u) => u.startsWith("/repos/krizaka/x/actions/runs?"));
   assert.match(runs, new RegExp(`head_sha=${PR_HEAD}`));
   assert.match(runs, /event=pull_request/);
-  assert.match(runs, /status=success/);
+  assert.doesNotMatch(runs, /status=/, "the conclusion is judged here, never by the API's status filter");
+});
+
+// krizaka-com#802 (2026-11-24): GitHub's `status=success` (and `status=completed`) filter left out the green ci.yml run of the head while
+// listing the other green runs; without it the run is listed, `completed` / `success`. The fake answers the way GitHub did.
+test("merge queue: a green run that GitHub's status filter leaves out is still found (the list is read by head and event only)", async () => {
+  const other = { ...greenRun, path: ".github/workflows/security.yml", id: 1 };
+  const runs = (url) => ({ workflow_runs: url.searchParams.has("status") ? [other] : [other, greenRun] });
+  const r = await queue(sameTree({ "/repos/krizaka/x/actions/runs": runs }));
+  assert.equal(r.code, "false", r.log);
+  assert.equal(r.provenRun, "4242");
 });
 
 test("merge queue: a different tree (main moved, several pull requests in the group) runs the files' verdict, as before", async () => {
