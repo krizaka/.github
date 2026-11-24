@@ -22,7 +22,7 @@ function gate(env) {
   try {
     text = readFileSync(out, "utf8");
   } catch {}
-  return text.trim().replace("code=", "");
+  return /^code=(.*)$/m.exec(text)?.[1] ?? "";
 }
 const docs = "^[^/]+\\.md$|^docs/|^\\.changeset/";
 
@@ -120,7 +120,7 @@ const queueEnv = (api) => ({
   API_TOKEN: "x",
   IGNORE: docs,
 });
-const greenRun = { path: ".github/workflows/ci.yml", head_sha: PR_HEAD, event: "pull_request", conclusion: "success", html_url: "https://example.test/run/1" };
+const greenRun = { path: ".github/workflows/ci.yml", head_sha: PR_HEAD, event: "pull_request", conclusion: "success", html_url: "https://example.test/run/1", id: 4242 };
 
 /** A fake GitHub API: `routes` maps a path (without the query) to a JSON body, a number (an HTTP status) or a function of the URL. */
 function fakeApi(routes) {
@@ -151,7 +151,8 @@ async function gateAsync(env) {
   child.stderr.on("data", (d) => (log += d));
   const [status] = await once(child, "close");
   assert.equal(status, 0, log);
-  return { code: readFileSync(out, "utf8").trim().replace("code=", ""), log };
+  const outputs = Object.fromEntries(readFileSync(out, "utf8").trim().split("\n").map((l) => l.split("=")));
+  return { code: outputs.code, provenRun: outputs["proven-run"], log };
 }
 
 const sameTree = (overrides = {}) => ({
@@ -176,6 +177,7 @@ test("merge queue: the tree a green pull-request run tested skips the heavy jobs
   const r = await queue(sameTree());
   assert.equal(r.code, "false", r.log);
   assert.match(r.log, /https:\/\/example\.test\/run\/1/);
+  assert.equal(r.provenRun, "4242", "the green run's id, so a caller can reuse what it produced (its coverage)");
   const runs = r.seen.find((u) => u.startsWith("/repos/krizaka/x/actions/runs?"));
   assert.match(runs, new RegExp(`head_sha=${PR_HEAD}`));
   assert.match(runs, /event=pull_request/);
@@ -234,4 +236,12 @@ test("the gate never asks for a token scope a caller does not already grant (no 
   // Listing a pull request's runs needs no `actions: read` on a public repository; a private one answers 403 and runs in full.
   assert.deepEqual([...yml.matchAll(/^( *)permissions:.*$/gm)].map((m) => m[0]), ["permissions:"]);
   assert.match(yml, /^permissions:\n {2}contents: read\n\n/m);
+});
+
+test("proven-run is empty whenever the heavy jobs run or skip for another reason (a caller never reuses a run by mistake)", async () => {
+  const differentTree = await queue(sameTree({ [`/repos/krizaka/x/git/commits/${QUEUED}`]: { tree: { sha: "f".repeat(40) } } }));
+  const docsOnly = await queue(sameTree({ "/repos/krizaka/x/actions/runs": 403, [COMPARE]: { total_commits: 1, files: [{ filename: "README.md" }] } }));
+  const optOut = await queue(sameTree(), { REUSE_PR_RUN: "false" });
+  for (const r of [differentTree, docsOnly, optOut]) assert.equal(r.provenRun, "", r.log);
+  assert.match(yml, /^ {6}proven-run:\n {8}description: .+\n {8}value: \$\{\{ jobs\.changes\.outputs\.proven-run \}\}$/m);
 });

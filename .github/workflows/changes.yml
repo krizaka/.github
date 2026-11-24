@@ -30,6 +30,9 @@
 # concluded `success`. Anything else (main moved, several pull requests in the group, no green run, a cancelled or red
 # run, an API error, a private repository whose token cannot list runs) falls back to the entry's file list, as before:
 # any doubt runs everything. A caller whose queue proves more than its pull request sets `reuse-pr-run: false`.
+# `proven-run` is then the id of that run: a job the queue still owes (the SonarCloud analysis that posts its required
+# check, whose full gate needs the coverage) runs on `proven-run != ''` with that run's coverage artifact instead of the
+# light scan, which has no coverage and would fail the new-code coverage condition.
 # Security scans are not behind this gate (security-scan.yml, CodeQL): they keep running on every merge_group.
 name: changes
 
@@ -65,6 +68,9 @@ on:
       code:
         description: "'false' only when every changed file is irrelevant, or (merge queue) when a green pull-request run already tested the same tree; otherwise 'true'."
         value: ${{ jobs.changes.outputs.code }}
+      proven-run:
+        description: "Merge queue: the id of the green pull-request run that already tested this very tree (code is then 'false'); empty otherwise. A caller reuses what that run produced (its coverage for the queue's Sonar analysis: actions/download-artifact with run-id, which needs `actions: read` on the caller's job)."
+        value: ${{ jobs.changes.outputs.proven-run }}
 
 permissions:
   contents: read
@@ -76,6 +82,7 @@ jobs:
     timeout-minutes: 5
     outputs:
       code: ${{ steps.gate.outputs.code }}
+      proven-run: ${{ steps.gate.outputs.proven-run }}
     steps:
       - id: gate
         env:
@@ -101,9 +108,9 @@ jobs:
           const env = process.env;
           const api = env.GITHUB_API_URL || "https://api.github.com";
           const repo = env.GITHUB_REPOSITORY;
-          const done = (code, why) => {
+          const done = (code, why, provenRun = "") => {
             console.log(`code=${code} (${why})`);
-            if (env.GITHUB_OUTPUT) appendFileSync(env.GITHUB_OUTPUT, `code=${code}\n`);
+            if (env.GITHUB_OUTPUT) appendFileSync(env.GITHUB_OUTPUT, `code=${code}\nproven-run=${provenRun}\n`);
             process.exit(0);
           };
 
@@ -129,7 +136,7 @@ jobs:
             const { workflow_runs: runs } = await get(`/repos/${repo}/actions/runs?head_sha=${head}&event=pull_request&status=success&per_page=100`);
             const green = runs.find((r) => r.path === workflow && r.head_sha === head && r.event === "pull_request" && r.conclusion === "success");
             if (!green) return { why: `no green ${workflow} run on #${pr}'s head ${head}` };
-            return { run: green.html_url, why: `tree ${queued} already proved green on #${pr} by ${green.html_url}: the heavy jobs are not run again` };
+            return { run: String(green.id), why: `tree ${queued} already proved green on #${pr} by ${green.html_url}: the heavy jobs are not run again` };
           }
 
           try {
@@ -151,7 +158,7 @@ jobs:
             } else if (env.EVENT === "merge_group" && env.MQ_BASE) {
               if (env.REUSE_PR_RUN !== "false") {
                 const proof = await provenRun().catch((error) => ({ why: `proof failed: ${error.message}` }));
-                if (proof.run) done("false", proof.why);
+                if (proof.run) done("false", proof.why, proof.run);
                 console.log(`full queue run: ${proof.why}`);
               }
               // The merge queue's branch: what this entry adds on top of the base it was built on.
