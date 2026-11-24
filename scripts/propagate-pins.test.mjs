@@ -232,3 +232,12 @@ test("movePins grants the asked scopes in the files whose pins moved, read from 
   assert.equal(movePins(root, NEW, ".github", readCallee).length, 1);
   assert.match(readFileSync(file, "utf8"), new RegExp(`node-ci.yml@${NEW}[^]*actions: read`));
 });
+
+test("movePins reads the callee from this checkout: the real node-ci.yml asks actions: read, so its callers get it", () => {
+  const root = mkdtempSync(join(tmpdir(), "pins-real-"));
+  mkdirSync(join(root, ".github/workflows"), { recursive: true });
+  const file = join(root, ".github/workflows/ci.yml");
+  writeFileSync(file, callerOf("    permissions:\n      contents: read\n").replace(NEW, OLD));
+  movePins(root, NEW);
+  assert.match(readFileSync(file, "utf8"), /actions: read {2}# asked by node-ci\.yml/);
+});

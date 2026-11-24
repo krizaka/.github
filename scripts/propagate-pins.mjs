@@ -57,6 +57,19 @@ const LEVEL = { none: 0, read: 1, write: 2 };
 const CALL = /^ {4}uses:\s*krizaka\/\.github\/\.github\/workflows\/([\w.-]+\.ya?ml)@/;
 const ROW = /^ {6}([\w-]+):\s*(none|read|write)\b/;
 
+/** The `permissions:` rows starting at line `from`: { rows: { scope: level }, end } (`end` the first line that is not a row). */
+function rowsAfter(lines, from) {
+  const rows = {};
+  let end = from;
+  let row = ROW.exec(lines[end] ?? "");
+  while (row) {
+    rows[row[1]] = row[2];
+    end += 1;
+    row = ROW.exec(lines[end] ?? "");
+  }
+  return { rows, end };
+}
+
 /** The caller jobs of a workflow's lines: [{ file, rows: { scope: level }, end }], `end` the line after the job's own `permissions:` rows. */
 function callerBlocks(lines) {
   const out = [];
@@ -66,13 +79,7 @@ function callerBlocks(lines) {
     if (!job) continue;
     const call = CALL.exec(lines[i]);
     if (call) job.file = call[1];
-    if (/^ {4}permissions:\s*(#.*)?$/.test(lines[i])) {
-      job.rows = {};
-      for (job.end = i + 1; ROW.test(lines[job.end] ?? ""); job.end++) {
-        const [, scope, level] = ROW.exec(lines[job.end]);
-        job.rows[scope] = level;
-      }
-    }
+    if (/^ {4}permissions:\s*(#.*)?$/.test(lines[i])) Object.assign(job, rowsAfter(lines, i + 1));
     if (job.file && job.rows && !out.includes(job)) out.push(job);
   }
   return out;
@@ -90,7 +97,7 @@ export function grantAskedScopes(text, readCallee) {
     const callee = readCallee(job.file);
     if (!callee) continue;
     const missing = Object.entries(askedBy(callee)).filter(([scope, level]) => (LEVEL[job.rows[scope]] ?? 0) < LEVEL[level]);
-    const rows = missing.filter(([scope]) => !(scope in job.rows)).map(([scope, level]) => `      ${scope}: ${level}  # asked by ${job.file} (propagate-pins)`);
+    const rows = missing.filter(([scope]) => !Object.hasOwn(job.rows, scope)).map(([scope, level]) => `      ${scope}: ${level}  # asked by ${job.file} (propagate-pins)`);
     lines.splice(job.end, 0, ...rows);
   }
   return lines.join("\n");
