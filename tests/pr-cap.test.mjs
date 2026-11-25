@@ -9,7 +9,7 @@ const lane = (name) => [{ name: `lane:${name}` }];
 const pr = (number, extra = {}) => ({ number, user: { login: "someone" }, labels: lane("platform"), title: "feat: x", head: { ref: `feat/${number}` }, created_at: "2026-10-20T00:00:00Z", ...extra });
 const open = (n, extra = {}) => Array.from({ length: n }, (_, i) => pr(i + 1, extra));
 
-test("the rules come from policy.json: five per lane, fix(main) exempt", () => assert.deepEqual(rulesFromPolicy(), RULES));
+test("the rules come from policy.json: eight per lane during agents 1.1, fix(main) exempt", () => assert.deepEqual(rulesFromPolicy(), { cap: 8, fixMainExempt: true }));
 
 test("a PR with a lane label counts in that lane; the bot and the unlabelled have their own", () => {
   assert.equal(laneOf(pr(1, { labels: lane("verikora") })), "verikora");
