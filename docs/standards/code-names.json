@@ -1,0 +1,368 @@
+{
+  "$schema": "./code-names.schema.json",
+  "version": "1.0.0",
+  "terms": [
+    {
+      "term": "orazaka",
+      "replacement": "sovkora",
+      "brand": "Sovkora",
+      "detect": "orazaka",
+      "forms": [
+        {
+          "kind": "java-package",
+          "regex": "com\\.krizaka\\.orazaka(?![A-Za-z0-9])",
+          "to": "com.krizaka.sovkora"
+        },
+        {
+          "kind": "npm",
+          "regex": "@krizaka/orazaka-",
+          "to": "@krizaka/sovkora-"
+        },
+        {
+          "kind": "repo-url",
+          "regex": "krizaka/orazaka(?![A-Za-z0-9])",
+          "to": "krizaka/sovkora",
+          "resolve": "github"
+        },
+        {
+          "kind": "env",
+          "regex": "(?<![A-Za-z0-9])ORAZAKA_",
+          "flags": "",
+          "to": "sovkora_"
+        },
+        {
+          "kind": "env",
+          "regex": "_ORAZAKA(?=_|$)",
+          "flags": "",
+          "to": "_sovkora"
+        },
+        {
+          "kind": "database",
+          "regex": "orazaka(_[a-z]+)?_db(?![A-Za-z0-9])",
+          "to": "sovkora$1_db"
+        },
+        {
+          "kind": "database",
+          "regex": "orazaka_app(?![A-Za-z0-9])",
+          "to": "sovkora_app"
+        },
+        {
+          "kind": "amqp",
+          "regex": "orazaka[._](jobs|events|dlx)(?![A-Za-z0-9])",
+          "to": "sovkora.$1"
+        },
+        {
+          "kind": "capability",
+          "regex": "orazaka\\.(core|validation|screening|automation|studio|photo|safety|message|identity|echo|code|data)\\.",
+          "to": "sovkora.$1."
+        },
+        {
+          "kind": "pack-schema",
+          "regex": "orazaka\\.dev/",
+          "to": "sovkora.dev/"
+        },
+        {
+          "kind": "host",
+          "regex": "(?<![A-Za-z0-9])((?:[a-z0-9-]+\\.)*)orazaka\\.com(?![A-Za-z0-9])",
+          "to": "$1sovkora.com"
+        },
+        {
+          "kind": "spring-key",
+          "regex": "(?<![A-Za-z0-9-])orazaka\\.(?=[a-z])",
+          "to": "sovkora."
+        },
+        {
+          "kind": "table",
+          "regex": "(?<![A-Za-z0-9])orazaka_(?=[a-z])",
+          "to": "sovkora_"
+        },
+        {
+          "kind": "header",
+          "regex": "(?<=X-)orazaka-(?=[a-z])",
+          "to": "sovkora-"
+        },
+        {
+          "kind": "module",
+          "regex": "(?<![A-Za-z0-9])orazaka-(?=[a-z])",
+          "to": "sovkora-"
+        },
+        {
+          "kind": "word",
+          "regex": "(?<![A-Za-z0-9])orazaka(?![A-Za-z0-9])",
+          "to": "sovkora"
+        }
+      ]
+    },
+    {
+      "term": "yomizaka",
+      "replacement": "verikora",
+      "brand": "Verikora",
+      "detect": "yomizaka",
+      "forms": [
+        {
+          "kind": "java-package",
+          "regex": "com\\.krizaka\\.yomizaka(?![A-Za-z0-9])",
+          "to": "com.krizaka.verikora"
+        },
+        {
+          "kind": "npm",
+          "regex": "@krizaka/yomizaka-",
+          "to": "@krizaka/verikora-"
+        },
+        {
+          "kind": "repo-url",
+          "regex": "krizaka/yomizaka(?![A-Za-z0-9])",
+          "to": "krizaka/verikora",
+          "resolve": "github"
+        },
+        {
+          "kind": "env",
+          "regex": "(?<![A-Za-z0-9])YOMIZAKA_",
+          "flags": "",
+          "to": "verikora_"
+        },
+        {
+          "kind": "env",
+          "regex": "_YOMIZAKA(?=_|$)",
+          "flags": "",
+          "to": "_verikora"
+        },
+        {
+          "kind": "database",
+          "regex": "yomizaka(_[a-z]+)?_db(?![A-Za-z0-9])",
+          "to": "verikora$1_db"
+        },
+        {
+          "kind": "database",
+          "regex": "yomizaka_app(?![A-Za-z0-9])",
+          "to": "verikora_app"
+        },
+        {
+          "kind": "amqp",
+          "regex": "yomizaka[._](jobs|events|dlx)(?![A-Za-z0-9])",
+          "to": "verikora.$1"
+        },
+        {
+          "kind": "pack-schema",
+          "regex": "yomizaka\\.dev/",
+          "to": "verikora.dev/"
+        },
+        {
+          "kind": "host",
+          "regex": "(?<![A-Za-z0-9])((?:[a-z0-9-]+\\.)*)yomizaka\\.com(?![A-Za-z0-9])",
+          "to": "$1verikora.com"
+        },
+        {
+          "kind": "spring-key",
+          "regex": "(?<![A-Za-z0-9-])yomizaka\\.(?=[a-z])",
+          "to": "verikora."
+        },
+        {
+          "kind": "table",
+          "regex": "(?<![A-Za-z0-9])yomizaka_(?=[a-z])",
+          "to": "verikora_"
+        },
+        {
+          "kind": "header",
+          "regex": "(?<=X-)yomizaka-(?=[a-z])",
+          "to": "verikora-"
+        },
+        {
+          "kind": "module",
+          "regex": "(?<![A-Za-z0-9])yomizaka-(?=[a-z])",
+          "to": "verikora-"
+        },
+        {
+          "kind": "word",
+          "regex": "(?<![A-Za-z0-9])yomizaka(?![A-Za-z0-9])",
+          "to": "verikora"
+        }
+      ]
+    },
+    {
+      "term": "akinaza",
+      "replacement": "folioviv",
+      "brand": "Folioviv",
+      "detect": "akinaza",
+      "forms": [
+        {
+          "kind": "java-package",
+          "regex": "com\\.krizaka\\.akinaza(?![A-Za-z0-9])",
+          "to": "com.krizaka.folioviv"
+        },
+        {
+          "kind": "npm",
+          "regex": "@krizaka/akinaza-",
+          "to": "@krizaka/folioviv-"
+        },
+        {
+          "kind": "repo-url",
+          "regex": "krizaka/akinaza(?![A-Za-z0-9])",
+          "to": "krizaka/folioviv",
+          "resolve": "github"
+        },
+        {
+          "kind": "env",
+          "regex": "(?<![A-Za-z0-9])AKINAZA_",
+          "flags": "",
+          "to": "folioviv_"
+        },
+        {
+          "kind": "env",
+          "regex": "_AKINAZA(?=_|$)",
+          "flags": "",
+          "to": "_folioviv"
+        },
+        {
+          "kind": "database",
+          "regex": "akinaza(_[a-z]+)?_db(?![A-Za-z0-9])",
+          "to": "folioviv$1_db"
+        },
+        {
+          "kind": "database",
+          "regex": "akinaza_app(?![A-Za-z0-9])",
+          "to": "folioviv_app"
+        },
+        {
+          "kind": "amqp",
+          "regex": "akinaza[._](jobs|events|dlx)(?![A-Za-z0-9])",
+          "to": "folioviv.$1"
+        },
+        {
+          "kind": "pack-schema",
+          "regex": "akinaza\\.dev/",
+          "to": "folioviv.dev/"
+        },
+        {
+          "kind": "host",
+          "regex": "(?<![A-Za-z0-9])((?:[a-z0-9-]+\\.)*)akinaza\\.com(?![A-Za-z0-9])",
+          "to": "$1folioviv.com"
+        },
+        {
+          "kind": "spring-key",
+          "regex": "(?<![A-Za-z0-9-])akinaza\\.(?=[a-z])",
+          "to": "folioviv."
+        },
+        {
+          "kind": "table",
+          "regex": "(?<![A-Za-z0-9])akinaza_(?=[a-z])",
+          "to": "folioviv_"
+        },
+        {
+          "kind": "header",
+          "regex": "(?<=X-)akinaza-(?=[a-z])",
+          "to": "folioviv-"
+        },
+        {
+          "kind": "module",
+          "regex": "(?<![A-Za-z0-9])akinaza-(?=[a-z])",
+          "to": "folioviv-"
+        },
+        {
+          "kind": "word",
+          "regex": "(?<![A-Za-z0-9])akinaza(?![A-Za-z0-9])",
+          "to": "folioviv"
+        }
+      ]
+    },
+    {
+      "term": "kachizaka",
+      "replacement": "kridoc",
+      "brand": "Kridoc",
+      "detect": "kachizaka",
+      "forms": [
+        {
+          "kind": "java-package",
+          "regex": "com\\.krizaka\\.kachizaka(?![A-Za-z0-9])",
+          "to": "com.krizaka.kridoc"
+        },
+        {
+          "kind": "npm",
+          "regex": "@krizaka/kachizaka-",
+          "to": "@krizaka/kridoc-"
+        },
+        {
+          "kind": "repo-url",
+          "regex": "krizaka/kachizaka(?![A-Za-z0-9])",
+          "to": "krizaka/kridoc",
+          "resolve": "github"
+        },
+        {
+          "kind": "env",
+          "regex": "(?<![A-Za-z0-9])KACHIZAKA_",
+          "flags": "",
+          "to": "kridoc_"
+        },
+        {
+          "kind": "env",
+          "regex": "_KACHIZAKA(?=_|$)",
+          "flags": "",
+          "to": "_kridoc"
+        },
+        {
+          "kind": "database",
+          "regex": "kachizaka(_[a-z]+)?_db(?![A-Za-z0-9])",
+          "to": "kridoc$1_db"
+        },
+        {
+          "kind": "database",
+          "regex": "kachizaka_app(?![A-Za-z0-9])",
+          "to": "kridoc_app"
+        },
+        {
+          "kind": "amqp",
+          "regex": "kachizaka[._](jobs|events|dlx)(?![A-Za-z0-9])",
+          "to": "kridoc.$1"
+        },
+        {
+          "kind": "pack-schema",
+          "regex": "kachizaka\\.dev/",
+          "to": "kridoc.dev/"
+        },
+        {
+          "kind": "host",
+          "regex": "(?<![A-Za-z0-9])((?:[a-z0-9-]+\\.)*)kachizaka\\.com(?![A-Za-z0-9])",
+          "to": "$1kridoc.com"
+        },
+        {
+          "kind": "spring-key",
+          "regex": "(?<![A-Za-z0-9-])kachizaka\\.(?=[a-z])",
+          "to": "kridoc."
+        },
+        {
+          "kind": "table",
+          "regex": "(?<![A-Za-z0-9])kachizaka_(?=[a-z])",
+          "to": "kridoc_"
+        },
+        {
+          "kind": "header",
+          "regex": "(?<=X-)kachizaka-(?=[a-z])",
+          "to": "kridoc-"
+        },
+        {
+          "kind": "module",
+          "regex": "(?<![A-Za-z0-9])kachizaka-(?=[a-z])",
+          "to": "kridoc-"
+        },
+        {
+          "kind": "word",
+          "regex": "(?<![A-Za-z0-9])kachizaka(?![A-Za-z0-9])",
+          "to": "kridoc"
+        }
+      ]
+    }
+  ],
+  "history": [
+    "**/CHANGELOG*.md",
+    "infra/migrations/*.sql",
+    "**/db/migration/V1__*.sql",
+    "docs/standards/renames-2026-11-06.md",
+    "docs/standards/code-names.json",
+    "scripts/code-names/*.test.mjs",
+    "tests/code-names.test.mjs",
+    ".github:scripts/repository-names.test.mjs",
+    ".github:scripts/commit-identities.json",
+    ".github:tests/check-trailers.test.mjs",
+    ".github:profile/README.md"
+  ]
+}
