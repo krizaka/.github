@@ -1,4 +1,4 @@
-// The retired code names, read from standards/code-names.json (krizaka-internal#4284): pure functions used by the check, the sweep and the
+// The retired code names, read from docs/standards/code-names.json (krizaka-internal#4284): pure functions used by the check, the sweep and the
 // codemod. `findHits(text, path)` lists the places a retired name is written; `replace(text, {kinds})` turns each into its commercial name.
 // Dependency-free: the validator covers only the schema keywords below, and a keyword it does not know is itself an error.
 import { readFileSync } from "node:fs";
@@ -6,8 +6,8 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
-export const LIST_FILE = join(here, "..", "..", "standards", "code-names.json");
-export const SCHEMA_FILE = join(here, "..", "..", "standards", "code-names.schema.json");
+export const LIST_FILE = join(here, "..", "..", "docs", "standards", "code-names.json");
+export const SCHEMA_FILE = join(here, "..", "..", "docs", "standards", "code-names.schema.json");
 
 const KNOWN = new Set(["$schema", "$id", "title", "description", "type", "properties", "required", "additionalProperties", "items", "minItems", "minLength", "pattern", "enum"]);
 const TYPES = {

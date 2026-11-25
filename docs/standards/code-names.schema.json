@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/krizaka/.github/blob/main/standards/code-names.schema.json",
+  "$id": "https://github.com/krizaka/.github/blob/main/docs/standards/code-names.schema.json",
   "title": "code-names.json: the retired code names, one list (krizaka-internal#4284)",
   "description": "Each term is a retired code name with its replacement, its detect regex and its ordered compound forms. A hit of a term outside a history path is a bug. Read by scripts/code-names/lib.mjs, which refuses a list that does not match this schema.",
   "type": "object",

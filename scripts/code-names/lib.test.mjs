@@ -69,7 +69,7 @@ test("history paths are the only exceptions and report nothing", () => {
   assert.deepEqual(findHits("orazaka", "CHANGELOG.md", { list }), []);
   assert.deepEqual(findHits("orazaka", "packages/a/CHANGELOG-1.md", { list }), []);
   assert.deepEqual(findHits("orazaka", "infra/migrations/2026-01-01-x.sql", { list }), []);
-  assert.deepEqual(findHits("orazaka", "standards/code-names.json", { list }), []);
+  assert.deepEqual(findHits("orazaka", "docs/standards/code-names.json", { list }), []);
   assert.deepEqual(findHits("orazaka", "scripts/code-names/lib.test.mjs", { list }), []);
   assert.equal(findHits("orazaka", "src/a.ts", { list }).length, 1);
   assert.equal(isHistory("src/CHANGELOG.md.bak", { list }), false);

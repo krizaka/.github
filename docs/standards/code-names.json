@@ -357,7 +357,7 @@
     "infra/migrations/*.sql",
     "**/db/migration/V1__*.sql",
     "docs/standards/renames-2026-11-06.md",
-    "standards/code-names.json",
+    "docs/standards/code-names.json",
     "scripts/code-names/*.test.mjs",
     "tests/code-names.test.mjs",
     ".github:scripts/repository-names.test.mjs",
