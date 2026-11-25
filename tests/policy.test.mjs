@@ -16,9 +16,9 @@ const write = (value) => {
 };
 const withTrain = (patch) => ({ ...good, train: { ...good.train, ...patch } });
 
-test("the committed policy is valid and says five per lane per repository, fix(main) exempt", () => {
+test("the committed policy is valid and says eight per lane per repository during agents 1.1, fix(main) exempt", () => {
   const policy = loadPolicy();
-  assert.equal(getValue(policy, "train.prCapPerLane"), 5);
+  assert.equal(getValue(policy, "train.prCapPerLane"), 8);
   assert.equal(getValue(policy, "train.capScope"), "lane-per-repository");
   assert.equal(getValue(policy, "train.fixMainExempt"), true);
 });
@@ -52,7 +52,7 @@ test("loadPolicy fails closed: a missing file, a file that is not JSON, an inval
   assert.throws(() => loadPolicy(join(dir, "absent.json")), /cannot read/);
   assert.throws(() => loadPolicy(write("{ nope")), /cannot read/);
   assert.throws(() => loadPolicy(write(withTrain({ prCapPerLane: 99 }))), /is invalid:\n- .*maximum 10/);
-  assert.equal(loadPolicy(write(good)).train.prCapPerLane, 5);
+  assert.equal(loadPolicy(write(good)).train.prCapPerLane, 8);
 });
 
 test("a schema keyword the reader does not check is itself an error, never skipped", () => {
@@ -66,7 +66,7 @@ test("getValue names the missing path", () => {
 
 test("the CLI prints a value and exits 1 on an unknown path", () => {
   const cli = join(import.meta.dirname, "..", "scripts", "policy.mjs");
-  assert.equal(execFileSync("node", [cli, "get", "train.prCapPerLane"], { encoding: "utf8" }).trim(), "5");
+  assert.equal(execFileSync("node", [cli, "get", "train.prCapPerLane"], { encoding: "utf8" }).trim(), "8");
   assert.throws(() => execFileSync("node", [cli, "get", "train.nope"], { stdio: "pipe" }), /status 1|Command failed/);
 });
 
