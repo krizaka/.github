@@ -40,7 +40,7 @@ test("a `deletion-explained:` line lets it through; an empty one does not", () =
 
 test("end to end on a real repository: a resolution that drops main's lines fails, then passes once explained", () => {
   const dir = mkdtempSync(join(tmpdir(), "mrg-"));
-  const id = ["-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false"];
+  const id = ["-c", "user.name=krizaka-agents[bot]", "-c", "user.email=345578919+krizaka-agents[bot]@users.noreply.github.com", "-c", "commit.gpgsign=false"];
   const g = (...a) => execFileSync("git", ["-C", dir, ...id, ...a], { encoding: "utf8" });
   g("init", "-q", "-b", "main");
   mkdirSync(join(dir, "docs"));
