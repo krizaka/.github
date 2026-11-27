@@ -120,10 +120,11 @@ jobs:
     name: Changed files
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/changes.yml@10140f24680f66980862a3d90978c016942f74e8 # main
+    uses: krizaka/.github/.github/workflows/changes.yml@d0c5710d207b411f3e43e1d4069c48961556f75d # main (full-on-default-push, krizaka-internal#4310)
     with:
       relevant: ${{ inputs.relevant }}
       ignore: ${{ inputs.ignore }}
+      full-on-default-push: ${{ inputs.sonar }}
 
   verify:
     name: Verify
