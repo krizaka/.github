@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { buildArchitecture } from "../lib/assemble.mjs";
 import { latestTags, versionParts } from "../lib/facts.mjs";
+import { IGNORED_SOURCES, machineFactsOf } from "../lib/machine.mjs";
 import { systemsDsl, viewsDsl } from "../lib/model.mjs";
 import { adrUrl, issueUrl } from "../lib/views.mjs";
 import { SOVKORA_C4, org } from "./fixtures.mjs";
@@ -138,6 +139,15 @@ const WEB_MACHINE = {
   "tools/runner.py": "# LaunchAgent actions.runner.acme.acme-mac-runner\n",
   "tools/credential-rotate": "#!/usr/bin/env python3\n",
   "tools/credential-rotate.test.py": 'DB = "ignored-in-tests.db"\n',
+  ".gitignore": "node_modules\nThumbs.db\nehthumbs.db\n/cache/ignored.db\nIGNORED_DATABASE_URL\n",
+  ".dockerignore": "Thumbs.db\n",
+  "test/fixtures/probes.mjs": 'export const probe = { db: "p.db" };\n',
+  "scripts/migrate.mjs": "byDb.set(p.db, s.db); self.db = options.db.notify(ctx.db);\n",
+  "e2e/pom.xml": "<identity.db.url>${VERIKORA_DATABASE_URL}</identity.db.url>\n",
+  "docs/architecture/diagram.c4": "model { a.web -> a.db 'SQL' }\n",
+  "lib/diagram.json": JSON.stringify({ tool: { name: "@krizaka/architecture", likec4: "1.60.0" }, check: { elements: ["a.db"] } }),
+  "README.md": "Example: `docs-example.db` and DOCS_DATABASE_URL\n",
+  "tools/proof.py": 'env["OPS_DB"] = os.path.join(tmp, "proof-events.db")\nenv2 = os.path.join(sandbox, "replay-events.db")\n',
 };
 const withMachine = (f) => Object.assign(f["sovkora-web"], WEB_MACHINE);
 const factNames = (arch, repo) => verdict(arch, repo).items.filter((i) => i.fact).map((i) => `${i.fact.kind}:${i.fact.name}`);
@@ -159,4 +169,17 @@ test("machine facts: once the switch is on they fail the verdict; a covers metad
   const covered = await buildArchitecture({ ...org((f) => { withMachine(f); f.sovkora["docs/architecture/sovkora.c4"] = model; }), machineBlocking: true });
   assert.deepEqual(factNames(covered, "sovkora-web"), []);
   assert.equal(verdict(covered, "sovkora-web").status, "pass");
+});
+
+test("machine facts: real quoted, path-prefixed and backticked stores stay detected while ignored sources are a closed set", () => {
+  assert.ok(Object.isFrozen(IGNORED_SOURCES) && IGNORED_SOURCES.length > 0);
+  const facts = machineFactsOf(new Map([
+    [".gitignore", "Thumbs.db\n/var/ignored.db\n"],
+    ["test/fixtures/sample.mjs", 'export const file = "p.db";\n'],
+    ["lib/config.json", '{"db": "{home}/.local/operations.db"}\n'],
+    ["lib/cache.py", '"""Cache beside main (`operations-etag.db`)."""\n'],
+    ["lib/store.ts", 'open("tasks.sqlite3");\n'],
+    ["lib/bad-json.json", '{"tool": {"likec4": "1.60.0"}, not valid json\n'],
+  ]));
+  assert.deepEqual(facts.map((f) => `${f.kind}:${f.name}`), ["store:operations-etag.db", "store:operations.db", "store:tasks.sqlite3"]);
 });
