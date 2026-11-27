@@ -275,6 +275,7 @@ jobs:
       relevant: ${{ inputs.relevant }}
       ignore: ${{ inputs.ignore }}
       release-files: ${{ inputs.release-files }}
+      full-on-default-push: ${{ inputs.sonar }}
 
   docker-changes:
     name: Changed Docker files
