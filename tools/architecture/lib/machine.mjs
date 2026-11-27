@@ -10,11 +10,13 @@ export const MACHINE_BLOCKING = false;
 const TEST_DIR = /(?:^|\/)(?:node_modules|fixtures?|tests?|__tests__)\//;
 const TEST_FILE = /\.(?:test|spec)\.[a-z]+$/;
 const LOCK_PATH = /(?:(?:^|\/)package-lock\.json|\.lock)$/;
-/** Ignore files: they list file names to leave out, they run nothing. The closed set of sources no fact is read from, with the test paths and lockfiles. */
 const IGNORE_FILE = /(?:^|\/)\.[\w-]*ignore$/;
-const IGNORED_SOURCES = [TEST_DIR, TEST_FILE, LOCK_PATH, IGNORE_FILE];
-const isSkipped = (path) => IGNORED_SOURCES.some((source) => source.test(path));
-const STORE_FILE = /(?<![\w.-])([A-Za-z][\w.-]*\.(?:db|sqlite3?))\b/g;
+const MODEL_FILE = /\.c4$/;
+const DOC_FILE = /\.mdx?$/;
+/** The closed set of file paths no machine fact is read from: tests, lockfiles, ignore files, models and prose docs. */
+export const IGNORED_SOURCES = Object.freeze([TEST_DIR, TEST_FILE, LOCK_PATH, IGNORE_FILE, MODEL_FILE, DOC_FILE]);
+/** A data file name in a string literal or path, never a bare property access or dotted identifier. */
+const STORE_FILE = /(?<=["'`/])([A-Za-z][\w-]*\.(?:db|sqlite3?))(?![\w.-])/g;
 const DATABASE_URL = /\b((?:[A-Z][A-Z0-9]*_)*(?:DATABASE|DB)_URL)\b/g;
 const LAUNCH_LABEL = /\b(com\.krizaka\.[a-z][a-z0-9-]*)\.plist\b/g;
 const RUNNER_LABEL = /\b(actions\.runner\.[\w.-]*\w)/g;
@@ -22,14 +24,39 @@ const RUNNER_LABEL = /\b(actions\.runner\.[\w.-]*\w)/g;
 const ROTATION_TOOL = /^tools\/(credential[-_](?:age|rotate))(?:\.(?:py|sh|mjs))?$/;
 /** A scratch store of a test helper (`ops-test.db`, `test-events.db`). */
 const TEST_STORE = /(?:^|[-_.])tests?[-_.]/;
+/** A line building a throw-away file inside a temporary directory. */
+const SCRATCH_LINE = /\b(?:mkdtemp|TemporaryDirectory)\b|\bjoin\(\s*(?:tmp|tmpdir|tempdir|sandbox)\b/i;
 const INSTALL_FILE = /(?:^|\/)install\.json$/;
 
 const byString = (a, b) => Number(a > b) - Number(a < b);
 const fact = (kind, name, path, detail = "") => ({ kind, name, path, detail });
 const stripLabel = (label) => label.replace(/^com\.krizaka\./, "");
 
+/** Compiled LikeC4 diagram JSON (e.g. from `@krizaka/architecture`): its element ids are diagram nodes, not data files. */
+function isDiagramJson(path, text) {
+  if (!path.endsWith(".json") || !text.includes('"likec4"')) {
+    return false;
+  }
+  try {
+    const data = JSON.parse(text);
+    return typeof data?.tool?.likec4 === "string";
+  } catch {
+    return false;
+  }
+}
+
+const isSkipped = (path, text) => IGNORED_SOURCES.some((source) => source.test(path)) || isDiagramJson(path, text);
+
 function scan(text, pattern) {
   return [...text.matchAll(pattern)].map((m) => m[1]);
+}
+
+function scanStores(text) {
+  return text
+    .split("\n")
+    .filter((line) => !SCRATCH_LINE.test(line))
+    .flatMap((line) => scan(line, STORE_FILE))
+    .filter((name) => !TEST_STORE.test(name));
 }
 
 function installFacts(path, text) {
@@ -49,7 +76,7 @@ function installFacts(path, text) {
 }
 
 function patternFacts(path, text) {
-  const stores = scan(text, STORE_FILE).filter((n) => !TEST_STORE.test(n)).map((n) => fact("store", n, path, "data file"));
+  const stores = scanStores(text).map((n) => fact("store", n, path, "data file"));
   const databases = scan(text, DATABASE_URL).map((n) => fact("database", n, path, "external database connection"));
   const agents = scan(text, LAUNCH_LABEL).map((l) => fact("service", stripLabel(l), path, `LaunchAgent ${l}`));
   const runners = scan(text, RUNNER_LABEL).map((l) => fact("service", l, path, "self-hosted runner LaunchAgent"));
@@ -65,7 +92,7 @@ function rotationFact(path) {
 export function machineFactsOf(files) {
   const found = new Map();
   for (const [path, text] of files) {
-    if (isSkipped(path)) continue;
+    if (isSkipped(path, text)) continue;
     const facts = [...(INSTALL_FILE.test(path) ? installFacts(path, text) : []), ...patternFacts(path, text), ...rotationFact(path)];
     for (const f of facts) if (!found.has(`${f.kind}:${f.name}`)) found.set(`${f.kind}:${f.name}`, f);
   }
